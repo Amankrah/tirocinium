@@ -18,9 +18,10 @@ PDF import upload handshake and the decode worker (born-digital and scanned page
 to cached per-page markdown) built against a PdfDecoder seam, with the real
 pdfium member deferred to a follow-up. The Phase 3 frontend half (3.5) is in
 progress: the upload flow (capture, pre-checks, orchestration, SSE processing)
-is built and its journeys written and skip-gated; the transcription preview and
-the not-yet-wired end-to-end Playwright/Lighthouse/axe CI gate remain the
-frontend's to close.
+is built end to end (capture, pre-checks, orchestration, SSE processing, and the
+transcription preview against the Stage 5 endpoint) with its journeys written and
+skip-gated; only the not-yet-wired end-to-end Playwright/Lighthouse/axe CI gate
+remains the frontend's to close, and that is a joint `ci.yml` edit.
 
 ## Running the suites
 
@@ -73,9 +74,10 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (125 Vitest tests: the token contract with its computed-contrast
+Web suite (132 Vitest tests: the token contract with its computed-contrast
 assertion, the primitives, the API clients, and the upload flow's pre-checks,
-orchestration controller, and SSE processing model), plus lint, typecheck, and
+orchestration controller, SSE processing model, and transcription preview), plus
+lint, typecheck, and
 build, from `apps/web` (typecheck needs a build first on a fresh checkout,
 decision 0005). The Playwright journeys run separately (`pnpm test:e2e`, needs
 `playwright install chromium` once); journeys one to three are skip-gated on a
@@ -242,13 +244,17 @@ Phase 3, in progress:
   is reached at `/course/{id}/upload?variant={id}`, seed-gated because exposing a
   variant is Phase 5. Playwright journeys two (happy path, needs the worker) and
   three (client blur reject and retake, needs only a seat) are written and
-  skip-gated like journey one; their PNG page fixtures are built in-test. Not
-  closed: the transcription preview beside the thumbnails waits on a backend read
-  endpoint for the recognized markdown and per-region spans (GET submission does
-  not return them yet); and the whole Phase 2 to 3 Playwright/Lighthouse/axe gate
-  is still not wired into CI (the `web` job runs only lint, test, build,
-  typecheck), so the LCP budget against the guide's 1.8 s mobile target has never
-  actually been enforced there.
+  skip-gated like journey one; their PNG page fixtures are built in-test. The
+  transcription preview is done against the Stage 5 read endpoint (decision 0023):
+  on processed it renders the recognized markdown beside the thumbnails with
+  low-confidence region spans surfaced, lazy-loaded via next/dynamic so
+  react-markdown and KaTeX stay out of the route's initial JS (holds at 112 kB),
+  and journey two asserts it. The one thing left in 3.5 is CI enforcement: the
+  whole Phase 2 to 3 Playwright/Lighthouse/axe gate is still not wired into the
+  `web` job (which runs only lint, test, build, typecheck). Lighthouse is ready
+  to land green (decision 0022 made LCP a warning, the other three budgets stay
+  blocking and pass); the remaining `ci.yml` edit is a joint one with the backend
+  (handoffs in docs/handoffs/).
 
 Phase 4, in progress:
 
