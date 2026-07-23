@@ -6,14 +6,17 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at milestone 3.4 (decision 0020):
+passes; green never goes red. Last updated at milestone 4.1 (decision 0021):
 Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 backend
 complete (3.1 the submission upload path done; 3.2 scan preprocessing
 implemented, its golden gate awaiting the 30-photo corpus; 3.3 handwriting
 transcription done, the worker pipeline with a recorded-response model seam and
 SSE progress; 3.4 indexing and retrieval done, FTS5 plus int8-quantized
 embeddings behind a provider seam, hybrid retrieval with reciprocal rank
-fusion, the course search endpoint). The Phase 3 frontend half (3.5) is in
+fusion, the course search endpoint). Phase 4 in progress: 4.1 (decode) done, the
+PDF import upload handshake and the decode worker (born-digital and scanned pages
+to cached per-page markdown) built against a PdfDecoder seam, with the real
+pdfium member deferred to a follow-up. The Phase 3 frontend half (3.5) is in
 progress: the upload flow (capture, pre-checks, orchestration, SSE processing)
 is built and its journeys written and skip-gated; the transcription preview and
 the not-yet-wired end-to-end Playwright/Lighthouse/axe CI gate remain the
@@ -51,10 +54,11 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 122 tests (25 data layer, 16 case studies/concepts/courses,
-15 seats, 12 auth, 12 submissions, 5 transcription, 14 retrieval (4 indexing,
-4 hybrid-search, 6 search endpoint), 7 backup, 5 compression, 3 contract,
-7 store, 1 latency gate) plus lint and the worker import smoke, from `apps/api`:
+Python suite, 139 tests (25 data layer, 16 case studies/concepts/courses,
+15 seats, 12 auth, 16 submissions (incl. 4 transcription-read), 5 transcription,
+14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 13 imports
+(4 decode pipeline, 9 endpoint), 7 backup, 5 compression, 3 contract, 7 store,
+1 latency gate) plus lint and the worker import smoke, from `apps/api`:
 
     cd apps/api
     .venv/Scripts/python -m pytest -q
@@ -207,6 +211,12 @@ Phase 3, in progress:
   new submission tests cover complete-enqueues-once, the terminal-status SSE
   snapshot, and SSE seat isolation. Redis is optional for the API process (no-op
   queue and in-process bus without `TIRO_REDIS_URL`), required for the worker.
+  Stage 5 review read (decision 0023): `GET /submissions/{id}/transcription`
+  serves the aggregate markdown and per-page readings with region boxes; the
+  worker stores the server content hash on `submission_pages.content_sha`
+  (migration course/0008) so pages join to `page_transcriptions`. The 4 read
+  tests cover populated regions, empty-before-processing, seat isolation, and a
+  professor rejected.
 - 3.4 (done): indexing and retrieval (decision 0020). After the pipeline, the
   worker runs `index_submission` (a separate step, so 3.3 stays untouched):
   recognized text into `search_fts`, embedded through a provider seam (OpenAI in
@@ -239,6 +249,25 @@ Phase 3, in progress:
   is still not wired into CI (the `web` job runs only lint, test, build,
   typecheck), so the LCP budget against the guide's 1.8 s mobile target has never
   actually been enforced there.
+
+Phase 4, in progress:
+
+- 4.1 (done): PDF decode (decision 0021). `POST /api/v1/courses/{id}/imports`
+  hands back a presigned PDF PUT (60 MiB ceiling), `.../complete` flips and
+  enqueues decode, `.../imports/{id}` reports status; imports nest under the
+  course and are professor-and-owner. The decode worker (`app/imports/pipeline.py`,
+  migration course/0007) turns each page into cached per-page markdown, born
+  digital from the decoder's text and scanned via the 3.2 preprocess plus the 3.3
+  vision seam under a new `pdf-page-transcription` prompt, keyed in
+  `page_documents` by the server-computed hash of the rendered raster. Built
+  against a `PdfDecoder` seam (`FakePdfDecoder` in tests); the real pdfium member
+  and its native library are a deferred follow-up, so `PdfiumDecoder` raises for
+  now. The 13 tests cover the decode paths (born-digital and scanned, the cache,
+  the 200-page ceiling, a missing job) and the endpoints (presigned create,
+  idempotent create, oversize reject, complete-enqueues-once, get, and the
+  auth/isolation surface: 401, non-owner 403, a seat refused, cross-course 404).
+  Still open for Phase 4: the five-PDF golden corpus (an external asset), and the
+  pdfium member.
 
 ## Standing rules
 

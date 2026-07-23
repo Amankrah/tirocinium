@@ -228,6 +228,67 @@ export interface paths {
         patch: operations["update_concept_api_v1_courses__course_id__concepts__concept_id__patch"];
         trace?: never;
     };
+    "/api/v1/courses/{course_id}/imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Import
+         * @description Create an import job and hand back a presigned URL to PUT the PDF. The
+         *     create is idempotent: a retry with the same key returns the original job
+         *     (and a fresh URL for its key), never a duplicate.
+         */
+        post: operations["create_import_api_v1_courses__course_id__imports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/imports/{import_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Import */
+        get: operations["get_import_api_v1_courses__course_id__imports__import_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/imports/{import_id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete Import
+         * @description Signal the PDF is uploaded. Flips pending to uploaded and enqueues decode.
+         *     Naturally idempotent: completing an already-uploaded import enqueues
+         *     nothing, so a retry never doubles the work.
+         */
+        post: operations["complete_import_api_v1_courses__course_id__imports__import_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses/{course_id}/search": {
         parameters: {
             query?: never;
@@ -408,6 +469,30 @@ export interface paths {
          *     submission (404 otherwise), the same rule as every submission surface.
          */
         get: operations["submission_events_api_v1_submissions__submission_id__events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/submissions/{submission_id}/transcription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Submission Transcription
+         * @description The recognized reading of a submission for the review preview (backend
+         *     guide section 4 Stage 5): the aggregate markdown and each page's reading
+         *     with region boxes and confidence. A seat reads only its own submission (a
+         *     404 otherwise), and the scan stays the source of truth: this text is
+         *     assistive. Empty until the worker has processed the pages.
+         */
+        get: operations["get_submission_transcription_api_v1_submissions__submission_id__transcription_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -602,6 +687,39 @@ export interface components {
             /** User Id */
             user_id?: number | null;
         };
+        /** ImportCreated */
+        ImportCreated: {
+            /** Import Id */
+            import_id: number;
+            /** Status */
+            status: string;
+            /** Storage Key */
+            storage_key: string;
+            /** Upload Url */
+            upload_url: string;
+        };
+        /** ImportIn */
+        ImportIn: {
+            /**
+             * Content Type
+             * @default application/pdf
+             * @constant
+             */
+            content_type: "application/pdf";
+            /** Size Bytes */
+            size_bytes: number;
+        };
+        /** ImportOut */
+        ImportOut: {
+            /** Created At */
+            created_at: number;
+            /** Id */
+            id: number;
+            /** Page Count */
+            page_count: number | null;
+            /** Status */
+            status: string;
+        };
         /** LoginIn */
         LoginIn: {
             /**
@@ -649,6 +767,21 @@ export interface components {
             /** Storage Key */
             storage_key: string;
         };
+        /** PageReadingOut */
+        PageReadingOut: {
+            /** Confidence */
+            confidence: number | null;
+            /** Markdown */
+            markdown: string;
+            /** Page Index */
+            page_index: number;
+            /** Quality Status */
+            quality_status: string | null;
+            /** Regions */
+            regions: components["schemas"]["RegionOut"][];
+            /** Reject Reason */
+            reject_reason: string | null;
+        };
         /**
          * Problem
          * @description The error body, also referenced from route response annotations so
@@ -690,6 +823,25 @@ export interface components {
             seat_number: string;
             /** Token */
             token: string;
+        };
+        /**
+         * RegionOut
+         * @description One transcribed region with its normalised bounding box (top-left
+         *     origin, 0..1) so the client can align text to the page and highlight
+         *     low-confidence spans (backend guide section 4 Stage 5).
+         */
+        RegionOut: {
+            /** Bbox */
+            bbox: [
+                number,
+                number,
+                number,
+                number
+            ];
+            /** Confidence */
+            confidence: number;
+            /** Text */
+            text: string;
         };
         /** ReissueOut */
         ReissueOut: {
@@ -813,6 +965,25 @@ export interface components {
             submitted_at: number;
             /** Variant Id */
             variant_id: number;
+        };
+        /**
+         * TranscriptionOut
+         * @description The recognized reading of a submission: the aggregate markdown and mean
+         *     confidence, plus the per-page reading aligned to each page. A seat sees its
+         *     own work; the recognized text is the student's own handwriting, never a
+         *     solution, so returning it reveals no answer.
+         */
+        TranscriptionOut: {
+            /** Pages */
+            pages: components["schemas"]["PageReadingOut"][];
+            /** Recognition Conf */
+            recognition_conf: number | null;
+            /** Recognized Markdown */
+            recognized_markdown: string | null;
+            /** Status */
+            status: string;
+            /** Submission Id */
+            submission_id: number;
         };
         /** UploadTarget */
         UploadTarget: {
@@ -1829,6 +2000,188 @@ export interface operations {
             };
         };
     };
+    create_import_api_v1_courses__course_id__imports_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "idempotency-key"?: string | null;
+            };
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportCreated"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_import_api_v1_courses__course_id__imports__import_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                import_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    complete_import_api_v1_courses__course_id__imports__import_id__complete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                import_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     search_course_api_v1_courses__course_id__search_get: {
         parameters: {
             query: {
@@ -2315,6 +2668,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_submission_transcription_api_v1_submissions__submission_id__transcription_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                submission_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TranscriptionOut"];
                 };
             };
             /** @description Forbidden */

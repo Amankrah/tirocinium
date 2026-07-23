@@ -23,6 +23,7 @@ from pydantic import BaseModel, Field
 
 from app.auth.deps import get_shards, require_seat
 from app.auth.models import Identity
+from app.compression import decompress_text
 from app.db.shards import ShardManager
 from app.events import Event, EventBus, channel_for, get_event_bus
 from app.problems import Problem
@@ -85,6 +86,38 @@ class SubmissionOut(BaseModel):
     pages: list[PageOut]
 
 
+class RegionOut(BaseModel):
+    """One transcribed region with its normalised bounding box (top-left
+    origin, 0..1) so the client can align text to the page and highlight
+    low-confidence spans (backend guide section 4 Stage 5)."""
+
+    bbox: tuple[float, float, float, float]
+    confidence: float
+    text: str
+
+
+class PageReadingOut(BaseModel):
+    page_index: int
+    quality_status: str | None
+    reject_reason: str | None
+    confidence: float | None
+    markdown: str
+    regions: list[RegionOut]
+
+
+class TranscriptionOut(BaseModel):
+    """The recognized reading of a submission: the aggregate markdown and mean
+    confidence, plus the per-page reading aligned to each page. A seat sees its
+    own work; the recognized text is the student's own handwriting, never a
+    solution, so returning it reveals no answer."""
+
+    submission_id: int
+    status: str
+    recognized_markdown: str | None
+    recognition_conf: float | None
+    pages: list[PageReadingOut]
+
+
 def _seat_context(identity: Identity) -> tuple[int, int]:
     assert identity.course_id is not None and identity.seat_id is not None
     return identity.course_id, identity.seat_id
@@ -125,6 +158,55 @@ async def _load_submission(
                 )
                 for p in pages
             ],
+        )
+
+    return await shards.course_reads(course_id).run(read)
+
+
+async def _load_transcription(
+    shards: ShardManager, course_id: int, submission_id: int, seat_id: int
+) -> "TranscriptionOut":
+    def read(conn: sqlite3.Connection) -> TranscriptionOut:
+        row = conn.execute(
+            "SELECT seat_id, status, recognized_z, recognition_conf"
+            " FROM submissions WHERE id = ?",
+            (submission_id,),
+        ).fetchone()
+        if row is None or int(row[0]) != seat_id:
+            raise HTTPException(status_code=404, detail="Submission not found.")
+        recognized = (
+            None if row[2] is None else decompress_text(conn, "handwriting", bytes(row[2]))
+        )
+        # Join each page to its cached reading by the server-computed content
+        # hash (migration 0008); a page not yet processed has no match, so its
+        # markdown is empty and its regions absent.
+        pages = conn.execute(
+            "SELECT sp.page_index, sp.quality_status, sp.reject_reason,"
+            " pt.markdown_z, pt.confidence, pt.regions_json"
+            " FROM submission_pages sp"
+            " LEFT JOIN page_transcriptions pt ON sp.content_sha = pt.content_hash"
+            " WHERE sp.submission_id = ? ORDER BY sp.page_index",
+            (submission_id,),
+        ).fetchall()
+        readings = [
+            PageReadingOut(
+                page_index=int(p[0]),
+                quality_status=None if p[1] is None else str(p[1]),
+                reject_reason=None if p[2] is None else str(p[2]),
+                confidence=None if p[4] is None else float(p[4]),
+                markdown="" if p[3] is None else decompress_text(conn, "handwriting", bytes(p[3])),
+                regions=[]
+                if p[5] is None
+                else [RegionOut.model_validate(r) for r in json.loads(p[5])],
+            )
+            for p in pages
+        ]
+        return TranscriptionOut(
+            submission_id=submission_id,
+            status=str(row[1]),
+            recognized_markdown=recognized,
+            recognition_conf=None if row[3] is None else float(row[3]),
+            pages=readings,
         )
 
     return await shards.course_reads(course_id).run(read)
@@ -284,6 +366,25 @@ async def get_submission(
 ) -> SubmissionOut:
     course_id, seat_id = _seat_context(identity)
     return await _load_submission(shards, course_id, submission_id, seat_id)
+
+
+@router.get(
+    "/submissions/{submission_id}/transcription",
+    response_model=TranscriptionOut,
+    responses={403: {"model": Problem}, 404: {"model": Problem}},
+)
+async def get_submission_transcription(
+    submission_id: int,
+    identity: Annotated[Identity, Depends(require_seat)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+) -> TranscriptionOut:
+    """The recognized reading of a submission for the review preview (backend
+    guide section 4 Stage 5): the aggregate markdown and each page's reading
+    with region boxes and confidence. A seat reads only its own submission (a
+    404 otherwise), and the scan stays the source of truth: this text is
+    assistive. Empty until the worker has processed the pages."""
+    course_id, seat_id = _seat_context(identity)
+    return await _load_transcription(shards, course_id, submission_id, seat_id)
 
 
 def _sse(event: Event) -> str:

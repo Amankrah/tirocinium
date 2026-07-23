@@ -165,25 +165,23 @@ async def test_pipeline_transcribes_and_aggregates(tmp_path: Path) -> None:
         assert (SCANS_BUCKET, "scans/1/sub/pre/0.binarized.png") in storage.objects
         assert (SCANS_BUCKET, "scans/1/sub/pre/1.grayscale.png") in storage.objects
 
-        def read(conn: sqlite3.Connection) -> tuple[int, str, float, str, str]:
+        def read(conn: sqlite3.Connection) -> tuple[int, str, float, str, str, str]:
             cache = int(conn.execute("SELECT COUNT(*) FROM page_transcriptions").fetchone()[0])
             row = conn.execute(
                 "SELECT recognized_z, recognition_conf, status FROM submissions WHERE id = ?",
                 (submission_id,),
             ).fetchone()
             recognized = decompress_text(conn, "handwriting", bytes(row[0]))
-            quality = str(
-                conn.execute(
-                    "SELECT quality_status FROM submission_pages"
-                    " WHERE submission_id = ? AND page_index = 0",
-                    (submission_id,),
-                ).fetchone()[0]
-            )
-            return cache, recognized, float(row[1]), str(row[2]), quality
+            page0 = conn.execute(
+                "SELECT quality_status, content_sha FROM submission_pages"
+                " WHERE submission_id = ? AND page_index = 0",
+                (submission_id,),
+            ).fetchone()
+            return cache, recognized, float(row[1]), str(row[2]), str(page0[0]), str(page0[1])
 
-        cache, recognized, confidence, submission_status, quality = await shards.course_reads(
-            1
-        ).run(read)
+        cache, recognized, confidence, submission_status, quality, content_sha = (
+            await shards.course_reads(1).run(read)
+        )
 
     assert cache == 2
     assert "Page zero" in recognized
@@ -191,6 +189,9 @@ async def test_pipeline_transcribes_and_aggregates(tmp_path: Path) -> None:
     assert confidence == pytest.approx(0.8)
     assert submission_status == "processed"
     assert quality == "ok"
+    # The server-computed hash of the original page bytes is stored so the
+    # review read can join the page to its cached transcription (migration 0008).
+    assert content_sha == hashlib.sha256(b"page-0").hexdigest()
     assert transcriber.calls == 2
     assert bus.types() == ["status", "page", "page", "done"]
     assert bus.events[-1][1]["status"] == "processed"

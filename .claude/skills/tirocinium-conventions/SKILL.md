@@ -7,12 +7,14 @@ description: Tirocinium coding standards, API conventions, data-layer rules, and
 
 The four documents in `docs/` are the specification and outrank this skill; this
 skill is the operational digest that survives context windows. Last updated for
-Phase 3.4 (data layer, auth, seats, and the authoring backend done; the
+Phase 4.1 (data layer, auth, seats, and the authoring backend done; the
 handwritten solution upload path live; scan preprocessing implemented in Rust;
 handwriting transcription running in an off-request-path worker with a recorded-
 response model seam and SSE progress; indexing and retrieval done, with FTS5 and
 int8-quantized embeddings behind a provider seam and hybrid retrieval over them.
-The Phase 3 backend is complete; 3.5 and the end-to-end gate are the frontend's).
+The Phase 3 backend is complete; 3.5 and the end-to-end gate are the frontend's.
+Phase 4 has begun: 4.1 decode built the PDF import handshake and the decode
+worker against a PdfDecoder seam, the real pdfium member deferred to a follow-up).
 
 ## Inviolable constraints
 
@@ -128,6 +130,11 @@ status vocabulary the pipeline drives is `uploaded` -> `processing` ->
 Transcriptions are cached in `page_transcriptions` (migration course/0005) keyed
 by the server-computed sha256 of the fetched original bytes, never the
 client-declared hash, so retries are free and the cache is not client-poisonable.
+That server hash is also stored on `submission_pages.content_sha` (migration
+course/0008, decision 0023) so the review read can join a page to its reading:
+`GET /submissions/{id}/transcription` serves the aggregate markdown and per-page
+readings with region boxes, a seat surface (own submission only). It is the
+student's own handwriting, never a solution, so returning it reveals no answer.
 
 Indexing (milestone 3.4, decision 0020) is Stage 4, a step the worker runs after
 the pipeline, not inside it: `index_submission` (`app/retrieval/indexing.py`)
@@ -140,6 +147,23 @@ fusion (`app/retrieval/search.py`, `k=60`). A free-text query is turned into a
 safe FTS5 MATCH (quoted OR-ed word tokens), never trusted as operator syntax.
 Only submissions are indexed for now; variant and problem-text indexing arrive
 with the Phase 5 variant pool.
+
+PDF import (Phase 4, milestone 4.1, decision 0021) reuses the upload handshake:
+`POST /api/v1/courses/{id}/imports` returns a presigned PDF PUT (60 MiB ceiling
+on the manifest), `.../complete` flips pending to uploaded and enqueues decode,
+`.../imports/{id}` reports status. Imports nest under the course and are
+professor-and-owner (students never import), create is idempotent through
+`import_idempotency_keys`. The decode worker (`app/imports/pipeline.py`) turns
+each page into cached per-page markdown (`page_documents`, keyed by the
+server-computed hash of the rendered raster): born-digital text from the decoder,
+scanned pages through the 3.2 preprocess and the 3.3 vision seam under the
+`pdf-page-transcription` prompt, which never describes a figure. Decode runs
+behind a `PdfDecoder` seam (`app/imports/decoder.py`); the real pdfium
+implementation is a Rust `platform_core` member deferred to a follow-up, so
+tests use `FakePdfDecoder` and the CPU path is Rust, not a recorded response.
+The 200-page ceiling is enforced at decode (the count is unknown until pdfium
+opens the file). 4.1 stops at decoded page markdown; figures (4.2) and item
+segmentation (4.3) build on these rows.
 
 After any route or model change, regenerate the contract seam and commit both
 artifacts (decision 0003): `python scripts/export_openapi.py` in `apps/api`,

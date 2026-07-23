@@ -1,0 +1,12 @@
+-- Link a submission page to its cached transcription (backend guide section 4
+-- Stage 5, the review surface). The transcription pipeline (3.3) caches each
+-- page's reading in page_transcriptions keyed by the server-computed sha256 of
+-- the fetched original bytes, but that trustworthy hash was never stored on the
+-- page row, so there was no join from a submission's pages to their readings
+-- (regions and per-page confidence). submission_pages.content_hash holds the
+-- client-declared hash, which is a hint and not to be trusted as a key.
+--
+-- content_sha is that server-computed hash, written by the worker when it
+-- records a processed page, so the review read can join pages to
+-- page_transcriptions.content_hash. Nullable: a page has none until processed.
+ALTER TABLE submission_pages ADD COLUMN content_sha TEXT;

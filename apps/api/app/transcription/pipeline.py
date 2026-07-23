@@ -122,7 +122,7 @@ async def run_submission_pipeline(
 
             await writer.run(
                 _record_page(
-                    submission_id, page_index, gray_key, binarized_key, metrics_json, confidence
+                    submission_id, page_index, gray_key, binarized_key, metrics_json, content_hash
                 )
             )
             page_markdowns.append(markdown)
@@ -234,14 +234,14 @@ def _record_page(
     grayscale_key: str,
     binarized_key: str,
     metrics_json: str,
-    confidence: float,
+    content_sha: str,
 ) -> Callable[[sqlite3.Connection], None]:
     def apply(conn: sqlite3.Connection) -> None:
         conn.execute(
             "UPDATE submission_pages SET grayscale_key = ?, binarized_key = ?,"
-            " metrics_json = ?, quality_status = 'ok' WHERE submission_id = ?"
-            " AND page_index = ?",
-            (grayscale_key, binarized_key, metrics_json, submission_id, page_index),
+            " metrics_json = ?, content_sha = ?, quality_status = 'ok'"
+            " WHERE submission_id = ? AND page_index = ?",
+            (grayscale_key, binarized_key, metrics_json, content_sha, submission_id, page_index),
         )
 
     return apply

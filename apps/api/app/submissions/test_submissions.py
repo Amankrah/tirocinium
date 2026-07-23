@@ -3,6 +3,7 @@ direct-to-storage upload URLs, server-enforced page and size limits, the
 completed-manifest handshake, idempotency on the creating call, and the
 seat-only authorization property (a seat reads only its own submissions)."""
 
+import json
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any, cast
@@ -422,3 +423,126 @@ def test_events_stream_is_seat_isolated(
         ).status_code
         == 404
     )
+
+
+# ---------------------------------------------------- transcription read (Stage 5)
+
+
+def _seed_processed(
+    tmp_data: Path,
+    course_id: int,
+    submission_id: int,
+    pages: list[tuple[str, list[dict[str, Any]]]],
+) -> None:
+    """Mark a submission processed with per-page cached readings, the way the
+    worker would, so the transcription read endpoint has data to serve."""
+    conn = connect(tmp_data / "courses" / f"{course_id}.db")
+    try:
+        recognized = "\n\n".join(md for md, _ in pages)
+        conn.execute(
+            "UPDATE submissions SET status = 'processed', recognition_conf = 0.85,"
+            " recognized_z = ? WHERE id = ?",
+            (compress_text(conn, "handwriting", recognized), submission_id),
+        )
+        for index, (markdown, regions) in enumerate(pages):
+            sha = f"sha-{submission_id}-{index}"
+            conn.execute(
+                "UPDATE submission_pages SET content_sha = ?, quality_status = 'ok'"
+                " WHERE submission_id = ? AND page_index = ?",
+                (sha, submission_id, index),
+            )
+            conn.execute(
+                "INSERT INTO page_transcriptions (content_hash, markdown_z, confidence,"
+                " regions_json, model_id, prompt_version, created_at)"
+                " VALUES (?, ?, ?, ?, 'm', 'v1', 0)",
+                (sha, compress_text(conn, "handwriting", markdown), 0.9, json.dumps(regions)),
+            )
+    finally:
+        conn.close()
+
+
+def test_transcription_read_returns_pages_and_regions(
+    client: TestClient, storage: FakeObjectStorage, tmp_data: Path
+) -> None:
+    variant_id, course_id, tokens = prepared(client, storage, tmp_data)
+    pages = [
+        {"content_type": "image/jpeg", "size_bytes": MB},
+        {"content_type": "image/jpeg", "size_bytes": MB},
+    ]
+    submission_id = request_upload(client, tokens[0], variant_id, pages).json()["submission_id"]
+    _seed_processed(
+        tmp_data,
+        course_id,
+        submission_id,
+        [
+            (
+                r"Page zero \(x^2\)",
+                [{"bbox": [0, 0, 1, 0.5], "confidence": 0.9, "text": "Page zero"}],
+            ),
+            ("Page one", []),
+        ],
+    )
+
+    r = client.get(
+        f"/api/v1/submissions/{submission_id}/transcription", headers=bearer(tokens[0])
+    )
+
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["submission_id"] == submission_id
+    assert body["status"] == "processed"
+    assert body["recognition_conf"] == 0.85
+    assert "Page zero" in body["recognized_markdown"]
+    assert "Page one" in body["recognized_markdown"]
+    assert [p["page_index"] for p in body["pages"]] == [0, 1]
+    assert body["pages"][0]["markdown"] == r"Page zero \(x^2\)"
+    assert body["pages"][0]["confidence"] == 0.9
+    assert body["pages"][0]["quality_status"] == "ok"
+    assert body["pages"][0]["regions"][0]["bbox"] == [0, 0, 1, 0.5]
+    assert body["pages"][0]["regions"][0]["text"] == "Page zero"
+    assert body["pages"][1]["regions"] == []
+
+
+def test_transcription_read_before_processing_is_empty(
+    client: TestClient, storage: FakeObjectStorage, tmp_data: Path
+) -> None:
+    variant_id, _course_id, tokens = prepared(client, storage, tmp_data)
+    submission_id = request_upload(client, tokens[0], variant_id).json()["submission_id"]
+
+    r = client.get(
+        f"/api/v1/submissions/{submission_id}/transcription", headers=bearer(tokens[0])
+    )
+
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["recognized_markdown"] is None
+    assert body["pages"][0]["markdown"] == ""
+    assert body["pages"][0]["regions"] == []
+
+
+def test_transcription_read_is_seat_isolated(
+    client: TestClient, storage: FakeObjectStorage, tmp_data: Path
+) -> None:
+    variant_id, _course_id, tokens = prepared(client, storage, tmp_data, seats=2)
+    owner, other = tokens
+    submission_id = request_upload(client, owner, variant_id).json()["submission_id"]
+
+    assert (
+        client.get(
+            f"/api/v1/submissions/{submission_id}/transcription", headers=bearer(other)
+        ).status_code
+        == 404
+    )
+
+
+def test_transcription_read_rejects_a_professor(
+    client: TestClient, storage: FakeObjectStorage, tmp_data: Path
+) -> None:
+    variant_id, _course_id, tokens = prepared(client, storage, tmp_data)
+    submission_id = request_upload(client, tokens[0], variant_id).json()["submission_id"]
+    prof = professor(client, email="prof2@example.edu")
+
+    r = client.get(
+        f"/api/v1/submissions/{submission_id}/transcription", headers=prof
+    )
+    assert r.status_code in (401, 403)
