@@ -331,6 +331,62 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/submissions/{submission_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Submission */
+        get: operations["get_submission_api_v1_submissions__submission_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/submissions/{submission_id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete Submission
+         * @description Signal that every page has been uploaded. Flips pending to uploaded so
+         *     the preprocessing worker (milestone 3.2) can pick it up; naturally
+         *     idempotent, since completing an already-uploaded submission is a no-op.
+         */
+        post: operations["complete_submission_api_v1_submissions__submission_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/variants/{variant_id}/submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Submission */
+        post: operations["create_submission_api_v1_variants__variant_id__submissions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -522,6 +578,31 @@ export interface components {
             /** Mappings */
             mappings: components["schemas"]["MappingIn"][];
         };
+        /** PageIn */
+        PageIn: {
+            /** Content Hash */
+            content_hash?: string | null;
+            /**
+             * Content Type
+             * @enum {string}
+             */
+            content_type: "image/jpeg" | "image/png" | "image/heic" | "application/pdf";
+            /** Size Bytes */
+            size_bytes: number;
+        };
+        /** PageOut */
+        PageOut: {
+            /** Content Hash */
+            content_hash: string | null;
+            /** Content Type */
+            content_type: string;
+            /** Page Index */
+            page_index: number;
+            /** Size Bytes */
+            size_bytes: number;
+            /** Storage Key */
+            storage_key: string;
+        };
         /**
          * Problem
          * @description The error body, also referenced from route response annotations so
@@ -633,6 +714,48 @@ export interface components {
             email: string;
             /** Password */
             password: string;
+        };
+        /** SubmissionCreated */
+        SubmissionCreated: {
+            /** Status */
+            status: string;
+            /** Storage Prefix */
+            storage_prefix: string;
+            /** Submission Id */
+            submission_id: number;
+            /** Uploads */
+            uploads: components["schemas"]["UploadTarget"][];
+        };
+        /** SubmissionIn */
+        SubmissionIn: {
+            /** Pages */
+            pages: components["schemas"]["PageIn"][];
+        };
+        /** SubmissionOut */
+        SubmissionOut: {
+            /** Id */
+            id: number;
+            /** Page Count */
+            page_count: number;
+            /** Pages */
+            pages: components["schemas"]["PageOut"][];
+            /** Recognition Conf */
+            recognition_conf: number | null;
+            /** Status */
+            status: string;
+            /** Submitted At */
+            submitted_at: number;
+            /** Variant Id */
+            variant_id: number;
+        };
+        /** UploadTarget */
+        UploadTarget: {
+            /** Page Index */
+            page_index: number;
+            /** Storage Key */
+            storage_key: string;
+            /** Url */
+            url: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -1918,6 +2041,159 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RevokeOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_submission_api_v1_submissions__submission_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                submission_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    complete_submission_api_v1_submissions__submission_id__complete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                submission_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_submission_api_v1_variants__variant_id__submissions_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "idempotency-key"?: string | null;
+            };
+            path: {
+                variant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmissionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionCreated"];
                 };
             };
             /** @description Forbidden */

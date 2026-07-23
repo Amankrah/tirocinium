@@ -7,8 +7,8 @@ description: Tirocinium coding standards, API conventions, data-layer rules, and
 
 The four documents in `docs/` are the specification and outrank this skill; this
 skill is the operational digest that survives context windows. Last updated for
-Phase 2.1 (data layer, auth, and seats done; course and case study authoring
-backend live).
+Phase 3.1 (data layer, auth, seats, and the authoring backend done; the
+handwritten solution upload path live).
 
 ## Inviolable constraints
 
@@ -84,6 +84,16 @@ draft is a 404 to a student). Case study markdown bodies are compressed through
 only in transit. Publish is the `draft`/`published` flip only until the variant
 pool lands in Phase 5. Deleting a course is refused (409) while seats exist;
 deleting a case study with variants is refused (409) the same way.
+
+Idempotency has a concrete home from milestone 3.1 (decision 0015): retryable
+mutating calls take an `Idempotency-Key` header and record `(key, scope) ->
+row` in the shard's `idempotency_keys` table, so a retry returns the original
+row rather than duplicating it; naturally idempotent state transitions
+(a pending-to-uploaded flip) need no ledger. Uploads go direct to object
+storage via presigned URLs with server-chosen keys under a per-submission
+prefix (scans bucket, `app/storage.py`); the API never receives the bytes,
+limits are enforced on the declared manifest (backend guide section 4 Stage 1),
+and a seat reads only its own submissions (another seat's row is a 404).
 
 After any route or model change, regenerate the contract seam and commit both
 artifacts (decision 0003): `python scripts/export_openapi.py` in `apps/api`,

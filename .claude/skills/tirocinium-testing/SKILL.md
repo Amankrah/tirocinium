@@ -6,9 +6,9 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at milestone 2.1 (decision 0013):
-Phase 0 and Phase 1 complete, Phase 2 in progress (2.1, the authoring backend,
-done).
+passes; green never goes red. Last updated at milestone 3.1 (decision 0015):
+Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 in progress
+(3.1, the submission upload path, done).
 
 ## Running the suites
 
@@ -37,9 +37,9 @@ deliberately and with the reference means in the file updated to match):
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 91 tests (25 data layer, 16 case studies/concepts/courses,
-15 seats, 12 auth, 7 backup, 5 compression, 3 contract, 7 store, 1 latency
-gate) plus lint, from `apps/api`:
+Python suite, 100 tests (25 data layer, 16 case studies/concepts/courses,
+15 seats, 12 auth, 9 submissions, 7 backup, 5 compression, 3 contract,
+7 store, 1 latency gate) plus lint, from `apps/api`:
 
     cd apps/api
     .venv/Scripts/python -m pytest -q
@@ -144,6 +144,21 @@ Phase 2, in progress:
   properties (only the owner authors, a seat cannot author, shards stay
   isolated across courses). The full 2.2 to 2.4 gate (Playwright journey
   one, Lighthouse, axe) is the frontend's to close.
+
+Phase 3, in progress:
+
+- 3.1 (done): the handwritten solution upload path (decision 0015). Presigned
+  direct-to-storage upload with server-enforced limits (1 to 25 pages, at most
+  15 MiB per page, JPEG/PNG/HEIC/PDF), the completed-manifest handshake
+  (pending to uploaded), and idempotency on the creating call. The 9 tests in
+  app/submissions/test_submissions.py cover the URL issue, the limit
+  enforcement, PDF acceptance, the unknown-variant 404, idempotency-key dedupe
+  (one row for a repeated key), complete, get, and the seat-only authorization
+  property (a seat cannot read or complete another seat's submission; a
+  professor JWT is rejected). Migration course/0004 adds submission_pages and
+  idempotency_keys. Preprocessing (3.2), transcription (3.3), and indexing
+  (3.4), with the golden scan corpus and the p95 preprocessing budget, are the
+  rest of the Phase 3 gate.
 
 ## Standing rules
 

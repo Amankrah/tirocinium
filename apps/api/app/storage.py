@@ -19,8 +19,14 @@ class ObjectStorage(Protocol):
 
 ARTIFACTS_BUCKET = os.environ.get("TIRO_ARTIFACT_BUCKET", "tirocinium-artifacts")
 
+# Original scans and preprocessed page images (backend guide 3.3: never in
+# SQLite). Students PUT directly here via presigned URLs; the shard holds only
+# the storage keys and metadata.
+SCANS_BUCKET = os.environ.get("TIRO_SCANS_BUCKET", "tirocinium-scans")
+
 # Presigned URLs for one-time downloads live this long (15 minutes): long
-# enough to click, short enough that a leaked URL goes stale fast.
+# enough to click, short enough that a leaked URL goes stale fast. The same
+# budget covers direct-to-storage upload URLs.
 PRESIGN_TTL_SECONDS = 900
 
 

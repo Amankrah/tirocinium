@@ -26,6 +26,7 @@ from app.db import ShardManager
 from app.problems import install_problem_details
 from app.seats import router as seats_router
 from app.seats.ratelimit import RateLimiter
+from app.submissions import router as submissions_router
 
 API_TITLE = "Tirocinium API"
 API_VERSION = "0.1.0"
@@ -80,4 +81,5 @@ def create_app(
     app.include_router(concepts_router)
     app.include_router(case_studies_router)
     app.include_router(seats_router)
+    app.include_router(submissions_router)
     return app
