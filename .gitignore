@@ -16,6 +16,9 @@ node_modules/
 .next/
 out/
 
+# Downloaded tool binaries (litestream via infra/setup.sh)
+infra/bin/
+
 # SQLite shards and local data never belong in git (backend guide 3.3)
 data/
 *.db

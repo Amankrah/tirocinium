@@ -1,7 +1,7 @@
-# CI — Phase 0.5 scaffold. Wired now to the two gates that already exist (the
-# Rust workspace and the mastery store); the lint, contract-staleness, and
-# criterion jobs are stubbed with TODO markers and filled in as their milestones
-# land (ruff/mypy/eslint 0.5, generated-client staleness 0.3, benches 0.5).
+# CI — Phase 0.5 scaffold, extended in 0.2 with the pinned Python environment
+# (uv.lock) and the ruff/mypy gate. Remaining stubs are marked TODO and filled
+# in as their milestones land (generated-client staleness 0.3, criterion
+# regression thresholds 0.5, web job once apps/web is scaffolded).
 name: ci
 
 on:
@@ -26,28 +26,37 @@ jobs:
       - run: cargo test --workspace
       # TODO(0.5): cargo criterion with regression thresholds once benches land.
 
-  mastery-store:
+  api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: astral-sh/setup-uv@v5
+      - name: Install the locked environment (Python 3.12 via uv)
+        run: uv sync --locked
+      - name: Build the mastery extension into the venv
+        run: VIRTUAL_ENV="$PWD/.venv" .venv/bin/maturin develop --release
+          --manifest-path ../../crates/platform_core/mastery/Cargo.toml
+      - name: Lint (ruff + mypy strict)
+        run: |
+          .venv/bin/ruff check .
+          .venv/bin/mypy .
+      - name: Store suite (7 tests)
+        run: .venv/bin/python -m pytest -q
+
+  setup-script:
+    # The 0.2 gate itself: a fresh machine reaches a working, verified state
+    # in one command. Criterion is exercised separately once benches land.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-      - name: Install uv
-        run: pipx install uv
-      - name: Build the mastery extension into a venv
-        run: |
-          uv venv apps/api/.venv --python 3.13
-          uv pip install --python apps/api/.venv "maturin>=1.7,<2.0" pytest
-          . apps/api/.venv/bin/activate
-          maturin develop --release --manifest-path crates/platform_core/mastery/Cargo.toml
-      - name: Store suite (7 tests)
-        run: |
-          . apps/api/.venv/bin/activate
-          pytest apps/api/mastery_store -q
-      # TODO(0.5): ruff + mypy --strict over apps/api once the FastAPI app lands.
+      - uses: astral-sh/setup-uv@v5
+      - run: TIRO_SKIP_CRITERION=1 ./infra/setup.sh
 
   # TODO(0.3): contract-staleness job — regenerate the typed client from
   #            openapi.json and fail if the committed client differs.
-  # TODO(0.2): web job — pnpm install, eslint, vitest once apps/web is scaffolded.
+  # TODO: web job — pnpm install, eslint, vitest once apps/web is scaffolded.

@@ -26,7 +26,6 @@ import json
 import sqlite3
 import time
 from dataclasses import dataclass
-from typing import Iterable, Optional
 
 import tirocinium_mastery as _core
 
@@ -90,7 +89,7 @@ def migrate(conn: sqlite3.Connection) -> None:
 
 
 class MasteryStore:
-    def __init__(self, conn: sqlite3.Connection, params_json: Optional[str] = None):
+    def __init__(self, conn: sqlite3.Connection, params_json: str | None = None):
         self._conn = conn
         self._params = params_json or _core.default_params_json()
         self._params_version = json.loads(self._params)["version"]
@@ -108,7 +107,7 @@ class MasteryStore:
         k: float,
         ref_kind: str,
         ref_id: int,
-        at: Optional[int] = None,
+        at: int | None = None,
     ) -> MasteryView:
         """Insert one evidence event and incrementally apply it to the cached
         state. A professor_grade event triggers a full supersession replay
@@ -147,7 +146,8 @@ class MasteryStore:
             state_json = _core.apply_json(prior, event_json, self._params)
 
         self._conn.execute(
-            "INSERT INTO mastery_state (seat_id, concept_id, state_json, params_version, updated_at)"
+            "INSERT INTO mastery_state"
+            " (seat_id, concept_id, state_json, params_version, updated_at)"
             " VALUES (?,?,?,?,?)"
             " ON CONFLICT(seat_id, concept_id) DO UPDATE SET"
             "   state_json=excluded.state_json,"
@@ -166,7 +166,7 @@ class MasteryStore:
         source: str,
         score: float,
         confidence: float,
-        at: Optional[int] = None,
+        at: int | None = None,
     ) -> list[MasteryView]:
         """Fan one submission-level observation out to every concept the case
         maps (spec section 3: one event per mapped concept, with the mapping
@@ -247,7 +247,7 @@ class MasteryStore:
             due_for_revisit=v["due_for_revisit"],
         )
 
-    def seat_view(self, seat_id: int, now: Optional[int] = None) -> list[MasteryView]:
+    def seat_view(self, seat_id: int, now: int | None = None) -> list[MasteryView]:
         """The student's mastery picture: one view per concept with state,
         plus implicit Unseen for concepts with no row (the caller renders
         those from the concepts table)."""
@@ -258,7 +258,7 @@ class MasteryStore:
         ).fetchall()
         return [self._view(cid, sj, now) for cid, sj in rows]
 
-    def revisit_queue(self, seat_id: int, now: Optional[int] = None) -> list[int]:
+    def revisit_queue(self, seat_id: int, now: int | None = None) -> list[int]:
         """Concept ids currently due for revisit (spec section 5), most
         faded first."""
         now = int(now if now is not None else time.time())

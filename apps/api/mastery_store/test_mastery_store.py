@@ -4,16 +4,17 @@ model arithmetic itself is property-tested in the Rust crate.
 """
 
 import sqlite3
+from collections.abc import Iterator
 
 import pytest
 
-from mastery_store import MasteryStore, migrate
+from mastery_store import MasteryStore, MasteryView, migrate
 
 DAY = 86_400
 
 
 @pytest.fixture()
-def store():
+def store() -> Iterator[MasteryStore]:
     conn = sqlite3.connect(":memory:")
     conn.execute("PRAGMA foreign_keys = ON")
     migrate(conn)
@@ -29,7 +30,7 @@ def store():
     conn.close()
 
 
-def test_incremental_matches_replay(store):
+def test_incremental_matches_replay(store: MasteryStore) -> None:
     """The cached state after incremental applies equals a fresh replay:
     the adapter-level form of the determinism property."""
     for day in range(7):
@@ -45,19 +46,20 @@ def test_incremental_matches_replay(store):
     assert cached == replayed
 
 
-def test_daily_practice_reaches_solid(store):
+def test_daily_practice_reaches_solid(store: MasteryStore) -> None:
     """The verified trajectory from the crate, through the full stack."""
-    view = None
+    view: MasteryView | None = None
     for day in range(7):
         view = store.record_event(
             seat_id=1, concept_id=7, source="answer_match",
             score=1.0, confidence=0.95, k=1.0,
             ref_kind="submission", ref_id=day, at=day * DAY,
         )
+    assert view is not None
     assert view.label == "solid"
 
 
-def test_submission_fans_out_with_weights(store):
+def test_submission_fans_out_with_weights(store: MasteryStore) -> None:
     views = store.record_submission_evidence(
         seat_id=1, case_study_id=1, submission_id=100,
         source="answer_match", score=1.0, confidence=1.0, at=0,
@@ -68,7 +70,7 @@ def test_submission_fans_out_with_weights(store):
     assert by_concept[8].m_eff < by_concept[7].m_eff
 
 
-def test_professor_grade_supersedes_misread(store):
+def test_professor_grade_supersedes_misread(store: MasteryStore) -> None:
     """A blurry scan misread as wrong, then the professor grades it right:
     the automatic event's damage must be erased, not merely outweighed."""
     store.record_event(
@@ -92,7 +94,7 @@ def test_professor_grade_supersedes_misread(store):
     assert cached == store._replay(1, 7)
 
 
-def test_revisit_queue_orders_most_faded_first(store):
+def test_revisit_queue_orders_most_faded_first(store: MasteryStore) -> None:
     # Build solid-ish state on two concepts at different times.
     for day in range(7):
         store.record_event(
@@ -111,12 +113,12 @@ def test_revisit_queue_orders_most_faded_first(store):
     assert queue == [7, 8]
 
 
-def test_unseen_concepts_have_no_state_rows(store):
+def test_unseen_concepts_have_no_state_rows(store: MasteryStore) -> None:
     assert store.seat_view(99) == []
     assert store.revisit_queue(99) == []
 
 
-def test_check_constraints_reject_bad_events(store):
+def test_check_constraints_reject_bad_events(store: MasteryStore) -> None:
     with pytest.raises(sqlite3.IntegrityError):
         store.record_event(
             seat_id=1, concept_id=7, source="vibes",
