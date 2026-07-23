@@ -90,12 +90,14 @@ Two honest options, and a recommendation:
    gate all-or-nothing but leaves accessibility, TBT, and the script budget
    unenforced in the meantime, which is the worse of the two.
 
-Recommendation: option 1. It is the README's existing guidance ("confirm on the
-real CI runner before making the LCP assertion blocking") made concrete, and it
-gets the accessibility budget (a hard product floor) enforcing now. This weakens
-one gate assertion, so it needs the human lead's sign-off and a decision record
-before it lands; the frontend session will not change `lighthouserc.json`
-unilaterally.
+Decided: option 1, with the human lead's sign-off (decision 0022).
+`lighthouserc.json` now sets `largest-contentful-paint` to `warn` and keeps
+accessibility, total-blocking-time, and script size at `error`; `pnpm lighthouse`
+was confirmed to exit 0 (LCP reports as a warning, the other three pass). So the
+`lhci` step above lands green as-is. The tracked follow-up (reduce framework JS
+or recalibrate the budget with the guide owner) stays open, and decision 0022
+notes the budget is revisited when the particle hero ships, since that gate
+requires every budget actually green.
 
 ## Sequencing
 

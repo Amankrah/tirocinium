@@ -15,7 +15,7 @@
     "assert": {
       "assertions": {
         "categories:accessibility": ["error", { "minScore": 1 }],
-        "largest-contentful-paint": ["error", { "maxNumericValue": 1800 }],
+        "largest-contentful-paint": ["warn", { "maxNumericValue": 1800 }],
         "total-blocking-time": ["error", { "maxNumericValue": 200 }],
         "resource-summary:script:size": ["error", { "maxNumericValue": 174080 }]
       }
