@@ -2,18 +2,20 @@
 
 // Client component: controlled code input, submit state, and the live-region
 // failure line all require interactivity. The page around it stays a server
-// component.
+// component, and redemption itself runs in a server action (decision 0011).
 
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { CodeInput } from "@/components/ui/code-input";
-import { redeemSeatCode } from "@/lib/seats";
 import { strings } from "../strings";
+import { enterCourse } from "./actions";
 
 const CODE_LENGTH = 16;
 
 export function SeatCodeForm() {
+  const router = useRouter();
   const [code, setCode] = useState("");
   const [failed, setFailed] = useState(false);
   const [pending, setPending] = useState(false);
@@ -35,10 +37,14 @@ export function SeatCodeForm() {
     }
     setPending(true);
     try {
-      const result = await redeemSeatCode(code);
-      if (!result.ok) setFailed(true);
-      // Success resolves into the course home with the seat greeting once
-      // redemption exists (backend 1.5).
+      const result = await enterCourse(code);
+      if (result.ok) {
+        // The brief resolve into the course home with a greeting by seat
+        // number (guide 4.0). The seat token is already an httpOnly cookie.
+        router.push("/course");
+      } else {
+        setFailed(true);
+      }
     } finally {
       setPending(false);
     }
