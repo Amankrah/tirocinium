@@ -13,8 +13,11 @@ implemented, its golden gate awaiting the 30-photo corpus; 3.3 handwriting
 transcription done, the worker pipeline with a recorded-response model seam and
 SSE progress; 3.4 indexing and retrieval done, FTS5 plus int8-quantized
 embeddings behind a provider seam, hybrid retrieval with reciprocal rank
-fusion, the course search endpoint). The Phase 3 frontend half (3.5) and the
-end-to-end Playwright gate are the frontend's to close.
+fusion, the course search endpoint). The Phase 3 frontend half (3.5) is in
+progress: the upload flow (capture, pre-checks, orchestration, SSE processing)
+is built and its journeys written and skip-gated; the transcription preview and
+the not-yet-wired end-to-end Playwright/Lighthouse/axe CI gate remain the
+frontend's to close.
 
 ## Running the suites
 
@@ -66,9 +69,13 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (12 Vitest tests: the token contract pinning the guide 3.2 palette,
-and the landing placeholder), plus lint, typecheck, and build, from `apps/web`
-(typecheck needs a build first on a fresh checkout, decision 0005):
+Web suite (125 Vitest tests: the token contract with its computed-contrast
+assertion, the primitives, the API clients, and the upload flow's pre-checks,
+orchestration controller, and SSE processing model), plus lint, typecheck, and
+build, from `apps/web` (typecheck needs a build first on a fresh checkout,
+decision 0005). The Playwright journeys run separately (`pnpm test:e2e`, needs
+`playwright install chromium` once); journeys one to three are skip-gated on a
+seeded backend:
 
     cd apps/web
     pnpm test
@@ -183,7 +190,7 @@ Phase 3, in progress:
   30 real phone photos are a captured project asset that does not exist yet, so
   the golden-file suite within perceptual-hash tolerance and the p95-on-the-
   corpus measurement wait on that data; the harness and record mode are ready
-  for it. Playwright journeys two and three are the frontend's to close.
+  for it.
 - 3.3 (done): handwriting transcription (decision 0018). An arq worker runs the
   pipeline off the request path: preprocess each page with the 3.2 crate, store
   the two renditions, read the grayscale copy with the vision model behind a
@@ -213,6 +220,25 @@ Phase 3, in progress:
   submission, plus the RRF unit and an empty course), and the endpoint (fused
   hit, 401/404/403, a seat refused, q required); the member adds 10 Rust tests
   and 2 budgeted benches.
+- 3.5 (web, in progress): the upload flow (decision 0019). Client pre-checks
+  (type/size mirroring the server, a canvas blur heuristic; page-checks pure and
+  tested), the server-side submissions client, the orchestration controller
+  (create, per-page PUT with retry, complete; side-effects injected and tested),
+  the capture-and-drop surface, and the live processing state over the worker's
+  SSE stream (a same-origin Next route handler proxies the token from the
+  httpOnly cookie; the event model is parsed and reduced by a pure, tested
+  module). Page bytes PUT direct to storage; the authed calls proxy through
+  server actions so the seat token never reaches client JS. The upload surface
+  is reached at `/course/{id}/upload?variant={id}`, seed-gated because exposing a
+  variant is Phase 5. Playwright journeys two (happy path, needs the worker) and
+  three (client blur reject and retake, needs only a seat) are written and
+  skip-gated like journey one; their PNG page fixtures are built in-test. Not
+  closed: the transcription preview beside the thumbnails waits on a backend read
+  endpoint for the recognized markdown and per-region spans (GET submission does
+  not return them yet); and the whole Phase 2 to 3 Playwright/Lighthouse/axe gate
+  is still not wired into CI (the `web` job runs only lint, test, build,
+  typecheck), so the LCP budget against the guide's 1.8 s mobile target has never
+  actually been enforced there.
 
 ## Standing rules
 

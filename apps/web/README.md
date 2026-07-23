@@ -52,6 +52,22 @@ the client. There is no professor signup screen yet; create accounts via
   prints the plaintext code; a committed, CI-ready seed helper belongs with the
   backend session, so that it stays under the backend gate. To run it: start the
   API, seed those three, export the four values, then `pnpm test:e2e`.
+- Journeys two and three (`e2e/journey-two.spec.ts`, `e2e/journey-three.spec.ts`)
+  cover the upload flow (guide 4.1) on both viewports and skip unless
+  `E2E_SEAT_CODE`, `E2E_CASE_STUDY_ID`, and `E2E_VARIANT_ID` are set. The seed
+  provides a seat, a published case study, and a variant to file against
+  (exposing a variant to the problem view is Phase 5, decision 0019, so the
+  upload surface is reached directly at `/course/{id}/upload?variant={id}`).
+  Journey two is the happy path (add a page, send, watch it process to "read")
+  and also needs the transcription worker running against recorded responses so
+  the submission reaches "processed". Journey three is the client-side blur
+  pre-check and retake, which needs only the seat and variant, not the worker,
+  because the page is flagged in the browser before any upload; its page
+  fixtures are valid PNGs built in-test (`e2e/fixtures.ts`), so no binaries are
+  committed. Still blocked: the transcription preview beside the thumbnails
+  (guide 4.1, step 4) waits on a backend read endpoint for the recognized
+  markdown and per-region spans, which `GET /submissions/{id}` does not yet
+  return.
 - Deferred until the course-home and problem-view surfaces have production
   content to measure: the Lighthouse runs on those two routes.
 - Not yet wired into CI: the `web` job additions (a `test:e2e` step and an
