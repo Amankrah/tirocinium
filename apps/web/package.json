@@ -1,0 +1,12 @@
+{
+  "name": "tirocinium-web",
+  "private": true,
+  "description": "Tirocinium frontend. Phase 0.3 carries only the contract seam (generate:client from the backend's openapi.json); the Next.js 15 scaffold is the frontend engineer's Phase 0/2 work and extends this manifest.",
+  "scripts": {
+    "generate:client": "openapi-typescript ../api/openapi.json -o src/lib/api/schema.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.4.4",
+    "typescript": "^5.6.3"
+  }
+}

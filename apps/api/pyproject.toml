@@ -60,8 +60,8 @@ select = [
 python_version = "3.12"
 strict = true
 mypy_path = "stubs"
-files = ["mastery_store"]
+files = ["app", "mastery_store", "scripts"]
 
 [tool.pytest.ini_options]
-testpaths = ["mastery_store"]
+testpaths = ["app", "mastery_store"]
 asyncio_mode = "auto"

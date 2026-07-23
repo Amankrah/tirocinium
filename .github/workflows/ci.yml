@@ -1,7 +1,7 @@
-# CI — Phase 0.5 scaffold, extended in 0.2 with the pinned Python environment
-# (uv.lock) and the ruff/mypy gate. Remaining stubs are marked TODO and filled
-# in as their milestones land (generated-client staleness 0.3, criterion
-# regression thresholds 0.5, web job once apps/web is scaffolded).
+# CI — Phase 0.5 scaffold, extended in 0.2 (pinned Python environment and the
+# ruff/mypy gate) and 0.3 (contract staleness). Remaining stubs are marked TODO
+# and filled in as their milestones land (criterion regression thresholds 0.5,
+# web lint/test job once apps/web is scaffolded).
 name: ci
 
 on:
@@ -57,6 +57,30 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - run: TIRO_SKIP_CRITERION=1 ./infra/setup.sh
 
-  # TODO(0.3): contract-staleness job — regenerate the typed client from
-  #            openapi.json and fail if the committed client differs.
-  # TODO: web job — pnpm install, eslint, vitest once apps/web is scaffolded.
+  contract:
+    # Phase 0.3: the seam the two developers meet at. Regenerate both
+    # committed artifacts and fail on any byte difference.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Regenerate the OpenAPI spec
+        run: |
+          cd apps/api
+          uv sync --locked
+          .venv/bin/python scripts/export_openapi.py
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Regenerate the typed client
+        run: |
+          cd apps/web
+          pnpm install --frozen-lockfile
+          pnpm generate:client
+      - name: Fail if a committed contract artifact is stale
+        run: git diff --exit-code -- apps/api/openapi.json apps/web/src/lib/api/schema.ts
+
+  # TODO: web lint/test job — eslint, vitest once apps/web is scaffolded.
