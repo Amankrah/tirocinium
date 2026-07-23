@@ -11,16 +11,22 @@ from typing import Any, Protocol
 from fastapi import Request
 
 PROCESS_SUBMISSION = "process_submission"
+PROCESS_IMPORT = "process_import"
 
 
 class TaskQueue(Protocol):
     async def enqueue_process_submission(self, course_id: int, submission_id: int) -> None: ...
+
+    async def enqueue_process_import(self, course_id: int, import_id: int) -> None: ...
 
 
 class NullTaskQueue:
     """No broker configured: enqueuing does nothing."""
 
     async def enqueue_process_submission(self, course_id: int, submission_id: int) -> None:
+        return None
+
+    async def enqueue_process_import(self, course_id: int, import_id: int) -> None:
         return None
 
 
@@ -32,6 +38,9 @@ class ArqTaskQueue:
 
     async def enqueue_process_submission(self, course_id: int, submission_id: int) -> None:
         await self._pool.enqueue_job(PROCESS_SUBMISSION, course_id, submission_id)
+
+    async def enqueue_process_import(self, course_id: int, import_id: int) -> None:
+        await self._pool.enqueue_job(PROCESS_IMPORT, course_id, import_id)
 
 
 def get_task_queue(request: Request) -> TaskQueue:

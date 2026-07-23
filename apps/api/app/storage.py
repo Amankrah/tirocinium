@@ -26,6 +26,11 @@ ARTIFACTS_BUCKET = os.environ.get("TIRO_ARTIFACT_BUCKET", "tirocinium-artifacts"
 # the storage keys and metadata.
 SCANS_BUCKET = os.environ.get("TIRO_SCANS_BUCKET", "tirocinium-scans")
 
+# Source PDFs, rendered page images, and (from 4.2) extracted figure crops for
+# PDF import (backend guide section 5). Professors PUT the PDF directly here via
+# a presigned URL; the shard holds only keys and metadata.
+IMPORTS_BUCKET = os.environ.get("TIRO_IMPORTS_BUCKET", "tirocinium-imports")
+
 # Presigned URLs for one-time downloads live this long (15 minutes): long
 # enough to click, short enough that a leaked URL goes stale fast. The same
 # budget covers direct-to-storage upload URLs.
