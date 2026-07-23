@@ -6,6 +6,7 @@
    properties above remain live for runtime theming. */
 @theme inline {
   --color-ink: var(--color-ink);
+  --color-ink-muted: var(--color-ink-muted);
   --color-paper: var(--color-paper);
   --color-ground: var(--color-ground);
   --color-accent: var(--color-accent);

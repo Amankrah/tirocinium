@@ -18,7 +18,7 @@ export function StudentShell({
     <div className="flex min-h-svh flex-col">
       <header className="flex items-center justify-between border-b border-rule-line px-6 py-4">
         <span className="font-display text-lg">{strings.shell.wordmark}</span>
-        <span className="font-mono text-sm tabular-nums text-ink/60">
+        <span className="font-mono text-sm tabular-nums text-ink-muted">
           {strings.shell.seat(seatNumber)}
         </span>
       </header>

@@ -32,7 +32,7 @@ export function CaseStudyIndex({
                   {concept.name}
                 </span>
               ))}
-              <span className="text-xs text-ink/50">
+              <span className="text-xs text-ink-muted">
                 {strings.course.notAttempted}
               </span>
             </span>

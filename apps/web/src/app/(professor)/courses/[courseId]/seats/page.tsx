@@ -41,7 +41,7 @@ export default async function SeatsPage({
         <div className="flex flex-col gap-2">
           <Link
             href={`/courses/${id}`}
-            className="text-sm text-ink/60 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             {s.back}
           </Link>
@@ -58,7 +58,7 @@ export default async function SeatsPage({
         ) : (
           <table className="w-full border-t border-rule-line text-left text-sm">
             <thead>
-              <tr className="text-ink/60">
+              <tr className="text-ink-muted">
                 <th scope="col" className="py-3 font-medium">
                   {s.colSeat}
                 </th>
@@ -82,7 +82,7 @@ export default async function SeatsPage({
                     <td className="py-3 font-mono">{seat.seat_number}</td>
                     <td className="py-3">
                       <span
-                        className={active ? "text-verify-green" : "text-ink/50"}
+                        className={active ? "text-verify-green" : "text-ink-muted"}
                       >
                         {active ? s.active : s.revoked}
                       </span>

@@ -51,7 +51,7 @@ export function ReissueSeat({
       </Button>
       {state.code ? (
         <div role="status" className="flex flex-col items-end gap-1">
-          <span className="text-xs text-ink/60">{s.reissued(seatNumber)}</span>
+          <span className="text-xs text-ink-muted">{s.reissued(seatNumber)}</span>
           <div className="flex items-center gap-2">
             <code className="rounded bg-rule-line/40 px-2 py-1 font-mono text-sm text-ink">
               {state.code}

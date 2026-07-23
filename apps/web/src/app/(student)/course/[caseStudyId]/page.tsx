@@ -30,7 +30,7 @@ export default async function ProblemViewPage({
       <article className="mx-auto flex w-full max-w-[var(--measure-reading)] flex-col gap-6 px-6 py-12">
         <Link
           href="/course"
-          className="text-sm text-ink/60 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className="text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
           {strings.problem.backToCourse}
         </Link>
@@ -61,7 +61,7 @@ export default async function ProblemViewPage({
           <Button variant="quiet" disabled>
             {strings.problem.upload}
           </Button>
-          <span className="text-xs text-ink/50">{strings.problem.soon}</span>
+          <span className="text-xs text-ink-muted">{strings.problem.soon}</span>
         </div>
       </article>
     </StudentShell>

@@ -13,6 +13,12 @@
 :root {
   /* Colour: ink on paper */
   --color-ink: #161A23;
+  /* Muted secondary foreground: a solid ink at rest for de-emphasised text
+     (labels, timestamps, the seat number, back links). A pinned colour rather
+     than an alpha of ink, because ink at 60% lands at 4.51:1 on paper, exactly
+     on the AA boundary and fragile to rounding; this clears AA with margin
+     (6.22:1) at small text sizes in both themes (decision 0017). */
+  --color-ink-muted: #5B5E64;
   --color-paper: #FAFAF7;
   --color-accent: #2C5AE9; /* primary actions and live states only */
   --color-rule-line: #E4E4DC; /* hairline structure */
@@ -47,6 +53,9 @@
   :root {
     --color-ground: #12141A;
     --color-ink: #E8E6DF;
+    /* The muted foreground inverts with the theme, holding 6.54:1 on the dark
+       ground (decision 0017). */
+    --color-ink-muted: #9A99A3;
     /* The accent stays (guide 3.2). Paper maps to the dark ground so any
        surface still expressed as paper inverts with the theme. */
     --color-paper: var(--color-ground);

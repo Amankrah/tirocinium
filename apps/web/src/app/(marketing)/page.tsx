@@ -14,7 +14,7 @@ export default function LandingPage() {
         {strings.wordmark}
       </h1>
       <p className="text-lg">{strings.tagline}</p>
-      <p className="mt-2 max-w-prose text-pretty text-sm text-ink/60">
+      <p className="mt-2 max-w-prose text-pretty text-sm text-ink-muted">
         {strings.story}
       </p>
     </main>

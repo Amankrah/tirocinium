@@ -31,14 +31,14 @@ export default async function CaseStudyPreviewPage({
       <article className="mx-auto flex w-full max-w-[var(--measure-reading)] flex-col gap-6 px-6 py-12">
         <Link
           href={`/courses/${cid}`}
-          className="text-sm text-ink/60 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className="text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
           {strings.course.back}
         </Link>
         <header className="flex flex-col gap-3">
           <span
             className={
-              published ? "text-xs text-verify-green" : "text-xs text-ink/50"
+              published ? "text-xs text-verify-green" : "text-xs text-ink-muted"
             }
           >
             {published ? strings.course.published : strings.course.draft}

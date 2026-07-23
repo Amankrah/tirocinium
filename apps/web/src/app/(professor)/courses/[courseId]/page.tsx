@@ -33,7 +33,7 @@ export default async function CoursePage({
         <div className="flex flex-col gap-2">
           <Link
             href="/dashboard"
-            className="text-sm text-ink/60 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             {strings.course.back}
           </Link>
@@ -70,7 +70,7 @@ export default async function CoursePage({
                         className={
                           published
                             ? "text-xs text-verify-green"
-                            : "text-xs text-ink/50"
+                            : "text-xs text-ink-muted"
                         }
                       >
                         {published

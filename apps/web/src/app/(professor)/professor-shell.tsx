@@ -22,7 +22,7 @@ export function ProfessorShell({
       <header className="flex items-center justify-between border-b border-rule-line px-6 py-4">
         <span className="font-display text-lg">{strings.shell.wordmark}</span>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-ink/60">{email}</span>
+          <span className="text-sm text-ink-muted">{email}</span>
           <form action={signOut}>
             <Button variant="quiet" type="submit" className="text-sm">
               {strings.shell.signOut}
