@@ -1,0 +1,44 @@
+# Scan preprocessing (backend guide section 4 Stage 2, milestone 3.2): every
+# uploaded page runs EXIF fix, downscale, Hough deskew, illumination
+# correction and adaptive binarization in Rust, 10 to 40 times faster than
+# Python (guide section 2), keeping upload-to-feedback under two seconds.
+# Pure functions of bytes in, renditions and metrics out; no global state,
+# so it property-tests like the rest of platform_core. Pedantic member
+# (decision 0001) under the bench budget gate (decision 0004).
+[package]
+name = "tirocinium-preprocess"
+version = "0.1.0"
+edition = "2021"
+description = "Tirocinium scan preprocessing: EXIF, downscale, deskew, illumination, binarization, quality"
+license = "UNLICENSED"
+
+[dependencies]
+image = "0.25"
+imageproc = "0.25"
+# EXIF orientation only; phones write the sensor orientation as a tag rather
+# than rotating pixels, so a page arrives sideways unless we honour it.
+kamadak-exif = "0.5"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# abi3 keeps the single wheel serving CPython 3.10+; extension-module is
+# enabled only by the umbrella crate so this crate's tests link normally.
+pyo3 = { version = "0.23", features = ["abi3-py310"], optional = true }
+
+[dev-dependencies]
+criterion = "0.5"
+# The tests synthesize pages (draw strokes, tilt, blur) and decode the output
+# renditions, so they need the same image toolkit the crate builds on.
+image = "0.25"
+imageproc = "0.25"
+# The golden-corpus harness reads and records an expectations manifest.
+serde_json = "1"
+
+[features]
+python = ["dep:pyo3"]
+
+[[bench]]
+name = "preprocess"
+harness = false
+
+[lints]
+workspace = true

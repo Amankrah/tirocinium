@@ -138,6 +138,7 @@ MODULES = {
     "platform_core (built extension)": "platform_core",
     "platform_core.codec": "platform_core.codec",
     "platform_core.mastery": "platform_core.mastery",
+    "platform_core.preprocess": "platform_core.preprocess",
 }
 failed = []
 for name, mods in MODULES.items():
@@ -159,7 +160,7 @@ EOF
 say "Gate: ruff + mypy strict (apps/api)"
 (cd "$API" && "$VBIN/ruff" check . && "$VBIN/mypy" .)
 
-say "Gate: Rust workspace suites (mastery 15, codec 8)"
+say "Gate: Rust workspace suites (mastery 15, codec 8, preprocess 7)"
 (cd "$CRATES" && cargo test --workspace --quiet)
 
 say "Gate: Python suite (apps/api)"

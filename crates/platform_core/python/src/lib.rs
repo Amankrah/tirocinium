@@ -22,5 +22,10 @@ fn platform_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_submodule(&codec)?;
     sys_modules.set_item("platform_core.codec", &codec)?;
 
+    let preprocess = PyModule::new(py, "preprocess")?;
+    tirocinium_preprocess::python::register(&preprocess)?;
+    m.add_submodule(&preprocess)?;
+    sys_modules.set_item("platform_core.preprocess", &preprocess)?;
+
     Ok(())
 }

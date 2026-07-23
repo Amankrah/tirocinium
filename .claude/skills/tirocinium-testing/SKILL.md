@@ -6,9 +6,10 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at milestone 3.1 (decision 0015):
+passes; green never goes red. Last updated at milestone 3.2 (decision 0016):
 Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 in progress
-(3.1, the submission upload path, done).
+(3.1 the submission upload path done; 3.2 scan preprocessing implemented, its
+golden gate awaiting the 30-photo corpus).
 
 ## Running the suites
 
@@ -20,8 +21,9 @@ imports, lint, and both suites; see `infra/README.md` for flags):
 
     ./infra/setup.sh
 
-Rust workspace, 23 tests (mastery 15: 6 property, 9 scenario; codec 8) plus
-lint:
+Rust workspace, 31 tests (mastery 15: 6 property, 9 scenario; codec 8;
+preprocess 8: 7 synthetic-image pipeline tests, 1 golden-corpus harness that is
+a no-op until the corpus lands) plus lint:
 
     cd crates/platform_core
     cargo test --workspace
@@ -31,7 +33,10 @@ lint:
 
 Criterion benches with the absolute-budget regression gate (decision 0004;
 budgets live in `crates/platform_core/bench-thresholds.json`, revised only
-deliberately and with the reference means in the file updated to match):
+deliberately and with the reference means in the file updated to match). The
+preprocessing bench `preprocess_page_a4` is the exception to the 25-30x rule:
+it is budgeted at the guide's hard 2 s-per-page SLO (reference mean 408 ms), so
+it gates the product budget directly:
 
     cd crates/platform_core
     cargo bench --workspace
@@ -87,7 +92,7 @@ Phase 0 (current), all green as of 0.4:
 - 0.1: crate 15 tests and store 7 tests pass inside the monorepo layout; clippy
   clean on both feature sets.
 - 0.2: `infra/setup.sh` from clean succeeds end to end, including its own
-  verification gate (16 import checks, ruff, mypy strict, both suites).
+  verification gate (17 import checks, ruff, mypy strict, both suites).
 - 0.3: the committed `openapi.json` and generated client are byte-fresh; a
   deliberately stale artifact fails CI's `contract` job (proven both
   directions before commit).
@@ -156,9 +161,20 @@ Phase 3, in progress:
   (one row for a repeated key), complete, get, and the seat-only authorization
   property (a seat cannot read or complete another seat's submission; a
   professor JWT is rejected). Migration course/0004 adds submission_pages and
-  idempotency_keys. Preprocessing (3.2), transcription (3.3), and indexing
-  (3.4), with the golden scan corpus and the p95 preprocessing budget, are the
-  rest of the Phase 3 gate.
+  idempotency_keys. Transcription (3.3) and indexing (3.4) are the rest of the
+  Phase 3 gate.
+- 3.2 (code done; golden gate pending the corpus): scan preprocessing in the
+  `tirocinium-preprocess` member (decision 0016), EXIF fix, downscale, Hough
+  deskew, illumination correction, adaptive binarization, quality metrics and
+  early rejection with reason codes. The 8 crate tests are green (7 synthetic
+  pipeline tests pinning the algorithms with known ground truth: recovered skew
+  near the induced angle, blur ordering, each rejection reason, the downscale
+  budget, decode failure; plus the golden-corpus harness). `preprocess_page_a4`
+  is inside the 2 s SLO (reference mean 408 ms). Not yet closed: the guide's
+  30 real phone photos are a captured project asset that does not exist yet, so
+  the golden-file suite within perceptual-hash tolerance and the p95-on-the-
+  corpus measurement wait on that data; the harness and record mode are ready
+  for it. Playwright journeys two and three are the frontend's to close.
 
 ## Standing rules
 
@@ -172,6 +188,17 @@ arithmetic they pin down.
 
 Corpora are project assets in Git LFS (`.gitattributes` already routes pdf,
 png, jpg, jpeg, heic, webp there; run `git lfs install` before adding the
-first one). None exist yet. When they land, record their locations here: the
-30-photo handwriting corpus arrives in Phase 3.2, the five-PDF ingestion corpus
-in Phase 4, and recorded model responses accumulate from Phase 3 on.
+first one).
+
+The 30-photo handwriting corpus lives at
+`crates/platform_core/preprocess/corpus/` (photos under `images/`, golden
+baselines in `expectations.json`, the spec for the set in `README.md`). It is
+scaffolded but empty: the golden harness in `preprocess/tests/corpus.rs` is a
+self-documenting no-op while `images/` is empty, so the gate stays green
+without verifying absent data. Once the photos land, record the baseline with
+`TIRO_RECORD=1 cargo test -p tirocinium-preprocess --test corpus` and review
+the written `expectations.json` before committing (each entry is either a
+rejection reason code or a grayscale-rendition dHash with a Hamming tolerance).
+
+Still to come: the five-PDF ingestion corpus in Phase 4, and recorded model
+responses accumulating from Phase 3 on.

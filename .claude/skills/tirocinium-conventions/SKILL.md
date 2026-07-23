@@ -7,8 +7,8 @@ description: Tirocinium coding standards, API conventions, data-layer rules, and
 
 The four documents in `docs/` are the specification and outrank this skill; this
 skill is the operational digest that survives context windows. Last updated for
-Phase 3.1 (data layer, auth, seats, and the authoring backend done; the
-handwritten solution upload path live).
+Phase 3.2 (data layer, auth, seats, and the authoring backend done; the
+handwritten solution upload path live; scan preprocessing implemented in Rust).
 
 ## Inviolable constraints
 
@@ -56,6 +56,20 @@ for public functions, each gated by a budget in
 exempt from pedantic by decision 0001 and is held to its property suites
 instead. Never reimplement the mastery arithmetic, the numeric comparer, or
 preprocessing in Python: the Rust implementation is the only implementation.
+
+Scan preprocessing lives in the `tirocinium-preprocess` member (milestone 3.2,
+decision 0016), exposed as `platform_core.preprocess`. It is a pure function of
+image bytes: in go camera bytes, out come two PNG renditions (a cleaned
+grayscale copy for the vision model, an adaptive-binarized copy) plus quality
+metrics, following the guide's Stage 2 order (EXIF orientation, downscale to a
+2200 px long edge, Hough deskew, illumination correction, adaptive
+binarization). An unreadable page is an early rejection carrying a stable
+reason code (`blurry`, `too_dark`, `blank`) and a message tail worded to read
+after a "Page N" prefix the caller adds, so the crate never needs to know a
+page's position. Thresholds are one `Thresholds` struct so recalibration is a
+data change; the golden corpus that calibrates them (30 real phone photos) is a
+captured, not generated, project asset under `preprocess/corpus/` and is
+tracked but not yet populated.
 
 ## API conventions
 

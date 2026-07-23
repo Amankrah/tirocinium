@@ -4,3 +4,4 @@
 
 from . import codec as codec
 from . import mastery as mastery
+from . import preprocess as preprocess
