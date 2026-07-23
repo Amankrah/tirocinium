@@ -36,7 +36,8 @@ deliberately and with the reference means in the file updated to match):
     cargo bench -p tirocinium-mastery
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 10 tests (3 contract, 7 store) plus lint, from `apps/api`:
+Python suite, 35 tests (25 data layer, 3 contract, 7 store) plus lint, from
+`apps/api`:
 
     cd apps/api
     .venv/Scripts/python -m pytest -q
@@ -77,7 +78,15 @@ Phase 0 (current), all green as of 0.4:
   unbudgeted benches (proven both directions). The web lint job remains a
   TODO until the frontend scaffold exists.
 
-Phase 1 gates, for orientation before they exist: restore drill in CI against a
+Phase 1, in progress:
+
+- 1.1 (done): the pragma helper is the only door to SQLite and its exact
+  values are pinned by test; the writer queue serializes and rolls back;
+  migrations apply per shard at startup with gap and divergence detection;
+  the course 0001 migration is pinned against mastery_store.SCHEMA; the
+  mastery store runs green on a managed shard through the writer queue.
+
+Remaining Phase 1 gates, for orientation: restore drill in CI against a
 fixture shard; seat authorization property tests (a session can never read
 another seat's rows); revoked seats fail immediately; reissue preserves history;
 plaintext codes appear in exactly one response ever, asserted by a log-scanning

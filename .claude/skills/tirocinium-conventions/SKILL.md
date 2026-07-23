@@ -68,9 +68,13 @@ then `pnpm generate:client` in `apps/web`. CI fails on a stale byte anywhere.
 
 ## Data layer rules
 
-Every SQLite connection goes through the shared pragma helper (backend guide
-3.2), no ad hoc connections anywhere. One dedicated writer connection per shard
-behind an async write queue; reads from a read-only pool. One database file per
+Every SQLite connection goes through `app.db.connection.connect` (the pragma
+helper of backend guide 3.2); a bare `sqlite3.connect` outside `app/db` is a
+defect. One dedicated writer connection per shard behind `ShardWriter.run`,
+which owns the transaction: the function you pass it must never use BEGIN,
+COMMIT, ROLLBACK, or `executescript` (executescript commits implicitly and
+breaks the queue's transaction; the writer raises on this misuse). Reads go
+through the shard's `ReadPool`. One database file per
 course, `directory.db` for cross-course lookups, and never a cross-shard join in
 SQL. Images, scans, and figure bytes live in object storage, never in SQLite.
 Timestamps are integer Unix epoch. Schema changes are numbered migrations
