@@ -6,9 +6,8 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated for Phase 0.5: Phase 0 is complete
-on the backend side (the web lint job waits on the frontend scaffold), Phase 1
-gates do not exist yet.
+passes; green never goes red. Last updated at the web scaffold (decision 0005):
+Phase 0 is now complete on both sides, Phase 1 is in progress (1.1 done).
 
 ## Running the suites
 
@@ -50,6 +49,16 @@ rebuild it into the venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/mastery/Cargo.toml
 
+Web suite (12 Vitest tests: the token contract pinning the guide 3.2 palette,
+and the landing placeholder), plus lint, typecheck, and build, from `apps/web`
+(typecheck needs a build first on a fresh checkout, decision 0005):
+
+    cd apps/web
+    pnpm test
+    pnpm lint
+    pnpm build
+    pnpm typecheck
+
 Contract seam regeneration after any route or model change (CI diffs both
 committed artifacts; `test_committed_spec_is_fresh` enforces the spec half in
 every pytest run):
@@ -75,8 +84,9 @@ Phase 0 (current), all green as of 0.4:
   directions before commit).
 - 0.5: eight criterion benches cover the crate's public functions and pass
   their absolute budgets; the checker fails on over-budget, missing, or
-  unbudgeted benches (proven both directions). The web lint job remains a
-  TODO until the frontend scaffold exists.
+  unbudgeted benches (proven both directions). The web half landed with the
+  scaffold (decision 0005): CI's `web` job runs eslint, Vitest, next build,
+  and tsc; Lighthouse and axe join it at the Phase 2 gate.
 
 Phase 1, in progress:
 

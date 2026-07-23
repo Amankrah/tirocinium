@@ -1,9 +1,10 @@
-# CI — Phase 0.5 complete for the backend: lint (rustfmt, clippy with the
-# pedantic opt-in policy of decision 0001, ruff, mypy strict), all suites,
-# contract staleness (0.3), and criterion benches against the absolute budgets
-# in crates/platform_core/bench-thresholds.json (decision 0004). The one
-# remaining stub is the web lint/test job (eslint, vitest), which has nothing
-# to run against until the frontend engineer scaffolds apps/web.
+# CI — Phase 0.5 complete: lint (rustfmt, clippy with the pedantic opt-in
+# policy of decision 0001, ruff, mypy strict, eslint), all suites, contract
+# staleness (0.3), criterion benches against the absolute budgets in
+# crates/platform_core/bench-thresholds.json (decision 0004), and the web job
+# (eslint, vitest, tsc, next build) since the apps/web scaffold landed
+# (decision 0005). Lighthouse CI and axe join the web job at the Phase 2 gate,
+# when the routes they measure exist.
 name: ci
 
 on:
@@ -88,4 +89,27 @@ jobs:
       - name: Fail if a committed contract artifact is stale
         run: git diff --exit-code -- apps/api/openapi.json apps/web/src/lib/api/schema.ts
 
-  # TODO: web lint/test job — eslint, vitest once apps/web is scaffolded.
+  web:
+    # The web half of Phase 0.5: eslint, the Vitest suite, a production build,
+    # and typecheck. tsc runs after next build because next-env.d.ts references
+    # generated files under .next/types (Next 15.5); build also proves the
+    # scaffold compiles, ahead of Lighthouse arriving at the Phase 2 gate.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm typecheck

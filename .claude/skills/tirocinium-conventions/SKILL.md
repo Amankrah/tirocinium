@@ -82,6 +82,24 @@ applied per shard at startup; nobody edits a shard by hand. Blob columns are
 zstd-compressed with per-content-type trained dictionaries once 1.2 lands
 (Python `zstandard` is the temporary fallback).
 
+## Frontend conventions
+
+Scaffolded per decision 0005; specified by the frontend guide. Server
+Components by default: every client component justifies itself in its PR
+description, every new dependency states its bundle cost, and content routes
+stay under 170 kB gzipped initial JS. Route groups are `(student)`,
+`(professor)`, `(marketing)`; shared primitives live in `components/ui` on
+Radix behaviours; no component reaches into another feature's directory. The
+token layer is `src/styles/tokens.css` (guide 3.2 palette pinned by test);
+every string lives in a typed `strings.ts` per route group, sentence case, one
+job per string. Server data types come only from the generated OpenAPI client,
+never hand-written. Mastery labels are never bare (each expands to its
+evidence trail), figures render exactly as extracted at their token position
+on every surface, seats stay pseudonymous with the seat number quietly in the
+shell, and there are no streaks, guilt notifications, leaderboards, or
+infinite scroll, ever. WCAG 2.2 AA is the floor; reduced motion renders
+stills; keyboard operability includes the upload flow and j/k review surfaces.
+
 ## Model-call rules
 
 Every prompt shipped to a model lives versioned in `apps/api/prompts/` with a

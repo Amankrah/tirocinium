@@ -1,0 +1,54 @@
+/*
+ * Design tokens: the single source of truth for the visual language, defined
+ * once here as CSS custom properties (frontend guide 2 and 3.2). Tailwind v4
+ * maps these into utilities via the @theme block in globals.css; components
+ * consume utilities or var() references, never raw values.
+ *
+ * Palette values are the guide's section 3.2, verbatim; tokens.test.ts pins
+ * them. The display face is deliberately unresolved (Newsreader and Fraunces
+ * are the guide's candidates, "to be refined in design review"): until the
+ * Phase 2.2 design pass records that decision, --font-display falls back to a
+ * quiet serif stack and no font dependency is shipped.
+ */
+
+:root {
+  /* Colour: ink on paper */
+  --color-ink: #161A23;
+  --color-paper: #FAFAF7;
+  --color-accent: #2C5AE9; /* primary actions and live states only */
+  --color-rule-line: #E4E4DC; /* hairline structure */
+  --color-verify-green: #1D7A5F; /* variant and recognition states only */
+  --color-flag-amber: #B4690E; /* variant and recognition states only */
+
+  /* Ground is what the page sits on; in light mode it is the paper itself. */
+  --color-ground: var(--color-paper);
+
+  /* Type. Interface text is Inter, numeric data always tabular (guide 3.2);
+     the webfonts themselves arrive with the Phase 2.2 design pass. */
+  --font-display: ui-serif, Georgia, "Times New Roman", serif;
+  --font-interface: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", monospace;
+
+  /* Motion: functional micro-interaction only (guide 3.3). */
+  --motion-duration: 175ms;
+  --motion-ease: cubic-bezier(0.215, 0.61, 0.355, 1); /* ease-out */
+
+  /* Structure: the reading column and the baseline rhythm. */
+  --measure-reading: 68ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-ground: #12141A;
+    --color-ink: #E8E6DF;
+    /* The accent stays (guide 3.2). Paper maps to the dark ground so any
+       surface still expressed as paper inverts with the theme. */
+    --color-paper: var(--color-ground);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration: 0ms;
+  }
+}
