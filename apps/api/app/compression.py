@@ -67,3 +67,15 @@ def decompress_text(
     conn: sqlite3.Connection, content_type: ContentType, blob: bytes
 ) -> str:
     return codec.decompress(blob, load_dictionary(conn, content_type)).decode("utf-8")
+
+
+def compress_bytes(data: bytes) -> bytes:
+    """Compress an opaque byte blob with no dictionary. For non-text blobs
+    (the float32 embedding originals of milestone 3.4) that share no vocabulary
+    a trained dictionary would exploit, so plain zstd through the codec is the
+    right tool. Still the one door: Python never touches raw zstd."""
+    return codec.compress(data)
+
+
+def decompress_bytes(blob: bytes) -> bytes:
+    return codec.decompress(blob)

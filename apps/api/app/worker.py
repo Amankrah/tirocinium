@@ -17,9 +17,11 @@ from arq.connections import RedisSettings
 
 from app.db.shards import ShardManager
 from app.events import RedisEventBus
+from app.retrieval.indexing import index_submission
+from app.retrieval.model import OpenAIEmbedder
 from app.storage import get_object_storage
 from app.transcription.model import AnthropicTranscriber
-from app.transcription.pipeline import run_submission_pipeline
+from app.transcription.pipeline import STATUS_PROCESSED, run_submission_pipeline
 
 
 def _redis_url() -> str:
@@ -36,6 +38,7 @@ async def startup(ctx: dict[str, Any]) -> None:
     ctx["shards"] = shards
     ctx["storage"] = get_object_storage()
     ctx["transcriber"] = AnthropicTranscriber()
+    ctx["embedder"] = OpenAIEmbedder()
     ctx["bus"] = RedisEventBus(_redis_url())
 
 
@@ -49,8 +52,11 @@ async def shutdown(ctx: dict[str, Any]) -> None:
 
 
 async def process_submission(ctx: dict[str, Any], course_id: int, submission_id: int) -> str:
-    """The one job: transcribe a completed submission end to end."""
-    return await run_submission_pipeline(
+    """The one job: transcribe a completed submission end to end (Stages 2 to
+    3), then index it for retrieval (Stage 4). Indexing runs only on a processed
+    result and is idempotent, so a job retry re-indexes cleanly (the
+    transcription cache makes the re-run free)."""
+    status = await run_submission_pipeline(
         shards=ctx["shards"],
         storage=ctx["storage"],
         transcriber=ctx["transcriber"],
@@ -58,6 +64,14 @@ async def process_submission(ctx: dict[str, Any], course_id: int, submission_id:
         course_id=course_id,
         submission_id=submission_id,
     )
+    if status == STATUS_PROCESSED:
+        await index_submission(
+            shards=ctx["shards"],
+            embedder=ctx["embedder"],
+            course_id=course_id,
+            submission_id=submission_id,
+        )
+    return status
 
 
 class WorkerSettings:

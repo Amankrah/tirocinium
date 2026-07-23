@@ -27,5 +27,10 @@ fn platform_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_submodule(&preprocess)?;
     sys_modules.set_item("platform_core.preprocess", &preprocess)?;
 
+    let embedding = PyModule::new(py, "embedding")?;
+    tirocinium_embedding::python::register(&embedding)?;
+    m.add_submodule(&embedding)?;
+    sys_modules.set_item("platform_core.embedding", &embedding)?;
+
     Ok(())
 }

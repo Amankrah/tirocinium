@@ -228,6 +228,28 @@ export interface paths {
         patch: operations["update_concept_api_v1_courses__course_id__concepts__concept_id__patch"];
         trace?: never;
     };
+    "/api/v1/courses/{course_id}/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search Course
+         * @description Hybrid retrieval over a course's indexed submissions: FTS5 BM25 and int8
+         *     vector similarity fused with reciprocal rank fusion, so an exact term and a
+         *     paraphrase both find the work.
+         */
+        get: operations["search_course_api_v1_courses__course_id__search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses/{course_id}/seats": {
         parameters: {
             query?: never;
@@ -688,6 +710,26 @@ export interface components {
          * @enum {string}
          */
         Role: "professor" | "admin" | "seat";
+        /** SearchHit */
+        SearchHit: {
+            /** Recognition Conf */
+            recognition_conf: number | null;
+            /** Score */
+            score: number;
+            /** Snippet */
+            snippet: string;
+            /** Status */
+            status: string;
+            /** Submission Id */
+            submission_id: number;
+        };
+        /** SearchResults */
+        SearchResults: {
+            /** Hits */
+            hits: components["schemas"]["SearchHit"][];
+            /** Query */
+            query: string;
+        };
         /** SeatBatchIn */
         SeatBatchIn: {
             /** Count */
@@ -1756,6 +1798,67 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ConceptOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_course_api_v1_courses__course_id__search_get: {
+        parameters: {
+            query: {
+                q: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResults"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
             /** @description Forbidden */

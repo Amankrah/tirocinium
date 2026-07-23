@@ -1,0 +1,9 @@
+# Mirrors crates/platform_core/embedding/src/python.rs. Symmetric int8 scalar
+# quantization with one scale per vector, and cosine similarity over the codes.
+# Int8 codes cross as raw bytes (the embeddings.vec_i8 BLOB), two's complement,
+# so a code of -1 is the byte 0xFF.
+from collections.abc import Sequence
+
+def quantize(vector: Sequence[float]) -> tuple[bytes, float]: ...
+def dequantize(codes: bytes, scale: float) -> list[float]: ...
+def cosine_i8(a: bytes, b: bytes) -> float: ...

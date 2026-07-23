@@ -6,11 +6,15 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at milestone 3.3 (decision 0018):
-Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 in progress
-(3.1 the submission upload path done; 3.2 scan preprocessing implemented, its
-golden gate awaiting the 30-photo corpus; 3.3 handwriting transcription done,
-the worker pipeline with a recorded-response model seam and SSE progress).
+passes; green never goes red. Last updated at milestone 3.4 (decision 0020):
+Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 backend
+complete (3.1 the submission upload path done; 3.2 scan preprocessing
+implemented, its golden gate awaiting the 30-photo corpus; 3.3 handwriting
+transcription done, the worker pipeline with a recorded-response model seam and
+SSE progress; 3.4 indexing and retrieval done, FTS5 plus int8-quantized
+embeddings behind a provider seam, hybrid retrieval with reciprocal rank
+fusion, the course search endpoint). The Phase 3 frontend half (3.5) and the
+end-to-end Playwright gate are the frontend's to close.
 
 ## Running the suites
 
@@ -22,15 +26,16 @@ imports, lint, and both suites; see `infra/README.md` for flags):
 
     ./infra/setup.sh
 
-Rust workspace, 31 tests (mastery 15: 6 property, 9 scenario; codec 8;
+Rust workspace, 41 tests (mastery 15: 6 property, 9 scenario; codec 8;
 preprocess 8: 7 synthetic-image pipeline tests, 1 golden-corpus harness that is
-a no-op until the corpus lands) plus lint:
+a no-op until the corpus lands; embedding 10: 7 scenario, 3 property) plus lint:
 
     cd crates/platform_core
     cargo test --workspace
     cargo fmt --all -- --check
     cargo clippy --all-targets -- -D warnings
     cargo clippy -p tirocinium-mastery --features python -- -D warnings
+    cargo clippy -p tirocinium-embedding --features python -- -D warnings
 
 Criterion benches with the absolute-budget regression gate (decision 0004;
 budgets live in `crates/platform_core/bench-thresholds.json`, revised only
@@ -43,10 +48,10 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 108 tests (25 data layer, 16 case studies/concepts/courses,
-15 seats, 12 auth, 12 submissions, 5 transcription, 7 backup, 5 compression,
-3 contract, 7 store, 1 latency gate) plus lint and the worker import smoke,
-from `apps/api`:
+Python suite, 122 tests (25 data layer, 16 case studies/concepts/courses,
+15 seats, 12 auth, 12 submissions, 5 transcription, 14 retrieval (4 indexing,
+4 hybrid-search, 6 search endpoint), 7 backup, 5 compression, 3 contract,
+7 store, 1 latency gate) plus lint and the worker import smoke, from `apps/api`:
 
     cd apps/api
     .venv/Scripts/python -m pytest -q
@@ -195,6 +200,19 @@ Phase 3, in progress:
   new submission tests cover complete-enqueues-once, the terminal-status SSE
   snapshot, and SSE seat isolation. Redis is optional for the API process (no-op
   queue and in-process bus without `TIRO_REDIS_URL`), required for the worker.
+- 3.4 (done): indexing and retrieval (decision 0020). After the pipeline, the
+  worker runs `index_submission` (a separate step, so 3.3 stays untouched):
+  recognized text into `search_fts`, embedded through a provider seam (OpenAI in
+  prod, `RecordedEmbedder` in tests), quantized to int8 in the new
+  `platform_core.embedding` member, stored with the float32 original kept for
+  requantization (migration course/0006). Retrieval is
+  `GET /api/v1/courses/{id}/search?q=`, professor-and-owner, fusing FTS5 BM25 and
+  int8 cosine with reciprocal rank fusion. The 14 Python tests cover indexing
+  (populate, idempotent re-index, skip without text, backfill), the hybrid gate
+  (an exact term and a word-disjoint paraphrase both surface the seeded
+  submission, plus the RRF unit and an empty course), and the endpoint (fused
+  hit, 401/404/403, a seat refused, q required); the member adds 10 Rust tests
+  and 2 budgeted benches.
 
 ## Standing rules
 
@@ -228,5 +246,13 @@ as the transcription corpus does. Versioned prompts live at
 `apps/api/prompts/handwriting-transcription/` (a `vN.md` per version plus a
 `CHANGELOG.md`), loaded by `app/prompts.py`, and the version string is stored
 with every transcription as provenance.
+
+Recorded embedding responses for retrieval live at
+`apps/api/tests/recorded/embeddings/`, one JSON file per text (a JSON array of
+floats) named for the sha256 of the exact text embedded. `RecordedEmbedder`
+replays them; `platform_core.embedding.quantize` turns a vector into the stored
+int8 codes. The hybrid-retrieval tests build their embedder in memory from known
+texts and hand-authored vectors, so the gate needs no committed asset; the
+directory is where a captured corpus lands as one grows.
 
 Still to come: the five-PDF ingestion corpus in Phase 4.

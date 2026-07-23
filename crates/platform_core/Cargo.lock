@@ -1685,6 +1685,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "tirocinium-embedding"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+ "proptest",
+ "pyo3",
+]
+
+[[package]]
 name = "tirocinium-mastery"
 version = "0.1.0"
 dependencies = [
@@ -1701,6 +1710,7 @@ version = "0.1.0"
 dependencies = [
  "pyo3",
  "tirocinium-codec",
+ "tirocinium-embedding",
  "tirocinium-mastery",
  "tirocinium-preprocess",
 ]

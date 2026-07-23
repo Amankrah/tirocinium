@@ -19,6 +19,7 @@ pyo3 = { version = "0.23", features = ["extension-module", "abi3-py310"] }
 tirocinium-mastery = { path = "../mastery", features = ["python"] }
 tirocinium-codec = { path = "../codec", features = ["python"] }
 tirocinium-preprocess = { path = "../preprocess", features = ["python"] }
+tirocinium-embedding = { path = "../embedding", features = ["python"] }
 
 [lints]
 workspace = true

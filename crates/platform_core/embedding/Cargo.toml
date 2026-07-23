@@ -1,0 +1,31 @@
+# The embedding quantizer (backend guide 3.3 "Embeddings quantization" and
+# section 4 Stage 4, milestone 3.4): symmetric int8 scalar quantization with a
+# per-vector scale, plus cosine similarity over the quantized bytes. Pure
+# functions of a float32 vector; the embedding itself comes from a provider
+# seam in Python (decision 0020), never from here. Pedantic and bench-budget
+# gated like every member since the codec (decisions 0001, 0004).
+[package]
+name = "tirocinium-embedding"
+version = "0.1.0"
+edition = "2021"
+description = "Tirocinium embedding quantizer: int8 scalar quantization and cosine similarity as pure functions"
+license = "UNLICENSED"
+
+[dependencies]
+# abi3 keeps the single wheel serving CPython 3.10+; extension-module is
+# enabled only by the umbrella crate so this crate's tests link normally.
+pyo3 = { version = "0.23", features = ["abi3-py310"], optional = true }
+
+[dev-dependencies]
+proptest = "=1.4.0"
+criterion = "0.5"
+
+[features]
+python = ["dep:pyo3"]
+
+[[bench]]
+name = "embedding"
+harness = false
+
+[lints]
+workspace = true

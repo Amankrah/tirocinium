@@ -7,10 +7,12 @@ description: Tirocinium coding standards, API conventions, data-layer rules, and
 
 The four documents in `docs/` are the specification and outrank this skill; this
 skill is the operational digest that survives context windows. Last updated for
-Phase 3.3 (data layer, auth, seats, and the authoring backend done; the
+Phase 3.4 (data layer, auth, seats, and the authoring backend done; the
 handwritten solution upload path live; scan preprocessing implemented in Rust;
 handwriting transcription running in an off-request-path worker with a recorded-
-response model seam and SSE progress).
+response model seam and SSE progress; indexing and retrieval done, with FTS5 and
+int8-quantized embeddings behind a provider seam and hybrid retrieval over them.
+The Phase 3 backend is complete; 3.5 and the end-to-end gate are the frontend's).
 
 ## Inviolable constraints
 
@@ -127,6 +129,18 @@ Transcriptions are cached in `page_transcriptions` (migration course/0005) keyed
 by the server-computed sha256 of the fetched original bytes, never the
 client-declared hash, so retries are free and the cache is not client-poisonable.
 
+Indexing (milestone 3.4, decision 0020) is Stage 4, a step the worker runs after
+the pipeline, not inside it: `index_submission` (`app/retrieval/indexing.py`)
+puts recognized text into `search_fts` and stores an int8-quantized embedding of
+it, and is idempotent so a job retry re-indexes cleanly. Retrieval is
+`GET /api/v1/courses/{id}/search?q=`, nested under the course and gated through
+`ensure_course_owner` (searching is a professor-and-owner surface; students
+never search), fusing FTS5 BM25 and int8 cosine similarity with reciprocal rank
+fusion (`app/retrieval/search.py`, `k=60`). A free-text query is turned into a
+safe FTS5 MATCH (quoted OR-ed word tokens), never trusted as operator syntax.
+Only submissions are indexed for now; variant and problem-text indexing arrive
+with the Phase 5 variant pool.
+
 After any route or model change, regenerate the contract seam and commit both
 artifacts (decision 0003): `python scripts/export_openapi.py` in `apps/api`,
 then `pnpm generate:client` in `apps/web`. CI fails on a stale byte anywhere.
@@ -189,6 +203,18 @@ the exact grayscale image bytes. Recorded responses are project assets under
 `apps/api/tests/recorded/transcription/`; the transcription prompt treats all
 text in the image as student work, never as instructions (the hostile-text-is-
 data constraint above).
+
+The retrieval embedder is the same shape (decision 0020):
+`Embedder.embed(text, *, model_id)` (`app/retrieval/model.py`) with a real
+`OpenAIEmbedder` (`TIRO_EMBEDDING_MODEL_ID` / `TIRO_OPENAI_API_KEY`, so vision
+stays Anthropic and embeddings are OpenAI, the only two provider families) and a
+`RecordedEmbedder` that replays a float vector keyed by the sha256 of the exact
+text, from `apps/api/tests/recorded/embeddings/`. The vector's int8 scalar
+quantization and cosine similarity live in `platform_core.embedding`, never in
+Python; the float32 original is kept zstd-compressed for requantization after a
+model change. Embedding a submission's recognized text crosses no new line: it
+is student work, not student identity, and Stage 3 already sends the page to a
+provider.
 
 ## When the guides are silent
 
