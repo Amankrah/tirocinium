@@ -2975,7 +2975,7 @@
     },
     "/api/v1/submissions/{submission_id}/complete": {
       "post": {
-        "description": "Signal that every page has been uploaded. Flips pending to uploaded so\nthe preprocessing worker (milestone 3.2) can pick it up; naturally\nidempotent, since completing an already-uploaded submission is a no-op.",
+        "description": "Signal that every page has been uploaded. Flips pending to uploaded and\nenqueues the transcription pipeline (milestone 3.3). Naturally idempotent:\ncompleting an already-uploaded submission is a no-op and enqueues nothing,\nso a retry never doubles the work.",
         "operationId": "complete_submission_api_v1_submissions__submission_id__complete_post",
         "parameters": [
           {
@@ -3036,6 +3036,72 @@
           }
         ],
         "summary": "Complete Submission",
+        "tags": [
+          "submissions"
+        ]
+      }
+    },
+    "/api/v1/submissions/{submission_id}/events": {
+      "get": {
+        "description": "Server-sent progress for one submission (milestone 3.3). Emits the\ncurrent status first, then forwards the worker's per-page events off the\nsubmission's channel until a terminal 'done'. A seat sees only its own\nsubmission (404 otherwise), the same rule as every submission surface.",
+        "operationId": "submission_events_api_v1_submissions__submission_id__events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "submission_id",
+            "required": true,
+            "schema": {
+              "title": "Submission Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Submission Events",
         "tags": [
           "submissions"
         ]

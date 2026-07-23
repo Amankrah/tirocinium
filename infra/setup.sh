@@ -130,7 +130,8 @@ say "Gate: pinned dependencies import"
 import importlib, sys
 MODULES = {
     "fastapi": "fastapi", "uvicorn": "uvicorn", "pydantic": "pydantic",
-    "arq": "arq", "redis": "redis", "httpx": "httpx",
+    "arq": "arq", "arq.connections": "arq.connections",
+    "redis": "redis", "redis.asyncio": "redis.asyncio", "httpx": "httpx",
     "python-multipart": ("python_multipart", "multipart"),
     "argon2-cffi": "argon2", "pyjwt": "jwt", "boto3": "boto3",
     "anthropic": "anthropic", "fpdf2": "fpdf",
@@ -165,5 +166,8 @@ say "Gate: Rust workspace suites (mastery 15, codec 8, preprocess 7)"
 
 say "Gate: Python suite (apps/api)"
 (cd "$API" && "$PY" -m pytest -q)
+
+say "Gate: transcription worker import smoke (apps/api)"
+(cd "$API" && "$PY" -c "import app.worker; assert app.worker.WorkerSettings.functions")
 
 say "setup.sh complete: environment provisioned and gates green"

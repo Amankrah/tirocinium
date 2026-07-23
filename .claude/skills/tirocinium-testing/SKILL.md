@@ -6,10 +6,11 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at milestone 3.2 (decision 0016):
+passes; green never goes red. Last updated at milestone 3.3 (decision 0018):
 Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 in progress
 (3.1 the submission upload path done; 3.2 scan preprocessing implemented, its
-golden gate awaiting the 30-photo corpus).
+golden gate awaiting the 30-photo corpus; 3.3 handwriting transcription done,
+the worker pipeline with a recorded-response model seam and SSE progress).
 
 ## Running the suites
 
@@ -42,14 +43,16 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 100 tests (25 data layer, 16 case studies/concepts/courses,
-15 seats, 12 auth, 9 submissions, 7 backup, 5 compression, 3 contract,
-7 store, 1 latency gate) plus lint, from `apps/api`:
+Python suite, 108 tests (25 data layer, 16 case studies/concepts/courses,
+15 seats, 12 auth, 12 submissions, 5 transcription, 7 backup, 5 compression,
+3 contract, 7 store, 1 latency gate) plus lint and the worker import smoke,
+from `apps/api`:
 
     cd apps/api
     .venv/Scripts/python -m pytest -q
     .venv/Scripts/ruff check .
     .venv/Scripts/mypy .
+    .venv/Scripts/python -c "import app.worker"
 
 The suite imports the built extension; if `platform_core` is missing (a plain
 `uv sync` also prunes it), rebuild the single wheel (decision 0006) into the
@@ -92,7 +95,8 @@ Phase 0 (current), all green as of 0.4:
 - 0.1: crate 15 tests and store 7 tests pass inside the monorepo layout; clippy
   clean on both feature sets.
 - 0.2: `infra/setup.sh` from clean succeeds end to end, including its own
-  verification gate (17 import checks, ruff, mypy strict, both suites).
+  verification gate (21 import checks, ruff, mypy strict, both suites, and the
+  transcription worker import smoke).
 - 0.3: the committed `openapi.json` and generated client are byte-fresh; a
   deliberately stale artifact fails CI's `contract` job (proven both
   directions before commit).
@@ -175,6 +179,22 @@ Phase 3, in progress:
   the golden-file suite within perceptual-hash tolerance and the p95-on-the-
   corpus measurement wait on that data; the harness and record mode are ready
   for it. Playwright journeys two and three are the frontend's to close.
+- 3.3 (done): handwriting transcription (decision 0018). An arq worker runs the
+  pipeline off the request path: preprocess each page with the 3.2 crate, store
+  the two renditions, read the grayscale copy with the vision model behind a
+  recorded-response seam, cache the reading by the server-computed content hash
+  (migration course/0005 adds `page_transcriptions` and the per-page processing
+  columns), aggregate into `recognized_z` with mean confidence, and publish
+  per-page progress. `complete` enqueues the job; `GET /submissions/{id}/events`
+  streams SSE over Redis pub/sub. The 5 transcription tests
+  (app/transcription/test_pipeline.py) cover the happy path (renditions stored,
+  cache populated, aggregate decompresses, status processed, page and done
+  events), the content-hash cache (a byte-identical repeat calls no model), a
+  page rejection (page rejected, submission needs_retake, rejected event, no
+  model call), the in-memory bus delivery, and the recorded-asset loader; the 3
+  new submission tests cover complete-enqueues-once, the terminal-status SSE
+  snapshot, and SSE seat isolation. Redis is optional for the API process (no-op
+  queue and in-process bus without `TIRO_REDIS_URL`), required for the worker.
 
 ## Standing rules
 
@@ -200,5 +220,13 @@ without verifying absent data. Once the photos land, record the baseline with
 the written `expectations.json` before committing (each entry is either a
 rejection reason code or a grayscale-rendition dHash with a Hamming tolerance).
 
-Still to come: the five-PDF ingestion corpus in Phase 4, and recorded model
-responses accumulating from Phase 3 on.
+Recorded vision-model responses for handwriting transcription live at
+`apps/api/tests/recorded/transcription/`, one JSON file per page named for the
+sha256 of the exact grayscale image bytes the model was shown (matching the
+`PageTranscription` schema). `RecordedTranscriber` replays them; the set grows
+as the transcription corpus does. Versioned prompts live at
+`apps/api/prompts/handwriting-transcription/` (a `vN.md` per version plus a
+`CHANGELOG.md`), loaded by `app/prompts.py`, and the version string is stored
+with every transcription as provenance.
+
+Still to come: the five-PDF ingestion corpus in Phase 4.

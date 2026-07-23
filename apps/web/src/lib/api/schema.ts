@@ -359,11 +359,35 @@ export interface paths {
         put?: never;
         /**
          * Complete Submission
-         * @description Signal that every page has been uploaded. Flips pending to uploaded so
-         *     the preprocessing worker (milestone 3.2) can pick it up; naturally
-         *     idempotent, since completing an already-uploaded submission is a no-op.
+         * @description Signal that every page has been uploaded. Flips pending to uploaded and
+         *     enqueues the transcription pipeline (milestone 3.3). Naturally idempotent:
+         *     completing an already-uploaded submission is a no-op and enqueues nothing,
+         *     so a retry never doubles the work.
          */
         post: operations["complete_submission_api_v1_submissions__submission_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/submissions/{submission_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Submission Events
+         * @description Server-sent progress for one submission (milestone 3.3). Emits the
+         *     current status first, then forwards the worker's per-page events off the
+         *     submission's channel until a terminal 'done'. A seat sees only its own
+         *     submission (404 otherwise), the same rule as every submission surface.
+         */
+        get: operations["submission_events_api_v1_submissions__submission_id__events_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2139,6 +2163,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SubmissionOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submission_events_api_v1_submissions__submission_id__events_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                submission_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Forbidden */

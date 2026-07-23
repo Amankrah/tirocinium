@@ -1,0 +1,16 @@
+{
+  "markdown": "The net present value is \\(\\text{NPV} = \\sum_{t=0}^{n} \\frac{C_t}{(1+r)^t}\\).\n\nWith \\(r = 0.08\\) and the cash flows given, \\(\\text{NPV} \\approx 1{,}240\\).",
+  "confidence": 0.86,
+  "regions": [
+    {
+      "bbox": [0.08, 0.06, 0.94, 0.22],
+      "confidence": 0.91,
+      "text": "The net present value is \\(\\text{NPV} = \\sum_{t=0}^{n} \\frac{C_t}{(1+r)^t}\\)."
+    },
+    {
+      "bbox": [0.08, 0.26, 0.72, 0.4],
+      "confidence": 0.74,
+      "text": "With \\(r = 0.08\\) and the cash flows given, \\(\\text{NPV} \\approx 1{,}240\\)."
+    }
+  ]
+}

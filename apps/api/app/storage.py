@@ -12,6 +12,8 @@ class ObjectStorage(Protocol):
 
     def put_object(self, *, Bucket: str, Key: str, Body: Any) -> object: ...
 
+    def get_object(self, *, Bucket: str, Key: str) -> Any: ...
+
     def generate_presigned_url(
         self, ClientMethod: str, Params: dict[str, str], ExpiresIn: int
     ) -> str: ...
@@ -36,3 +38,12 @@ def get_object_storage() -> ObjectStorage:
 
     client: ObjectStorage = s3_client_from_env()  # type: ignore[assignment]
     return client
+
+
+def fetch_bytes(storage: ObjectStorage, bucket: str, key: str) -> bytes:
+    """Read one object fully into memory. The worker uses this to pull a
+    scan back for preprocessing; the API never does (it only ever hands out
+    presigned URLs). boto3 returns a streaming body under the 'Body' key."""
+    response = storage.get_object(Bucket=bucket, Key=key)
+    data = response["Body"].read()
+    return data if isinstance(data, bytes) else bytes(data)

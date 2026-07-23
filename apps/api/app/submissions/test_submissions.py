@@ -5,9 +5,10 @@ seat-only authorization property (a seat reads only its own submissions)."""
 
 from collections.abc import Iterator
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.compression import compress_text
@@ -32,6 +33,11 @@ class FakeObjectStorage:
         data = Body.read() if hasattr(Body, "read") else bytes(Body)
         self.objects[(Bucket, Key)] = data
         return {}
+
+    def get_object(self, *, Bucket: str, Key: str) -> Any:
+        import io
+
+        return {"Body": io.BytesIO(self.objects[(Bucket, Key)])}
 
     def generate_presigned_url(
         self, ClientMethod: str, Params: dict[str, str], ExpiresIn: int
@@ -343,4 +349,76 @@ def request_upload_as_prof(
         f"/api/v1/variants/{variant_id}/submissions",
         json={"pages": [{"content_type": "image/jpeg", "size_bytes": MB}]},
         headers=headers,
+    )
+
+
+# --------------------------------------------- enqueue and progress (3.3)
+
+
+class RecordingTaskQueue:
+    def __init__(self) -> None:
+        self.enqueued: list[tuple[int, int]] = []
+
+    async def enqueue_process_submission(self, course_id: int, submission_id: int) -> None:
+        self.enqueued.append((course_id, submission_id))
+
+
+def test_complete_enqueues_processing_exactly_once(
+    client: TestClient, storage: FakeObjectStorage, tmp_data: Path
+) -> None:
+    from app.tasks import get_task_queue
+
+    variant_id, course_id, tokens = prepared(client, storage, tmp_data)
+    recording = RecordingTaskQueue()
+    cast(FastAPI, client.app).dependency_overrides[get_task_queue] = lambda: recording
+    submission_id = request_upload(client, tokens[0], variant_id).json()["submission_id"]
+
+    first = client.post(
+        f"/api/v1/submissions/{submission_id}/complete", headers=bearer(tokens[0])
+    )
+    assert first.status_code == 200, first.text
+    assert recording.enqueued == [(course_id, submission_id)]
+
+    # Completing an already-uploaded submission is a no-op and must not re-enqueue.
+    client.post(f"/api/v1/submissions/{submission_id}/complete", headers=bearer(tokens[0]))
+    assert recording.enqueued == [(course_id, submission_id)]
+
+
+def test_events_stream_snapshots_a_terminal_submission(
+    client: TestClient, storage: FakeObjectStorage, tmp_data: Path
+) -> None:
+    variant_id, course_id, tokens = prepared(client, storage, tmp_data)
+    submission_id = request_upload(client, tokens[0], variant_id).json()["submission_id"]
+
+    # A processed submission: the stream should emit the current status and a
+    # terminal done, then close, without touching the event bus.
+    conn = connect(tmp_data / "courses" / f"{course_id}.db")
+    try:
+        conn.execute(
+            "UPDATE submissions SET status = 'processed', recognition_conf = 0.8"
+            " WHERE id = ?",
+            (submission_id,),
+        )
+    finally:
+        conn.close()
+
+    r = client.get(f"/api/v1/submissions/{submission_id}/events", headers=bearer(tokens[0]))
+    assert r.status_code == 200, r.text
+    assert r.headers["content-type"].startswith("text/event-stream")
+    assert '"status": "processed"' in r.text
+    assert '"type": "done"' in r.text
+
+
+def test_events_stream_is_seat_isolated(
+    client: TestClient, storage: FakeObjectStorage, tmp_data: Path
+) -> None:
+    variant_id, _course_id, tokens = prepared(client, storage, tmp_data, seats=2)
+    owner, other = tokens
+    submission_id = request_upload(client, owner, variant_id).json()["submission_id"]
+
+    assert (
+        client.get(
+            f"/api/v1/submissions/{submission_id}/events", headers=bearer(other)
+        ).status_code
+        == 404
     )

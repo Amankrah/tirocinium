@@ -10,17 +10,21 @@ these endpoints need no course in the path and there is no colliding-id
 ambiguity (decision 0013). Professor review of submissions arrives in 8.1.
 """
 
+import json
 import sqlite3
 import time
 import uuid
+from collections.abc import AsyncIterator
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from app.auth.deps import get_shards, require_seat
 from app.auth.models import Identity
 from app.db.shards import ShardManager
+from app.events import Event, EventBus, channel_for, get_event_bus
 from app.problems import Problem
 from app.storage import (
     PRESIGN_TTL_SECONDS,
@@ -28,6 +32,8 @@ from app.storage import (
     ObjectStorage,
     get_object_storage,
 )
+from app.tasks import TaskQueue, get_task_queue
+from app.transcription.pipeline import TERMINAL_STATUSES
 
 router = APIRouter(prefix="/api/v1", tags=["submissions"])
 
@@ -235,28 +241,34 @@ async def complete_submission(
     submission_id: int,
     identity: Annotated[Identity, Depends(require_seat)],
     shards: Annotated[ShardManager, Depends(get_shards)],
+    task_queue: Annotated[TaskQueue, Depends(get_task_queue)],
 ) -> SubmissionOut:
-    """Signal that every page has been uploaded. Flips pending to uploaded so
-    the preprocessing worker (milestone 3.2) can pick it up; naturally
-    idempotent, since completing an already-uploaded submission is a no-op."""
+    """Signal that every page has been uploaded. Flips pending to uploaded and
+    enqueues the transcription pipeline (milestone 3.3). Naturally idempotent:
+    completing an already-uploaded submission is a no-op and enqueues nothing,
+    so a retry never doubles the work."""
     course_id, seat_id = _seat_context(identity)
     now = int(time.time())
 
-    def apply(conn: sqlite3.Connection) -> None:
+    def apply(conn: sqlite3.Connection) -> bool:
         row = conn.execute(
             "SELECT seat_id, status FROM submissions WHERE id = ?",
             (submission_id,),
         ).fetchone()
         if row is None or int(row[0]) != seat_id:
             raise HTTPException(status_code=404, detail="Submission not found.")
-        if str(row[1]) == "pending":
-            conn.execute(
-                "UPDATE submissions SET status = 'uploaded', submitted_at = ?"
-                " WHERE id = ?",
-                (now, submission_id),
-            )
+        if str(row[1]) != "pending":
+            return False
+        conn.execute(
+            "UPDATE submissions SET status = 'uploaded', submitted_at = ?"
+            " WHERE id = ?",
+            (now, submission_id),
+        )
+        return True
 
-    await shards.course(course_id).run(apply)
+    flipped = await shards.course(course_id).run(apply)
+    if flipped:
+        await task_queue.enqueue_process_submission(course_id, submission_id)
     return await _load_submission(shards, course_id, submission_id, seat_id)
 
 
@@ -272,3 +284,52 @@ async def get_submission(
 ) -> SubmissionOut:
     course_id, seat_id = _seat_context(identity)
     return await _load_submission(shards, course_id, submission_id, seat_id)
+
+
+def _sse(event: Event) -> str:
+    return f"data: {json.dumps(event)}\n\n"
+
+
+async def _authorized_status(
+    shards: ShardManager, course_id: int, submission_id: int, seat_id: int
+) -> str:
+    def read(conn: sqlite3.Connection) -> str:
+        row = conn.execute(
+            "SELECT seat_id, status FROM submissions WHERE id = ?", (submission_id,)
+        ).fetchone()
+        if row is None or int(row[0]) != seat_id:
+            raise HTTPException(status_code=404, detail="Submission not found.")
+        return str(row[1])
+
+    return await shards.course_reads(course_id).run(read)
+
+
+@router.get(
+    "/submissions/{submission_id}/events",
+    responses={403: {"model": Problem}, 404: {"model": Problem}},
+)
+async def submission_events(
+    submission_id: int,
+    identity: Annotated[Identity, Depends(require_seat)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+    bus: Annotated[EventBus, Depends(get_event_bus)],
+) -> StreamingResponse:
+    """Server-sent progress for one submission (milestone 3.3). Emits the
+    current status first, then forwards the worker's per-page events off the
+    submission's channel until a terminal 'done'. A seat sees only its own
+    submission (404 otherwise), the same rule as every submission surface."""
+    course_id, seat_id = _seat_context(identity)
+    status = await _authorized_status(shards, course_id, submission_id, seat_id)
+
+    async def stream() -> AsyncIterator[str]:
+        yield _sse({"type": "status", "status": status})
+        if status in TERMINAL_STATUSES:
+            yield _sse({"type": "done", "status": status})
+            return
+        async with bus.listen(channel_for(course_id, submission_id)) as events:
+            async for event in events:
+                yield _sse(event)
+                if event.get("type") == "done":
+                    return
+
+    return StreamingResponse(stream(), media_type="text/event-stream")

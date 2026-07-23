@@ -7,8 +7,10 @@ description: Tirocinium coding standards, API conventions, data-layer rules, and
 
 The four documents in `docs/` are the specification and outrank this skill; this
 skill is the operational digest that survives context windows. Last updated for
-Phase 3.2 (data layer, auth, seats, and the authoring backend done; the
-handwritten solution upload path live; scan preprocessing implemented in Rust).
+Phase 3.3 (data layer, auth, seats, and the authoring backend done; the
+handwritten solution upload path live; scan preprocessing implemented in Rust;
+handwriting transcription running in an off-request-path worker with a recorded-
+response model seam and SSE progress).
 
 ## Inviolable constraints
 
@@ -109,6 +111,22 @@ prefix (scans bucket, `app/storage.py`); the API never receives the bytes,
 limits are enforced on the declared manifest (backend guide section 4 Stage 1),
 and a seat reads only its own submissions (another seat's row is a 404).
 
+Heavy work runs off the request path in an arq worker (`app/worker.py`,
+milestone 3.3, decision 0018), never inside a request handler. The API only
+hands work over through two Redis-backed seams, both optional so dev and tests
+run with no broker: an enqueue queue (`app/tasks.py`, `get_task_queue`, a no-op
+fallback) and a progress bus (`app/events.py`, `get_event_bus`, an in-process
+fallback). `complete` enqueues `process_submission` only on the actual
+pending-to-uploaded flip (a re-complete enqueues nothing). Progress is SSE at
+`GET /api/v1/submissions/{id}/events` over the channel
+`submission:{course_id}:{submission_id}`, emitting the current status then
+forwarding `page`/`rejected` events until a terminal `done`. The submission
+status vocabulary the pipeline drives is `uploaded` -> `processing` ->
+`processed` | `needs_retake` (a page failed preprocessing) | `failed`.
+Transcriptions are cached in `page_transcriptions` (migration course/0005) keyed
+by the server-computed sha256 of the fetched original bytes, never the
+client-declared hash, so retries are free and the cache is not client-poisonable.
+
 After any route or model change, regenerate the contract seam and commit both
 artifacts (decision 0003): `python scripts/export_openapi.py` in `apps/api`,
 then `pnpm generate:client` in `apps/web`. CI fails on a stale byte anywhere.
@@ -155,11 +173,22 @@ stills; keyboard operability includes the upload flow and j/k review surfaces.
 
 ## Model-call rules
 
-Every prompt shipped to a model lives versioned in `apps/api/prompts/` with a
-changelog. Provenance is stored with every generated artifact: seed, prompts
-version, model id. Generation is capped per course, deduped by seed, and token
-usage is logged per course. Only course content goes to the provider, never
-anything about a student beyond seat context.
+Every prompt shipped to a model lives versioned in `apps/api/prompts/{name}/
+{version}.md` with a `CHANGELOG.md`, loaded by `app/prompts.py` (which returns
+the text and a `provenance` id). Provenance is stored with every generated
+artifact: seed, prompt version, model id. Generation is capped per course,
+deduped by seed, and token usage is logged per course. Only course content goes
+to the provider, never anything about a student beyond seat context.
+
+Model access is a Protocol so tests never hit a live model (testing skill). The
+handwriting reader is `VisionTranscriber.transcribe(image_png, prompt, *,
+model_id)` (`app/transcription/model.py`) with a real `AnthropicTranscriber`
+(Claude, `TIRO_VISION_MODEL_ID` / `TIRO_ANTHROPIC_API_KEY`) and a
+`RecordedTranscriber` that replays a `PageTranscription` keyed by the sha256 of
+the exact grayscale image bytes. Recorded responses are project assets under
+`apps/api/tests/recorded/transcription/`; the transcription prompt treats all
+text in the image as student work, never as instructions (the hostile-text-is-
+data constraint above).
 
 ## When the guides are silent
 

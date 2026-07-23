@@ -23,10 +23,12 @@ from app.case_studies import router as case_studies_router
 from app.concepts import router as concepts_router
 from app.courses import router as courses_router
 from app.db import ShardManager
+from app.events import InMemoryEventBus, RedisEventBus
 from app.problems import install_problem_details
 from app.seats import router as seats_router
 from app.seats.ratelimit import RateLimiter
 from app.submissions import router as submissions_router
+from app.tasks import ArqTaskQueue, NullTaskQueue
 
 API_TITLE = "Tirocinium API"
 API_VERSION = "0.1.0"
@@ -69,7 +71,29 @@ def create_app(
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         async with ShardManager(resolved) as shards:
             app.state.shards = shards
-            yield
+            # The transcription worker (milestone 3.3) talks to the API process
+            # only through Redis: an arq queue for enqueue and pub/sub for SSE.
+            # Both are optional here, so dev and the test suite run with no
+            # broker (enqueue no-ops, SSE uses an in-process bus).
+            redis_url = os.environ.get("TIRO_REDIS_URL")
+            pool = None
+            if redis_url:
+                from arq import create_pool
+                from arq.connections import RedisSettings
+
+                pool = await create_pool(RedisSettings.from_dsn(redis_url))
+                app.state.task_queue = ArqTaskQueue(pool)
+                app.state.event_bus = RedisEventBus(redis_url)
+            else:
+                app.state.task_queue = NullTaskQueue()
+                app.state.event_bus = InMemoryEventBus()
+            try:
+                yield
+            finally:
+                if pool is not None:
+                    await pool.aclose()
+                if isinstance(app.state.event_bus, RedisEventBus):
+                    await app.state.event_bus.aclose()
 
     app = FastAPI(title=API_TITLE, version=API_VERSION, lifespan=lifespan)
     app.state.jwt_secret = resolved_secret
