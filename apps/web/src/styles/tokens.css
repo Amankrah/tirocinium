@@ -5,10 +5,9 @@
  * consume utilities or var() references, never raw values.
  *
  * Palette values are the guide's section 3.2, verbatim; tokens.test.ts pins
- * them. The display face is deliberately unresolved (Newsreader and Fraunces
- * are the guide's candidates, "to be refined in design review"): until the
- * Phase 2.2 design pass records that decision, --font-display falls back to a
- * quiet serif stack and no font dependency is shipped.
+ * them. The display face is Fraunces (decision 0007, resolving the guide's
+ * Newsreader/Fraunces candidates): it ships through next/font as a self-hosted
+ * woff2 with a quiet serif stack as the no-JS fallback.
  */
 
 :root {
@@ -23,11 +22,18 @@
   /* Ground is what the page sits on; in light mode it is the paper itself. */
   --color-ground: var(--color-paper);
 
-  /* Type. Interface text is Inter, numeric data always tabular (guide 3.2);
-     the webfonts themselves arrive with the Phase 2.2 design pass. */
-  --font-display: ui-serif, Georgia, "Times New Roman", serif;
-  --font-interface: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", monospace;
+  /* Text set on top of the accent, identical in both themes: the accent blue
+     needs light text for contrast whatever the surrounding theme does. */
+  --color-on-accent: #FAFAF7;
+
+  /* Type (guide 3.2, decision 0007): Fraunces for display, Inter for
+     interface text, JetBrains Mono for values a professor might copy; the
+     families are self-hosted via next/font, which supplies the --font-*
+     variables referenced here, with system stacks as the no-JS fallback.
+     Numeric data is always tabular. */
+  --font-display: var(--font-fraunces, ui-serif, Georgia, "Times New Roman", serif);
+  --font-interface: var(--font-inter, ui-sans-serif, system-ui, sans-serif);
+  --font-mono: var(--font-jetbrains-mono, ui-monospace, "Cascadia Mono", monospace);
 
   /* Motion: functional micro-interaction only (guide 3.3). */
   --motion-duration: 175ms;

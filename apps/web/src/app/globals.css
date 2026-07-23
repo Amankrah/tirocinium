@@ -12,6 +12,7 @@
   --color-rule-line: var(--color-rule-line);
   --color-verify-green: var(--color-verify-green);
   --color-flag-amber: var(--color-flag-amber);
+  --color-on-accent: var(--color-on-accent);
   --font-display: var(--font-display);
   --font-interface: var(--font-interface);
   --font-mono: var(--font-mono);
