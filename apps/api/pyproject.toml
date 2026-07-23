@@ -61,6 +61,12 @@ strict = true
 mypy_path = "stubs"
 files = ["app", "mastery_store", "scripts"]
 
+[[tool.mypy.overrides]]
+# boto3 ships no type information; the typed boundary is the
+# ObjectStorageClient protocol in app/db/backup.py.
+module = ["boto3", "boto3.*", "botocore", "botocore.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["app", "mastery_store"]
 asyncio_mode = "auto"

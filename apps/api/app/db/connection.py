@@ -40,5 +40,11 @@ def connect(path: Path, readonly: bool = False) -> sqlite3.Connection:
         conn = sqlite3.connect(path, check_same_thread=False)
     conn.isolation_level = None
     for name, value in PRAGMAS.items():
+        if readonly and name == "journal_mode":
+            # journal_mode is persisted in the file and set by the writer;
+            # a read-only connection cannot (and must not) rewrite it, and
+            # forcing it would fail on non-WAL files such as fresh
+            # VACUUM INTO snapshots.
+            continue
         conn.execute(f"PRAGMA {name} = {value}")
     return conn

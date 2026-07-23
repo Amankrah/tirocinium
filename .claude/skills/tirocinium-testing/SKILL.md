@@ -36,8 +36,8 @@ deliberately and with the reference means in the file updated to match):
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 40 tests (25 data layer, 5 compression, 3 contract, 7 store)
-plus lint, from `apps/api`:
+Python suite, 47 tests (25 data layer, 7 backup, 5 compression, 3 contract,
+7 store) plus lint, from `apps/api`:
 
     cd apps/api
     .venv/Scripts/python -m pytest -q
@@ -73,6 +73,11 @@ Docker Desktop first if `docker info` fails:
 
     docker compose -f infra/docker-compose.yml up -d --wait
 
+The restore drill (Phase 1 gate; needs MinIO, starts it itself if docker is
+available; runs containerized on hosts without a native litestream binary):
+
+    ./infra/restore-drill.sh
+
 ## The gate table
 
 Phase 0 (current), all green as of 0.4:
@@ -103,6 +108,11 @@ Phase 1, in progress:
   before training decompress after it; the zstandard fallback is out of the
   dependency set; everything ships as the single platform_core wheel
   (decision 0006).
+- 1.3 (done): the restore drill passes (point-in-time restore by WAL index
+  and latest restore both digest-verified, snapshot round trip through
+  object storage stable; decision 0008) and runs in CI's `restore-drill`
+  job; 7 backup tests cover the digest, VACUUM INTO, and the upload seam.
+  Never run `PRAGMA wal_checkpoint(TRUNCATE)` on a replicated shard.
 
 Remaining Phase 1 gates, for orientation: restore drill in CI against a
 fixture shard; seat authorization property tests (a session can never read

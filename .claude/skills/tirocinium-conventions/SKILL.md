@@ -78,7 +78,12 @@ through the shard's `ReadPool`. One database file per
 course, `directory.db` for cross-course lookups, and never a cross-shard join in
 SQL. Images, scans, and figure bytes live in object storage, never in SQLite.
 Timestamps are integer Unix epoch. Schema changes are numbered migrations
-applied per shard at startup; nobody edits a shard by hand. Blob columns are
+applied per shard at startup; nobody edits a shard by hand. Shards are
+continuously replicated by Litestream: never run
+`PRAGMA wal_checkpoint(TRUNCATE)` on a live shard (it breaks the shadow WAL,
+decision 0008); `VACUUM INTO` via `app.db.backup.snapshot_shard` is the
+sanctioned maintenance path, and the restore drill
+(`infra/restore-drill.sh`) must stay green. Blob columns are
 zstd-compressed through `app/compression.py` (dictionaries per content type,
 stored in the shard, arithmetic in `platform_core.codec`); Python never
 touches raw zstd and `zstandard` must not reappear in the dependency set.
