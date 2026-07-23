@@ -6,3 +6,11 @@
 [workspace]
 resolver = "2"
 members = ["mastery"]
+
+# Decision 0001, encoded structurally: new members (the zstd codec,
+# preprocessing, the numeric comparer) opt into pedantic by declaring
+# `[lints] workspace = true`; the reference `mastery` crate does not, and is
+# held to its property suites instead. CI's `-D warnings` promotes these
+# warns to errors for every crate that opts in.
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }

@@ -44,8 +44,11 @@ Python 3.12, pydantic v2 models at every module boundary, no raw dicts crossing
 boundaries, ruff and mypy strict clean before anything is done (`apps/api`
 config lives in `pyproject.toml`; run both from `apps/api`). Rust extensions get
 a hand-maintained typed stub in `apps/api/stubs/` kept in lockstep with the
-PyO3 surface. New `platform_core` members are clippy-pedantic clean with
-criterion benchmarks for public functions; the reference `mastery` crate is
+PyO3 surface. New `platform_core` members are clippy-pedantic clean (declare
+`[lints] workspace = true` in the member's Cargo.toml; the workspace defines
+pedantic as warn and CI's `-D warnings` promotes it) with criterion benchmarks
+for public functions, each gated by a budget in
+`crates/platform_core/bench-thresholds.json`; the reference `mastery` crate is
 exempt from pedantic by decision 0001 and is held to its property suites
 instead. Never reimplement the mastery arithmetic, the numeric comparer, or
 preprocessing in Python: the Rust implementation is the only implementation.

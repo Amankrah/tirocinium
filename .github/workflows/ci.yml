@@ -1,7 +1,9 @@
-# CI — Phase 0.5 scaffold, extended in 0.2 (pinned Python environment and the
-# ruff/mypy gate) and 0.3 (contract staleness). Remaining stubs are marked TODO
-# and filled in as their milestones land (criterion regression thresholds 0.5,
-# web lint/test job once apps/web is scaffolded).
+# CI — Phase 0.5 complete for the backend: lint (rustfmt, clippy with the
+# pedantic opt-in policy of decision 0001, ruff, mypy strict), all suites,
+# contract staleness (0.3), and criterion benches against the absolute budgets
+# in crates/platform_core/bench-thresholds.json (decision 0004). The one
+# remaining stub is the web lint/test job (eslint, vitest), which has nothing
+# to run against until the frontend engineer scaffolds apps/web.
 name: ci
 
 on:
@@ -24,7 +26,10 @@ jobs:
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo clippy -p tirocinium-mastery --features python -- -D warnings
       - run: cargo test --workspace
-      # TODO(0.5): cargo criterion with regression thresholds once benches land.
+      - name: Criterion benches against absolute budgets (decision 0004)
+        run: |
+          cargo bench -p tirocinium-mastery
+          python3 ../../infra/check-bench-thresholds.py
 
   api:
     runs-on: ubuntu-latest

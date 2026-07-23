@@ -1,0 +1,11 @@
+{
+  "_comment": "Absolute mean-time budgets in nanoseconds per criterion bench id (decision 0004). Set at roughly 25-30x the reference machine's means so CI runner slowness never trips them but an order-of-magnitude regression always does. Reference means (2026-07, Windows dev host): params_default 35ns, weighted_event_new 3.5ns, apply_first_event 69ns, apply_existing_state 116ns, replay_1000_events 293us, supersession_1000_events 12us, state_view 16ns, evidence_trail_100_events 334ns.",
+  "params_default": 1000,
+  "weighted_event_new": 200,
+  "apply_first_event": 2000,
+  "apply_existing_state": 3500,
+  "replay_1000_events": 8000000,
+  "supersession_1000_events": 400000,
+  "state_view": 500,
+  "evidence_trail_100_events": 10000
+}

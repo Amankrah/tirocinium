@@ -20,6 +20,11 @@ pyo3 = { version = "0.23", features = ["extension-module", "abi3-py310"], option
 
 [dev-dependencies]
 proptest = "=1.4.0"
+criterion = "0.5"
+
+[[bench]]
+name = "mastery"
+harness = false
 
 [features]
 default = []

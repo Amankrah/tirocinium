@@ -6,8 +6,9 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated for Phase 0.4: gates 0.1 through 0.3
-are green, Phase 1 gates do not exist yet.
+passes; green never goes red. Last updated for Phase 0.5: Phase 0 is complete
+on the backend side (the web lint job waits on the frontend scaffold), Phase 1
+gates do not exist yet.
 
 ## Running the suites
 
@@ -26,6 +27,14 @@ Rust workspace, 15 tests (6 property, 9 scenario) plus lint:
     cargo fmt --all -- --check
     cargo clippy --all-targets -- -D warnings
     cargo clippy -p tirocinium-mastery --features python -- -D warnings
+
+Criterion benches with the absolute-budget regression gate (decision 0004;
+budgets live in `crates/platform_core/bench-thresholds.json`, revised only
+deliberately and with the reference means in the file updated to match):
+
+    cd crates/platform_core
+    cargo bench -p tirocinium-mastery
+    python ../../infra/check-bench-thresholds.py
 
 Python suite, 10 tests (3 contract, 7 store) plus lint, from `apps/api`:
 
@@ -63,7 +72,10 @@ Phase 0 (current), all green as of 0.4:
 - 0.3: the committed `openapi.json` and generated client are byte-fresh; a
   deliberately stale artifact fails CI's `contract` job (proven both
   directions before commit).
-- 0.5 (pending): criterion benchmark regression thresholds; web lint job.
+- 0.5: eight criterion benches cover the crate's public functions and pass
+  their absolute budgets; the checker fails on over-budget, missing, or
+  unbudgeted benches (proven both directions). The web lint job remains a
+  TODO until the frontend scaffold exists.
 
 Phase 1 gates, for orientation before they exist: restore drill in CI against a
 fixture shard; seat authorization property tests (a session can never read
