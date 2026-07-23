@@ -55,6 +55,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/courses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Course */
+        post: operations["create_course_api_v1_courses_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/seats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Seats */
+        get: operations["list_seats_api_v1_courses__course_id__seats_get"];
+        put?: never;
+        /** Generate Seat Batch */
+        post: operations["generate_seat_batch_api_v1_courses__course_id__seats_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -72,6 +107,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/seats/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Seat Me */
+        get: operations["seat_me_api_v1_seats_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/seats/redeem": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Redeem */
+        post: operations["redeem_api_v1_seats_redeem_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/seats/{seat_id}/reissue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reissue Seat */
+        post: operations["reissue_seat_api_v1_seats__seat_id__reissue_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/seats/{seat_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke Seat */
+        post: operations["revoke_seat_api_v1_seats__seat_id__revoke_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -81,6 +184,18 @@ export interface components {
             professor: components["schemas"]["ProfessorOut"];
             /** Token */
             token: string;
+        };
+        /** CourseIn */
+        CourseIn: {
+            /** Title */
+            title: string;
+        };
+        /** CourseOut */
+        CourseOut: {
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -101,13 +216,19 @@ export interface components {
         /**
          * Identity
          * @description Who is calling, as resolved by the dependency layer. Professors and
-         *     admins carry user_id and email; seat identities (milestone 1.5) carry
-         *     course and seat context instead and never an email.
+         *     admins carry user_id and email; seat identities carry course and seat
+         *     context instead and never anything about a person.
          */
         Identity: {
+            /** Course Id */
+            course_id?: number | null;
             /** Email */
             email?: string | null;
             role: components["schemas"]["Role"];
+            /** Seat Id */
+            seat_id?: number | null;
+            /** Seat Number */
+            seat_number?: string | null;
             /** User Id */
             user_id?: number | null;
         };
@@ -147,11 +268,82 @@ export interface components {
             id: number;
             role: components["schemas"]["Role"];
         };
+        /** RedeemIn */
+        RedeemIn: {
+            /** Code */
+            code: string;
+        };
+        /** RedeemOut */
+        RedeemOut: {
+            /** Course Id */
+            course_id: number;
+            /** Course Title */
+            course_title: string;
+            /** Seat Number */
+            seat_number: string;
+            /** Token */
+            token: string;
+        };
+        /** ReissueOut */
+        ReissueOut: {
+            /** Code */
+            code: string;
+            /** Seat Number */
+            seat_number: string;
+        };
+        /** RevokeOut */
+        RevokeOut: {
+            /** Seat Number */
+            seat_number: string;
+            /** Status */
+            status: string;
+        };
         /**
          * Role
          * @enum {string}
          */
         Role: "professor" | "admin" | "seat";
+        /** SeatBatchIn */
+        SeatBatchIn: {
+            /** Count */
+            count: number;
+        };
+        /** SeatBatchOut */
+        SeatBatchOut: {
+            /** Count */
+            count: number;
+            /** Csv Url */
+            csv_url: string;
+            /** Pdf Url */
+            pdf_url: string;
+        };
+        /** SeatListOut */
+        SeatListOut: {
+            /** Seats */
+            seats: components["schemas"]["SeatOut"][];
+        };
+        /** SeatMeOut */
+        SeatMeOut: {
+            /** Course Id */
+            course_id: number;
+            /** Course Title */
+            course_title: string;
+            /** Seat Number */
+            seat_number: string;
+        };
+        /** SeatOut */
+        SeatOut: {
+            /** Id */
+            id: number;
+            /** Last Used At */
+            last_used_at: number | null;
+            /** Seat Number */
+            seat_number: string;
+            /** Status */
+            status: string;
+            /** Submission Count */
+            submission_count: number;
+        };
         /** SignupIn */
         SignupIn: {
             /**
@@ -297,6 +489,159 @@ export interface operations {
             };
         };
     };
+    create_course_api_v1_courses_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CourseIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_seats_api_v1_courses__course_id__seats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeatListOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_seat_batch_api_v1_courses__course_id__seats_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeatBatchIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeatBatchOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     health_api_v1_health_get: {
         parameters: {
             query?: never;
@@ -313,6 +658,193 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthOut"];
+                };
+            };
+        };
+    };
+    seat_me_api_v1_seats_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeatMeOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    redeem_api_v1_seats_redeem_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RedeemIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RedeemOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    reissue_seat_api_v1_seats__seat_id__reissue_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                seat_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReissueOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_seat_api_v1_seats__seat_id__revoke_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                seat_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevokeOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

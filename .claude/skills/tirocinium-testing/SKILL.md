@@ -36,8 +36,9 @@ deliberately and with the reference means in the file updated to match):
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 59 tests (25 data layer, 12 auth, 7 backup, 5 compression,
-3 contract, 7 store) plus lint, from `apps/api`:
+Python suite, 75 tests (25 data layer, 15 seats, 12 auth, 7 backup,
+5 compression, 3 contract, 7 store, 1 latency gate) plus lint, from
+`apps/api`:
 
     cd apps/api
     .venv/Scripts/python -m pytest -q
@@ -118,12 +119,15 @@ Phase 1, in progress:
   failures (body and timing), expired/tampered/seat-role tokens rejected,
   case-insensitive email uniqueness, and the role gates. Errors are RFC
   7807 problem+json via app/problems.py from here on.
-
-Remaining Phase 1 gates, for orientation: restore drill in CI against a
-fixture shard; seat authorization property tests (a session can never read
-another seat's rows); revoked seats fail immediately; reissue preserves history;
-plaintext codes appear in exactly one response ever, asserted by a log-scanning
-test; latency budget check on the read path with the 50-case fixture shard.
+- 1.5 (done, closing the phase): the full seat lifecycle (decision 0010).
+  Gate items all green: seat authorization properties (seat tokens rejected
+  on professor surfaces and vice versa, non-owners rejected, each seat sees
+  only itself); revoked seats fail immediately including live sessions;
+  reissue preserves the seat id and kills old code and sessions; plaintext
+  codes in exactly one response ever and never in logs (log-scanning test);
+  redemption rate limiting 10/h/IP with exponential backoff; read-path p95
+  under 150 ms on the 50-case fixture shard (app/db/fixtures.py builds it;
+  the latency gate lives in app/db/test_latency.py).
 
 ## Standing rules
 

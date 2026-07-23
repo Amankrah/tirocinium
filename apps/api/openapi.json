@@ -18,6 +18,39 @@
         "title": "AuthOut",
         "type": "object"
       },
+      "CourseIn": {
+        "properties": {
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "title": "CourseIn",
+        "type": "object"
+      },
+      "CourseOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title"
+        ],
+        "title": "CourseOut",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -47,8 +80,19 @@
         "type": "object"
       },
       "Identity": {
-        "description": "Who is calling, as resolved by the dependency layer. Professors and\nadmins carry user_id and email; seat identities (milestone 1.5) carry\ncourse and seat context instead and never an email.",
+        "description": "Who is calling, as resolved by the dependency layer. Professors and\nadmins carry user_id and email; seat identities carry course and seat\ncontext instead and never anything about a person.",
         "properties": {
+          "course_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Course Id"
+          },
           "email": {
             "anyOf": [
               {
@@ -62,6 +106,28 @@
           },
           "role": {
             "$ref": "#/components/schemas/Role"
+          },
+          "seat_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seat Id"
+          },
+          "seat_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seat Number"
           },
           "user_id": {
             "anyOf": [
@@ -158,6 +224,85 @@
         "title": "ProfessorOut",
         "type": "object"
       },
+      "RedeemIn": {
+        "properties": {
+          "code": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "title": "RedeemIn",
+        "type": "object"
+      },
+      "RedeemOut": {
+        "properties": {
+          "course_id": {
+            "title": "Course Id",
+            "type": "integer"
+          },
+          "course_title": {
+            "title": "Course Title",
+            "type": "string"
+          },
+          "seat_number": {
+            "title": "Seat Number",
+            "type": "string"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "seat_number",
+          "course_id",
+          "course_title"
+        ],
+        "title": "RedeemOut",
+        "type": "object"
+      },
+      "ReissueOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "seat_number": {
+            "title": "Seat Number",
+            "type": "string"
+          }
+        },
+        "required": [
+          "seat_number",
+          "code"
+        ],
+        "title": "ReissueOut",
+        "type": "object"
+      },
+      "RevokeOut": {
+        "properties": {
+          "seat_number": {
+            "title": "Seat Number",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "seat_number",
+          "status"
+        ],
+        "title": "RevokeOut",
+        "type": "object"
+      },
       "Role": {
         "enum": [
           "professor",
@@ -166,6 +311,123 @@
         ],
         "title": "Role",
         "type": "string"
+      },
+      "SeatBatchIn": {
+        "properties": {
+          "count": {
+            "maximum": 500.0,
+            "minimum": 1.0,
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "count"
+        ],
+        "title": "SeatBatchIn",
+        "type": "object"
+      },
+      "SeatBatchOut": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "csv_url": {
+            "title": "Csv Url",
+            "type": "string"
+          },
+          "pdf_url": {
+            "title": "Pdf Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "count",
+          "csv_url",
+          "pdf_url"
+        ],
+        "title": "SeatBatchOut",
+        "type": "object"
+      },
+      "SeatListOut": {
+        "properties": {
+          "seats": {
+            "items": {
+              "$ref": "#/components/schemas/SeatOut"
+            },
+            "title": "Seats",
+            "type": "array"
+          }
+        },
+        "required": [
+          "seats"
+        ],
+        "title": "SeatListOut",
+        "type": "object"
+      },
+      "SeatMeOut": {
+        "properties": {
+          "course_id": {
+            "title": "Course Id",
+            "type": "integer"
+          },
+          "course_title": {
+            "title": "Course Title",
+            "type": "string"
+          },
+          "seat_number": {
+            "title": "Seat Number",
+            "type": "string"
+          }
+        },
+        "required": [
+          "seat_number",
+          "course_id",
+          "course_title"
+        ],
+        "title": "SeatMeOut",
+        "type": "object"
+      },
+      "SeatOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "seat_number": {
+            "title": "Seat Number",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "submission_count": {
+            "title": "Submission Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "seat_number",
+          "status",
+          "last_used_at",
+          "submission_count"
+        ],
+        "title": "SeatOut",
+        "type": "object"
       },
       "SignupIn": {
         "properties": {
@@ -380,6 +642,214 @@
         ]
       }
     },
+    "/api/v1/courses": {
+      "post": {
+        "operationId": "create_course_api_v1_courses_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Course",
+        "tags": [
+          "courses"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/seats": {
+      "get": {
+        "operationId": "list_seats_api_v1_courses__course_id__seats_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeatListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Seats",
+        "tags": [
+          "seats"
+        ]
+      },
+      "post": {
+        "operationId": "generate_seat_batch_api_v1_courses__course_id__seats_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeatBatchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeatBatchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Generate Seat Batch",
+        "tags": [
+          "seats"
+        ]
+      }
+    },
     "/api/v1/health": {
       "get": {
         "operationId": "health_api_v1_health_get",
@@ -398,6 +868,247 @@
         "summary": "Health",
         "tags": [
           "meta"
+        ]
+      }
+    },
+    "/api/v1/seats/me": {
+      "get": {
+        "operationId": "seat_me_api_v1_seats_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeatMeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Seat Me",
+        "tags": [
+          "seats"
+        ]
+      }
+    },
+    "/api/v1/seats/redeem": {
+      "post": {
+        "operationId": "redeem_api_v1_seats_redeem_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedeemIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedeemOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "summary": "Redeem",
+        "tags": [
+          "seats"
+        ]
+      }
+    },
+    "/api/v1/seats/{seat_id}/reissue": {
+      "post": {
+        "operationId": "reissue_seat_api_v1_seats__seat_id__reissue_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "seat_id",
+            "required": true,
+            "schema": {
+              "title": "Seat Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReissueOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Reissue Seat",
+        "tags": [
+          "seats"
+        ]
+      }
+    },
+    "/api/v1/seats/{seat_id}/revoke": {
+      "post": {
+        "operationId": "revoke_seat_api_v1_seats__seat_id__revoke_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "seat_id",
+            "required": true,
+            "schema": {
+              "title": "Seat Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Revoke Seat",
+        "tags": [
+          "seats"
         ]
       }
     }

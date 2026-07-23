@@ -4,4 +4,4 @@ do not care about auth."""
 
 import os
 
-os.environ.setdefault("TIRO_JWT_SECRET", "test-suite-secret")
+os.environ.setdefault("TIRO_JWT_SECRET", "test-suite-secret-0123456789abcdef")

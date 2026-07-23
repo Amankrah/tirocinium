@@ -14,12 +14,15 @@ class Role(StrEnum):
 
 class Identity(BaseModel, frozen=True):
     """Who is calling, as resolved by the dependency layer. Professors and
-    admins carry user_id and email; seat identities (milestone 1.5) carry
-    course and seat context instead and never an email."""
+    admins carry user_id and email; seat identities carry course and seat
+    context instead and never anything about a person."""
 
     role: Role
     user_id: int | None = None
     email: str | None = None
+    seat_id: int | None = None
+    course_id: int | None = None
+    seat_number: str | None = None
 
 
 class ProfessorOut(BaseModel):

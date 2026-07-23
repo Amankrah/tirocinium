@@ -133,7 +133,7 @@ MODULES = {
     "arq": "arq", "redis": "redis", "httpx": "httpx",
     "python-multipart": ("python_multipart", "multipart"),
     "argon2-cffi": "argon2", "pyjwt": "jwt", "boto3": "boto3",
-    "anthropic": "anthropic",
+    "anthropic": "anthropic", "fpdf2": "fpdf",
     "pytest": "pytest", "ruff": "ruff", "mypy": "mypy",
     "platform_core (built extension)": "platform_core",
     "platform_core.codec": "platform_core.codec",

@@ -36,13 +36,24 @@ def digest_shard(path: Path) -> dict[str, TableDigest]:
     row changes the table's checksum."""
     conn = connect(path, readonly=True)
     try:
+        rows_meta = conn.execute(
+            "SELECT name, sql FROM sqlite_master"
+            " WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"
+            " ORDER BY name"
+        ).fetchall()
+        # Virtual tables (FTS5) and their shadow tables are derived,
+        # rebuildable data with exotic storage (some are WITHOUT ROWID);
+        # the digest covers the real content tables they derive from.
+        virtual = {
+            name
+            for name, sql in rows_meta
+            if sql and "CREATE VIRTUAL TABLE" in sql.upper()
+        }
         tables = [
-            row[0]
-            for row in conn.execute(
-                "SELECT name FROM sqlite_master"
-                " WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"
-                " ORDER BY name"
-            ).fetchall()
+            name
+            for name, _ in rows_meta
+            if name not in virtual
+            and not any(name.startswith(f"{v}_") for v in virtual)
         ]
         out: dict[str, TableDigest] = {}
         for table in tables:

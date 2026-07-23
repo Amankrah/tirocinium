@@ -19,8 +19,11 @@ from fastapi import APIRouter, FastAPI
 from pydantic import BaseModel
 
 from app.auth import router as auth_router
+from app.courses import router as courses_router
 from app.db import ShardManager
 from app.problems import install_problem_details
+from app.seats import router as seats_router
+from app.seats.ratelimit import RateLimiter
 
 API_TITLE = "Tirocinium API"
 API_VERSION = "0.1.0"
@@ -67,7 +70,10 @@ def create_app(
 
     app = FastAPI(title=API_TITLE, version=API_VERSION, lifespan=lifespan)
     app.state.jwt_secret = resolved_secret
+    app.state.rate_limiter = RateLimiter()
     install_problem_details(app)
     app.include_router(router)
     app.include_router(auth_router)
+    app.include_router(courses_router)
+    app.include_router(seats_router)
     return app

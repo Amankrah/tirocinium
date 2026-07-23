@@ -46,21 +46,32 @@ async def test_shards_are_isolated(tmp_path: Path) -> None:
 
 async def test_startup_migrates_existing_shards(tmp_path: Path) -> None:
     """A shard created by an older tree picks up new migrations when the
-    manager starts, not when the shard happens to be touched."""
-    async with ShardManager(tmp_path) as mgr:
-        await mgr.course(3).run(lambda c: None)
-    # Simulate an older shard: undo the newest migration and its record (an
-    # older tree simply had not shipped it yet; removing an earlier one
-    # instead would be divergence, which rightly fails loudly).
-    raw = sqlite3.connect(tmp_path / "courses" / "3.db")
-    raw.executescript(
-        "DROP TABLE zstd_dictionaries;"
-        "DELETE FROM schema_migrations WHERE filename LIKE '0002%';"
-    )
-    raw.close()
+    manager starts, not when the shard happens to be touched. The older
+    tree is simulated by applying only the first migration file, so this
+    test survives every future migration."""
+    import shutil
+
+    from app.db.connection import connect
+    from app.db.migrations import apply_migrations, migration_files
+    from app.db.shards import COURSE_MIGRATIONS
+
+    old_tree = tmp_path / "old-migrations"
+    old_tree.mkdir()
+    first = migration_files(COURSE_MIGRATIONS)[0]
+    shutil.copy(COURSE_MIGRATIONS / first, old_tree / first)
+
+    shard_path = tmp_path / "courses" / "3.db"
+    conn = connect(shard_path)
+    apply_migrations(conn, old_tree)
+    conn.close()
+
     async with ShardManager(tmp_path) as mgr:
         tables = await mgr.course(3).run(_tables)
-        assert "zstd_dictionaries" in tables
+        recorded = await mgr.course(3).run(
+            lambda c: c.execute("SELECT COUNT(*) FROM schema_migrations").fetchone()[0]
+        )
+    assert "zstd_dictionaries" in tables
+    assert recorded == len(migration_files(COURSE_MIGRATIONS))
 
 
 async def test_reads_go_through_the_pool(tmp_path: Path) -> None:

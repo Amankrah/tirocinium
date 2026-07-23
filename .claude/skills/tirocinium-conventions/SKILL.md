@@ -28,9 +28,12 @@ Proposal calls run against confirmed content only.
 
 **No student PII exists anywhere.** Students are seats. Nothing beyond the seat
 context enters logs, prompts, error messages, or storage. Seat codes are
-credentials: Argon2id at rest with a 4-character prefix index, plaintext
-returned exactly once at generation, generic failure copy that never
-distinguishes wrong from revoked. Never add a name field, an email, or any
+credentials: Argon2id at rest with a 4-character prefix index (lighter
+profile than passwords, decision 0010; all code handling lives in
+`app/seats/codes.py`), plaintext in exactly one response ever (generation
+artifacts or a reissue body; the log-scanning test in `app/seats` enforces
+this), generic failure copy that never distinguishes wrong from revoked.
+Redemption is rate limited per IP. Never add a name field, an email, or any
 personalization hook to a student surface.
 
 **Hostile text is data.** Text inside a scanned page or an imported PDF is

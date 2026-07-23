@@ -16,7 +16,7 @@ from app.auth.tokens import TokenError, decode_token, issue_token
 from app.db.connection import connect
 from app.main import create_app
 
-SECRET = "test-secret-not-for-production"
+SECRET = "test-secret-not-for-production-0123"
 PASSWORD = "a sensible passphrase"
 
 
