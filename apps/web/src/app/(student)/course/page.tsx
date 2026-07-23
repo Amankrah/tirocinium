@@ -1,30 +1,24 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-
-import { fetchSeatMe } from "@/lib/api/seats";
-import { SEAT_COOKIE } from "@/lib/api/session";
+import { listCaseStudies } from "@/lib/api/case-studies";
+import { requireSeat } from "@/lib/seat-session";
 import { StudentShell } from "../student-shell";
 import { strings } from "../strings";
+import { CaseStudyIndex } from "./case-study-index";
 
-// The authenticated student landing. A Server Component that reads the seat
-// session cookie and fetches the seat's own identity directly (guide 2), which
-// is exactly why the token lives in a server-readable httpOnly cookie
-// (decision 0011). Any missing or no-longer-valid session sends the student
-// back to /enter, where the reusable code is the only recovery path (guide 4.0).
-// The case study index is Phase 2.3; today this proves the session end to end.
+// Course home (guide 4.1): the seat is greeted by number, then the published
+// case studies as a clean index. A Server Component that resolves the seat and
+// its course directly from the httpOnly session (decision 0011); the backend
+// returns only published case studies to a seat.
 export default async function CourseHomePage() {
-  const token = (await cookies()).get(SEAT_COOKIE)?.value;
-  if (!token) redirect("/enter");
-  const seat = await fetchSeatMe(token);
-  if (!seat) redirect("/enter");
+  const { token, seat } = await requireSeat();
+  const items = await listCaseStudies(token, seat.course_id);
 
   return (
     <StudentShell seatNumber={seat.seat_number}>
-      <main className="mx-auto flex min-h-[60svh] w-full max-w-[var(--measure-reading)] flex-col justify-center gap-4 px-6">
+      <main className="mx-auto flex w-full max-w-[var(--measure-reading)] flex-col gap-8 px-6 py-12">
         <h1 className="font-display text-3xl">
           {strings.course.greeting(seat.seat_number, seat.course_title)}
         </h1>
-        <p className="text-ink/70">{strings.course.empty}</p>
+        <CaseStudyIndex items={items} />
       </main>
     </StudentShell>
   );

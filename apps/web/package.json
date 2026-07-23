@@ -14,9 +14,13 @@
     "generate:client": "openapi-typescript ../api/openapi.json -o src/lib/api/schema.ts"
   },
   "dependencies": {
+    "katex": "^0.18.1",
     "next": "15",
     "react": "19",
-    "react-dom": "19"
+    "react-dom": "19",
+    "react-markdown": "^10.1.0",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",

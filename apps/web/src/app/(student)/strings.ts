@@ -21,5 +21,18 @@ export const strings = {
     greeting: (seatNumber: string, courseTitle: string) =>
       `Seat ${seatNumber}, welcome to ${courseTitle}.`,
     empty: "Your case studies will appear here as your professor publishes them.",
+    // A neutral activity stub, not a mastery label: real per-concept mastery,
+    // with its always-expandable evidence, is Phase 6 (mastery spec, constraint
+    // that a label is never shown bare).
+    notAttempted: "Not attempted yet",
+  },
+  problem: {
+    backToCourse: "Back to course",
+    concepts: "Concepts",
+    // The action rail (guide 4.1). Both are stubs here: uploading a solution is
+    // Phase 3, a fresh variant from the pool is Phase 5.
+    newVariant: "New variant",
+    upload: "Upload solution",
+    soon: "Coming soon",
   },
 } as const;
