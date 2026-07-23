@@ -1,16 +1,22 @@
 import { strings } from "./strings";
 
-// Landing placeholder: wordmark and tagline only, server-rendered, no client
-// JavaScript. The real hero (display face, particle field) is Phase 2.2 and
-// Phase 9.5 work; this page exists so the app builds, routes, and gets a
-// baseline Lighthouse figure from day one.
+// Landing: wordmark, tagline, and the single Roman-story line (frontend guide
+// 3.1), server-rendered with no client JavaScript. The signature particle-field
+// hero ships last on purpose (build order item 6: the bow on a finished
+// package), so until then this stays deliberately quiet. Almost no one lands
+// here in normal use: students go straight to /enter with a code, professors to
+// /sign-in; the page exists so the app builds, routes, and holds a baseline
+// Lighthouse figure.
 export default function LandingPage() {
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-4">
+    <main className="flex min-h-svh flex-col items-center justify-center gap-4 px-6 text-center">
       <h1 className="font-display text-6xl font-black tracking-tight">
         {strings.wordmark}
       </h1>
       <p className="text-lg">{strings.tagline}</p>
+      <p className="mt-2 max-w-prose text-pretty text-sm text-ink/60">
+        {strings.story}
+      </p>
     </main>
   );
 }

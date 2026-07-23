@@ -4,4 +4,8 @@
 export const strings = {
   wordmark: "Tirocinium",
   tagline: "Every problem, freshly ruled.",
+  // The Roman story, told once here and never repeated inside the product
+  // (frontend guide 3.1).
+  story:
+    "In Rome, you learned law by working cases beside a jurist. This is that, for your course.",
 } as const;
