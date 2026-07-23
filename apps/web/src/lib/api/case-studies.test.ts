@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getCaseStudy, listCaseStudies } from "./case-studies";
+import {
+  createCaseStudy,
+  getCaseStudy,
+  listCaseStudies,
+  setCaseStudyPublished,
+} from "./case-studies";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -59,5 +64,55 @@ describe("getCaseStudy", () => {
   it("returns null when the case study is not visible (404)", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 404 }));
     expect(await getCaseStudy("seat_abc", 7, 999)).toBeNull();
+  });
+});
+
+describe("createCaseStudy", () => {
+  it("posts the draft and returns the created detail", async () => {
+    const detail = {
+      id: 9,
+      title: "New case",
+      status: "draft",
+      body: "# New case",
+      concepts: [],
+      created_at: 0,
+      updated_at: 0,
+    };
+    const fetchSpy = vi.fn().mockResolvedValue({ ok: true, json: async () => detail });
+    vi.stubGlobal("fetch", fetchSpy);
+    expect(
+      await createCaseStudy("jwt.abc", 7, { title: "New case", body: "# New case" }),
+    ).toEqual(detail);
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringContaining("/api/v1/courses/7/case-studies"),
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
+});
+
+describe("setCaseStudyPublished", () => {
+  it("posts to publish and reports success", async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal("fetch", fetchSpy);
+    expect(await setCaseStudyPublished("jwt.abc", 7, 3, true)).toBe(true);
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringContaining("/api/v1/courses/7/case-studies/3/publish"),
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
+
+  it("posts to unpublish when published is false", async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal("fetch", fetchSpy);
+    await setCaseStudyPublished("jwt.abc", 7, 3, false);
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringContaining("/case-studies/3/unpublish"),
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
+
+  it("reports failure without throwing on a network error", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("down")));
+    expect(await setCaseStudyPublished("jwt.abc", 7, 3, true)).toBe(false);
   });
 });

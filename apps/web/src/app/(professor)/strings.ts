@@ -15,6 +15,22 @@ export const strings = {
   },
   dashboard: {
     greeting: (email: string) => `Signed in as ${email}.`,
+    heading: "Your courses",
     empty: "Your courses will appear here once you create one.",
+    newCourseLabel: "New course title",
+    newCourseAction: "Create course",
+  },
+  course: {
+    back: "All courses",
+    heading: "Case studies",
+    empty: "No case studies yet. Write your first one below.",
+    draft: "Draft",
+    published: "Published",
+    open: "Open",
+    publish: "Publish",
+    unpublish: "Unpublish",
+    newTitleLabel: "Title",
+    newBodyLabel: "Body (Markdown, with $math$)",
+    newAction: "Create case study",
   },
 } as const;
