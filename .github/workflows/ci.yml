@@ -1,0 +1,53 @@
+# CI — Phase 0.5 scaffold. Wired now to the two gates that already exist (the
+# Rust workspace and the mastery store); the lint, contract-staleness, and
+# criterion jobs are stubbed with TODO markers and filled in as their milestones
+# land (ruff/mypy/eslint 0.5, generated-client staleness 0.3, benches 0.5).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: crates/platform_core
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo clippy -p tirocinium-mastery --features python -- -D warnings
+      - run: cargo test --workspace
+      # TODO(0.5): cargo criterion with regression thresholds once benches land.
+
+  mastery-store:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install uv
+        run: pipx install uv
+      - name: Build the mastery extension into a venv
+        run: |
+          uv venv apps/api/.venv --python 3.13
+          uv pip install --python apps/api/.venv "maturin>=1.7,<2.0" pytest
+          . apps/api/.venv/bin/activate
+          maturin develop --release --manifest-path crates/platform_core/mastery/Cargo.toml
+      - name: Store suite (7 tests)
+        run: |
+          . apps/api/.venv/bin/activate
+          pytest apps/api/mastery_store -q
+      # TODO(0.5): ruff + mypy --strict over apps/api once the FastAPI app lands.
+
+  # TODO(0.3): contract-staleness job — regenerate the typed client from
+  #            openapi.json and fail if the committed client differs.
+  # TODO(0.2): web job — pnpm install, eslint, vitest once apps/web is scaffolded.

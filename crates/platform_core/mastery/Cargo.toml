@@ -1,0 +1,28 @@
+[package]
+name = "tirocinium-mastery"
+version = "0.1.0"
+edition = "2021"
+description = "Reference implementation of the Tirocinium mastery model (spec v0.1): pure, replayable, property-tested."
+license = "UNLICENSED"
+
+[lib]
+name = "tirocinium_mastery"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", optional = true }
+# Unpinned from the Rust 1.75 era (see README): on the platform toolchain
+# (Rust 1.90) the extension builds against a Python 3.13-capable PyO3 with the
+# stable ABI (abi3-py310), so one wheel serves CPython 3.10+ without a rebuild
+# per interpreter. The arithmetic crate is unchanged; only the binding links.
+pyo3 = { version = "0.23", features = ["extension-module", "abi3-py310"], optional = true }
+
+[dev-dependencies]
+proptest = "=1.4.0"
+
+[features]
+default = []
+# The pyo3 bindings are feature-gated so the core stays a pure, dependency-light
+# library. Build with `--features python` via maturin in the platform monorepo.
+python = ["dep:pyo3", "dep:serde_json"]

@@ -1,0 +1,8 @@
+# platform_core: the Rust workspace holding every CPU-bound path Tirocinium
+# runs off the Python request thread (backend guide section 2). Members join as
+# each phase lands them: `mastery` (spec-implemented, moved in during Phase 0),
+# then the zstd codec (1.2), image preprocessing (3.2), and the numeric comparer
+# (5.3). Keep this list ordered by phase so the workspace tells the build story.
+[workspace]
+resolver = "2"
+members = ["mastery"]
