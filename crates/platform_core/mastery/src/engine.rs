@@ -163,7 +163,10 @@ pub fn apply(state: Option<&State>, we: &WeightedEvent, p: &Params) -> State {
                 st.spaced_success_met = true;
             }
         }
-        st.successes.push(SuccessRecord { at: e.at, high_trust });
+        st.successes.push(SuccessRecord {
+            at: e.at,
+            high_trust,
+        });
     }
     st.recent_event_times.push(e.at);
     st.event_count += 1;

@@ -53,7 +53,11 @@ fn main() {
     let p = Params::default();
 
     let steady: Vec<_> = (0..10).map(|i| pg(i as f64)).collect();
-    run("Steady daily practice (correct answers, clean scans)", &steady, &p);
+    run(
+        "Steady daily practice (correct answers, clean scans)",
+        &steady,
+        &p,
+    );
 
     let crammed: Vec<_> = (0..10).map(|i| pg(i as f64 / 24.0)).collect();
     run("The same ten successes crammed into one day", &crammed, &p);
@@ -62,5 +66,9 @@ fn main() {
         .iter()
         .map(|d| pg(*d))
         .collect();
-    run("Expanding-interval practice (the revisit queue's rhythm)", &spaced, &p);
+    run(
+        "Expanding-interval practice (the revisit queue's rhythm)",
+        &spaced,
+        &p,
+    );
 }

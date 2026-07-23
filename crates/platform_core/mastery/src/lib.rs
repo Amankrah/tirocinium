@@ -63,9 +63,7 @@ pub fn evidence_trail(
             (Source::ProfessorGrade, _) => {
                 "Your professor's grading points to more work needed here.".to_string()
             }
-            (Source::AnswerMatch, s) if s >= p.success_e => {
-                "Correct final answer.".to_string()
-            }
+            (Source::AnswerMatch, s) if s >= p.success_e => "Correct final answer.".to_string(),
             (Source::AnswerMatch, _) => "Final answer didn't match.".to_string(),
             (Source::DefenseRubric, s) if s >= p.success_e => {
                 "Defended the reasoning well in conversation.".to_string()

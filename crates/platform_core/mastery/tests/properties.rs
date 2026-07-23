@@ -150,14 +150,28 @@ proptest! {
 #[test]
 fn same_session_gains_diminish() {
     let p = Params::default();
-    let e = |i: i64| WeightedEvent::new(Event {
-        source: Source::AnswerMatch, score: 1.0, confidence: 1.0,
-        ref_kind: RefKind::Submission, ref_id: i, at: i * 600,
-    }, 1.0);
+    let e = |i: i64| {
+        WeightedEvent::new(
+            Event {
+                source: Source::AnswerMatch,
+                score: 1.0,
+                confidence: 1.0,
+                ref_kind: RefKind::Submission,
+                ref_id: i,
+                at: i * 600,
+            },
+            1.0,
+        )
+    };
     let st1 = apply(None, &e(0), &p);
     let gain1 = st1.m - p.m0;
     let st2 = apply(Some(&st1), &e(1), &p);
     let gain2 = st2.m - st1.m;
     // Second gain is damped by 1/2 and also shrunk by the smaller (1 - m) gap.
-    assert!(gain2 < gain1 * 0.5 + 1e-12, "gain1={} gain2={}", gain1, gain2);
+    assert!(
+        gain2 < gain1 * 0.5 + 1e-12,
+        "gain1={} gain2={}",
+        gain1,
+        gain2
+    );
 }

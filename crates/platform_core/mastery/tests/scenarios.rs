@@ -47,7 +47,11 @@ fn spec_4_1_narrative_decay() {
     let m_eff = st.m_eff(21 * DAY, &p);
     let expected = 0.9 * (2.0_f64).powf(-21.0 / 4.0);
     assert!((m_eff - expected).abs() < 1e-12);
-    assert!(m_eff < 0.03, "three stale weeks leave almost nothing: {}", m_eff);
+    assert!(
+        m_eff < 0.03,
+        "three stale weeks leave almost nothing: {}",
+        m_eff
+    );
 }
 
 #[test]
@@ -185,8 +189,16 @@ fn supersession_removes_automatic_events_for_graded_submission() {
 #[test]
 fn concept_weight_scales_the_update() {
     let p = Params::default();
-    let full = apply(None, &WeightedEvent::new(ev(Source::AnswerMatch, 1.0, 1.0, 0).event, 1.0), &p);
-    let partial = apply(None, &WeightedEvent::new(ev(Source::AnswerMatch, 1.0, 1.0, 0).event, 0.3), &p);
+    let full = apply(
+        None,
+        &WeightedEvent::new(ev(Source::AnswerMatch, 1.0, 1.0, 0).event, 1.0),
+        &p,
+    );
+    let partial = apply(
+        None,
+        &WeightedEvent::new(ev(Source::AnswerMatch, 1.0, 1.0, 0).event, 0.3),
+        &p,
+    );
     let gain_full = full.m - p.m0;
     let gain_partial = partial.m - p.m0;
     assert!((gain_partial - gain_full * 0.3).abs() < 1e-12);
