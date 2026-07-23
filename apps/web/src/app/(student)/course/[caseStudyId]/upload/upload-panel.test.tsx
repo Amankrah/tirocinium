@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { Schemas } from "@/lib/api/client";
 import type { ProcessingState } from "@/lib/upload/processing";
 import type { SubscribeProcessing } from "@/lib/upload/subscribe-processing";
 import {
@@ -8,6 +9,33 @@ import {
   type CompleteAction,
   type CreateAction,
 } from "./upload-panel";
+
+// Stub the lazily-loaded preview: the panel test proves the panel fetches and
+// hands off the reading; the preview's own rendering is covered by its test.
+vi.mock("./transcription-preview", () => ({
+  TranscriptionPreview: (props: { pages: unknown[] }) => (
+    <div data-testid="preview">{`preview:${props.pages.length}`}</div>
+  ),
+}));
+
+function transcription(): Schemas["TranscriptionOut"] {
+  return {
+    submission_id: 42,
+    status: "processed",
+    recognition_conf: 0.8,
+    recognized_markdown: "read",
+    pages: [
+      {
+        page_index: 0,
+        markdown: "read",
+        confidence: 0.8,
+        quality_status: "ok",
+        reject_reason: null,
+        regions: [],
+      },
+    ],
+  };
+}
 
 // The direct-to-storage PUT is browser XHR; stub it so the panel's wiring is
 // tested without a network. Report full progress and succeed.
@@ -47,6 +75,7 @@ function renderPanel(
     emit.current = onState;
     return { close };
   });
+  const fetchTranscription = vi.fn(async () => transcription());
   let n = 0;
   render(
     <UploadPanel
@@ -55,9 +84,10 @@ function renderPanel(
       complete={complete as unknown as CompleteAction}
       makeId={() => `id-${(n += 1)}`}
       subscribe={subscribe as unknown as SubscribeProcessing}
+      fetchTranscription={fetchTranscription}
     />,
   );
-  return { create, complete, subscribe, emit };
+  return { create, complete, subscribe, emit, fetchTranscription };
 }
 
 function processingState(over: Partial<ProcessingState>): ProcessingState {
@@ -150,6 +180,23 @@ describe("UploadPanel", () => {
     expect(screen.getByText("We have read all your pages.")).toBeDefined();
     expect(screen.getByText("Page 1 read")).toBeDefined();
     expect(screen.getByRole("button", { name: "Start a new upload" })).toBeDefined();
+  });
+
+  it("fetches the transcription on processed and renders the preview", async () => {
+    const { emit, fetchTranscription } = renderPanel();
+    choose([jpeg("page-a.jpg")]);
+    await screen.findByText("Page 1");
+    fireEvent.click(screen.getByRole("button", { name: "Send 1 page" }));
+    await waitFor(() => expect(emit.current).not.toBeNull());
+
+    act(() =>
+      emit.current?.(
+        processingState({ status: "processed", done: true, terminalStatus: "processed" }),
+      ),
+    );
+
+    await waitFor(() => expect(fetchTranscription).toHaveBeenCalledWith(42));
+    expect((await screen.findByTestId("preview")).textContent).toBe("preview:1");
   });
 
   it("surfaces a rejected page's retake message on needs_retake", async () => {

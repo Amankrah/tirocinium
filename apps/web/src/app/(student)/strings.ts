@@ -74,6 +74,7 @@ export const strings = {
     pageHardToRead: (index: number) => `Page ${index} was hard to read`,
     pageRetake: (index: number, message: string) => `Page ${index} ${message}`,
     processed: "We have read all your pages.",
+    checkSpans: "Check the highlighted lines match what you wrote.",
     needsRetake:
       "Some pages need a clearer photo. Retake the ones flagged above, then send again.",
     processFailed:

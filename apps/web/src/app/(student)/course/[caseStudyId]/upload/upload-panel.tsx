@@ -6,6 +6,7 @@
 // holds the page list and drives the injected orchestration controller. Bytes
 // PUT direct to storage; the authed create and complete come in as bound server
 // actions so the seat token never reaches here.
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -27,10 +28,20 @@ import {
   type UploadDeps,
   type UploadState,
 } from "@/lib/upload/upload-controller";
+import { getTranscriptionAction } from "./actions";
 import { strings } from "../../../strings";
 
-// Below this per-page confidence a page is worth a second look; span-level
-// highlighting waits on the transcription read contract.
+// The preview renders markdown and KaTeX, so it loads in its own chunk only when
+// a submission is read (guide 5), keeping the upload route's initial JS lean.
+const TranscriptionPreview = dynamic(() =>
+  import("./transcription-preview").then((m) => m.TranscriptionPreview),
+);
+
+type FetchTranscription = (
+  submissionId: number,
+) => Promise<Schemas["TranscriptionOut"] | null>;
+
+// Below this per-page confidence a page is worth a second look.
 const LOW_CONFIDENCE = 0.6;
 
 export type CreateAction = (
@@ -66,6 +77,7 @@ export function UploadPanel({
   complete,
   makeId = () => crypto.randomUUID(),
   subscribe = subscribeProcessing,
+  fetchTranscription = getTranscriptionAction,
 }: {
   variantId: number;
   create: CreateAction;
@@ -74,11 +86,15 @@ export function UploadPanel({
   makeId?: () => string;
   // Injectable so a test drives the processing stream without an EventSource.
   subscribe?: SubscribeProcessing;
+  // Injectable so a test need not run the server action.
+  fetchTranscription?: FetchTranscription;
 }) {
   const [pages, setPages] = useState<SelectedPage[]>([]);
   const [rejections, setRejections] = useState<Rejection[]>([]);
   const [upload, setUpload] = useState<UploadState | null>(null);
   const [processing, setProcessing] = useState<ProcessingState | null>(null);
+  const [transcription, setTranscription] =
+    useState<Schemas["TranscriptionOut"] | null>(null);
   const controllerRef = useRef<UploadController | null>(null);
   const subscriptionRef = useRef<ProcessingSubscription | null>(null);
 
@@ -169,11 +185,20 @@ export function UploadPanel({
         blob: p.file,
       })),
     );
-    // Once the manifest is complete the worker starts; follow its progress.
+    // Once the manifest is complete the worker starts; follow its progress, and
+    // when it finishes reading, fetch the transcription for the preview.
     const finished = controller.getState();
     if (finished.phase === "submitted" && finished.submissionId !== null) {
+      const submissionId = finished.submissionId;
       subscriptionRef.current?.close();
-      subscriptionRef.current = subscribe(finished.submissionId, setProcessing);
+      subscriptionRef.current = subscribe(submissionId, (state) => {
+        setProcessing(state);
+        if (state.terminalStatus === "processed") {
+          void fetchTranscription(submissionId).then((result) => {
+            if (result) setTranscription(result);
+          });
+        }
+      });
     }
   };
 
@@ -183,6 +208,7 @@ export function UploadPanel({
     controllerRef.current = null;
     setUpload(null);
     setProcessing(null);
+    setTranscription(null);
     setRejections([]);
     setPages([]);
   };
@@ -373,6 +399,12 @@ export function UploadPanel({
                 </li>
               ))}
             </ul>
+          ) : null}
+          {transcription ? (
+            <TranscriptionPreview
+              pages={transcription.pages}
+              thumbnails={pages.map((p) => p.previewUrl)}
+            />
           ) : null}
           {processing.done || processing.error ? (
             <div>

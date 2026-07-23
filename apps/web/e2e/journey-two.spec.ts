@@ -52,5 +52,8 @@ test.describe("journey two: upload a solution and see it read", () => {
     await expect(page.getByText("We have read all your pages.")).toBeVisible({
       timeout: 30_000,
     });
+    // The transcription preview renders the recognised reading beside the page
+    // (the reading-body wrapper appears only in the preview on this route).
+    await expect(page.locator(".reading-body").first()).toBeVisible();
   });
 });

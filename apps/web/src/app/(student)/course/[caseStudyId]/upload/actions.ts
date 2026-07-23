@@ -9,7 +9,11 @@ import { cookies } from "next/headers";
 
 import type { Schemas } from "@/lib/api/client";
 import { SEAT_COOKIE } from "@/lib/api/session";
-import { completeSubmission, createSubmission } from "@/lib/api/submissions";
+import {
+  completeSubmission,
+  createSubmission,
+  getSubmissionTranscription,
+} from "@/lib/api/submissions";
 
 export async function createSubmissionAction(
   variantId: number,
@@ -28,4 +32,12 @@ export async function completeSubmissionAction(
   if (!token) return false;
   const result = await completeSubmission(token, submissionId);
   return result !== null;
+}
+
+export async function getTranscriptionAction(
+  submissionId: number,
+): Promise<Schemas["TranscriptionOut"] | null> {
+  const token = (await cookies()).get(SEAT_COOKIE)?.value;
+  if (!token) return null;
+  return getSubmissionTranscription(token, submissionId);
 }

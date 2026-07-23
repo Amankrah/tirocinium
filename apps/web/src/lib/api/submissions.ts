@@ -90,3 +90,27 @@ export async function getSubmission(
   if (!response.ok) return null;
   return (await response.json()) as Schemas["SubmissionOut"];
 }
+
+// The recognized reading for the upload preview (backend Stage 5): aggregate and
+// per-page markdown with the region spans the client highlights. The recognized
+// text is the seat's own handwriting, never a solution, and the endpoint is
+// seat-scoped, so another seat's submission is a 404 and collapses to null.
+export async function getSubmissionTranscription(
+  token: string,
+  submissionId: number,
+): Promise<Schemas["TranscriptionOut"] | null> {
+  let response: Response;
+  try {
+    response = await fetch(
+      `${apiBaseUrl()}/api/v1/submissions/${submissionId}/transcription`,
+      {
+        headers: { authorization: `Bearer ${token}` },
+        cache: "no-store",
+      },
+    );
+  } catch {
+    return null;
+  }
+  if (!response.ok) return null;
+  return (await response.json()) as Schemas["TranscriptionOut"];
+}
