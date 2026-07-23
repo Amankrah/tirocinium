@@ -7,7 +7,8 @@ description: Tirocinium coding standards, API conventions, data-layer rules, and
 
 The four documents in `docs/` are the specification and outrank this skill; this
 skill is the operational digest that survives context windows. Last updated for
-Phase 0.4 (contract pipeline live, data layer not yet built).
+Phase 2.1 (data layer, auth, and seats done; course and case study authoring
+backend live).
 
 ## Inviolable constraints
 
@@ -69,6 +70,20 @@ dependency layer (`app/auth/deps.py`: `current_identity`,
 `require_professor`, `require_admin`): a seat reads only its own submissions
 and course, with dedicated tests asserting that. Auth failure copy is
 generic and identical across causes, in body and in timing.
+
+Course-scoped resources nest under the course, not flat as section 7's
+representative surface shows: per-shard integer ids collide across courses, so
+`/api/v1/courses/{course_id}/case-studies/{id}` (and `/concepts`, and the
+`/case-studies/{id}/concepts` mappings sub-resource) is the shape, decided and
+the guide conflict flagged in decision 0013. Two authorization helpers in
+`app/courses/routes.py` serve every course surface: `ensure_course_owner`
+(professor authoring, admins pass, 404 then 403) and `ensure_course_reader`
+(professor sees drafts, a seat scoped to the course sees published only, so a
+draft is a 404 to a student). Case study markdown bodies are compressed through
+`app/compression.py` (the `problem_text` dictionary) at rest; plaintext lives
+only in transit. Publish is the `draft`/`published` flip only until the variant
+pool lands in Phase 5. Deleting a course is refused (409) while seats exist;
+deleting a case study with variants is refused (409) the same way.
 
 After any route or model change, regenerate the contract seam and commit both
 artifacts (decision 0003): `python scripts/export_openapi.py` in `apps/api`,

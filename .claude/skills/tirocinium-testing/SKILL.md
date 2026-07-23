@@ -6,8 +6,9 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at the web scaffold (decision 0005):
-Phase 0 is now complete on both sides, Phase 1 is in progress (1.1 done).
+passes; green never goes red. Last updated at milestone 2.1 (decision 0013):
+Phase 0 and Phase 1 complete, Phase 2 in progress (2.1, the authoring backend,
+done).
 
 ## Running the suites
 
@@ -36,9 +37,9 @@ deliberately and with the reference means in the file updated to match):
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 75 tests (25 data layer, 15 seats, 12 auth, 7 backup,
-5 compression, 3 contract, 7 store, 1 latency gate) plus lint, from
-`apps/api`:
+Python suite, 91 tests (25 data layer, 16 case studies/concepts/courses,
+15 seats, 12 auth, 7 backup, 5 compression, 3 contract, 7 store, 1 latency
+gate) plus lint, from `apps/api`:
 
     cd apps/api
     .venv/Scripts/python -m pytest -q
@@ -128,6 +129,21 @@ Phase 1, in progress:
   redemption rate limiting 10/h/IP with exponential backoff; read-path p95
   under 150 ms on the 50-case fixture shard (app/db/fixtures.py builds it;
   the latency gate lives in app/db/test_latency.py).
+
+Phase 2, in progress:
+
+- 2.1 (done, backend half of the slice): course CRUD, case study CRUD with
+  markdown bodies compressed through the codec at rest, concept CRUD and
+  case-to-concept mappings (mastery spec section 2), and publish states,
+  all nested under the course (decision 0013). The 16 tests in
+  app/case_studies/test_case_studies.py cover the CRUD round-trips,
+  body-compressed-at-rest (the stored blob carries the zstd magic and
+  decompresses to the original), cursor pagination, publish transitions,
+  a seat reading only published content, concept mappings with weight and
+  unknown-concept validation, and the authorization and isolation
+  properties (only the owner authors, a seat cannot author, shards stay
+  isolated across courses). The full 2.2 to 2.4 gate (Playwright journey
+  one, Lighthouse, axe) is the frontend's to close.
 
 ## Standing rules
 

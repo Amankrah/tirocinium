@@ -19,6 +19,8 @@ from fastapi import APIRouter, FastAPI
 from pydantic import BaseModel
 
 from app.auth import router as auth_router
+from app.case_studies import router as case_studies_router
+from app.concepts import router as concepts_router
 from app.courses import router as courses_router
 from app.db import ShardManager
 from app.problems import install_problem_details
@@ -75,5 +77,7 @@ def create_app(
     app.include_router(router)
     app.include_router(auth_router)
     app.include_router(courses_router)
+    app.include_router(concepts_router)
+    app.include_router(case_studies_router)
     app.include_router(seats_router)
     return app

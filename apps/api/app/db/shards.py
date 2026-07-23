@@ -126,3 +126,15 @@ class ShardManager:
 
     def course_reads(self, course_id: int) -> ReadPool:
         return self._open_course(course_id).reads
+
+    def drop_course(self, course_id: int) -> None:
+        """Close a course shard and delete its files. The directory row and
+        any authorization are the caller's concern; this only reclaims the
+        shard file (and its WAL sidecars). Closing first matters on Windows,
+        where an open SQLite file cannot be unlinked."""
+        shard = self._courses.pop(course_id, None)
+        if shard is not None:
+            shard.close()
+        base = self.courses_dir / f"{course_id}.db"
+        for path in (base, base.with_suffix(".db-wal"), base.with_suffix(".db-shm")):
+            path.unlink(missing_ok=True)

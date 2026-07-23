@@ -159,10 +159,10 @@ EOF
 say "Gate: ruff + mypy strict (apps/api)"
 (cd "$API" && "$VBIN/ruff" check . && "$VBIN/mypy" .)
 
-say "Gate: mastery crate suites (15 tests)"
+say "Gate: Rust workspace suites (mastery 15, codec 8)"
 (cd "$CRATES" && cargo test --workspace --quiet)
 
-say "Gate: mastery store suite (7 tests)"
+say "Gate: Python suite (apps/api)"
 (cd "$API" && "$PY" -m pytest -q)
 
 say "setup.sh complete: environment provisioned and gates green"
