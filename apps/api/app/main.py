@@ -8,6 +8,8 @@ the lifespan, so contract generation stays database-free.
 """
 
 import os
+import secrets
+import warnings
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -16,7 +18,9 @@ from typing import Literal
 from fastapi import APIRouter, FastAPI
 from pydantic import BaseModel
 
+from app.auth import router as auth_router
 from app.db import ShardManager
+from app.problems import install_problem_details
 
 API_TITLE = "Tirocinium API"
 API_VERSION = "0.1.0"
@@ -36,12 +40,24 @@ def health() -> HealthOut:
     return HealthOut(status="ok")
 
 
-def create_app(data_dir: Path | None = None) -> FastAPI:
+def create_app(
+    data_dir: Path | None = None, jwt_secret: str | None = None
+) -> FastAPI:
     """Build the application. data_dir defaults to $TIRO_DATA_DIR or ./data;
     the data layer opens on startup, not at construction, so building the
     app (for contract export, for tests that never hit a shard) costs
-    nothing."""
+    nothing. The JWT secret comes from the argument, then $TIRO_JWT_SECRET;
+    without either, a per-process random secret is used and a warning
+    raised (dev only: every restart invalidates all professor sessions)."""
     resolved = data_dir or Path(os.environ.get("TIRO_DATA_DIR", "data"))
+    resolved_secret = jwt_secret or os.environ.get("TIRO_JWT_SECRET")
+    if resolved_secret is None:
+        resolved_secret = secrets.token_hex(32)
+        warnings.warn(
+            "TIRO_JWT_SECRET is not set; using a per-process random secret."
+            " Professor sessions will not survive a restart.",
+            stacklevel=2,
+        )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -50,5 +66,8 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
             yield
 
     app = FastAPI(title=API_TITLE, version=API_VERSION, lifespan=lifespan)
+    app.state.jwt_secret = resolved_secret
+    install_problem_details(app)
     app.include_router(router)
+    app.include_router(auth_router)
     return app

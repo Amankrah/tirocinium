@@ -36,8 +36,8 @@ deliberately and with the reference means in the file updated to match):
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 47 tests (25 data layer, 7 backup, 5 compression, 3 contract,
-7 store) plus lint, from `apps/api`:
+Python suite, 59 tests (25 data layer, 12 auth, 7 backup, 5 compression,
+3 contract, 7 store) plus lint, from `apps/api`:
 
     cd apps/api
     .venv/Scripts/python -m pytest -q
@@ -113,6 +113,11 @@ Phase 1, in progress:
   object storage stable; decision 0008) and runs in CI's `restore-drill`
   job; 7 backup tests cover the digest, VACUUM INTO, and the upload seam.
   Never run `PRAGMA wal_checkpoint(TRUNCATE)` on a replicated shard.
+- 1.4 (done): professor signup/login/me with Argon2id passwords and 8 h
+  HS256 JWTs (decision 0009); 12 auth tests cover generic identical
+  failures (body and timing), expired/tampered/seat-role tokens rejected,
+  case-insensitive email uniqueness, and the role gates. Errors are RFC
+  7807 problem+json via app/problems.py from here on.
 
 Remaining Phase 1 gates, for orientation: restore drill in CI against a
 fixture shard; seat authorization property tests (a session can never read

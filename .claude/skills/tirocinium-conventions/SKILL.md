@@ -56,11 +56,16 @@ preprocessing in Python: the Rust implementation is the only implementation.
 ## API conventions
 
 REST over JSON versioned under `/api/v1`: plural nouns, cursor pagination
-(`?cursor=`, `?limit=`), RFC 7807 problem details for errors, idempotency keys
-on every mutating endpoint the frontend can retry. Professors use short-lived
-JWTs, seats use opaque revocable course-scoped tokens, and every authorization
-check lives in the one FastAPI dependency layer: a seat reads only its own
-submissions and course, with dedicated tests asserting that.
+(`?cursor=`, `?limit=`), RFC 7807 problem details for errors (raise
+HTTPException; `app/problems.py` renders it, and routes annotate error
+responses with the Problem model), idempotency keys on every mutating
+endpoint the frontend can retry. Professors use short-lived JWTs (8 h HS256,
+`app/auth/tokens.py`, decision 0009), seats use opaque revocable
+course-scoped tokens, and every authorization check lives in the one
+dependency layer (`app/auth/deps.py`: `current_identity`,
+`require_professor`, `require_admin`): a seat reads only its own submissions
+and course, with dedicated tests asserting that. Auth failure copy is
+generic and identical across causes, in body and in timing.
 
 After any route or model change, regenerate the contract seam and commit both
 artifacts (decision 0003): `python scripts/export_openapi.py` in `apps/api`,
