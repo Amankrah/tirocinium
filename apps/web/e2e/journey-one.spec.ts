@@ -1,42 +1,84 @@
 import { expect, test } from "@playwright/test";
 
-// Journey one (Phase 2 gate): a seated student redeems a code and reads a
-// published case study, rendered from the real backend on both viewports. The
-// professor-authors-and-publishes half is seeded server-side for now, since the
-// professor authoring UI is a later milestone; this drives the student half
-// through the UI end to end. Skipped unless a seeded backend's details are in
-// the environment (see the web README for the seed-and-run recipe).
-const seatCode = process.env.E2E_SEAT_CODE;
-const caseTitle = process.env.E2E_CASE_TITLE;
+// Journey one (Phase 2 gate), end to end through the UI: a professor signs in,
+// opens their course, writes a case study with typeset math, and publishes it;
+// then a seated student redeems a code, opens the same course, and reads the
+// case the professor just published. Both halves run through the real UI against
+// the real backend on both viewports.
+//
+// What still comes from the seed, not the UI: the professor account (no signup
+// screen yet, decision 0012), the course, and one active seat scoped to it. Seat
+// codes only ever exist as object-storage artifacts, so a seat cannot be minted
+// from a browser; the seed writes the shards directly and prints the plaintext
+// code (see the web README for the seed-and-run recipe). The case study itself
+// is authored fresh here, so the professor half is genuinely exercised.
+const proEmail = process.env.E2E_PRO_EMAIL;
+const proPassword = process.env.E2E_PRO_PASSWORD;
 const courseTitle = process.env.E2E_COURSE_TITLE;
+const seatCode = process.env.E2E_SEAT_CODE;
 
-test.describe("journey one: redeem and read", () => {
+test.describe("journey one: author, publish, redeem, read", () => {
   test.skip(
-    !seatCode || !caseTitle,
-    "needs a seeded backend (set E2E_SEAT_CODE and E2E_CASE_TITLE)",
+    !proEmail || !proPassword || !courseTitle || !seatCode,
+    "needs a seeded backend (set E2E_PRO_EMAIL, E2E_PRO_PASSWORD, E2E_COURSE_TITLE, E2E_SEAT_CODE)",
   );
 
-  test("a seat code opens the course and reads the case", async ({ page }) => {
-    await page.goto("/enter");
-    await page.getByLabel("Course code").fill(seatCode!);
-    await page.getByRole("button", { name: "Enter course" }).click();
+  test("a professor publishes a case a seat then reads", async ({ browser }) => {
+    // A unique title per run so reruns never collide in the course's list.
+    const caseTitle = `Journey One ${Date.now()}`;
+    const body = "# Statement\n\nShow that $E = mc^2$ for the body below.\n";
 
-    await expect(page).toHaveURL(/\/course$/);
-    if (courseTitle) {
-      await expect(page.getByRole("heading", { level: 1 })).toContainText(
-        courseTitle,
-      );
+    // Professor half, through the UI.
+    const proContext = await browser.newContext();
+    const pro = await proContext.newPage();
+    try {
+      await pro.goto("/sign-in");
+      await pro.getByLabel("Email").fill(proEmail!);
+      await pro.getByLabel("Password").fill(proPassword!);
+      await pro.getByRole("button", { name: "Sign in" }).click();
+      await expect(pro).toHaveURL(/\/dashboard$/);
+
+      await pro.getByRole("link", { name: courseTitle! }).click();
+      await expect(pro).toHaveURL(/\/courses\/\d+$/);
+
+      await pro.getByLabel("Title").fill(caseTitle);
+      await pro.getByLabel(/Body/).fill(body);
+      await pro.getByRole("button", { name: "Create case study" }).click();
+
+      // The new draft appears in the list; publish it from its own row.
+      const row = pro.getByRole("listitem").filter({ hasText: caseTitle });
+      await expect(row).toBeVisible();
+      await row.getByRole("button", { name: "Publish", exact: true }).click();
+      await expect(row.getByText("Published")).toBeVisible();
+    } finally {
+      await proContext.close();
     }
 
-    const link = page.getByRole("link", { name: new RegExp(caseTitle!) });
-    await expect(link).toBeVisible();
-    await link.click();
+    // Student half, through the UI, in a clean context (its own seat cookie).
+    const studentContext = await browser.newContext();
+    const student = await studentContext.newPage();
+    try {
+      await student.goto("/enter");
+      await student.getByLabel("Course code").fill(seatCode!);
+      await student.getByRole("button", { name: "Enter course" }).click();
 
-    await expect(page).toHaveURL(/\/course\/\d+$/);
-    await expect(
-      page.getByRole("heading", { level: 1, name: caseTitle! }),
-    ).toBeVisible();
-    // The body actually rendered: the KaTeX math from the case study is typeset.
-    await expect(page.locator(".katex").first()).toBeVisible();
+      await expect(student).toHaveURL(/\/course$/);
+      await expect(
+        student.getByRole("heading", { level: 1 }),
+      ).toContainText(courseTitle!);
+
+      const link = student.getByRole("link", { name: caseTitle });
+      await expect(link).toBeVisible();
+      await link.click();
+
+      await expect(student).toHaveURL(/\/course\/\d+$/);
+      await expect(
+        student.getByRole("heading", { level: 1, name: caseTitle }),
+      ).toBeVisible();
+      // The body actually rendered: the case study's math is typeset by KaTeX.
+      await expect(student.locator(".katex").first()).toBeVisible();
+    } finally {
+      await studentContext.close();
+    }
   });
 });

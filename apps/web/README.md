@@ -39,17 +39,19 @@ the client. There is no professor signup screen yet; create accounts via
   on the machine, point it at Playwright's: set `CHROME_PATH` to the path from
   `pnpm exec playwright install chromium`. Run `pnpm build` first (a `dev` run
   replaces `.next` and `next start` then has no production build).
-- Journey one (`e2e/journey-one.spec.ts`) drives the student half end to end
-  against a real backend: redeem a seat code, open the course, read the typeset
-  case. It skips unless `E2E_SEAT_CODE` and `E2E_CASE_TITLE` (optionally
-  `E2E_COURSE_TITLE`) are set. To run it, start the API and seed a published
-  case study plus one active seat, then export those values. The API only ever
-  exposes seat codes through object-storage artifacts, so seeding for a browser
-  test writes the shards directly (one professor, one course, one published case
-  study, one active seat) and prints the plaintext code; a committed, CI-ready
-  seed helper belongs with the backend session, so that it stays under the
-  backend gate. The professor-authors-and-publishes half is seeded server-side
-  until the professor authoring UI is built.
+- Journey one (`e2e/journey-one.spec.ts`) drives both halves end to end through
+  the UI against a real backend: a professor signs in, opens their course,
+  writes a case study with typeset math, and publishes it, then a seat redeems a
+  code, opens the same course, and reads that case. It skips unless
+  `E2E_PRO_EMAIL`, `E2E_PRO_PASSWORD`, `E2E_COURSE_TITLE`, and `E2E_SEAT_CODE`
+  are set. What the seed still provides, because none of it has a UI: the
+  professor account (no signup screen yet, decision 0012), the course owned by
+  that professor, and one active seat scoped to it. The API only ever exposes
+  seat codes through object-storage artifacts, so seeding for a browser test
+  writes the shards directly (one professor, one course, one active seat) and
+  prints the plaintext code; a committed, CI-ready seed helper belongs with the
+  backend session, so that it stays under the backend gate. To run it: start the
+  API, seed those three, export the four values, then `pnpm test:e2e`.
 - Deferred until the course-home and problem-view surfaces have production
   content to measure: the Lighthouse runs on those two routes.
 - Not yet wired into CI: the `web` job additions (a `test:e2e` step and an
