@@ -16,3 +16,35 @@ committed artifact is stale (decision 0003). After any backend route change:
 regenerate the spec in `apps/api` (`python scripts/export_openapi.py`), rerun
 `pnpm generate:client` here, commit both. The generated `schema.ts` is never
 hand-edited and is excluded from lint.
+
+## Server-side API access
+
+Surfaces that carry a credential (seat redemption, professor sign-in, the
+authenticated landings) call the backend server-side, never from the browser:
+the token is set as an httpOnly cookie (decisions 0011, 0012) and read by Server
+Components. Those calls use `API_BASE_URL` (server-only env, default
+`http://localhost:8000`); it is never a `NEXT_PUBLIC_` var, so it never ships to
+the client. There is no professor signup screen yet; create accounts via
+`POST /api/v1/auth/signup` until that product question is decided (0012).
+
+## End-to-end and Lighthouse harness (Phase 2 gate)
+
+- `pnpm test:e2e` runs the Playwright journeys on desktop and mobile viewports
+  (`playwright.config.ts`); each shipped surface also carries an axe WCAG 2.2 AA
+  check (`e2e/axe.ts`). It runs against the dev server and needs no backend: the
+  entry surfaces are exercised through their honest failure paths. First run on
+  a fresh checkout needs the browser: `pnpm exec playwright install chromium`.
+- `pnpm lighthouse` runs Lighthouse CI against a production build with the guide
+  section 5 budgets (`lighthouserc.json`). It needs a Chrome binary; if none is
+  on the machine, point it at Playwright's: set `CHROME_PATH` to the path from
+  `pnpm exec playwright install chromium`. Run `pnpm build` first (a `dev` run
+  replaces `.next` and `next start` then has no production build).
+- Deferred to Phase 2.3, when the reading surfaces and a seeded backend exist:
+  Playwright journey one (professor authors and publishes; student redeems and
+  reads), and the Lighthouse runs on course home and problem view.
+- Not yet wired into CI: the `web` job additions (a `test:e2e` step and an
+  `lhci` step) are left to add together with the backend session to avoid
+  concurrent edits to the shared workflow. Note that on very throttled runners
+  the LCP budget (1.8 s mobile) can be exceeded by the display-font render on
+  otherwise-trivial text pages even with an idle main thread; confirm on the
+  real CI runner before making the LCP assertion blocking.

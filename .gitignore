@@ -18,6 +18,13 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 
+# E2E and Lighthouse harness artifacts (Phase 2 gate)
+test-results/
+playwright-report/
+.lighthouseci/
+blob-report/
+playwright/.cache/
+
 # Downloaded tool binaries (litestream via infra/setup.sh)
 infra/bin/
 
