@@ -49,19 +49,18 @@ async def test_startup_migrates_existing_shards(tmp_path: Path) -> None:
     manager starts, not when the shard happens to be touched."""
     async with ShardManager(tmp_path) as mgr:
         await mgr.course(3).run(lambda c: None)
-    # Simulate an older shard: drop the record and the table of a migration.
+    # Simulate an older shard: undo the newest migration and its record (an
+    # older tree simply had not shipped it yet; removing an earlier one
+    # instead would be divergence, which rightly fails loudly).
     raw = sqlite3.connect(tmp_path / "courses" / "3.db")
     raw.executescript(
-        "DROP TABLE mastery_state;"
-        "DELETE FROM schema_migrations WHERE filename LIKE '0001%';"
-        "DROP TABLE concepts;"
-        "DROP TABLE case_study_concepts;"
-        "DROP TABLE evidence_events;"
+        "DROP TABLE zstd_dictionaries;"
+        "DELETE FROM schema_migrations WHERE filename LIKE '0002%';"
     )
     raw.close()
     async with ShardManager(tmp_path) as mgr:
         tables = await mgr.course(3).run(_tables)
-        assert "mastery_state" in tables
+        assert "zstd_dictionaries" in tables
 
 
 async def test_reads_go_through_the_pool(tmp_path: Path) -> None:

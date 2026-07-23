@@ -74,8 +74,12 @@ fn view_json(state_json: &str, now: i64, params_json: &str) -> PyResult<String> 
     serde_json::to_string(&out).map_err(jerr)
 }
 
-#[pymodule]
-fn tirocinium_mastery(m: &Bound<'_, PyModule>) -> PyResult<()> {
+/// Register the mastery surface onto a (sub)module; the `platform_core`
+/// umbrella crate calls this to expose `platform_core.mastery`.
+///
+/// # Errors
+/// Propagates PyO3 registration failures.
+pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(default_params_json, m)?)?;
     m.add_function(wrap_pyfunction!(apply_json, m)?)?;
     m.add_function(wrap_pyfunction!(replay_json, m)?)?;

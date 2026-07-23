@@ -5,7 +5,7 @@
 # (5.3). Keep this list ordered by phase so the workspace tells the build story.
 [workspace]
 resolver = "2"
-members = ["mastery"]
+members = ["mastery", "codec", "python"]
 
 # Decision 0001, encoded structurally: new members (the zstd codec,
 # preprocessing, the numeric comparer) opt into pedantic by declaring

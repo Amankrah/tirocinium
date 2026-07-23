@@ -27,7 +27,7 @@ import sqlite3
 import time
 from dataclasses import dataclass
 
-import tirocinium_mastery as _core
+from platform_core import mastery as _core
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS concepts (

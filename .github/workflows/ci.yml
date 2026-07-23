@@ -29,7 +29,7 @@ jobs:
       - run: cargo test --workspace
       - name: Criterion benches against absolute budgets (decision 0004)
         run: |
-          cargo bench -p tirocinium-mastery
+          cargo bench --workspace
           python3 ../../infra/check-bench-thresholds.py
 
   api:
@@ -43,9 +43,9 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - name: Install the locked environment (Python 3.12 via uv)
         run: uv sync --locked
-      - name: Build the mastery extension into the venv
+      - name: Build the platform_core extension into the venv
         run: VIRTUAL_ENV="$PWD/.venv" .venv/bin/maturin develop --release
-          --manifest-path ../../crates/platform_core/mastery/Cargo.toml
+          --manifest-path ../../crates/platform_core/python/Cargo.toml
       - name: Lint (ruff + mypy strict)
         run: |
           .venv/bin/ruff check .

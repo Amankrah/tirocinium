@@ -1,6 +1,5 @@
-# Typed surface of the tirocinium_mastery extension module
-# (crates/platform_core/mastery/src/python.rs). Kept in lockstep with the
-# Rust bindings by hand; the boundary is JSON strings in, JSON strings out.
+# Mirrors crates/platform_core/mastery/src/python.rs. The boundary is JSON
+# strings in, JSON strings out.
 
 SPEC_VERSION: str
 

@@ -1,0 +1,23 @@
+# The single Python wheel for platform_core (backend guide section 2: "ship
+# the Rust code as a single crate built with maturin"). This umbrella crate
+# assembles the members' feature-gated bindings into one `platform_core`
+# module with `mastery` and `codec` submodules; members grow here as their
+# phases land (preprocessing 3.2, the numeric comparer 5.3). Decision 0005.
+[package]
+name = "tirocinium-platform-core"
+version = "0.1.0"
+edition = "2021"
+description = "Tirocinium platform_core Python extension: one wheel over all Rust members"
+license = "UNLICENSED"
+
+[lib]
+name = "platform_core"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.23", features = ["extension-module", "abi3-py310"] }
+tirocinium-mastery = { path = "../mastery", features = ["python"] }
+tirocinium-codec = { path = "../codec", features = ["python"] }
+
+[lints]
+workspace = true

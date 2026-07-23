@@ -12,7 +12,7 @@ pub mod engine;
 pub mod events;
 pub mod params;
 #[cfg(feature = "python")]
-mod python;
+pub mod python;
 
 pub use engine::{apply, compute_label, replay, Label, State};
 pub use events::{apply_supersession, Event, RefKind, Source, WeightedEvent};

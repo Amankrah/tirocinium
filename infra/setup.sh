@@ -66,9 +66,9 @@ VENV="$API/.venv"
 if [ -x "$VENV/bin/python" ]; then VBIN="$VENV/bin"; else VBIN="$VENV/Scripts"; fi
 PY="$VBIN/python"
 
-say "Building the mastery extension into the venv (maturin, release)"
+say "Building the platform_core extension into the venv (maturin, release)"
 VIRTUAL_ENV="$VENV" "$VBIN/maturin" develop --release \
-  --manifest-path "$CRATES/mastery/Cargo.toml"
+  --manifest-path "$CRATES/python/Cargo.toml"
 
 # ---------------------------------------------------------------- Litestream
 say "Litestream ($LITESTREAM_VERSION, binary in infra/bin)"
@@ -133,9 +133,11 @@ MODULES = {
     "arq": "arq", "redis": "redis", "httpx": "httpx",
     "python-multipart": ("python_multipart", "multipart"),
     "argon2-cffi": "argon2", "pyjwt": "jwt", "boto3": "boto3",
-    "zstandard": "zstandard", "anthropic": "anthropic",
+    "anthropic": "anthropic",
     "pytest": "pytest", "ruff": "ruff", "mypy": "mypy",
-    "tirocinium_mastery (built extension)": "tirocinium_mastery",
+    "platform_core (built extension)": "platform_core",
+    "platform_core.codec": "platform_core.codec",
+    "platform_core.mastery": "platform_core.mastery",
 }
 failed = []
 for name, mods in MODULES.items():

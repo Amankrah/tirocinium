@@ -19,7 +19,8 @@ imports, lint, and both suites; see `infra/README.md` for flags):
 
     ./infra/setup.sh
 
-Rust workspace, 15 tests (6 property, 9 scenario) plus lint:
+Rust workspace, 23 tests (mastery 15: 6 property, 9 scenario; codec 8) plus
+lint:
 
     cd crates/platform_core
     cargo test --workspace
@@ -32,22 +33,23 @@ budgets live in `crates/platform_core/bench-thresholds.json`, revised only
 deliberately and with the reference means in the file updated to match):
 
     cd crates/platform_core
-    cargo bench -p tirocinium-mastery
+    cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 35 tests (25 data layer, 3 contract, 7 store) plus lint, from
-`apps/api`:
+Python suite, 40 tests (25 data layer, 5 compression, 3 contract, 7 store)
+plus lint, from `apps/api`:
 
     cd apps/api
     .venv/Scripts/python -m pytest -q
     .venv/Scripts/ruff check .
     .venv/Scripts/mypy .
 
-The store tests import the built extension; if `tirocinium_mastery` is missing,
-rebuild it into the venv:
+The suite imports the built extension; if `platform_core` is missing (a plain
+`uv sync` also prunes it), rebuild the single wheel (decision 0006) into the
+venv:
 
     cd apps/api
-    VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/mastery/Cargo.toml
+    VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
 Web suite (12 Vitest tests: the token contract pinning the guide 3.2 palette,
 and the landing placeholder), plus lint, typecheck, and build, from `apps/web`
@@ -95,6 +97,12 @@ Phase 1, in progress:
   migrations apply per shard at startup with gap and divergence detection;
   the course 0001 migration is pinned against mastery_store.SCHEMA; the
   mastery store runs green on a managed shard through the writer queue.
+- 1.2 (done): the codec crate roundtrips by property, a trained dictionary
+  beats plain on corpus text, a wrong dictionary fails loudly; dictionaries
+  live per content type in course shards (course/0002); blobs compressed
+  before training decompress after it; the zstandard fallback is out of the
+  dependency set; everything ships as the single platform_core wheel
+  (decision 0006).
 
 Remaining Phase 1 gates, for orientation: restore drill in CI against a
 fixture shard; seat authorization property tests (a session can never read

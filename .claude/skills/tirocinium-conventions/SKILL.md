@@ -79,8 +79,9 @@ course, `directory.db` for cross-course lookups, and never a cross-shard join in
 SQL. Images, scans, and figure bytes live in object storage, never in SQLite.
 Timestamps are integer Unix epoch. Schema changes are numbered migrations
 applied per shard at startup; nobody edits a shard by hand. Blob columns are
-zstd-compressed with per-content-type trained dictionaries once 1.2 lands
-(Python `zstandard` is the temporary fallback).
+zstd-compressed through `app/compression.py` (dictionaries per content type,
+stored in the shard, arithmetic in `platform_core.codec`); Python never
+touches raw zstd and `zstandard` must not reappear in the dependency set.
 
 ## Frontend conventions
 

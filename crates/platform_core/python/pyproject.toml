@@ -1,0 +1,12 @@
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "tirocinium-platform-core"
+version = "0.1.0"
+description = "Tirocinium platform_core: Rust hot paths (mastery model, zstd codec) as one Python extension"
+requires-python = ">=3.10"
+
+[tool.maturin]
+module-name = "platform_core"

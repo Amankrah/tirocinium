@@ -1,0 +1,30 @@
+# The compression codec (backend guide 3.3, milestone 1.2): zstd with trained
+# per-content-type dictionaries, exposed to Python through the platform_core
+# umbrella crate. First workspace member born under the pedantic lint policy
+# (decision 0001) and the bench budget gate (decision 0004).
+[package]
+name = "tirocinium-codec"
+version = "0.1.0"
+edition = "2021"
+description = "Tirocinium zstd codec: dictionary training and (de)compression as pure functions"
+license = "UNLICENSED"
+
+[dependencies]
+zstd = { version = "0.13", features = ["zdict_builder"] }
+# abi3 keeps the single wheel serving CPython 3.10+; extension-module is
+# enabled only by the umbrella crate so this crate's tests link normally.
+pyo3 = { version = "0.23", features = ["abi3-py310"], optional = true }
+
+[dev-dependencies]
+proptest = "=1.4.0"
+criterion = "0.5"
+
+[features]
+python = ["dep:pyo3"]
+
+[[bench]]
+name = "codec"
+harness = false
+
+[lints]
+workspace = true

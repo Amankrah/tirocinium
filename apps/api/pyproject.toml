@@ -3,9 +3,9 @@
 # Ranges here are compatibility bounds; the committed uv.lock is the exact pin
 # (decision 0002). `infra/setup.sh` provisions this environment in one command.
 # The dependency set is the one named in the phases document, milestone 0.2;
-# zstandard is the temporary Python fallback that milestone 1.2 removes when
-# the Rust codec lands in platform_core. Litestream is a binary in infra/, not
-# a Python package.
+# the zstandard fallback it listed was removed in 1.2 when the Rust codec
+# landed in platform_core. Litestream is a binary in infra/, not a Python
+# package.
 
 [project]
 name = "tirocinium-api"
@@ -23,7 +23,6 @@ dependencies = [
     "argon2-cffi>=23.1,<26.0",
     "pyjwt>=2.9,<3.0",
     "boto3>=1.35,<2.0",
-    "zstandard>=0.23,<1.0",
     "anthropic>=0.40,<1.0",
 ]
 
