@@ -22,6 +22,24 @@ export type FigureMap = Record<string, Figure>;
 
 const FIG_PREFIX = "fig://";
 
+type HastNode = { tagName?: string; children?: HastNode[] };
+
+// The page owns the single h1 (the case study title), so the body's own
+// markdown headings nest beneath it: a body "# ..." becomes an h2, and so on.
+// This keeps one top-level heading per document, which is what the outline and
+// assistive technology expect. Dependency-free so no plugin has to be trusted.
+function rehypeShiftHeadings() {
+  return (tree: HastNode) => {
+    const walk = (node: HastNode) => {
+      if (node.tagName && /^h[1-5]$/.test(node.tagName)) {
+        node.tagName = `h${Number(node.tagName[1]) + 1}`;
+      }
+      node.children?.forEach(walk);
+    };
+    walk(tree);
+  };
+}
+
 // Server component: react-markdown, remark-math, and rehype-katex all run here,
 // so math becomes HTML on the server and only the KaTeX stylesheet reaches the
 // client, never the engine (decision 0014).
@@ -36,7 +54,7 @@ export function ProblemBody({
     <div className="reading-body">
       <ReactMarkdown
         remarkPlugins={[remarkMath]}
-        rehypePlugins={[rehypeKatex]}
+        rehypePlugins={[rehypeShiftHeadings, rehypeKatex]}
         // Preserve the fig:// scheme (sanitized away by default), but keep the
         // default sanitizer for every other URL: a case study body can carry
         // untrusted transcribed text, and a javascript: link must never survive.

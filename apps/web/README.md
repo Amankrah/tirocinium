@@ -39,9 +39,19 @@ the client. There is no professor signup screen yet; create accounts via
   on the machine, point it at Playwright's: set `CHROME_PATH` to the path from
   `pnpm exec playwright install chromium`. Run `pnpm build` first (a `dev` run
   replaces `.next` and `next start` then has no production build).
-- Deferred to Phase 2.3, when the reading surfaces and a seeded backend exist:
-  Playwright journey one (professor authors and publishes; student redeems and
-  reads), and the Lighthouse runs on course home and problem view.
+- Journey one (`e2e/journey-one.spec.ts`) drives the student half end to end
+  against a real backend: redeem a seat code, open the course, read the typeset
+  case. It skips unless `E2E_SEAT_CODE` and `E2E_CASE_TITLE` (optionally
+  `E2E_COURSE_TITLE`) are set. To run it, start the API and seed a published
+  case study plus one active seat, then export those values. The API only ever
+  exposes seat codes through object-storage artifacts, so seeding for a browser
+  test writes the shards directly (one professor, one course, one published case
+  study, one active seat) and prints the plaintext code; a committed, CI-ready
+  seed helper belongs with the backend session, so that it stays under the
+  backend gate. The professor-authors-and-publishes half is seeded server-side
+  until the professor authoring UI is built.
+- Deferred until the course-home and problem-view surfaces have production
+  content to measure: the Lighthouse runs on those two routes.
 - Not yet wired into CI: the `web` job additions (a `test:e2e` step and an
   `lhci` step) are left to add together with the backend session to avoid
   concurrent edits to the shared workflow. Note that on very throttled runners

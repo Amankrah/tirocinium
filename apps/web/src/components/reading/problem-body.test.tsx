@@ -7,9 +7,11 @@ import { ProblemBody } from "./problem-body";
 // render exactly as extracted, at their token position, at stored intrinsic
 // dimensions, never omitted or substituted.
 describe("ProblemBody", () => {
-  it("renders markdown headings and prose", () => {
+  it("renders markdown headings nested beneath the page title (h1 to h2)", () => {
     render(<ProblemBody body={"# The setup\n\nSome **bold** reasoning."} />);
-    expect(screen.getByRole("heading", { name: "The setup" })).toBeDefined();
+    // The page owns the single h1; a body "# ..." becomes an h2.
+    expect(screen.getByRole("heading", { level: 2, name: "The setup" })).toBeDefined();
+    expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
   });
 
   it("typesets math via KaTeX on the server", () => {
