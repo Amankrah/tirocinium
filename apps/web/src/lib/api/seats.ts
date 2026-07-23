@@ -48,3 +48,88 @@ export async function fetchSeatMe(
   if (!response.ok) return null;
   return (await response.json()) as Schemas["SeatMeOut"];
 }
+
+// Seat management for the professor course surface (the other side of backend
+// 7.1). Server-side only, carrying the professor JWT; the backend enforces
+// course ownership, so a professor only ever touches their own seats.
+//
+// Plaintext seat codes appear in exactly one response ever: the generation
+// artifacts (the CSV and PDF behind short-lived URLs) or a reissue body. These
+// wrappers pass those through untouched and never log them.
+export async function listSeats(
+  token: string,
+  courseId: number,
+): Promise<Schemas["SeatOut"][]> {
+  let response: Response;
+  try {
+    response = await fetch(`${apiBaseUrl()}/api/v1/courses/${courseId}/seats`, {
+      headers: { authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+  } catch {
+    return [];
+  }
+  if (!response.ok) return [];
+  const data = (await response.json()) as Schemas["SeatListOut"];
+  return data.seats;
+}
+
+export async function generateSeatBatch(
+  token: string,
+  courseId: number,
+  count: number,
+): Promise<Schemas["SeatBatchOut"] | null> {
+  const body: Schemas["SeatBatchIn"] = { count };
+  let response: Response;
+  try {
+    response = await fetch(`${apiBaseUrl()}/api/v1/courses/${courseId}/seats`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(body),
+      cache: "no-store",
+    });
+  } catch {
+    return null;
+  }
+  if (!response.ok) return null;
+  return (await response.json()) as Schemas["SeatBatchOut"];
+}
+
+export async function revokeSeat(
+  token: string,
+  seatId: number,
+): Promise<Schemas["RevokeOut"] | null> {
+  let response: Response;
+  try {
+    response = await fetch(`${apiBaseUrl()}/api/v1/seats/${seatId}/revoke`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+  } catch {
+    return null;
+  }
+  if (!response.ok) return null;
+  return (await response.json()) as Schemas["RevokeOut"];
+}
+
+export async function reissueSeat(
+  token: string,
+  seatId: number,
+): Promise<Schemas["ReissueOut"] | null> {
+  let response: Response;
+  try {
+    response = await fetch(`${apiBaseUrl()}/api/v1/seats/${seatId}/reissue`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+  } catch {
+    return null;
+  }
+  if (!response.ok) return null;
+  return (await response.json()) as Schemas["ReissueOut"];
+}
