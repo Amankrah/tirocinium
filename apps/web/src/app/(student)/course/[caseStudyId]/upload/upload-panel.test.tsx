@@ -1,6 +1,8 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { ProcessingState } from "@/lib/upload/processing";
+import type { SubscribeProcessing } from "@/lib/upload/subscribe-processing";
 import {
   UploadPanel,
   type CompleteAction,
@@ -38,6 +40,13 @@ function renderPanel(
 ) {
   const create = vi.fn(over.create ?? (async () => created(1)));
   const complete = vi.fn(over.complete ?? (async () => true));
+  // Capture the stream callback so a test can drive processing states by hand.
+  const emit: { current: ((s: ProcessingState) => void) | null } = { current: null };
+  const close = vi.fn();
+  const subscribe = vi.fn((_id: number, onState: (s: ProcessingState) => void) => {
+    emit.current = onState;
+    return { close };
+  });
   let n = 0;
   render(
     <UploadPanel
@@ -45,9 +54,21 @@ function renderPanel(
       create={create as unknown as CreateAction}
       complete={complete as unknown as CompleteAction}
       makeId={() => `id-${(n += 1)}`}
+      subscribe={subscribe as unknown as SubscribeProcessing}
     />,
   );
-  return { create, complete };
+  return { create, complete, subscribe, emit };
+}
+
+function processingState(over: Partial<ProcessingState>): ProcessingState {
+  return {
+    status: "processing",
+    pages: [],
+    done: false,
+    terminalStatus: null,
+    error: false,
+    ...over,
+  };
 }
 
 const jpeg = (name: string) => new File(["data"], name, { type: "image/jpeg" });
@@ -88,8 +109,8 @@ describe("UploadPanel", () => {
     expect(screen.queryByText("Page 1")).toBeNull();
   });
 
-  it("runs create, upload, and complete on send, then shows the processing line", async () => {
-    const { create, complete } = renderPanel();
+  it("runs create, upload, and complete on send, then subscribes to progress", async () => {
+    const { create, complete, subscribe } = renderPanel();
     choose([jpeg("page-a.jpg")]);
     await screen.findByText("Page 1");
 
@@ -104,6 +125,57 @@ describe("UploadPanel", () => {
       expect.any(String),
     );
     expect(complete).toHaveBeenCalledWith(42);
+    // The worker's stream is followed for the submission just completed.
+    expect(subscribe).toHaveBeenCalledWith(42, expect.any(Function));
+  });
+
+  it("shows the read outcome when processing reaches processed", async () => {
+    const { emit } = renderPanel();
+    choose([jpeg("page-a.jpg")]);
+    await screen.findByText("Page 1");
+    fireEvent.click(screen.getByRole("button", { name: "Send 1 page" }));
+    await waitFor(() => expect(emit.current).not.toBeNull());
+
+    act(() =>
+      emit.current?.(
+        processingState({
+          status: "processed",
+          done: true,
+          terminalStatus: "processed",
+          pages: [{ pageIndex: 0, confidence: 0.9 }],
+        }),
+      ),
+    );
+
+    expect(screen.getByText("We have read all your pages.")).toBeDefined();
+    expect(screen.getByText("Page 1 read")).toBeDefined();
+    expect(screen.getByRole("button", { name: "Start a new upload" })).toBeDefined();
+  });
+
+  it("surfaces a rejected page's retake message on needs_retake", async () => {
+    const { emit } = renderPanel();
+    choose([jpeg("page-a.jpg")]);
+    await screen.findByText("Page 1");
+    fireEvent.click(screen.getByRole("button", { name: "Send 1 page" }));
+    await waitFor(() => expect(emit.current).not.toBeNull());
+
+    act(() =>
+      emit.current?.(
+        processingState({
+          status: "needs_retake",
+          done: true,
+          terminalStatus: "needs_retake",
+          pages: [
+            {
+              pageIndex: 0,
+              rejected: { reason: "too_dark", message: "is too dark, please retake it" },
+            },
+          ],
+        }),
+      ),
+    );
+
+    expect(screen.getByText("Page 1 is too dark, please retake it")).toBeDefined();
   });
 
   it("removes a page from the list", async () => {

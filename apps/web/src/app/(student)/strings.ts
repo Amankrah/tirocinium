@@ -67,5 +67,18 @@ export const strings = {
     statusFailed: "Some pages did not send. Retry them, then send again.",
     statusProcessing: "Sent. We are reading your pages now.",
     statusError: "That did not go through. Check your connection and try again.",
+    // The processing stream (guide 4.1, step 4): per-page progress, then the
+    // outcome. A rejected page's message is worded to read after "Page N".
+    reading: "Reading your pages…",
+    pageRead: (index: number) => `Page ${index} read`,
+    pageHardToRead: (index: number) => `Page ${index} was hard to read`,
+    pageRetake: (index: number, message: string) => `Page ${index} ${message}`,
+    processed: "We have read all your pages.",
+    needsRetake:
+      "Some pages need a clearer photo. Retake the ones flagged above, then send again.",
+    processFailed:
+      "Something went wrong while reading your pages. Please try sending them again.",
+    streamLost: "The live update stopped. Refresh the page to see the result.",
+    startOver: "Start a new upload",
   },
 } as const;

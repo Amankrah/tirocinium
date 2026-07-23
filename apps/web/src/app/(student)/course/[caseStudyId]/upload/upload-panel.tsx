@@ -6,7 +6,7 @@
 // holds the page list and drives the injected orchestration controller. Bytes
 // PUT direct to storage; the authed create and complete come in as bound server
 // actions so the seat token never reaches here.
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { Schemas } from "@/lib/api/client";
@@ -15,13 +15,23 @@ import {
   type PageFileRejection,
   validatePageFile,
 } from "@/lib/upload/page-checks";
+import type { ProcessingState } from "@/lib/upload/processing";
 import { putPage } from "@/lib/upload/put-page";
+import {
+  type ProcessingSubscription,
+  type SubscribeProcessing,
+  subscribeProcessing,
+} from "@/lib/upload/subscribe-processing";
 import {
   UploadController,
   type UploadDeps,
   type UploadState,
 } from "@/lib/upload/upload-controller";
 import { strings } from "../../../strings";
+
+// Below this per-page confidence a page is worth a second look; span-level
+// highlighting waits on the transcription read contract.
+const LOW_CONFIDENCE = 0.6;
 
 export type CreateAction = (
   variantId: number,
@@ -55,17 +65,25 @@ export function UploadPanel({
   create,
   complete,
   makeId = () => crypto.randomUUID(),
+  subscribe = subscribeProcessing,
 }: {
   variantId: number;
   create: CreateAction;
   complete: CompleteAction;
   // Injectable so a test need not lean on crypto/URL specifics.
   makeId?: () => string;
+  // Injectable so a test drives the processing stream without an EventSource.
+  subscribe?: SubscribeProcessing;
 }) {
   const [pages, setPages] = useState<SelectedPage[]>([]);
   const [rejections, setRejections] = useState<Rejection[]>([]);
   const [upload, setUpload] = useState<UploadState | null>(null);
+  const [processing, setProcessing] = useState<ProcessingState | null>(null);
   const controllerRef = useRef<UploadController | null>(null);
+  const subscriptionRef = useRef<ProcessingSubscription | null>(null);
+
+  // Close the stream if the student navigates away mid-processing.
+  useEffect(() => () => subscriptionRef.current?.close(), []);
 
   const submitting = upload !== null && upload.phase !== "error";
   const locked = submitting;
@@ -151,9 +169,28 @@ export function UploadPanel({
         blob: p.file,
       })),
     );
+    // Once the manifest is complete the worker starts; follow its progress.
+    const finished = controller.getState();
+    if (finished.phase === "submitted" && finished.submissionId !== null) {
+      subscriptionRef.current?.close();
+      subscriptionRef.current = subscribe(finished.submissionId, setProcessing);
+    }
   };
 
+  const reset = () => {
+    subscriptionRef.current?.close();
+    subscriptionRef.current = null;
+    controllerRef.current = null;
+    setUpload(null);
+    setProcessing(null);
+    setRejections([]);
+    setPages([]);
+  };
+
+  // While uploading, the upload phase drives the line; once sent, the worker's
+  // stream does.
   const statusLine = useMemo(() => {
+    if (processing) return null;
     if (!upload) return null;
     if (upload.phase === "submitted") return s.statusProcessing;
     if (upload.phase === "error")
@@ -161,7 +198,7 @@ export function UploadPanel({
         ? s.statusFailed
         : s.statusError;
     return s.statusUploading;
-  }, [upload]);
+  }, [upload, processing]);
 
   const progressFor = (index: number) =>
     upload?.pages.find((p) => p.index === index);
@@ -304,6 +341,48 @@ export function UploadPanel({
       <div aria-live="polite" className="min-h-6 text-sm text-ink-muted">
         {statusLine}
       </div>
+
+      {processing ? (
+        <section aria-live="polite" className="flex flex-col gap-3">
+          <p className="text-sm text-ink">
+            {processing.terminalStatus === "processed"
+              ? s.processed
+              : processing.terminalStatus === "needs_retake"
+                ? s.needsRetake
+                : processing.terminalStatus === "failed"
+                  ? s.processFailed
+                  : processing.error
+                    ? s.streamLost
+                    : s.reading}
+          </p>
+          {processing.pages.length > 0 ? (
+            <ul className="flex flex-col gap-1">
+              {processing.pages.map((p) => (
+                <li key={p.pageIndex} className="text-sm">
+                  {p.rejected ? (
+                    <span className="text-flag-amber">
+                      {s.pageRetake(p.pageIndex + 1, p.rejected.message)}
+                    </span>
+                  ) : p.confidence !== undefined && p.confidence < LOW_CONFIDENCE ? (
+                    <span className="text-flag-amber">
+                      {s.pageHardToRead(p.pageIndex + 1)}
+                    </span>
+                  ) : (
+                    <span className="text-ink-muted">{s.pageRead(p.pageIndex + 1)}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {processing.done || processing.error ? (
+            <div>
+              <Button variant="quiet" onClick={reset}>
+                {s.startOver}
+              </Button>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
 
       {!submitting ? (
         <div>
