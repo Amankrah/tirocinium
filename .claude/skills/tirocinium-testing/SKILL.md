@@ -6,7 +6,8 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at milestone 4.3 (decision 0027):
+passes; green never goes red. Last updated at milestone 4.3 (decisions 0027,
+0028):
 Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 backend
 complete (3.1 the submission upload path done; 3.2 scan preprocessing
 implemented, its golden gate awaiting the 30-photo corpus; 3.3 handwriting
@@ -20,8 +21,9 @@ the deterministic detector done, embedded rasters pulled byte-identical and
 vector drawings rendered at 300 dpi, stored content-addressed with fig:// tokens
 placed in the page markdown; 4.3 (segmentation) the fidelity-strict model pass
 staging items (question/solution pairs with figure assignments) plus the 30-day
-purge, done, with the vision figure detector (the second detector's boxes) still
-to build. The Phase 3 frontend half
+purge, done, and the vision figure detector now closes Stage 1b's two-detector
+union (scanned-page page_crop figures cropped from the raster, decision 0028).
+The Phase 3 frontend half
 (3.5) is in
 progress: the upload flow (capture, pre-checks, orchestration, SSE processing)
 is built end to end (capture, pre-checks, orchestration, SSE processing, and the
@@ -39,11 +41,11 @@ imports, lint, and both suites; see `infra/README.md` for flags):
 
     ./infra/setup.sh
 
-Rust workspace, 50 tests (mastery 15: 6 property, 9 scenario; codec 8;
+Rust workspace, 51 tests (mastery 15: 6 property, 9 scenario; codec 8;
 preprocess 8: 7 synthetic-image pipeline tests, 1 golden-corpus harness that is
-a no-op until the corpus lands; embedding 10: 7 scenario, 3 property; pdf 9:
-3 decode and 5 figure tests that skip when the pdfium binary is absent, 1 no-op
-golden-corpus harness) plus lint:
+a no-op until the corpus lands; embedding 10: 7 scenario, 3 property; pdf 10:
+3 decode and 6 figure tests (5 skip when the pdfium binary is absent; the crop
+test is pure image and always runs), 1 no-op golden-corpus harness) plus lint:
 
     cd crates/platform_core
     cargo test --workspace
@@ -64,12 +66,13 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 153 tests (25 data layer, 16 case studies/concepts/courses,
+Python suite, 154 tests (25 data layer, 16 case studies/concepts/courses,
 15 seats, 12 auth, 16 submissions (incl. 4 transcription-read), 5 transcription,
-14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 27 imports
-(4 decode pipeline + 1 figure pipeline, 9 endpoint, 5 figure storage/placement,
-4 segmentation, 1 purge, 3 pdfium decoder/extractor that skip when the binary is
-absent), 7 backup, 5 compression, 3 contract, 7 store, 1 latency gate) plus lint
+14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 28 imports
+(4 decode pipeline + 2 figure pipeline (born-digital + scanned detector),
+9 endpoint, 5 figure storage/placement, 4 segmentation, 1 purge, 3 pdfium
+decoder/extractor that skip when the binary is absent), 7 backup, 5 compression,
+3 contract, 7 store, 1 latency gate) plus lint
 and the worker import smoke, from `apps/api`:
 
     cd apps/api
@@ -313,9 +316,14 @@ Phase 4, in progress:
   removes unconfirmed jobs older than the TTL with their staging and orphaned old
   figures, sparing confirmed and recent ones. 5 tests (staging with the
   no-figure-bytes-in-prompt assertion, empty document, assembly, recorded replay,
-  the purge). Still to build: the vision figure detector (the second detector,
-  scanned-page `page_crop` boxes unioned with the deterministic set). Confirm to
-  a case study is 4.4.
+  the purge). The vision figure detector closes Stage 1b's union (decision 0028):
+  a `FigureDetector` seam (`RecordedFigureDetector` in tests,
+  `prompts/figure-detection/v1`) proposes boxes on a scanned page, each cropped
+  from the raster by `platform_core.pdf.crop_figures` (pure image, no pdfium)
+  into a `page_crop` figure stored and fig://-tokenised like the rest; a pipeline
+  test drives it with a real PNG page. Born-digital pages carry deterministic
+  figures, scanned pages carry `page_crop`, disjoint by kind. Confirm to a case
+  study is 4.4.
 - 4.4 (web, front half): the import-from-PDF upload and processing view (frontend
   guide 4.3). A professor picks a PDF (pre-checked against the 60 MiB ceiling),
   it PUTs direct to storage and completes, then a poll of the import status runs
@@ -372,8 +380,11 @@ Recorded segmentation responses live at `apps/api/tests/recorded/segmentation/`,
 one JSON array of items per file named for the sha256 of the assembled document
 (page markdowns with page markers and fig:// tokens). `RecordedSegmenter` replays
 them; the staging tests build theirs in memory, so the gate needs no committed
-asset. Real digital-handwriting PDFs for the student PDF-upload path (decision
-0026, not yet wired) live at `apps/api/tests/fixtures/submission-pdf/`.
+asset. Recorded figure-detection responses (boxes keyed by the page image hash)
+live at `apps/api/tests/recorded/figure-detection/`, replayed by
+`RecordedFigureDetector`. Real digital-handwriting PDFs for the student
+PDF-upload path (decision 0026, not yet wired) live at
+`apps/api/tests/fixtures/submission-pdf/`.
 
 The five-PDF ingestion corpus lives at `crates/platform_core/pdf/corpus/` (PDFs
 under `pdfs/`, the spec in `README.md`); it is scaffolded but empty, so the

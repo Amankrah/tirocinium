@@ -29,3 +29,10 @@ def extract_figures(
         ]
     ],
 ]: ...
+
+# crop_figures crops a page raster at normalized boxes ([x,y,w,h] in 0..1) for
+# the vision detector's page_crop figures. Returns (page_width, page_height,
+# regions), each region (png, x, y, w, h) in page pixels.
+def crop_figures(
+    page_png: bytes, boxes: list[tuple[float, float, float, float]]
+) -> tuple[int, int, list[tuple[bytes, int, int, int, int]]]: ...

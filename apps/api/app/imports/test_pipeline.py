@@ -17,9 +17,11 @@ from app.compression import decompress_text
 from app.db.shards import ShardManager
 from app.imports.decoder import (
     DecodedPage,
+    DetectedBox,
     ExtractedFigure,
     FakeFigureExtractor,
     FakePdfDecoder,
+    RecordedFigureDetector,
 )
 from app.imports.pipeline import (
     STATUS_FAILED,
@@ -144,6 +146,65 @@ async def test_born_digital_figures_are_stored_and_tokenised_not_inlined(
     assert figure_bytes not in markdown.encode("utf-8", errors="ignore")
     digest = hashlib.sha256(figure_bytes).hexdigest()
     assert (IMPORTS_BUCKET, f"imports/1/figures/{digest}.jpeg") in storage.objects
+
+
+def _png(width: int, height: int) -> bytes:
+    from PIL import Image
+
+    buffer = io.BytesIO()
+    Image.new("RGB", (width, height), (200, 200, 200)).save(buffer, "PNG")
+    return buffer.getvalue()
+
+
+async def test_scanned_page_figures_via_the_vision_detector(tmp_path: Path) -> None:
+    """A scanned page has no object tree: the vision detector proposes a box, it
+    is cropped from the page raster into a page_crop figure, stored, and the page
+    markdown gains a fig:// token, never the figure bytes."""
+    storage = FakeStorage()
+    page_image = _png(120, 90)
+    pages = [DecodedPage(page_index=0, kind="scanned", text_markdown=None, image_png=page_image)]
+    transcriber = RecordedTranscriber(_recorded(b"gray:" + page_image, "the scanned text"))
+    detector = RecordedFigureDetector.for_images(
+        {page_image: [DetectedBox(bbox=(0.1, 0.2, 0.5, 0.3), caption="Figure X")]}
+    )
+
+    async with ShardManager(tmp_path) as shards:
+        import_id = await _seed_job(shards, storage, "imports/1/scan/source.pdf")
+        status = await run_import_pipeline(
+            shards=shards,
+            storage=storage,
+            decoder=FakePdfDecoder(pages),
+            transcriber=transcriber,
+            figure_detector=detector,
+            course_id=1,
+            import_id=import_id,
+            preprocess=fake_preprocess_ok,
+        )
+
+        def read(conn: sqlite3.Connection) -> tuple[int, str, str]:
+            row = conn.execute(
+                "SELECT COUNT(*), MAX(source) FROM figures WHERE source = 'page_crop'"
+            ).fetchone()
+            markdown_z = conn.execute(
+                "SELECT markdown_z FROM page_documents"
+                " JOIN import_pages ON page_documents.content_hash = import_pages.content_hash"
+                " WHERE import_pages.job_id = ? AND import_pages.page_index = 0",
+                (import_id,),
+            ).fetchone()[0]
+            return (
+                int(row[0]),
+                str(row[1]),
+                decompress_text(conn, "problem_text", bytes(markdown_z)),
+            )
+
+        figure_count, source, markdown = await shards.course_reads(1).run(read)
+
+    assert status == STATUS_READY
+    assert figure_count == 1
+    assert source == "page_crop"
+    assert detector.calls == 1
+    assert "the scanned text" in markdown
+    assert "![Figure X](fig://" in markdown
 
 
 async def test_decode_born_digital_and_scanned_pages(tmp_path: Path) -> None:

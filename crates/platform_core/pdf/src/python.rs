@@ -88,6 +88,36 @@ fn extract_figures(
     Ok((page.page_width, page.page_height, figures))
 }
 
+/// One cropped region: (png bytes, x, y, w, h) in page pixels.
+type PyRegion<'py> = (Bound<'py, PyBytes>, u32, u32, u32, u32);
+
+/// Crop a page raster at normalized boxes (`[x, y, w, h]` in 0..1), for the
+/// vision detector's `page_crop` figures. Returns `(page_width, page_height,
+/// regions)` in pixels.
+#[pyfunction]
+fn crop_figures(
+    py: Python<'_>,
+    page_png: Vec<u8>,
+    boxes: Vec<[f32; 4]>,
+) -> PyResult<(u32, u32, Vec<PyRegion<'_>>)> {
+    let (page_w, page_h, regions) = py
+        .allow_threads(|| crate::crop_figures(&page_png, &boxes))
+        .map_err(PyValueError::new_err)?;
+    let out = regions
+        .into_iter()
+        .map(|region| {
+            (
+                PyBytes::new(py, &region.png),
+                region.x,
+                region.y,
+                region.w,
+                region.h,
+            )
+        })
+        .collect();
+    Ok((page_w, page_h, out))
+}
+
 /// Register the pdf surface onto a (sub)module.
 ///
 /// # Errors
@@ -95,5 +125,6 @@ fn extract_figures(
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(decode, m)?)?;
     m.add_function(wrap_pyfunction!(extract_figures, m)?)?;
+    m.add_function(wrap_pyfunction!(crop_figures, m)?)?;
     Ok(())
 }

@@ -17,8 +17,9 @@ Phase 4 has begun: 4.1 decode is complete, the PDF import handshake, the decode
 worker, and the real `tirocinium-pdf` member binding pdfium over a vendored
 native binary; 4.2 figure extraction the deterministic detector done, embedded
 rasters byte-identical and vector drawings rendered, stored content-addressed
-with fig:// tokens in the page markdown; 4.3 segmentation done bar the vision
-detector, a fidelity-strict model pass staging items with the 30-day purge).
+with fig:// tokens in the page markdown; 4.3 segmentation done, a fidelity-strict
+model pass staging items with the 30-day purge, and the vision figure detector
+closing Stage 1b's union with scanned-page page_crop figures).
 
 ## Inviolable constraints
 
@@ -184,7 +185,12 @@ migration course/0009), metadata only in the shard, and placing
 prompt: only the token travels with the text (a pipeline test asserts it). This
 is the figures-are-pixels constraint made mechanical: never a lossy re-encode of
 a raster, never a redrawn diagram. `item_figures` links land in 4.3; scanned-page
-figures (`page_crop`) with the vision detector still to build.
+figures (`page_crop`) via the vision detector (decision 0028): a `FigureDetector`
+seam proposes boxes on a scanned page, each cropped from the raster by
+`platform_core.pdf.crop_figures` (pure image, no pdfium, never a re-render) into
+a `page_crop` figure stored and tokenised like the rest. Born-digital pages carry
+deterministic figures, scanned pages carry page crops, disjoint by kind. The
+detector only locates figures, never describes or redraws one.
 
 Segmentation (milestone 4.3, decision 0027) is the second Stage-2 pass: a
 `Segmenter` seam (`app/imports/segmentation.py`, Anthropic in prod,

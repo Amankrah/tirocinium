@@ -201,3 +201,112 @@ class FakeFigureExtractor:
 def get_figure_extractor() -> FigureExtractor:
     """The worker's figure extractor; tests inject a fake."""
     return PdfiumFigureExtractor()
+
+
+# -------------------------------------------------- vision figure detector (4.3)
+
+# The vision model that proposes figure boxes on a scanned page. It only
+# proposes positions; it never describes or redraws a figure (figures are
+# pixels). Same family as the handwriting reader.
+DEFAULT_FIGURE_DETECTION_MODEL = os.environ.get(
+    "TIRO_VISION_MODEL_ID", "claude-3-5-sonnet-latest"
+)
+
+
+class DetectedBox(BaseModel, frozen=True):
+    """A figure the vision detector proposes on a page, as a normalised box
+    (`[x, y, w, h]` in 0..1, top-left origin) and an optional caption guess."""
+
+    bbox: tuple[float, float, float, float]
+    caption: str | None = None
+
+
+def parse_boxes(text: str) -> list[DetectedBox]:
+    """Parse a detector response (a single JSON array per the prompt)."""
+    import json
+
+    data = json.loads(text)
+    if isinstance(data, dict):
+        data = [data]
+    return [DetectedBox.model_validate(box) for box in data]
+
+
+class FigureDetector(Protocol):
+    async def detect(
+        self, image_png: bytes, prompt: str, *, model_id: str
+    ) -> list[DetectedBox]: ...
+
+
+class AnthropicFigureDetector:
+    """The live detector: Claude via the Anthropic API, shown the page image.
+    Never exercised in the test suite (model calls in tests are recorded)."""
+
+    def __init__(self, api_key: str | None = None) -> None:
+        self._api_key = api_key or os.environ.get("TIRO_ANTHROPIC_API_KEY")
+
+    async def detect(
+        self, image_png: bytes, prompt: str, *, model_id: str
+    ) -> list[DetectedBox]:
+        import base64
+
+        from anthropic import AsyncAnthropic
+
+        client = AsyncAnthropic(api_key=self._api_key)
+        message = await client.messages.create(
+            model=model_id,
+            max_tokens=2048,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": "image/png",
+                                "data": base64.b64encode(image_png).decode("ascii"),
+                            },
+                        },
+                        {"type": "text", "text": prompt},
+                    ],
+                }
+            ],
+        )
+        block = message.content[0]
+        text = getattr(block, "text", None)
+        if text is None:
+            raise ValueError("figure detector returned no text block")
+        return parse_boxes(text)
+
+
+class RecordedFigureDetector:
+    """The test/replay detector: returns boxes recorded against the sha256 of
+    the exact page image bytes, so no network call happens."""
+
+    def __init__(self, responses: dict[str, list[DetectedBox]]) -> None:
+        self._responses = {key: list(value) for key, value in responses.items()}
+        self.calls = 0
+
+    async def detect(
+        self, image_png: bytes, prompt: str, *, model_id: str
+    ) -> list[DetectedBox]:
+        import hashlib
+
+        self.calls += 1
+        key = hashlib.sha256(image_png).hexdigest()
+        return list(self._responses.get(key, []))
+
+    @classmethod
+    def for_images(
+        cls, mapping: dict[bytes, list[DetectedBox]]
+    ) -> "RecordedFigureDetector":
+        import hashlib
+
+        return cls(
+            {hashlib.sha256(image).hexdigest(): boxes for image, boxes in mapping.items()}
+        )
+
+
+def get_figure_detector() -> FigureDetector:
+    """The worker's figure detector; tests inject a recorded one."""
+    return AnthropicFigureDetector()

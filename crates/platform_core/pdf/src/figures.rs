@@ -173,6 +173,53 @@ fn guess_caption(fig: Rect, text_blocks: &[(Rect, String)]) -> Option<String> {
         .map(|(_, text)| text.chars().take(MAX_CAPTION_CHARS).collect())
 }
 
+/// One cropped region of a page raster: the PNG bytes and its pixel rectangle.
+#[derive(Debug, Clone)]
+pub struct CroppedRegion {
+    pub png: Vec<u8>,
+    pub x: u32,
+    pub y: u32,
+    pub w: u32,
+    pub h: u32,
+}
+
+#[allow(clippy::cast_precision_loss)] // page dimensions are small, exact in f32
+fn as_f32(value: u32) -> f32 {
+    value as f32
+}
+
+/// Crop a page raster at normalized boxes (`[x, y, w, h]` in 0..1), the
+/// `page_crop` figures of Stage 1b: the vision detector proposes boxes on a
+/// scanned page, and each is a raster crop of the preprocessed page (backend
+/// guide section 5), never a re-render or a redraw. Returns the page's pixel
+/// size and one region per box. Pure image work, no pdfium.
+///
+/// # Errors
+/// When the page image cannot be decoded or a crop cannot be re-encoded.
+pub fn crop_figures(
+    page_png: &[u8],
+    boxes: &[[f32; 4]],
+) -> Result<(u32, u32, Vec<CroppedRegion>), String> {
+    let image = image::load_from_memory(page_png).map_err(|e| e.to_string())?;
+    let (page_w, page_h) = (image.width(), image.height());
+    let mut regions = Vec::with_capacity(boxes.len());
+    for region in boxes {
+        let x = px(region[0] * as_f32(page_w)).min(page_w.saturating_sub(1));
+        let y = px(region[1] * as_f32(page_h)).min(page_h.saturating_sub(1));
+        let w = px(region[2] * as_f32(page_w)).max(1).min(page_w - x);
+        let h = px(region[3] * as_f32(page_h)).max(1).min(page_h - y);
+        let cropped = image.crop_imm(x, y, w, h);
+        regions.push(CroppedRegion {
+            png: encode_png(&cropped)?,
+            x,
+            y,
+            w,
+            h,
+        });
+    }
+    Ok((page_w, page_h, regions))
+}
+
 /// A rectangle in page points, top-left origin.
 #[derive(Debug, Clone, Copy)]
 struct Rect {
@@ -416,6 +463,20 @@ mod tests {
             figures[0].caption.as_deref(),
             Some("Figure 1: the RC circuit.")
         );
+    }
+
+    #[test]
+    fn crop_figures_crops_the_page_raster() {
+        // No pdfium needed: this is pure image work.
+        let page = image::DynamicImage::ImageRgb8(image::RgbImage::new(100, 80));
+        let png = encode_png(&page).expect("encode");
+        let (page_w, page_h, regions) = crop_figures(&png, &[[0.1, 0.2, 0.5, 0.25]]).expect("crop");
+        assert_eq!((page_w, page_h), (100, 80));
+        assert_eq!(regions.len(), 1);
+        let region = &regions[0];
+        assert_eq!((region.x, region.y, region.w, region.h), (10, 16, 50, 20));
+        let decoded = image::load_from_memory(&region.png).expect("decode crop");
+        assert_eq!((decoded.width(), decoded.height()), (50, 20));
     }
 
     #[test]

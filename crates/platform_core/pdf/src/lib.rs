@@ -14,7 +14,9 @@ mod figures;
 #[cfg(feature = "python")]
 pub mod python;
 
-pub use figures::{extract_figures, ExtractedFigure, FigureSource, PageFigures};
+pub use figures::{
+    crop_figures, extract_figures, CroppedRegion, ExtractedFigure, FigureSource, PageFigures,
+};
 
 use std::io::Cursor;
 use std::sync::{Mutex, OnceLock};

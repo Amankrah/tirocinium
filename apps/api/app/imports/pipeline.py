@@ -22,8 +22,14 @@ from platform_core.preprocess import PageRejected
 from platform_core.preprocess import preprocess as _default_preprocess
 
 from app.compression import compress_text
-from app.imports.decoder import DEFAULT_PDF_DECODER, DecodedPage, FigureExtractor, PdfDecoder
-from app.imports.figures import store_figures_and_annotate
+from app.imports.decoder import (
+    DEFAULT_PDF_DECODER,
+    DecodedPage,
+    FigureDetector,
+    FigureExtractor,
+    PdfDecoder,
+)
+from app.imports.figures import detect_and_store_page_crops, store_figures_and_annotate
 from app.imports.segmentation import Segmenter
 from app.imports.staging import segment_and_stage
 from app.prompts import Prompt, load_prompt
@@ -53,6 +59,7 @@ async def run_import_pipeline(
     prompt: Prompt | None = None,
     preprocess: Preprocess | None = None,
     figure_extractor: FigureExtractor | None = None,
+    figure_detector: FigureDetector | None = None,
     segmenter: Segmenter | None = None,
 ) -> str:
     """Decode one import job end to end. Returns the terminal status."""
@@ -105,6 +112,18 @@ async def run_import_pipeline(
                         page_index=page.page_index,
                         page_markdown=markdown,
                         page_figures=page_figures,
+                    )
+                # Scanned pages have no object tree; the vision detector proposes
+                # figure boxes and each becomes a page_crop of the page raster.
+                elif figure_detector is not None and page.kind == "scanned":
+                    markdown = await detect_and_store_page_crops(
+                        shards=shards,
+                        storage=storage,
+                        detector=figure_detector,
+                        course_id=course_id,
+                        page_index=page.page_index,
+                        page_image=page.image_png,
+                        page_markdown=markdown,
                     )
                 await writer.run(
                     _store_cache(content_hash, page.kind, markdown, provenance)

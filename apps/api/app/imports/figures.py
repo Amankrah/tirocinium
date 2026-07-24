@@ -17,7 +17,13 @@ import time
 from collections.abc import Callable
 
 from app.db.shards import ShardManager
-from app.imports.decoder import ExtractedFigure, PageFigures
+from app.imports.decoder import (
+    DEFAULT_FIGURE_DETECTION_MODEL,
+    ExtractedFigure,
+    FigureDetector,
+    PageFigures,
+)
+from app.prompts import Prompt, load_prompt
 from app.storage import IMPORTS_BUCKET, ObjectStorage
 
 
@@ -59,6 +65,58 @@ async def store_figures_and_annotate(
         placements.append((figure.bbox[1], f"![{caption}](fig://{figure_id})"))
 
     return _place_tokens(page_markdown, placements, page_figures.page_height)
+
+
+async def detect_and_store_page_crops(
+    *,
+    shards: ShardManager,
+    storage: ObjectStorage,
+    detector: FigureDetector,
+    course_id: int,
+    page_index: int,
+    page_image: bytes,
+    page_markdown: str,
+    prompt: Prompt | None = None,
+    model_id: str = DEFAULT_FIGURE_DETECTION_MODEL,
+) -> str:
+    """The vision figure detector for a scanned page (4.3): propose figure boxes,
+    crop the page raster at each (a page_crop figure, never a re-render), store
+    them, and place fig:// tokens in the page markdown. Returns the markdown
+    unchanged when the detector proposes nothing."""
+    prompt = prompt or load_prompt("figure-detection", "v1")
+    boxes = await detector.detect(page_image, prompt.text, model_id=model_id)
+    if not boxes:
+        return page_markdown
+
+    from platform_core import pdf as _pdf
+
+    page_width, page_height, regions = await asyncio.to_thread(
+        _pdf.crop_figures, page_image, [box.bbox for box in boxes]
+    )
+    figures = [
+        ExtractedFigure(
+            source="page_crop",
+            bbox=(float(x), float(y), float(w), float(h)),
+            width_px=w,
+            height_px=h,
+            format="png",
+            image=png,
+            image_2x=None,
+            caption=box.caption,
+        )
+        for box, (png, x, y, w, h) in zip(boxes, regions, strict=True)
+    ]
+    page_figures = PageFigures(
+        page_width=float(page_width), page_height=float(page_height), figures=figures
+    )
+    return await store_figures_and_annotate(
+        shards=shards,
+        storage=storage,
+        course_id=course_id,
+        page_index=page_index,
+        page_markdown=page_markdown,
+        page_figures=page_figures,
+    )
 
 
 def _upsert_figure(
