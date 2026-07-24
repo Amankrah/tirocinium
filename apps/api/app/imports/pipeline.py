@@ -24,6 +24,8 @@ from platform_core.preprocess import preprocess as _default_preprocess
 from app.compression import compress_text
 from app.imports.decoder import DEFAULT_PDF_DECODER, DecodedPage, FigureExtractor, PdfDecoder
 from app.imports.figures import store_figures_and_annotate
+from app.imports.segmentation import Segmenter
+from app.imports.staging import segment_and_stage
 from app.prompts import Prompt, load_prompt
 from app.storage import IMPORTS_BUCKET, ObjectStorage, fetch_bytes
 from app.transcription.model import DEFAULT_VISION_MODEL, VisionTranscriber
@@ -51,6 +53,7 @@ async def run_import_pipeline(
     prompt: Prompt | None = None,
     preprocess: Preprocess | None = None,
     figure_extractor: FigureExtractor | None = None,
+    segmenter: Segmenter | None = None,
 ) -> str:
     """Decode one import job end to end. Returns the terminal status."""
     from app.db.shards import ShardManager
@@ -115,6 +118,13 @@ async def run_import_pipeline(
             )
             await writer.run(
                 _record_page(import_id, page.page_index, page.kind, image_key, content_hash)
+            )
+
+        # Segmentation (Stage 2, 4.3) is the final step: the assembled page
+        # markdowns become staged items, pending the professor's confirmation.
+        if segmenter is not None:
+            await segment_and_stage(
+                shards=shards, segmenter=segmenter, course_id=course_id, job_id=import_id
             )
 
         await writer.run(_finalize(import_id, len(pages)))

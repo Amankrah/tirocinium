@@ -7,7 +7,7 @@ description: Tirocinium coding standards, API conventions, data-layer rules, and
 
 The four documents in `docs/` are the specification and outrank this skill; this
 skill is the operational digest that survives context windows. Last updated for
-Phase 4.2 (data layer, auth, seats, and the authoring backend done; the
+Phase 4.3 (data layer, auth, seats, and the authoring backend done; the
 handwritten solution upload path live; scan preprocessing implemented in Rust;
 handwriting transcription running in an off-request-path worker with a recorded-
 response model seam and SSE progress; indexing and retrieval done, with FTS5 and
@@ -17,7 +17,8 @@ Phase 4 has begun: 4.1 decode is complete, the PDF import handshake, the decode
 worker, and the real `tirocinium-pdf` member binding pdfium over a vendored
 native binary; 4.2 figure extraction the deterministic detector done, embedded
 rasters byte-identical and vector drawings rendered, stored content-addressed
-with fig:// tokens in the page markdown).
+with fig:// tokens in the page markdown; 4.3 segmentation done bar the vision
+detector, a fidelity-strict model pass staging items with the 30-day purge).
 
 ## Inviolable constraints
 
@@ -182,8 +183,20 @@ migration course/0009), metadata only in the shard, and placing
 `![caption](fig://{id})` in the page markdown. Figure bytes never enter a text
 prompt: only the token travels with the text (a pipeline test asserts it). This
 is the figures-are-pixels constraint made mechanical: never a lossy re-encode of
-a raster, never a redrawn diagram. The vision detector's boxes and the
-`item_figures` link land in 4.3; scanned-page figures (`page_crop`) with them.
+a raster, never a redrawn diagram. `item_figures` links land in 4.3; scanned-page
+figures (`page_crop`) with the vision detector still to build.
+
+Segmentation (milestone 4.3, decision 0027) is the second Stage-2 pass: a
+`Segmenter` seam (`app/imports/segmentation.py`, Anthropic in prod,
+`RecordedSegmenter` in tests, `prompts/segmentation/v1`) reads a job's assembled
+page markdowns (page markers plus fig:// tokens, never figure bytes) and returns
+items, which stage in `import_items` with `item_figures` (migration course/0010)
+as `pending`: the AI proposes, the professor disposes, so nothing is
+student-visible until confirmed in 4.4. A model-named figure id is linked only
+when it exists (a hallucination is dropped); provenance (`model_id`,
+`prompt_version`) and the model's `title`/`notes` are stored on the item. The
+pipeline runs segmentation last, and a 30-day purge (`app/imports/purge.py`)
+removes unconfirmed jobs and their staging plus orphaned old figures.
 
 After any route or model change, regenerate the contract seam and commit both
 artifacts (decision 0003): `python scripts/export_openapi.py` in `apps/api`,

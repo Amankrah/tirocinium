@@ -6,7 +6,7 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at milestone 4.2 (decision 0025):
+passes; green never goes red. Last updated at milestone 4.3 (decision 0027):
 Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 backend
 complete (3.1 the submission upload path done; 3.2 scan preprocessing
 implemented, its golden gate awaiting the 30-photo corpus; 3.3 handwriting
@@ -18,8 +18,10 @@ end to end (import upload handshake, decode worker, the real `tirocinium-pdf`
 member binding pdfium over a vendored native binary); 4.2 (figure extraction)
 the deterministic detector done, embedded rasters pulled byte-identical and
 vector drawings rendered at 300 dpi, stored content-addressed with fig:// tokens
-placed in the page markdown (the vision detector's boxes join in 4.3). The
-Phase 3 frontend half
+placed in the page markdown; 4.3 (segmentation) the fidelity-strict model pass
+staging items (question/solution pairs with figure assignments) plus the 30-day
+purge, done, with the vision figure detector (the second detector's boxes) still
+to build. The Phase 3 frontend half
 (3.5) is in
 progress: the upload flow (capture, pre-checks, orchestration, SSE processing)
 is built end to end (capture, pre-checks, orchestration, SSE processing, and the
@@ -62,13 +64,13 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 148 tests (25 data layer, 16 case studies/concepts/courses,
+Python suite, 153 tests (25 data layer, 16 case studies/concepts/courses,
 15 seats, 12 auth, 16 submissions (incl. 4 transcription-read), 5 transcription,
-14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 22 imports
+14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 27 imports
 (4 decode pipeline + 1 figure pipeline, 9 endpoint, 5 figure storage/placement,
-3 pdfium decoder/extractor that skip when the binary is absent), 7 backup,
-5 compression, 3 contract, 7 store, 1 latency gate) plus lint and the worker
-import smoke, from `apps/api`:
+4 segmentation, 1 purge, 3 pdfium decoder/extractor that skip when the binary is
+absent), 7 backup, 5 compression, 3 contract, 7 store, 1 latency gate) plus lint
+and the worker import smoke, from `apps/api`:
 
     cd apps/api
     .venv/Scripts/python -m pytest -q
@@ -301,6 +303,19 @@ Phase 4, in progress:
   storage, dedup, the 2x rendition, a real captioned extraction, and the pipeline
   asserting figure bytes never reach the cached markdown) plus 5 Rust figure
   tests. Vision-detector boxes and the `item_figures` link land in 4.3.
+- 4.3 (done, bar the vision detector): segmentation (decision 0027). A
+  fidelity-strict text pass (`Segmenter` seam, `RecordedSegmenter` in tests,
+  `prompts/segmentation/v1`) reads a job's assembled page markdowns (page markers
+  and fig:// tokens, no figure bytes) and stages items (question/solution pairs,
+  figure assignments, provenance) in `import_items` with `item_figures`
+  (migration course/0010), `pending`; a hallucinated figure id is dropped. The
+  pipeline runs it as the final step. A 30-day purge (`app/imports/purge.py`)
+  removes unconfirmed jobs older than the TTL with their staging and orphaned old
+  figures, sparing confirmed and recent ones. 5 tests (staging with the
+  no-figure-bytes-in-prompt assertion, empty document, assembly, recorded replay,
+  the purge). Still to build: the vision figure detector (the second detector,
+  scanned-page `page_crop` boxes unioned with the deterministic set). Confirm to
+  a case study is 4.4.
 - 4.4 (web, front half): the import-from-PDF upload and processing view (frontend
   guide 4.3). A professor picks a PDF (pre-checked against the 60 MiB ceiling),
   it PUTs direct to storage and completes, then a poll of the import status runs
@@ -352,6 +367,13 @@ replays them; `platform_core.embedding.quantize` turns a vector into the stored
 int8 codes. The hybrid-retrieval tests build their embedder in memory from known
 texts and hand-authored vectors, so the gate needs no committed asset; the
 directory is where a captured corpus lands as one grows.
+
+Recorded segmentation responses live at `apps/api/tests/recorded/segmentation/`,
+one JSON array of items per file named for the sha256 of the assembled document
+(page markdowns with page markers and fig:// tokens). `RecordedSegmenter` replays
+them; the staging tests build theirs in memory, so the gate needs no committed
+asset. Real digital-handwriting PDFs for the student PDF-upload path (decision
+0026, not yet wired) live at `apps/api/tests/fixtures/submission-pdf/`.
 
 The five-PDF ingestion corpus lives at `crates/platform_core/pdf/corpus/` (PDFs
 under `pdfs/`, the spec in `README.md`); it is scaffolded but empty, so the
