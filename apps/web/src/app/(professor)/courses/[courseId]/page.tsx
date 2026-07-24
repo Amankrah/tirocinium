@@ -38,12 +38,20 @@ export default async function CoursePage({
             {strings.course.back}
           </Link>
           <h1 className="font-display text-4xl">{course.title}</h1>
-          <Link
-            href={`/courses/${id}/seats`}
-            className="text-sm text-accent underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
-            {strings.course.seatsLink}
-          </Link>
+          <div className="flex flex-wrap gap-4">
+            <Link
+              href={`/courses/${id}/seats`}
+              className="text-sm text-accent underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            >
+              {strings.course.seatsLink}
+            </Link>
+            <Link
+              href={`/courses/${id}/import`}
+              className="text-sm text-accent underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            >
+              {strings.course.importLink}
+            </Link>
+          </div>
         </div>
 
         <section className="flex flex-col gap-4">

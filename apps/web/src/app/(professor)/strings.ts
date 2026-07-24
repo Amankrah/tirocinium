@@ -33,6 +33,32 @@ export const strings = {
     newBodyLabel: "Body (Markdown, with $math$)",
     newAction: "Create case study",
     seatsLink: "Seats",
+    importLink: "Import from PDF",
+  },
+  // The import-from-PDF door (guide 4.3). Decode reads the pages; the review
+  // step where a professor confirms each detected problem and its figures is
+  // Phase 4.4 proper and comes next, so this surface stops at "read".
+  import: {
+    title: "Import from PDF",
+    back: "Back to course",
+    intro:
+      "Drop a PDF of problems with their solutions. We read it into drafts you confirm before anything reaches students.",
+    dropPrompt: "Drag a PDF here, or",
+    choose: "Choose a PDF",
+    rejectedType: "That file is not a PDF.",
+    rejectedTooLarge: "That PDF is over 60 MB.",
+    rejectedEmpty: "That file is empty.",
+    start: "Import this PDF",
+    uploading: "Uploading your PDF…",
+    reading: "Reading your PDF…",
+    ready: (count: number) =>
+      count === 1 ? "Read 1 page." : `Read ${count} pages.`,
+    // The confirmation surface is the next milestone; be honest that it is not
+    // here yet rather than imply the import is finished.
+    confirmSoon:
+      "Next you will review each detected problem and its figures before it becomes a draft. That step is coming soon.",
+    error: "That did not work. Check your connection and try again.",
+    another: "Import another PDF",
   },
   seats: {
     back: "Back to course",
