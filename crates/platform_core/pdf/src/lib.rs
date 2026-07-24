@@ -10,8 +10,11 @@
 //! not thread-safe, so a decode binds it for the duration of one document, which
 //! suits the one-PDF-at-a-time worker.
 
+mod figures;
 #[cfg(feature = "python")]
 pub mod python;
+
+pub use figures::{extract_figures, ExtractedFigure, FigureSource};
 
 use std::io::Cursor;
 use std::sync::{Mutex, OnceLock};
@@ -27,7 +30,7 @@ use pdfium_render::prelude::*;
 static PDFIUM: OnceLock<Pdfium> = OnceLock::new();
 static INIT: Mutex<()> = Mutex::new(());
 
-fn pdfium(lib_path: &str) -> Result<&'static Pdfium, String> {
+pub(crate) fn pdfium(lib_path: &str) -> Result<&'static Pdfium, String> {
     if let Some(existing) = PDFIUM.get() {
         return Ok(existing);
     }
@@ -116,7 +119,12 @@ pub fn decode(lib_path: &str, pdf: &[u8], render_width: i32) -> Result<Vec<Decod
 
 fn render_png(page: &PdfPage, config: &PdfRenderConfig) -> Result<Vec<u8>, String> {
     let bitmap = page.render_with_config(config).map_err(|e| e.to_string())?;
-    let image = bitmap.as_image().map_err(|e| e.to_string())?;
+    encode_png(&bitmap.as_image().map_err(|e| e.to_string())?)
+}
+
+/// Encode a decoded image to lossless PNG. Shared by page rendering and the
+/// figure extractor's non-JPEG raster path.
+pub(crate) fn encode_png(image: &image::DynamicImage) -> Result<Vec<u8>, String> {
     let mut buffer = Vec::new();
     image
         .write_to(&mut Cursor::new(&mut buffer), image::ImageFormat::Png)
