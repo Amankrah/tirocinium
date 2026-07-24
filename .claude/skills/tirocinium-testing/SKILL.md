@@ -80,10 +80,10 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (132 Vitest tests: the token contract with its computed-contrast
-assertion, the primitives, the API clients, and the upload flow's pre-checks,
-orchestration controller, SSE processing model, and transcription preview), plus
-lint, typecheck, and
+Web suite (154 Vitest tests: the token contract with its computed-contrast
+assertion, the primitives, the API clients, the upload flow's pre-checks,
+orchestration controller, SSE processing model, and transcription preview, and
+the PDF import upload and controller), plus lint, typecheck, and
 build, from `apps/web` (typecheck needs a build first on a fresh checkout,
 decision 0005). The Playwright journeys run separately (`pnpm test:e2e`, needs
 `playwright install chromium` once); journeys one to three are skip-gated on a
@@ -286,6 +286,16 @@ Phase 4, in progress:
   model), the tests skipping when the binary is absent. The member is exempt from
   the bench-budget gate (native-render-bound). Still open for Phase 4: the
   five-PDF golden corpus (an external asset).
+- 4.4 (web, front half): the import-from-PDF upload and processing view (frontend
+  guide 4.3). A professor picks a PDF (pre-checked against the 60 MiB ceiling),
+  it PUTs direct to storage and completes, then a poll of the import status runs
+  to "ready" with the page count. Orchestration is a framework-agnostic
+  controller with its side-effects injected and tested; the authed calls proxy
+  through professor server actions. Reached from an "Import from PDF" link on the
+  course page. The surface stops honestly at "read": the confirmation review of
+  each detected problem and its figures (the rest of 4.4) waits on the backend's
+  figure extraction (4.2) and segmentation (4.3), and Playwright journey four
+  waits on that confirmation surface. 23 Vitest tests.
 
 ## Standing rules
 
