@@ -11,15 +11,43 @@ scanned pages then flow through the existing preprocess and vision seams.
 """
 
 import os
-from typing import Literal, Protocol
+from pathlib import Path
+from typing import Literal, Protocol, cast
 
 from pydantic import BaseModel
 
-# The pdfium build the real decoder will bind, recorded as decode provenance on
-# born-digital pages. Deployment configuration once the member lands.
+# The pdfium build the real decoder binds, recorded as decode provenance on
+# born-digital pages. Deployment configuration.
 DEFAULT_PDF_DECODER = os.environ.get("TIRO_PDF_DECODER_ID", "pdfium")
 
+# Page render width in pixels (about 200 dpi on A4 width), enough detail for the
+# vision seam on scanned pages; height follows the page aspect.
+DEFAULT_RENDER_WIDTH = 1654
+
 PageKind = Literal["born_digital", "scanned"]
+
+
+def pdfium_lib_path() -> str:
+    """The vendored pdfium binary. `TIRO_PDFIUM_LIB` is the deployment override;
+    infra/setup.sh provisions the binary per platform into the crate's vendor
+    directory. Returns the first candidate that exists, or the Windows default
+    when none do (so a caller can detect an unprovisioned host by the path not
+    existing)."""
+    override = os.environ.get("TIRO_PDFIUM_LIB")
+    if override:
+        return override
+    vendor = (
+        Path(__file__).resolve().parents[4] / "crates" / "platform_core" / "pdf" / "vendor"
+    )
+    candidates = (
+        vendor / "bin" / "pdfium.dll",
+        vendor / "lib" / "libpdfium.so",
+        vendor / "lib" / "libpdfium.dylib",
+    )
+    for candidate in candidates:
+        if candidate.exists():
+            return str(candidate)
+    return str(candidates[0])
 
 
 class DecodedPage(BaseModel, frozen=True):
@@ -40,15 +68,29 @@ class PdfDecoder(Protocol):
 
 
 class PdfiumDecoder:
-    """The real decoder: pdfium via the platform_core PDF member. Not yet
-    implemented; it lands as a focused follow-up (the Rust member and its
-    vendored native library) so the request and worker wiring can be built and
-    tested first (decision 0021)."""
+    """The real decoder: pdfium via the platform_core PDF member (decision 0024).
+    The native library is loaded at runtime from `lib_path`; decode is
+    deterministic CPU work, so this is a direct call, not a recorded response."""
+
+    def __init__(
+        self, lib_path: str | None = None, render_width: int = DEFAULT_RENDER_WIDTH
+    ) -> None:
+        self._lib_path = lib_path or pdfium_lib_path()
+        self._render_width = render_width
 
     def decode(self, pdf_bytes: bytes) -> list[DecodedPage]:
-        raise NotImplementedError(
-            "pdfium decode lands with the platform_core PDF member (4.1 follow-up)"
-        )
+        from platform_core import pdf as _pdf
+
+        pages = _pdf.decode(pdf_bytes, self._lib_path, self._render_width)
+        return [
+            DecodedPage(
+                page_index=index,
+                kind=cast(PageKind, kind),
+                text_markdown=text,
+                image_png=image_png,
+            )
+            for index, kind, text, image_png in pages
+        ]
 
 
 class FakePdfDecoder:

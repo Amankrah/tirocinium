@@ -32,5 +32,10 @@ fn platform_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_submodule(&embedding)?;
     sys_modules.set_item("platform_core.embedding", &embedding)?;
 
+    let pdf = PyModule::new(py, "pdf")?;
+    tirocinium_pdf::python::register(&pdf)?;
+    m.add_submodule(&pdf)?;
+    sys_modules.set_item("platform_core.pdf", &pdf)?;
+
     Ok(())
 }

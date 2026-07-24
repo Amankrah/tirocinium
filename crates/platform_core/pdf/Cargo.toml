@@ -1,0 +1,28 @@
+# PDF decode (backend guide section 5 Stage 1, milestone 4.1 follow-up): pdfium
+# bindings for born-digital text extraction, page classification, and page
+# raster rendering. pdfium is a native library, dynamically loaded from a
+# vendored binary provisioned by infra (not committed). This crate is a spike
+# under construction; the PyO3 surface and workspace wiring join once the load
+# path is proven here.
+[package]
+name = "tirocinium-pdf"
+version = "0.1.0"
+edition = "2021"
+description = "Tirocinium PDF decode: pdfium-backed extraction and rendering"
+license = "UNLICENSED"
+
+[dependencies]
+# thread_safe guards pdfium's global state with a mutex: pdfium is not
+# thread-safe, and both the test harness and any concurrent worker call would
+# otherwise race and abort.
+pdfium-render = { version = "0.9", features = ["image_025", "thread_safe"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
+# abi3 keeps the single wheel serving CPython 3.10+; extension-module is
+# enabled only by the umbrella crate so this crate's tests link normally.
+pyo3 = { version = "0.23", features = ["abi3-py310"], optional = true }
+
+[features]
+python = ["dep:pyo3"]
+
+[lints]
+workspace = true

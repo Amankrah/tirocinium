@@ -5,4 +5,5 @@
 from . import codec as codec
 from . import embedding as embedding
 from . import mastery as mastery
+from . import pdf as pdf
 from . import preprocess as preprocess

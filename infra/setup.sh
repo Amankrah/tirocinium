@@ -21,6 +21,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 API="$ROOT/apps/api"
 CRATES="$ROOT/crates/platform_core"
 LITESTREAM_VERSION="v0.3.13"
+PDFIUM_VERSION="chromium/7961"  # pinned pdfium binary (decision 0024)
 
 say()  { printf '\n\033[1m== %s\033[0m\n' "$*"; }
 warn() { printf '\033[33mwarning: %s\033[0m\n' "$*"; }
@@ -99,6 +100,41 @@ else
   fi
 fi
 
+# ---------------------------------------------------------------- pdfium
+say "pdfium ($PDFIUM_VERSION, native binary in crates/platform_core/pdf/vendor)"
+PDF_VENDOR="$CRATES/pdf/vendor"
+mkdir -p "$PDF_VENDOR"
+if [ -f "$PDF_VENDOR/bin/pdfium.dll" ] || [ -f "$PDF_VENDOR/lib/libpdfium.so" ] \
+   || [ -f "$PDF_VENDOR/lib/libpdfium.dylib" ]; then
+  echo "already present"
+else
+  case "$(uname -s)-$(uname -m)" in
+    MINGW*-*|MSYS*-*|CYGWIN*-*) PDF_ASSET="pdfium-win-x64.tgz" ;;
+    Linux-x86_64)               PDF_ASSET="pdfium-linux-x64.tgz" ;;
+    Linux-aarch64)              PDF_ASSET="pdfium-linux-arm64.tgz" ;;
+    Darwin-x86_64)              PDF_ASSET="pdfium-mac-x64.tgz" ;;
+    Darwin-arm64)               PDF_ASSET="pdfium-mac-arm64.tgz" ;;
+    *)                          PDF_ASSET="" ;;
+  esac
+  if [ -n "$PDF_ASSET" ] && command -v curl >/dev/null 2>&1; then
+    # The release tag carries a slash, so URL-encode it.
+    PDF_TAG="${PDFIUM_VERSION/\//%2F}"
+    PDF_URL="https://github.com/bblanchon/pdfium-binaries/releases/download/$PDF_TAG/$PDF_ASSET"
+    if curl -fsSL "$PDF_URL" -o "$PDF_VENDOR/$PDF_ASSET"; then
+      # The archive carries bin/ (Windows) or lib/ (Linux, macOS); extract both
+      # so the crate and Python resolver find whichever this platform produced.
+      tar -xzf "$PDF_VENDOR/$PDF_ASSET" -C "$PDF_VENDOR" bin lib 2>/dev/null || \
+        tar -xzf "$PDF_VENDOR/$PDF_ASSET" -C "$PDF_VENDOR"
+      rm -f "$PDF_VENDOR/$PDF_ASSET"
+      echo "pdfium provisioned"
+    else
+      warn "pdfium download failed; PDF import (Phase 4) decode cannot run without it"
+    fi
+  else
+    warn "no pdfium build mapped for this host ($(uname -s)-$(uname -m)); set TIRO_PDFIUM_LIB"
+  fi
+fi
+
 # ---------------------------------------------------------------- Node / web
 say "Web workspace"
 if [ -f "$ROOT/apps/web/package.json" ]; then
@@ -134,12 +170,14 @@ MODULES = {
     "redis": "redis", "redis.asyncio": "redis.asyncio", "httpx": "httpx",
     "python-multipart": ("python_multipart", "multipart"),
     "argon2-cffi": "argon2", "pyjwt": "jwt", "boto3": "boto3",
-    "anthropic": "anthropic", "fpdf2": "fpdf",
+    "anthropic": "anthropic", "openai": "openai", "fpdf2": "fpdf",
     "pytest": "pytest", "ruff": "ruff", "mypy": "mypy",
     "platform_core (built extension)": "platform_core",
     "platform_core.codec": "platform_core.codec",
     "platform_core.mastery": "platform_core.mastery",
     "platform_core.preprocess": "platform_core.preprocess",
+    "platform_core.embedding": "platform_core.embedding",
+    "platform_core.pdf": "platform_core.pdf",
 }
 failed = []
 for name, mods in MODULES.items():
@@ -161,7 +199,7 @@ EOF
 say "Gate: ruff + mypy strict (apps/api)"
 (cd "$API" && "$VBIN/ruff" check . && "$VBIN/mypy" .)
 
-say "Gate: Rust workspace suites (mastery 15, codec 8, preprocess 7)"
+say "Gate: Rust workspace suites (mastery 15, codec 8, preprocess 7, embedding 10, pdf 3)"
 (cd "$CRATES" && cargo test --workspace --quiet)
 
 say "Gate: Python suite (apps/api)"

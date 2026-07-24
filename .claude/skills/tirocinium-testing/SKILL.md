@@ -6,17 +6,19 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at milestone 4.1 (decision 0021):
+passes; green never goes red. Last updated at milestone 4.1 (decisions 0021,
+0024):
 Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 backend
 complete (3.1 the submission upload path done; 3.2 scan preprocessing
 implemented, its golden gate awaiting the 30-photo corpus; 3.3 handwriting
 transcription done, the worker pipeline with a recorded-response model seam and
 SSE progress; 3.4 indexing and retrieval done, FTS5 plus int8-quantized
 embeddings behind a provider seam, hybrid retrieval with reciprocal rank
-fusion, the course search endpoint). Phase 4 in progress: 4.1 (decode) done, the
-PDF import upload handshake and the decode worker (born-digital and scanned pages
-to cached per-page markdown) built against a PdfDecoder seam, with the real
-pdfium member deferred to a follow-up. The Phase 3 frontend half (3.5) is in
+fusion, the course search endpoint). Phase 4 in progress: 4.1 (decode) complete
+end to end, the PDF import upload handshake and the decode worker (born-digital
+and scanned pages to cached per-page markdown), and the real `tirocinium-pdf`
+member binding pdfium over a vendored native binary. The Phase 3 frontend half
+(3.5) is in
 progress: the upload flow (capture, pre-checks, orchestration, SSE processing)
 is built end to end (capture, pre-checks, orchestration, SSE processing, and the
 transcription preview against the Stage 5 endpoint) with its journeys written and
@@ -33,9 +35,11 @@ imports, lint, and both suites; see `infra/README.md` for flags):
 
     ./infra/setup.sh
 
-Rust workspace, 41 tests (mastery 15: 6 property, 9 scenario; codec 8;
+Rust workspace, 45 tests (mastery 15: 6 property, 9 scenario; codec 8;
 preprocess 8: 7 synthetic-image pipeline tests, 1 golden-corpus harness that is
-a no-op until the corpus lands; embedding 10: 7 scenario, 3 property) plus lint:
+a no-op until the corpus lands; embedding 10: 7 scenario, 3 property; pdf 4:
+3 decode tests that skip when the pdfium binary is absent, 1 no-op golden-corpus
+harness) plus lint:
 
     cd crates/platform_core
     cargo test --workspace
@@ -43,6 +47,7 @@ a no-op until the corpus lands; embedding 10: 7 scenario, 3 property) plus lint:
     cargo clippy --all-targets -- -D warnings
     cargo clippy -p tirocinium-mastery --features python -- -D warnings
     cargo clippy -p tirocinium-embedding --features python -- -D warnings
+    cargo clippy -p tirocinium-pdf --features python -- -D warnings
 
 Criterion benches with the absolute-budget regression gate (decision 0004;
 budgets live in `crates/platform_core/bench-thresholds.json`, revised only
@@ -55,11 +60,12 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 139 tests (25 data layer, 16 case studies/concepts/courses,
+Python suite, 141 tests (25 data layer, 16 case studies/concepts/courses,
 15 seats, 12 auth, 16 submissions (incl. 4 transcription-read), 5 transcription,
-14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 13 imports
-(4 decode pipeline, 9 endpoint), 7 backup, 5 compression, 3 contract, 7 store,
-1 latency gate) plus lint and the worker import smoke, from `apps/api`:
+14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 15 imports
+(4 decode pipeline, 9 endpoint, 2 pdfium decoder that skip when the binary is
+absent), 7 backup, 5 compression, 3 contract, 7 store, 1 latency gate) plus lint
+and the worker import smoke, from `apps/api`:
 
     cd apps/api
     .venv/Scripts/python -m pytest -q
@@ -266,14 +272,20 @@ Phase 4, in progress:
   digital from the decoder's text and scanned via the 3.2 preprocess plus the 3.3
   vision seam under a new `pdf-page-transcription` prompt, keyed in
   `page_documents` by the server-computed hash of the rendered raster. Built
-  against a `PdfDecoder` seam (`FakePdfDecoder` in tests); the real pdfium member
-  and its native library are a deferred follow-up, so `PdfiumDecoder` raises for
-  now. The 13 tests cover the decode paths (born-digital and scanned, the cache,
-  the 200-page ceiling, a missing job) and the endpoints (presigned create,
-  idempotent create, oversize reject, complete-enqueues-once, get, and the
-  auth/isolation surface: 401, non-owner 403, a seat refused, cross-course 404).
-  Still open for Phase 4: the five-PDF golden corpus (an external asset), and the
-  pdfium member.
+  against a `PdfDecoder` seam (`FakePdfDecoder` in tests). The 13 Python tests
+  cover the decode paths (born-digital and scanned, the cache, the 200-page
+  ceiling, a missing job) and the endpoints (presigned create, idempotent create,
+  oversize reject, complete-enqueues-once, get, and the auth/isolation surface:
+  401, non-owner 403, a seat refused, cross-course 404). The real decoder
+  (decision 0024) is the `tirocinium-pdf` member on `pdfium-render` over a pinned
+  native binary (`chromium/7961`, vendored by `infra/setup.sh` into
+  `crates/platform_core/pdf/vendor`, not committed, `TIRO_PDFIUM_LIB` overrides):
+  `platform_core.pdf.decode` classifies each page, extracts born-digital text,
+  and renders a PNG; `PdfiumDecoder` calls it. pdfium binds once per process
+  (re-init aborts) and is exercised with real calls (deterministic CPU, not a
+  model), the tests skipping when the binary is absent. The member is exempt from
+  the bench-budget gate (native-render-bound). Still open for Phase 4: the
+  five-PDF golden corpus (an external asset).
 
 ## Standing rules
 
@@ -316,4 +328,11 @@ int8 codes. The hybrid-retrieval tests build their embedder in memory from known
 texts and hand-authored vectors, so the gate needs no committed asset; the
 directory is where a captured corpus lands as one grows.
 
-Still to come: the five-PDF ingestion corpus in Phase 4.
+The five-PDF ingestion corpus lives at `crates/platform_core/pdf/corpus/` (PDFs
+under `pdfs/`, the spec in `README.md`); it is scaffolded but empty, so the
+harness in `pdf/tests/corpus.rs` is a no-op until it lands. Small fixture PDFs
+for the decode unit tests live at `crates/platform_core/pdf/tests/fixtures/`
+(committed; generated with fpdf2). The pdfium native binary itself is not a
+fixture but a provisioned dependency: `infra/setup.sh` downloads the pinned
+`chromium/7961` build into `crates/platform_core/pdf/vendor/` (gitignored), and
+the decode tests skip without it.

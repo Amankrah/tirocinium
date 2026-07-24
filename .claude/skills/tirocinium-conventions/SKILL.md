@@ -13,8 +13,9 @@ handwriting transcription running in an off-request-path worker with a recorded-
 response model seam and SSE progress; indexing and retrieval done, with FTS5 and
 int8-quantized embeddings behind a provider seam and hybrid retrieval over them.
 The Phase 3 backend is complete; 3.5 and the end-to-end gate are the frontend's.
-Phase 4 has begun: 4.1 decode built the PDF import handshake and the decode
-worker against a PdfDecoder seam, the real pdfium member deferred to a follow-up).
+Phase 4 has begun: 4.1 decode is complete, the PDF import handshake, the decode
+worker, and the real `tirocinium-pdf` member binding pdfium over a vendored
+native binary).
 
 ## Inviolable constraints
 
@@ -158,12 +159,18 @@ each page into cached per-page markdown (`page_documents`, keyed by the
 server-computed hash of the rendered raster): born-digital text from the decoder,
 scanned pages through the 3.2 preprocess and the 3.3 vision seam under the
 `pdf-page-transcription` prompt, which never describes a figure. Decode runs
-behind a `PdfDecoder` seam (`app/imports/decoder.py`); the real pdfium
-implementation is a Rust `platform_core` member deferred to a follow-up, so
-tests use `FakePdfDecoder` and the CPU path is Rust, not a recorded response.
-The 200-page ceiling is enforced at decode (the count is unknown until pdfium
-opens the file). 4.1 stops at decoded page markdown; figures (4.2) and item
-segmentation (4.3) build on these rows.
+behind a `PdfDecoder` seam (`app/imports/decoder.py`); `FakePdfDecoder` drives
+the pipeline tests, and the real `PdfiumDecoder` (decision 0024) calls the
+`tirocinium-pdf` member (`platform_core.pdf.decode`) on `pdfium-render`. pdfium
+is a native library loaded at runtime from a vendored, pinned binary that
+`infra/setup.sh` provisions (`TIRO_PDFIUM_LIB` overrides); it binds once per
+process (re-init aborts). Decode is deterministic CPU work, so it is exercised
+with real calls, not recorded responses (that rule is for models), and its tests
+skip when the binary is absent. The member is exempt from the bench-budget gate
+(native-render-bound), like mastery is from pedantic. The 200-page ceiling is
+enforced at decode (the count is unknown until pdfium opens the file). 4.1 stops
+at decoded page markdown; figures (4.2) and item segmentation (4.3) build on
+these rows.
 
 After any route or model change, regenerate the contract seam and commit both
 artifacts (decision 0003): `python scripts/export_openapi.py` in `apps/api`,
