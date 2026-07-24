@@ -254,6 +254,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/courses/{course_id}/import-items/{item_id}/figures/from-box": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Figure From Box
+         * @description Add a figure the detectors missed by drawing a box on a page: the box is
+         *     a raster crop of the page (a page_crop figure, never a re-render), stored
+         *     content-addressed and assigned to the item.
+         */
+        post: operations["add_figure_from_box_api_v1_courses__course_id__import_items__item_id__figures_from_box_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/import-items/{item_id}/figures/{figure_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Item Figure
+         * @description Assign a figure to an item, or set its role. `decorative` keeps the figure
+         *     but excludes it from AI context (the professor's mark, guide Stage 3);
+         *     reassigning is this PUT on the new item plus a DELETE on the old one.
+         */
+        put: operations["set_item_figure_api_v1_courses__course_id__import_items__item_id__figures__figure_id__put"];
+        post?: never;
+        /**
+         * Unassign Item Figure
+         * @description Remove a figure from an item (the figure row itself is content-addressed
+         *     and stays; only this assignment goes).
+         */
+        delete: operations["unassign_item_figure_api_v1_courses__course_id__import_items__item_id__figures__figure_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses/{course_id}/imports": {
         parameters: {
             query?: never;
@@ -570,6 +619,18 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AddBoxIn */
+        AddBoxIn: {
+            /** Bbox */
+            bbox: [
+                number,
+                number,
+                number,
+                number
+            ];
+            /** Page Index */
+            page_index: number;
+        };
         /** AuthOut */
         AuthOut: {
             professor: components["schemas"]["ProfessorOut"];
@@ -720,6 +781,20 @@ export interface components {
         CourseUpdate: {
             /** Title */
             title: string;
+        };
+        /** FigureCreatedOut */
+        FigureCreatedOut: {
+            /** Figure Id */
+            figure_id: number;
+        };
+        /** FigureRoleIn */
+        FigureRoleIn: {
+            /**
+             * Role
+             * @default essential
+             * @enum {string}
+             */
+            role: "essential" | "decorative";
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -2121,6 +2196,189 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ConfirmedOut"];
                 };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_figure_from_box_api_v1_courses__course_id__import_items__item_id__figures_from_box_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddBoxIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FigureCreatedOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_item_figure_api_v1_courses__course_id__import_items__item_id__figures__figure_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                item_id: number;
+                figure_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["FigureRoleIn"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unassign_item_figure_api_v1_courses__course_id__import_items__item_id__figures__figure_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                item_id: number;
+                figure_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Unauthorized */
             401: {

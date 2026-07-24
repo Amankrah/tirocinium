@@ -1,6 +1,41 @@
 {
   "components": {
     "schemas": {
+      "AddBoxIn": {
+        "properties": {
+          "bbox": {
+            "maxItems": 4,
+            "minItems": 4,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Bbox",
+            "type": "array"
+          },
+          "page_index": {
+            "minimum": 0.0,
+            "title": "Page Index",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "page_index",
+          "bbox"
+        ],
+        "title": "AddBoxIn",
+        "type": "object"
+      },
       "AuthOut": {
         "properties": {
           "professor": {
@@ -460,6 +495,34 @@
           "title"
         ],
         "title": "CourseUpdate",
+        "type": "object"
+      },
+      "FigureCreatedOut": {
+        "properties": {
+          "figure_id": {
+            "title": "Figure Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "figure_id"
+        ],
+        "title": "FigureCreatedOut",
+        "type": "object"
+      },
+      "FigureRoleIn": {
+        "properties": {
+          "role": {
+            "default": "essential",
+            "enum": [
+              "essential",
+              "decorative"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "title": "FigureRoleIn",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -3055,6 +3118,296 @@
           }
         ],
         "summary": "Confirm Import Item",
+        "tags": [
+          "imports"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/import-items/{item_id}/figures/from-box": {
+      "post": {
+        "description": "Add a figure the detectors missed by drawing a box on a page: the box is\na raster crop of the page (a page_crop figure, never a re-render), stored\ncontent-addressed and assigned to the item.",
+        "operationId": "add_figure_from_box_api_v1_courses__course_id__import_items__item_id__figures_from_box_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddBoxIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FigureCreatedOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Figure From Box",
+        "tags": [
+          "imports"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/import-items/{item_id}/figures/{figure_id}": {
+      "delete": {
+        "description": "Remove a figure from an item (the figure row itself is content-addressed\nand stays; only this assignment goes).",
+        "operationId": "unassign_item_figure_api_v1_courses__course_id__import_items__item_id__figures__figure_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "figure_id",
+            "required": true,
+            "schema": {
+              "title": "Figure Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Unassign Item Figure",
+        "tags": [
+          "imports"
+        ]
+      },
+      "put": {
+        "description": "Assign a figure to an item, or set its role. `decorative` keeps the figure\nbut excludes it from AI context (the professor's mark, guide Stage 3);\nreassigning is this PUT on the new item plus a DELETE on the old one.",
+        "operationId": "set_item_figure_api_v1_courses__course_id__import_items__item_id__figures__figure_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "figure_id",
+            "required": true,
+            "schema": {
+              "title": "Figure Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/FigureRoleIn"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Item Figure",
         "tags": [
           "imports"
         ]

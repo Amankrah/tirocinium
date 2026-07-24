@@ -9,12 +9,15 @@ course (decision 0013): per-shard import ids collide across courses, so a flat
 segmentation (4.3), and the confirmation surface (4.4) build on these rows.
 """
 
+import asyncio
+import hashlib
+import json
 import sqlite3
 import time
 import uuid
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 
 from app.auth.deps import get_shards, require_professor
@@ -28,6 +31,7 @@ from app.storage import (
     IMPORTS_BUCKET,
     PRESIGN_TTL_SECONDS,
     ObjectStorage,
+    fetch_bytes,
     get_object_storage,
 )
 from app.tasks import TaskQueue, get_task_queue
@@ -369,3 +373,151 @@ async def confirm_import_item(
         state=state,
         text_edit_distance=distance,
     )
+
+
+# ------------------------------------------------------ figure verbs (4.4 rest)
+
+
+class FigureRoleIn(BaseModel):
+    role: Literal["essential", "decorative"] = "essential"
+
+
+class AddBoxIn(BaseModel):
+    page_index: int = Field(ge=0)
+    bbox: tuple[float, float, float, float]  # normalised 0..1, top-left origin
+
+
+class FigureCreatedOut(BaseModel):
+    figure_id: int
+
+
+@router.put(
+    "/{course_id}/import-items/{item_id}/figures/{figure_id}",
+    status_code=204,
+    responses={401: {"model": Problem}, 403: {"model": Problem}, 404: {"model": Problem}},
+)
+async def set_item_figure(
+    course_id: int,
+    item_id: int,
+    figure_id: int,
+    identity: Annotated[Identity, Depends(require_professor)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+    body: FigureRoleIn | None = None,
+) -> Response:
+    """Assign a figure to an item, or set its role. `decorative` keeps the figure
+    but excludes it from AI context (the professor's mark, guide Stage 3);
+    reassigning is this PUT on the new item plus a DELETE on the old one."""
+    await ensure_course_owner(shards, course_id, identity)
+    role = (body or FigureRoleIn()).role
+
+    def apply(conn: sqlite3.Connection) -> None:
+        if conn.execute("SELECT 1 FROM import_items WHERE id = ?", (item_id,)).fetchone() is None:
+            raise HTTPException(status_code=404, detail="Import item not found.")
+        if conn.execute("SELECT 1 FROM figures WHERE id = ?", (figure_id,)).fetchone() is None:
+            raise HTTPException(status_code=404, detail="Figure not found.")
+        conn.execute(
+            "INSERT INTO item_figures (item_id, figure_id, role) VALUES (?, ?, ?)"
+            " ON CONFLICT(item_id, figure_id) DO UPDATE SET role = excluded.role",
+            (item_id, figure_id, role),
+        )
+
+    await shards.course(course_id).run(apply)
+    return Response(status_code=204)
+
+
+@router.delete(
+    "/{course_id}/import-items/{item_id}/figures/{figure_id}",
+    status_code=204,
+    responses={401: {"model": Problem}, 403: {"model": Problem}, 404: {"model": Problem}},
+)
+async def unassign_item_figure(
+    course_id: int,
+    item_id: int,
+    figure_id: int,
+    identity: Annotated[Identity, Depends(require_professor)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+) -> Response:
+    """Remove a figure from an item (the figure row itself is content-addressed
+    and stays; only this assignment goes)."""
+    await ensure_course_owner(shards, course_id, identity)
+
+    def apply(conn: sqlite3.Connection) -> None:
+        cursor = conn.execute(
+            "DELETE FROM item_figures WHERE item_id = ? AND figure_id = ?",
+            (item_id, figure_id),
+        )
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Figure not assigned to item.")
+
+    await shards.course(course_id).run(apply)
+    return Response(status_code=204)
+
+
+@router.post(
+    "/{course_id}/import-items/{item_id}/figures/from-box",
+    status_code=201,
+    response_model=FigureCreatedOut,
+    responses={401: {"model": Problem}, 403: {"model": Problem}, 404: {"model": Problem}},
+)
+async def add_figure_from_box(
+    course_id: int,
+    item_id: int,
+    body: AddBoxIn,
+    identity: Annotated[Identity, Depends(require_professor)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+    storage: Annotated[ObjectStorage, Depends(get_object_storage)],
+) -> FigureCreatedOut:
+    """Add a figure the detectors missed by drawing a box on a page: the box is
+    a raster crop of the page (a page_crop figure, never a re-render), stored
+    content-addressed and assigned to the item."""
+    await ensure_course_owner(shards, course_id, identity)
+    now = int(time.time())
+
+    def read(conn: sqlite3.Connection) -> str:
+        item = conn.execute(
+            "SELECT job_id FROM import_items WHERE id = ?", (item_id,)
+        ).fetchone()
+        if item is None:
+            raise HTTPException(status_code=404, detail="Import item not found.")
+        page = conn.execute(
+            "SELECT image_key FROM import_pages WHERE job_id = ? AND page_index = ?",
+            (int(item[0]), body.page_index),
+        ).fetchone()
+        if page is None:
+            raise HTTPException(status_code=404, detail="Page not found.")
+        return str(page[0])
+
+    image_key = await shards.course_reads(course_id).run(read)
+    raster = await asyncio.to_thread(fetch_bytes, storage, IMPORTS_BUCKET, image_key)
+
+    from platform_core import pdf as _pdf
+
+    _pw, _ph, regions = await asyncio.to_thread(_pdf.crop_figures, raster, [body.bbox])
+    png, x, y, width, height = regions[0]
+    content_hash = hashlib.sha256(png).hexdigest()
+    storage_key = f"imports/{course_id}/figures/{content_hash}.png"
+    await asyncio.to_thread(
+        storage.put_object, Bucket=IMPORTS_BUCKET, Key=storage_key, Body=png
+    )
+    bbox_json = json.dumps([x, y, width, height])
+
+    def write(conn: sqlite3.Connection) -> int:
+        conn.execute(
+            "INSERT OR IGNORE INTO figures"
+            " (content_hash, storage_key, source, page, bbox, width_px, height_px,"
+            "  created_at) VALUES (?, ?, 'page_crop', ?, ?, ?, ?, ?)",
+            (content_hash, storage_key, body.page_index, bbox_json, width, height, now),
+        )
+        figure_id = int(
+            conn.execute(
+                "SELECT id FROM figures WHERE content_hash = ?", (content_hash,)
+            ).fetchone()[0]
+        )
+        conn.execute(
+            "INSERT OR IGNORE INTO item_figures (item_id, figure_id, role)"
+            " VALUES (?, ?, 'essential')",
+            (item_id, figure_id),
+        )
+        return figure_id
+
+    return FigureCreatedOut(figure_id=await shards.course(course_id).run(write))
