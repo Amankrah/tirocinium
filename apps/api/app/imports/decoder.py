@@ -109,3 +109,95 @@ class FakePdfDecoder:
 def get_decoder() -> PdfDecoder:
     """The worker's decoder; the API never decodes. Tests inject a fake."""
     return PdfiumDecoder()
+
+
+# ---------------------------------------------------------------- figures (4.2)
+
+FigureSourceKind = Literal["embedded_raster", "vector_render", "page_crop"]
+FigureFormat = Literal["jpeg", "png"]
+
+
+class ExtractedFigure(BaseModel, frozen=True):
+    """One figure from the deterministic detector: its provenance, its position
+    on the source page (`bbox` = [x, y, w, h] in page points, top-left origin),
+    its intrinsic pixel size, its bytes (a JPEG kept byte for byte or a lossless
+    PNG), an optional 2x rendition for rendered regions, and a caption guess."""
+
+    source: FigureSourceKind
+    bbox: tuple[float, float, float, float]
+    width_px: int
+    height_px: int
+    format: FigureFormat
+    image: bytes
+    image_2x: bytes | None
+    caption: str | None
+
+
+class PageFigures(BaseModel, frozen=True):
+    page_width: float
+    page_height: float
+    figures: list[ExtractedFigure]
+
+
+class FigureExtractor(Protocol):
+    def extract(self, pdf_bytes: bytes, page_index: int) -> PageFigures: ...
+
+
+class PdfiumFigureExtractor:
+    """The real extractor: the deterministic detector in the platform_core PDF
+    member (decision 0025). Deterministic CPU work, a direct call, not a
+    recorded response."""
+
+    def __init__(self, lib_path: str | None = None) -> None:
+        self._lib_path = lib_path or pdfium_lib_path()
+
+    def extract(self, pdf_bytes: bytes, page_index: int) -> PageFigures:
+        from platform_core import pdf as _pdf
+
+        page_width, page_height, figures = _pdf.extract_figures(
+            pdf_bytes, self._lib_path, page_index
+        )
+        return PageFigures(
+            page_width=page_width,
+            page_height=page_height,
+            figures=[
+                ExtractedFigure(
+                    source=cast(FigureSourceKind, source),
+                    bbox=bbox,
+                    width_px=width_px,
+                    height_px=height_px,
+                    format=cast(FigureFormat, fmt),
+                    image=image,
+                    image_2x=image_2x,
+                    caption=caption,
+                )
+                for source, bbox, width_px, height_px, fmt, image, image_2x, caption in figures
+            ],
+        )
+
+
+class FakeFigureExtractor:
+    """The test extractor: returns canned figures per page index, so the
+    pipeline is exercised without a real PDF or the native library."""
+
+    def __init__(
+        self,
+        by_page: dict[int, list[ExtractedFigure]] | None = None,
+        page_size: tuple[float, float] = (595.0, 842.0),
+    ) -> None:
+        self._by_page = by_page or {}
+        self._page_size = page_size
+        self.calls = 0
+
+    def extract(self, pdf_bytes: bytes, page_index: int) -> PageFigures:
+        self.calls += 1
+        return PageFigures(
+            page_width=self._page_size[0],
+            page_height=self._page_size[1],
+            figures=list(self._by_page.get(page_index, [])),
+        )
+
+
+def get_figure_extractor() -> FigureExtractor:
+    """The worker's figure extractor; tests inject a fake."""
+    return PdfiumFigureExtractor()

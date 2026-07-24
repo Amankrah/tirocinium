@@ -11,6 +11,19 @@ use pyo3::types::PyBytes;
 
 type PyPage<'py> = (usize, String, Option<String>, Bound<'py, PyBytes>);
 
+/// One figure: source, bbox in page points, pixel width and height, format,
+/// image bytes, an optional 2x rendition, and an optional caption guess.
+type PyFigure<'py> = (
+    String,
+    (f32, f32, f32, f32),
+    u32,
+    u32,
+    String,
+    Bound<'py, PyBytes>,
+    Option<Bound<'py, PyBytes>>,
+    Option<String>,
+);
+
 /// Decode a PDF's pages. `render_width` defaults to 1654 px (about 200 dpi on
 /// A4 width), enough detail for the vision seam on scanned pages.
 #[pyfunction]
@@ -37,11 +50,50 @@ fn decode(
         .collect())
 }
 
+/// Extract the figures on one page (the deterministic detector of Stage 1b).
+/// Returns `(page_width, page_height, figures)` in page points, so the caller
+/// can place `fig://` tokens by relative position and store the bboxes.
+#[pyfunction]
+#[pyo3(signature = (pdf, lib_path, page_index))]
+fn extract_figures(
+    py: Python<'_>,
+    pdf: Vec<u8>,
+    lib_path: String,
+    page_index: u16,
+) -> PyResult<(f32, f32, Vec<PyFigure<'_>>)> {
+    let page = py
+        .allow_threads(|| crate::extract_figures(&lib_path, &pdf, page_index))
+        .map_err(PyValueError::new_err)?;
+    let figures = page
+        .figures
+        .into_iter()
+        .map(|figure| {
+            (
+                figure.source.as_str().to_string(),
+                (
+                    figure.bbox[0],
+                    figure.bbox[1],
+                    figure.bbox[2],
+                    figure.bbox[3],
+                ),
+                figure.width_px,
+                figure.height_px,
+                figure.format.to_string(),
+                PyBytes::new(py, &figure.image),
+                figure.image_2x.map(|bytes| PyBytes::new(py, &bytes)),
+                figure.caption,
+            )
+        })
+        .collect();
+    Ok((page.page_width, page.page_height, figures))
+}
+
 /// Register the pdf surface onto a (sub)module.
 ///
 /// # Errors
 /// Propagates `PyO3` registration failures.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(decode, m)?)?;
+    m.add_function(wrap_pyfunction!(extract_figures, m)?)?;
     Ok(())
 }

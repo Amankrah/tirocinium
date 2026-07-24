@@ -25,6 +25,12 @@ const MIN_CLUSTER_PATHS: usize = 2;
 const MIN_CLUSTER_AREA_PTS2: f32 = 2500.0;
 const RENDER_DPI: f32 = 300.0;
 
+/// A text block within this many points above or below a figure, and
+/// horizontally overlapping it, is taken as a caption guess (the professor
+/// confirms or replaces it in 4.4). Captions usually sit below, so below wins.
+const CAPTION_GAP_PTS: f32 = 36.0;
+const MAX_CAPTION_CHARS: usize = 200;
+
 /// How a figure was obtained from the page.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FigureSource {
@@ -60,17 +66,24 @@ pub struct ExtractedFigure {
     pub format: &'static str,
     pub image: Vec<u8>,
     pub image_2x: Option<Vec<u8>>,
+    /// A guessed caption from nearby page text; the professor confirms it.
+    pub caption: Option<String>,
+}
+
+/// A page's figures with the page's dimensions in points, which the caller
+/// needs to place `fig://` tokens by relative position and to store the bbox.
+#[derive(Debug, Clone)]
+pub struct PageFigures {
+    pub page_width: f32,
+    pub page_height: f32,
+    pub figures: Vec<ExtractedFigure>,
 }
 
 /// Extract the figures on one page of a PDF (deterministic detector only).
 ///
 /// # Errors
 /// When pdfium cannot load the document or read the page's objects.
-pub fn extract_figures(
-    lib_path: &str,
-    pdf: &[u8],
-    page_index: u16,
-) -> Result<Vec<ExtractedFigure>, String> {
+pub fn extract_figures(lib_path: &str, pdf: &[u8], page_index: u16) -> Result<PageFigures, String> {
     let pdfium = pdfium(lib_path)?;
     let document = pdfium
         .load_pdf_from_byte_slice(pdf, None)
@@ -79,14 +92,18 @@ pub fn extract_figures(
         .pages()
         .get(page_index.into())
         .map_err(|e| e.to_string())?;
+    let page_width = page.width().value;
     let page_height = page.height().value;
 
     let mut figures = Vec::new();
     let mut path_rects: Vec<Rect> = Vec::new();
+    let mut text_blocks: Vec<(Rect, String)> = Vec::new();
     for object in page.objects().iter() {
         let rect = rect_of(&object, page_height)?;
         if let Some(image) = object.as_image_object() {
             figures.push(extract_raster(image, rect)?);
+        } else if let Some(text) = object.as_text_object() {
+            text_blocks.push((rect, text.text()));
         } else if object.object_type() == PdfPageObjectType::Path {
             path_rects.push(rect);
         }
@@ -108,9 +125,52 @@ pub fn extract_figures(
             format: "png",
             image,
             image_2x: Some(image_2x),
+            caption: None,
         });
     }
-    Ok(figures)
+
+    for figure in &mut figures {
+        let fig = Rect {
+            x: figure.bbox[0],
+            y: figure.bbox[1],
+            w: figure.bbox[2],
+            h: figure.bbox[3],
+        };
+        figure.caption = guess_caption(fig, &text_blocks);
+    }
+    Ok(PageFigures {
+        page_width,
+        page_height,
+        figures,
+    })
+}
+
+/// Guess a figure's caption: the nearest horizontally-overlapping text block
+/// within [`CAPTION_GAP_PTS`] below the figure, or above it if none is below.
+fn guess_caption(fig: Rect, text_blocks: &[(Rect, String)]) -> Option<String> {
+    let mut below: Option<(f32, &str)> = None;
+    let mut above: Option<(f32, &str)> = None;
+    for (rect, text) in text_blocks {
+        let trimmed = text.trim();
+        if trimmed.is_empty() || rect.x >= fig.right() || fig.x >= rect.right() {
+            continue;
+        }
+        let below_gap = rect.y - fig.bottom();
+        if (0.0..=CAPTION_GAP_PTS).contains(&below_gap)
+            && below.is_none_or(|(gap, _)| below_gap < gap)
+        {
+            below = Some((below_gap, trimmed));
+        }
+        let above_gap = fig.y - rect.bottom();
+        if (0.0..=CAPTION_GAP_PTS).contains(&above_gap)
+            && above.is_none_or(|(gap, _)| above_gap < gap)
+        {
+            above = Some((above_gap, trimmed));
+        }
+    }
+    below
+        .or(above)
+        .map(|(_, text)| text.chars().take(MAX_CAPTION_CHARS).collect())
 }
 
 /// A rectangle in page points, top-left origin.
@@ -243,6 +303,7 @@ fn extract_raster(image: &PdfPageImageObject, rect: Rect) -> Result<ExtractedFig
             format: "jpeg",
             image: raw,
             image_2x: None,
+            caption: None,
         });
     }
 
@@ -258,6 +319,7 @@ fn extract_raster(image: &PdfPageImageObject, rect: Rect) -> Result<ExtractedFig
         format: "png",
         image: png,
         image_2x: None,
+        caption: None,
     })
 }
 
@@ -292,8 +354,10 @@ mod tests {
         let pdf = include_bytes!("../tests/fixtures/embedded_image.pdf");
         let source = include_bytes!("../tests/fixtures/source.jpg");
 
-        let figures = extract_figures(&lib, pdf, 0).expect("extract");
+        let page = extract_figures(&lib, pdf, 0).expect("extract");
+        let figures = &page.figures;
 
+        assert!(page.page_width > 0.0 && page.page_height > 0.0);
         assert_eq!(figures.len(), 1);
         let figure = &figures[0];
         assert_eq!(figure.source, FigureSource::EmbeddedRaster);
@@ -312,7 +376,7 @@ mod tests {
             return;
         };
         let pdf = include_bytes!("../tests/fixtures/vector_drawing.pdf");
-        let figures = extract_figures(&lib, pdf, 0).expect("extract");
+        let figures = extract_figures(&lib, pdf, 0).expect("extract").figures;
 
         // The box and its two diagonals cluster into one drawing.
         assert_eq!(figures.len(), 1);
@@ -335,8 +399,23 @@ mod tests {
             return;
         };
         let pdf = include_bytes!("../tests/fixtures/born_digital.pdf");
-        let figures = extract_figures(&lib, pdf, 0).expect("extract");
+        let figures = extract_figures(&lib, pdf, 0).expect("extract").figures;
         assert!(figures.is_empty());
+    }
+
+    #[test]
+    fn a_caption_below_a_figure_is_guessed() {
+        let Some(lib) = lib_path() else {
+            eprintln!("pdfium not provisioned; skipping");
+            return;
+        };
+        let pdf = include_bytes!("../tests/fixtures/captioned_figure.pdf");
+        let figures = extract_figures(&lib, pdf, 0).expect("extract").figures;
+        assert_eq!(figures.len(), 1);
+        assert_eq!(
+            figures[0].caption.as_deref(),
+            Some("Figure 1: the RC circuit.")
+        );
     }
 
     #[test]

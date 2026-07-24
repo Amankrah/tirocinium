@@ -7,7 +7,7 @@ description: Tirocinium coding standards, API conventions, data-layer rules, and
 
 The four documents in `docs/` are the specification and outrank this skill; this
 skill is the operational digest that survives context windows. Last updated for
-Phase 4.1 (data layer, auth, seats, and the authoring backend done; the
+Phase 4.2 (data layer, auth, seats, and the authoring backend done; the
 handwritten solution upload path live; scan preprocessing implemented in Rust;
 handwriting transcription running in an off-request-path worker with a recorded-
 response model seam and SSE progress; indexing and retrieval done, with FTS5 and
@@ -15,7 +15,9 @@ int8-quantized embeddings behind a provider seam and hybrid retrieval over them.
 The Phase 3 backend is complete; 3.5 and the end-to-end gate are the frontend's.
 Phase 4 has begun: 4.1 decode is complete, the PDF import handshake, the decode
 worker, and the real `tirocinium-pdf` member binding pdfium over a vendored
-native binary).
+native binary; 4.2 figure extraction the deterministic detector done, embedded
+rasters byte-identical and vector drawings rendered, stored content-addressed
+with fig:// tokens in the page markdown).
 
 ## Inviolable constraints
 
@@ -168,9 +170,20 @@ process (re-init aborts). Decode is deterministic CPU work, so it is exercised
 with real calls, not recorded responses (that rule is for models), and its tests
 skip when the binary is absent. The member is exempt from the bench-budget gate
 (native-render-bound), like mastery is from pedantic. The 200-page ceiling is
-enforced at decode (the count is unknown until pdfium opens the file). 4.1 stops
-at decoded page markdown; figures (4.2) and item segmentation (4.3) build on
-these rows.
+enforced at decode (the count is unknown until pdfium opens the file).
+
+Figure extraction (milestone 4.2, decision 0025) is the deterministic detector:
+`platform_core.pdf.extract_figures` keeps an embedded JPEG stream byte for byte
+and renders clustered vector drawings at 300 dpi, behind a `FigureExtractor`
+seam (real calls in tests, skip-gated on the binary). The pipeline runs it on
+born-digital pages, storing figure bytes content-addressed in the imports bucket
+(`imports/{course}/figures/{sha256}.{ext}`, deduped by `figures.content_hash`,
+migration course/0009), metadata only in the shard, and placing
+`![caption](fig://{id})` in the page markdown. Figure bytes never enter a text
+prompt: only the token travels with the text (a pipeline test asserts it). This
+is the figures-are-pixels constraint made mechanical: never a lossy re-encode of
+a raster, never a redrawn diagram. The vision detector's boxes and the
+`item_figures` link land in 4.3; scanned-page figures (`page_crop`) with them.
 
 After any route or model change, regenerate the contract seam and commit both
 artifacts (decision 0003): `python scripts/export_openapi.py` in `apps/api`,

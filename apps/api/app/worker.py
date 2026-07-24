@@ -17,7 +17,7 @@ from arq.connections import RedisSettings
 
 from app.db.shards import ShardManager
 from app.events import RedisEventBus
-from app.imports.decoder import PdfiumDecoder
+from app.imports.decoder import PdfiumDecoder, PdfiumFigureExtractor
 from app.imports.pipeline import run_import_pipeline
 from app.retrieval.indexing import index_submission
 from app.retrieval.model import OpenAIEmbedder
@@ -42,6 +42,7 @@ async def startup(ctx: dict[str, Any]) -> None:
     ctx["transcriber"] = AnthropicTranscriber()
     ctx["embedder"] = OpenAIEmbedder()
     ctx["decoder"] = PdfiumDecoder()
+    ctx["figure_extractor"] = PdfiumFigureExtractor()
     ctx["bus"] = RedisEventBus(_redis_url())
 
 
@@ -85,6 +86,7 @@ async def process_import(ctx: dict[str, Any], course_id: int, import_id: int) ->
         storage=ctx["storage"],
         decoder=ctx["decoder"],
         transcriber=ctx["transcriber"],
+        figure_extractor=ctx["figure_extractor"],
         course_id=course_id,
         import_id=import_id,
     )

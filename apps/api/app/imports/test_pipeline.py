@@ -15,7 +15,12 @@ import pytest
 
 from app.compression import decompress_text
 from app.db.shards import ShardManager
-from app.imports.decoder import DecodedPage, FakePdfDecoder
+from app.imports.decoder import (
+    DecodedPage,
+    ExtractedFigure,
+    FakeFigureExtractor,
+    FakePdfDecoder,
+)
 from app.imports.pipeline import (
     STATUS_FAILED,
     STATUS_READY,
@@ -70,6 +75,75 @@ async def _seed_job(
     import_id = await shards.course(course_id).run(create)
     storage.objects[(IMPORTS_BUCKET, storage_key)] = b"%PDF-fake"
     return import_id
+
+
+async def test_born_digital_figures_are_stored_and_tokenised_not_inlined(
+    tmp_path: Path,
+) -> None:
+    """The figure extractor's bytes go to storage and a figures row; the page
+    markdown carries only a fig:// token, never the figure bytes (the
+    figures-never-in-a-text-prompt constraint)."""
+    storage = FakeStorage()
+    figure_bytes = b"\xff\xd8\xff-figure-jpeg-bytes"
+    pages = [
+        DecodedPage(
+            page_index=0,
+            kind="born_digital",
+            text_markdown="Problem 1.\nCompute the current.",
+            image_png=b"img-0",
+        )
+    ]
+    extractor = FakeFigureExtractor(
+        by_page={
+            0: [
+                ExtractedFigure(
+                    source="embedded_raster",
+                    bbox=(50.0, 400.0, 120.0, 90.0),
+                    width_px=120,
+                    height_px=90,
+                    format="jpeg",
+                    image=figure_bytes,
+                    image_2x=None,
+                    caption="Figure 1",
+                )
+            ]
+        }
+    )
+
+    async with ShardManager(tmp_path) as shards:
+        import_id = await _seed_job(shards, storage, "imports/1/fig/source.pdf")
+        status = await run_import_pipeline(
+            shards=shards,
+            storage=storage,
+            decoder=FakePdfDecoder(pages),
+            transcriber=RecordedTranscriber({}),
+            figure_extractor=extractor,
+            course_id=1,
+            import_id=import_id,
+            preprocess=fake_preprocess_ok,
+        )
+
+        def read(conn: sqlite3.Connection) -> tuple[int, str]:
+            figures = int(conn.execute("SELECT COUNT(*) FROM figures").fetchone()[0])
+            markdown_z = conn.execute(
+                "SELECT markdown_z FROM page_documents"
+                " JOIN import_pages ON page_documents.content_hash = import_pages.content_hash"
+                " WHERE import_pages.job_id = ? AND import_pages.page_index = 0",
+                (import_id,),
+            ).fetchone()[0]
+            return figures, decompress_text(conn, "problem_text", bytes(markdown_z))
+
+        figure_count, markdown = await shards.course_reads(1).run(read)
+
+    assert status == STATUS_READY
+    assert figure_count == 1
+    assert "fig://" in markdown
+    assert "Compute the current." in markdown
+    # The bytes never enter the text that later feeds a prompt.
+    assert "figure-jpeg-bytes" not in markdown
+    assert figure_bytes not in markdown.encode("utf-8", errors="ignore")
+    digest = hashlib.sha256(figure_bytes).hexdigest()
+    assert (IMPORTS_BUCKET, f"imports/1/figures/{digest}.jpeg") in storage.objects
 
 
 async def test_decode_born_digital_and_scanned_pages(tmp_path: Path) -> None:

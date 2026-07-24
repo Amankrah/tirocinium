@@ -22,7 +22,8 @@ from platform_core.preprocess import PageRejected
 from platform_core.preprocess import preprocess as _default_preprocess
 
 from app.compression import compress_text
-from app.imports.decoder import DEFAULT_PDF_DECODER, DecodedPage, PdfDecoder
+from app.imports.decoder import DEFAULT_PDF_DECODER, DecodedPage, FigureExtractor, PdfDecoder
+from app.imports.figures import store_figures_and_annotate
 from app.prompts import Prompt, load_prompt
 from app.storage import IMPORTS_BUCKET, ObjectStorage, fetch_bytes
 from app.transcription.model import DEFAULT_VISION_MODEL, VisionTranscriber
@@ -49,6 +50,7 @@ async def run_import_pipeline(
     import_id: int,
     prompt: Prompt | None = None,
     preprocess: Preprocess | None = None,
+    figure_extractor: FigureExtractor | None = None,
 ) -> str:
     """Decode one import job end to end. Returns the terminal status."""
     from app.db.shards import ShardManager
@@ -85,6 +87,22 @@ async def run_import_pipeline(
                 markdown, provenance = await _decode_page(
                     page, run_preprocess, transcriber, prompt
                 )
+                # Figure extraction (Stage 1b, 4.2) runs on born-digital pages:
+                # store their figures and place fig:// tokens before caching the
+                # markdown. Scanned-page figures are the vision detector's, in
+                # the 4.3 segmentation pass.
+                if figure_extractor is not None and page.kind == "born_digital":
+                    page_figures = await asyncio.to_thread(
+                        figure_extractor.extract, pdf_bytes, page.page_index
+                    )
+                    markdown = await store_figures_and_annotate(
+                        shards=shards,
+                        storage=storage,
+                        course_id=course_id,
+                        page_index=page.page_index,
+                        page_markdown=markdown,
+                        page_figures=page_figures,
+                    )
                 await writer.run(
                     _store_cache(content_hash, page.kind, markdown, provenance)
                 )
