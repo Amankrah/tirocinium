@@ -175,6 +175,57 @@ async def test_confirmed_item_and_figure_survive_the_purge(
         conn.close()
 
 
+def _metric(tmp_path: Path, course_id: int, item_id: int) -> tuple[int, int]:
+    conn = connect(tmp_path / "courses" / f"{course_id}.db")
+    try:
+        row = conn.execute(
+            "SELECT text_edit_distance, figure_interventions FROM import_item_metrics"
+            " WHERE item_id = ?",
+            (item_id,),
+        ).fetchone()
+        return int(row[0]), int(row[1])
+    finally:
+        conn.close()
+
+
+def test_confirm_logs_edit_distance_and_interventions(
+    client: TestClient, tmp_path: Path
+) -> None:
+    headers = professor(client)
+    course_id = make_course(client, headers)
+    ensure_shard(client, headers, course_id)
+    _job, item_id, _fig = seed_item(tmp_path, course_id, question="ABCDE")
+
+    r = client.post(
+        f"/api/v1/courses/{course_id}/import-items/{item_id}/confirm",
+        json={"question_md": "ABXDE", "figure_interventions": 2},
+        headers=headers,
+    )
+
+    assert r.status_code == 200, r.text
+    assert r.json()["text_edit_distance"] == 1  # one substitution
+    assert _metric(tmp_path, course_id, item_id) == (1, 2)
+    # The professor's edited text, not the extraction, is what became the draft.
+    _status, body = _case_study(tmp_path, course_id, r.json()["case_study_id"])
+    assert body == "ABXDE"
+
+
+def test_confirm_without_edits_logs_zero_distance(
+    client: TestClient, tmp_path: Path
+) -> None:
+    headers = professor(client)
+    course_id = make_course(client, headers)
+    ensure_shard(client, headers, course_id)
+    _job, item_id, _fig = seed_item(tmp_path, course_id, question="unchanged")
+
+    r = client.post(
+        f"/api/v1/courses/{course_id}/import-items/{item_id}/confirm", headers=headers
+    )
+
+    assert r.json()["text_edit_distance"] == 0
+    assert _metric(tmp_path, course_id, item_id) == (0, 0)
+
+
 def test_confirm_unknown_item_is_404(client: TestClient, tmp_path: Path) -> None:
     headers = professor(client)
     course_id = make_course(client, headers)

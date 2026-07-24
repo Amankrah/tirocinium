@@ -239,11 +239,13 @@ export interface paths {
         put?: never;
         /**
          * Confirm Import Item
-         * @description Confirm a staged item into a draft case study (guide Stage 3): the item's
-         *     question becomes the case study body with its fig:// tokens intact, and the
-         *     item is marked confirmed and linked, which keeps its figures alive through
-         *     the purge. Nothing copies automatically; this is the professor's action.
-         *     Idempotent: re-confirming returns the same draft.
+         * @description Confirm a staged item into a draft case study (guide Stage 3). The
+         *     confirmed question (the professor's edit, or the extraction as-is) becomes
+         *     the case study body with its fig:// tokens intact; the item is marked
+         *     confirmed and linked, keeping its figures alive through the purge. Two
+         *     accuracy metrics are logged (4.5): the edit distance from the extraction, and
+         *     the figure interventions the surface reports. Nothing copies automatically.
+         *     Idempotent: re-confirming returns the same draft and its logged distance.
          */
         post: operations["confirm_import_item_api_v1_courses__course_id__import_items__item_id__confirm_post"];
         delete?: never;
@@ -674,6 +676,16 @@ export interface components {
             /** Position */
             position?: number | null;
         };
+        /** ConfirmIn */
+        ConfirmIn: {
+            /**
+             * Figure Interventions
+             * @default 0
+             */
+            figure_interventions: number;
+            /** Question Md */
+            question_md?: string | null;
+        };
         /** ConfirmedOut */
         ConfirmedOut: {
             /** Case Study Id */
@@ -682,6 +694,8 @@ export interface components {
             item_id: number;
             /** State */
             state: string;
+            /** Text Edit Distance */
+            text_edit_distance: number;
         };
         /** CourseIn */
         CourseIn: {
@@ -2093,7 +2107,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ConfirmIn"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

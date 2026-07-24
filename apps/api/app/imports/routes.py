@@ -22,6 +22,7 @@ from app.auth.models import Identity
 from app.compression import compress_text, decompress_text
 from app.courses.routes import ensure_course_owner
 from app.db.shards import ShardManager
+from app.imports.metrics import edit_distance
 from app.problems import Problem
 from app.storage import (
     IMPORTS_BUCKET,
@@ -210,10 +211,20 @@ class ImportItemsOut(BaseModel):
     items: list[ImportItemOut]
 
 
+class ConfirmIn(BaseModel):
+    # The professor's confirmed question text; None accepts the extraction as-is.
+    # The edit distance from the extraction is logged as an accuracy metric (4.5).
+    question_md: str | None = None
+    # How many figure edits the professor made on the item (crop, reassign,
+    # decorative, add), reported by the confirmation surface.
+    figure_interventions: int = Field(default=0, ge=0)
+
+
 class ConfirmedOut(BaseModel):
     item_id: int
     case_study_id: int
     state: str
+    text_edit_distance: int
 
 
 @router.get(
@@ -279,18 +290,22 @@ async def confirm_import_item(
     item_id: int,
     identity: Annotated[Identity, Depends(require_professor)],
     shards: Annotated[ShardManager, Depends(get_shards)],
+    body: ConfirmIn | None = None,
 ) -> ConfirmedOut:
-    """Confirm a staged item into a draft case study (guide Stage 3): the item's
-    question becomes the case study body with its fig:// tokens intact, and the
-    item is marked confirmed and linked, which keeps its figures alive through
-    the purge. Nothing copies automatically; this is the professor's action.
-    Idempotent: re-confirming returns the same draft."""
+    """Confirm a staged item into a draft case study (guide Stage 3). The
+    confirmed question (the professor's edit, or the extraction as-is) becomes
+    the case study body with its fig:// tokens intact; the item is marked
+    confirmed and linked, keeping its figures alive through the purge. Two
+    accuracy metrics are logged (4.5): the edit distance from the extraction, and
+    the figure interventions the surface reports. Nothing copies automatically.
+    Idempotent: re-confirming returns the same draft and its logged distance."""
     await ensure_course_owner(shards, course_id, identity)
     author_id = identity.user_id
     assert author_id is not None
     now = int(time.time())
+    confirmed = body or ConfirmIn()
 
-    def apply(conn: sqlite3.Connection) -> tuple[int, int, str]:
+    def apply(conn: sqlite3.Connection) -> tuple[int, int, str, int]:
         row = conn.execute(
             "SELECT job_id, title, question_z, state, case_study_id"
             " FROM import_items WHERE id = ?",
@@ -300,7 +315,17 @@ async def confirm_import_item(
             raise HTTPException(status_code=404, detail="Import item not found.")
         job_id, title, question_z, state, existing = row
         if state == "confirmed" and existing is not None:
-            return (item_id, int(existing), "confirmed")
+            metric = conn.execute(
+                "SELECT text_edit_distance FROM import_item_metrics WHERE item_id = ?",
+                (item_id,),
+            ).fetchone()
+            return (item_id, int(existing), "confirmed", int(metric[0]) if metric else 0)
+
+        extracted = decompress_text(conn, "problem_text", bytes(question_z))
+        confirmed_body = (
+            confirmed.question_md if confirmed.question_md is not None else extracted
+        )
+        distance = edit_distance(extracted, confirmed_body)
         cursor = conn.execute(
             "INSERT INTO case_studies"
             " (author_id, title, body_z, status, created_at, updated_at)"
@@ -308,11 +333,7 @@ async def confirm_import_item(
             (
                 author_id,
                 str(title) if title else "Untitled item",
-                compress_text(
-                    conn,
-                    "problem_text",
-                    decompress_text(conn, "problem_text", bytes(question_z)),
-                ),
+                compress_text(conn, "problem_text", confirmed_body),
                 now,
                 now,
             ),
@@ -327,7 +348,24 @@ async def confirm_import_item(
         conn.execute(
             "UPDATE import_jobs SET status = 'confirmed' WHERE id = ?", (int(job_id),)
         )
-        return (item_id, case_study_id, "confirmed")
+        conn.execute(
+            "INSERT INTO import_item_metrics"
+            " (item_id, text_edit_distance, figure_interventions, recorded_at)"
+            " VALUES (?, ?, ?, ?)"
+            " ON CONFLICT(item_id) DO UPDATE SET"
+            "   text_edit_distance = excluded.text_edit_distance,"
+            "   figure_interventions = excluded.figure_interventions,"
+            "   recorded_at = excluded.recorded_at",
+            (item_id, distance, confirmed.figure_interventions, now),
+        )
+        return (item_id, case_study_id, "confirmed", distance)
 
-    confirmed_item, case_study_id, state = await shards.course(course_id).run(apply)
-    return ConfirmedOut(item_id=confirmed_item, case_study_id=case_study_id, state=state)
+    confirmed_item, case_study_id, state, distance = await shards.course(course_id).run(
+        apply
+    )
+    return ConfirmedOut(
+        item_id=confirmed_item,
+        case_study_id=case_study_id,
+        state=state,
+        text_edit_distance=distance,
+    )

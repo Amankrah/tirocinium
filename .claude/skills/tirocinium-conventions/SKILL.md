@@ -19,8 +19,10 @@ native binary; 4.2 figure extraction the deterministic detector done, embedded
 rasters byte-identical and vector drawings rendered, stored content-addressed
 with fig:// tokens in the page markdown; 4.3 segmentation done, a fidelity-strict
 model pass staging items with the 30-day purge, the vision figure detector
-closing Stage 1b's union with scanned-page page_crop figures, and the 4.4
-confirm endpoint copying a staged item into a draft case study).
+closing Stage 1b's union with scanned-page page_crop figures, the 4.4 confirm
+endpoint copying a staged item into a draft case study, and 4.5 logging the two
+extraction-accuracy metrics at confirmation. The Phase 4 backend is complete
+bar the figure verbs).
 
 ## Inviolable constraints
 
@@ -213,8 +215,13 @@ the job to `confirmed` so the purge spares the item and its figures. Idempotent,
 professor-and-owner; `GET .../imports/{id}/items` lists the staged items. Nothing
 copies automatically (the AI proposes, the professor disposes); the confirmed
 item is kept because it holds the solution Phase 5 needs, and only the draft is
-student-facing. The figure verbs (re-crop, reassign, decorative, draw-a-box) are
-a later backend slice.
+student-facing. Confirm also takes the professor's edited text and a figure-
+intervention count and logs the two extraction-accuracy metrics (4.5, decision
+0030): the Levenshtein `text_edit_distance` from the extraction and the
+interventions, in `import_item_metrics`, for the Phase 8 dashboards. Edit distance
+is plain Python (off the hot path; the mandated-Rust code is the numeric comparer
+and mastery arithmetic, not this). The figure verbs (re-crop, reassign,
+decorative, draw-a-box) are a later backend slice.
 
 After any route or model change, regenerate the contract seam and commit both
 artifacts (decision 0003): `python scripts/export_openapi.py` in `apps/api`,

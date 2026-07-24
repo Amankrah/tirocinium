@@ -6,7 +6,7 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at milestone 4.4 (decision 0029):
+passes; green never goes red. Last updated at milestone 4.5 (decision 0030):
 Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 backend
 complete (3.1 the submission upload path done; 3.2 scan preprocessing
 implemented, its golden gate awaiting the 30-photo corpus; 3.3 handwriting
@@ -23,7 +23,9 @@ staging items (question/solution pairs with figure assignments) plus the 30-day
 purge, done, and the vision figure detector now closes Stage 1b's two-detector
 union (scanned-page page_crop figures cropped from the raster, decision 0028);
 4.4's confirm endpoint (backend) copies a staged item into a draft case study
-with its figures, done (the figure verbs and the surface are the frontend's).
+with its figures; 4.5 logs the two extraction-accuracy metrics (text edit
+distance and figure interventions per item) at confirmation. The Phase 4 backend
+is complete bar the figure verbs; the confirmation surface is the frontend's.
 The Phase 3 frontend half
 (3.5) is in
 progress: the upload flow (capture, pre-checks, orchestration, SSE processing)
@@ -67,12 +69,13 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 160 tests (25 data layer, 16 case studies/concepts/courses,
+Python suite, 163 tests (25 data layer, 16 case studies/concepts/courses,
 15 seats, 12 auth, 16 submissions (incl. 4 transcription-read), 5 transcription,
-14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 34 imports
+14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 37 imports
 (4 decode pipeline + 2 figure pipeline (born-digital + scanned detector),
-9 endpoint, 6 confirm/list, 5 figure storage/placement, 4 segmentation, 1 purge,
-3 pdfium decoder/extractor that skip when the binary is absent), 7 backup,
+9 endpoint, 8 confirm/list/metrics, 1 edit-distance, 5 figure storage/placement,
+4 segmentation, 1 purge, 3 pdfium decoder/extractor that skip when the binary is
+absent), 7 backup,
 5 compression, 3 contract, 7 store, 1 latency gate) plus lint
 and the worker import smoke, from `apps/api`:
 
@@ -333,6 +336,15 @@ Phase 4, in progress:
   items. 6 tests (draft creation, idempotency, figure survives the purge, unknown
   404, non-owner 403, unauthenticated 401). The item is kept in staging because
   it holds the solution Phase 5 needs; the figure verbs are a later backend slice.
+- 4.5 (done): the two extraction-accuracy metrics (decision 0030). Confirm now
+  takes an optional body (the professor's edited `question_md`, a
+  `figure_interventions` count from the surface); the edited text becomes the
+  draft body, and `import_item_metrics` (migration course/0012) logs the
+  Levenshtein `text_edit_distance` from the extraction plus the interventions, so
+  the Phase 8 dashboards can watch the medians. Edit distance is plain Python
+  (`app/imports/metrics.py`), off the hot path. 3 tests (the distance unit,
+  logging an edited confirm, an unedited confirm logging 0). Phase 4 backend is
+  complete bar the figure verbs.
 - 4.4 (web, front half): the import-from-PDF upload and processing view (frontend
   guide 4.3). A professor picks a PDF (pre-checked against the 60 MiB ceiling),
   it PUTs direct to storage and completes, then a poll of the import status runs

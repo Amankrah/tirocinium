@@ -342,6 +342,29 @@
         "title": "ConceptUpdate",
         "type": "object"
       },
+      "ConfirmIn": {
+        "properties": {
+          "figure_interventions": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Figure Interventions",
+            "type": "integer"
+          },
+          "question_md": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question Md"
+          }
+        },
+        "title": "ConfirmIn",
+        "type": "object"
+      },
       "ConfirmedOut": {
         "properties": {
           "case_study_id": {
@@ -355,12 +378,17 @@
           "state": {
             "title": "State",
             "type": "string"
+          },
+          "text_edit_distance": {
+            "title": "Text Edit Distance",
+            "type": "integer"
           }
         },
         "required": [
           "item_id",
           "case_study_id",
-          "state"
+          "state",
+          "text_edit_distance"
         ],
         "title": "ConfirmedOut",
         "type": "object"
@@ -2930,7 +2958,7 @@
     },
     "/api/v1/courses/{course_id}/import-items/{item_id}/confirm": {
       "post": {
-        "description": "Confirm a staged item into a draft case study (guide Stage 3): the item's\nquestion becomes the case study body with its fig:// tokens intact, and the\nitem is marked confirmed and linked, which keeps its figures alive through\nthe purge. Nothing copies automatically; this is the professor's action.\nIdempotent: re-confirming returns the same draft.",
+        "description": "Confirm a staged item into a draft case study (guide Stage 3). The\nconfirmed question (the professor's edit, or the extraction as-is) becomes\nthe case study body with its fig:// tokens intact; the item is marked\nconfirmed and linked, keeping its figures alive through the purge. Two\naccuracy metrics are logged (4.5): the edit distance from the extraction, and\nthe figure interventions the surface reports. Nothing copies automatically.\nIdempotent: re-confirming returns the same draft and its logged distance.",
         "operationId": "confirm_import_item_api_v1_courses__course_id__import_items__item_id__confirm_post",
         "parameters": [
           {
@@ -2952,6 +2980,23 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ConfirmIn"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {
