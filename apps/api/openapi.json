@@ -342,6 +342,29 @@
         "title": "ConceptUpdate",
         "type": "object"
       },
+      "ConfirmedOut": {
+        "properties": {
+          "case_study_id": {
+            "title": "Case Study Id",
+            "type": "integer"
+          },
+          "item_id": {
+            "title": "Item Id",
+            "type": "integer"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_id",
+          "case_study_id",
+          "state"
+        ],
+        "title": "ConfirmedOut",
+        "type": "object"
+      },
       "CourseIn": {
         "properties": {
           "title": {
@@ -554,6 +577,111 @@
           "size_bytes"
         ],
         "title": "ImportIn",
+        "type": "object"
+      },
+      "ImportItemOut": {
+        "properties": {
+          "case_study_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Study Id"
+          },
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "figure_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Figure Ids",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "page_span": {
+            "title": "Page Span",
+            "type": "string"
+          },
+          "question_md": {
+            "title": "Question Md",
+            "type": "string"
+          },
+          "solution_md": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Solution Md"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "question_md",
+          "solution_md",
+          "page_span",
+          "confidence",
+          "notes",
+          "state",
+          "figure_ids",
+          "case_study_id"
+        ],
+        "title": "ImportItemOut",
+        "type": "object"
+      },
+      "ImportItemsOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ImportItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "ImportItemsOut",
         "type": "object"
       },
       "ImportOut": {
@@ -2800,6 +2928,93 @@
         ]
       }
     },
+    "/api/v1/courses/{course_id}/import-items/{item_id}/confirm": {
+      "post": {
+        "description": "Confirm a staged item into a draft case study (guide Stage 3): the item's\nquestion becomes the case study body with its fig:// tokens intact, and the\nitem is marked confirmed and linked, which keeps its figures alive through\nthe purge. Nothing copies automatically; this is the professor's action.\nIdempotent: re-confirming returns the same draft.",
+        "operationId": "confirm_import_item_api_v1_courses__course_id__import_items__item_id__confirm_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmedOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Confirm Import Item",
+        "tags": [
+          "imports"
+        ]
+      }
+    },
     "/api/v1/courses/{course_id}/imports": {
       "post": {
         "description": "Create an import job and hand back a presigned URL to PUT the PDF. The\ncreate is idempotent: a retry with the same key returns the original job\n(and a fresh URL for its key), never a duplicate.",
@@ -3072,6 +3287,93 @@
           }
         ],
         "summary": "Complete Import",
+        "tags": [
+          "imports"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/imports/{import_id}/items": {
+      "get": {
+        "description": "The staged items of an import, for the confirmation surface (4.4): each\nitem's question and solution markdown (fig:// tokens intact), its figure\nassignments, confidence, the model's notes, and its state.",
+        "operationId": "list_import_items_api_v1_courses__course_id__imports__import_id__items_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "import_id",
+            "required": true,
+            "schema": {
+              "title": "Import Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportItemsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Import Items",
         "tags": [
           "imports"
         ]

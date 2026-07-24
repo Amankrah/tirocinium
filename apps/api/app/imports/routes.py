@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 
 from app.auth.deps import get_shards, require_professor
 from app.auth.models import Identity
+from app.compression import compress_text, decompress_text
 from app.courses.routes import ensure_course_owner
 from app.db.shards import ShardManager
 from app.problems import Problem
@@ -187,3 +188,146 @@ async def get_import(
 ) -> ImportOut:
     await ensure_course_owner(shards, course_id, identity)
     return await _load_import(shards, course_id, import_id)
+
+
+# ------------------------------------------------ staged items and confirmation
+
+
+class ImportItemOut(BaseModel):
+    id: int
+    title: str | None
+    question_md: str
+    solution_md: str | None
+    page_span: str
+    confidence: float
+    notes: str | None
+    state: str
+    figure_ids: list[int]
+    case_study_id: int | None
+
+
+class ImportItemsOut(BaseModel):
+    items: list[ImportItemOut]
+
+
+class ConfirmedOut(BaseModel):
+    item_id: int
+    case_study_id: int
+    state: str
+
+
+@router.get(
+    "/{course_id}/imports/{import_id}/items",
+    response_model=ImportItemsOut,
+    responses={401: {"model": Problem}, 403: {"model": Problem}, 404: {"model": Problem}},
+)
+async def list_import_items(
+    course_id: int,
+    import_id: int,
+    identity: Annotated[Identity, Depends(require_professor)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+) -> ImportItemsOut:
+    """The staged items of an import, for the confirmation surface (4.4): each
+    item's question and solution markdown (fig:// tokens intact), its figure
+    assignments, confidence, the model's notes, and its state."""
+    await ensure_course_owner(shards, course_id, identity)
+    await _load_import(shards, course_id, import_id)  # 404 if the import is not here
+
+    def read(conn: sqlite3.Connection) -> list[ImportItemOut]:
+        rows = conn.execute(
+            "SELECT id, title, question_z, solution_z, page_span, confidence, notes,"
+            " state, case_study_id FROM import_items WHERE job_id = ? ORDER BY id",
+            (import_id,),
+        ).fetchall()
+        items: list[ImportItemOut] = []
+        for row in rows:
+            figure_ids = [
+                int(fr[0])
+                for fr in conn.execute(
+                    "SELECT figure_id FROM item_figures WHERE item_id = ? ORDER BY figure_id",
+                    (row[0],),
+                ).fetchall()
+            ]
+            items.append(
+                ImportItemOut(
+                    id=int(row[0]),
+                    title=None if row[1] is None else str(row[1]),
+                    question_md=decompress_text(conn, "problem_text", bytes(row[2])),
+                    solution_md=None
+                    if row[3] is None
+                    else decompress_text(conn, "problem_text", bytes(row[3])),
+                    page_span=str(row[4]),
+                    confidence=float(row[5]),
+                    notes=None if row[6] is None else str(row[6]),
+                    state=str(row[7]),
+                    figure_ids=figure_ids,
+                    case_study_id=None if row[8] is None else int(row[8]),
+                )
+            )
+        return items
+
+    return ImportItemsOut(items=await shards.course_reads(course_id).run(read))
+
+
+@router.post(
+    "/{course_id}/import-items/{item_id}/confirm",
+    response_model=ConfirmedOut,
+    responses={401: {"model": Problem}, 403: {"model": Problem}, 404: {"model": Problem}},
+)
+async def confirm_import_item(
+    course_id: int,
+    item_id: int,
+    identity: Annotated[Identity, Depends(require_professor)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+) -> ConfirmedOut:
+    """Confirm a staged item into a draft case study (guide Stage 3): the item's
+    question becomes the case study body with its fig:// tokens intact, and the
+    item is marked confirmed and linked, which keeps its figures alive through
+    the purge. Nothing copies automatically; this is the professor's action.
+    Idempotent: re-confirming returns the same draft."""
+    await ensure_course_owner(shards, course_id, identity)
+    author_id = identity.user_id
+    assert author_id is not None
+    now = int(time.time())
+
+    def apply(conn: sqlite3.Connection) -> tuple[int, int, str]:
+        row = conn.execute(
+            "SELECT job_id, title, question_z, state, case_study_id"
+            " FROM import_items WHERE id = ?",
+            (item_id,),
+        ).fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail="Import item not found.")
+        job_id, title, question_z, state, existing = row
+        if state == "confirmed" and existing is not None:
+            return (item_id, int(existing), "confirmed")
+        cursor = conn.execute(
+            "INSERT INTO case_studies"
+            " (author_id, title, body_z, status, created_at, updated_at)"
+            " VALUES (?, ?, ?, 'draft', ?, ?)",
+            (
+                author_id,
+                str(title) if title else "Untitled item",
+                compress_text(
+                    conn,
+                    "problem_text",
+                    decompress_text(conn, "problem_text", bytes(question_z)),
+                ),
+                now,
+                now,
+            ),
+        )
+        case_study_id = int(cursor.lastrowid or 0)
+        conn.execute(
+            "UPDATE import_items SET state = 'confirmed', case_study_id = ? WHERE id = ?",
+            (case_study_id, item_id),
+        )
+        # Confirming from a job keeps the whole job (and so its confirmed item's
+        # figures) out of the 30-day purge, which keys on job status.
+        conn.execute(
+            "UPDATE import_jobs SET status = 'confirmed' WHERE id = ?", (int(job_id),)
+        )
+        return (item_id, case_study_id, "confirmed")
+
+    confirmed_item, case_study_id, state = await shards.course(course_id).run(apply)
+    return ConfirmedOut(item_id=confirmed_item, case_study_id=case_study_id, state=state)

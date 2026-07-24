@@ -228,6 +228,30 @@ export interface paths {
         patch: operations["update_concept_api_v1_courses__course_id__concepts__concept_id__patch"];
         trace?: never;
     };
+    "/api/v1/courses/{course_id}/import-items/{item_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Import Item
+         * @description Confirm a staged item into a draft case study (guide Stage 3): the item's
+         *     question becomes the case study body with its fig:// tokens intact, and the
+         *     item is marked confirmed and linked, which keeps its figures alive through
+         *     the purge. Nothing copies automatically; this is the professor's action.
+         *     Idempotent: re-confirming returns the same draft.
+         */
+        post: operations["confirm_import_item_api_v1_courses__course_id__import_items__item_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses/{course_id}/imports": {
         parameters: {
             query?: never;
@@ -283,6 +307,28 @@ export interface paths {
          *     nothing, so a retry never doubles the work.
          */
         post: operations["complete_import_api_v1_courses__course_id__imports__import_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/imports/{import_id}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Import Items
+         * @description The staged items of an import, for the confirmation surface (4.4): each
+         *     item's question and solution markdown (fig:// tokens intact), its figure
+         *     assignments, confidence, the model's notes, and its state.
+         */
+        get: operations["list_import_items_api_v1_courses__course_id__imports__import_id__items_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -628,6 +674,15 @@ export interface components {
             /** Position */
             position?: number | null;
         };
+        /** ConfirmedOut */
+        ConfirmedOut: {
+            /** Case Study Id */
+            case_study_id: number;
+            /** Item Id */
+            item_id: number;
+            /** State */
+            state: string;
+        };
         /** CourseIn */
         CourseIn: {
             /** Title */
@@ -708,6 +763,34 @@ export interface components {
             content_type: "application/pdf";
             /** Size Bytes */
             size_bytes: number;
+        };
+        /** ImportItemOut */
+        ImportItemOut: {
+            /** Case Study Id */
+            case_study_id: number | null;
+            /** Confidence */
+            confidence: number;
+            /** Figure Ids */
+            figure_ids: number[];
+            /** Id */
+            id: number;
+            /** Notes */
+            notes: string | null;
+            /** Page Span */
+            page_span: string;
+            /** Question Md */
+            question_md: string;
+            /** Solution Md */
+            solution_md: string | null;
+            /** State */
+            state: string;
+            /** Title */
+            title: string | null;
+        };
+        /** ImportItemsOut */
+        ImportItemsOut: {
+            /** Items */
+            items: components["schemas"]["ImportItemOut"][];
         };
         /** ImportOut */
         ImportOut: {
@@ -2000,6 +2083,65 @@ export interface operations {
             };
         };
     };
+    confirm_import_item_api_v1_courses__course_id__import_items__item_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmedOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_import_api_v1_courses__course_id__imports_post: {
         parameters: {
             query?: never;
@@ -2142,6 +2284,65 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_import_items_api_v1_courses__course_id__imports__import_id__items_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                import_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportItemsOut"];
                 };
             };
             /** @description Unauthorized */

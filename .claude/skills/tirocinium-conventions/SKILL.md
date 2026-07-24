@@ -7,7 +7,7 @@ description: Tirocinium coding standards, API conventions, data-layer rules, and
 
 The four documents in `docs/` are the specification and outrank this skill; this
 skill is the operational digest that survives context windows. Last updated for
-Phase 4.3 (data layer, auth, seats, and the authoring backend done; the
+Phase 4.4 (data layer, auth, seats, and the authoring backend done; the
 handwritten solution upload path live; scan preprocessing implemented in Rust;
 handwriting transcription running in an off-request-path worker with a recorded-
 response model seam and SSE progress; indexing and retrieval done, with FTS5 and
@@ -18,8 +18,9 @@ worker, and the real `tirocinium-pdf` member binding pdfium over a vendored
 native binary; 4.2 figure extraction the deterministic detector done, embedded
 rasters byte-identical and vector drawings rendered, stored content-addressed
 with fig:// tokens in the page markdown; 4.3 segmentation done, a fidelity-strict
-model pass staging items with the 30-day purge, and the vision figure detector
-closing Stage 1b's union with scanned-page page_crop figures).
+model pass staging items with the 30-day purge, the vision figure detector
+closing Stage 1b's union with scanned-page page_crop figures, and the 4.4
+confirm endpoint copying a staged item into a draft case study).
 
 ## Inviolable constraints
 
@@ -203,6 +204,17 @@ when it exists (a hallucination is dropped); provenance (`model_id`,
 `prompt_version`) and the model's `title`/`notes` are stored on the item. The
 pipeline runs segmentation last, and a 30-day purge (`app/imports/purge.py`)
 removes unconfirmed jobs and their staging plus orphaned old figures.
+
+Confirmation (milestone 4.4 backend, decision 0029) is the professor's explicit
+act: `POST /api/v1/courses/{id}/import-items/{item_id}/confirm` copies a staged
+item's question into `case_studies` as a draft (fig:// tokens intact), marks the
+item `confirmed` and links it (`case_study_id`, migration course/0011), and flips
+the job to `confirmed` so the purge spares the item and its figures. Idempotent,
+professor-and-owner; `GET .../imports/{id}/items` lists the staged items. Nothing
+copies automatically (the AI proposes, the professor disposes); the confirmed
+item is kept because it holds the solution Phase 5 needs, and only the draft is
+student-facing. The figure verbs (re-crop, reassign, decorative, draw-a-box) are
+a later backend slice.
 
 After any route or model change, regenerate the contract seam and commit both
 artifacts (decision 0003): `python scripts/export_openapi.py` in `apps/api`,
