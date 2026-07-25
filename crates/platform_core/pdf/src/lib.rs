@@ -27,10 +27,21 @@ use pdfium_render::prelude::*;
 // re-initializing after a teardown aborts. So bind exactly once per process and
 // never drop it: the first decode initializes pdfium from the given library
 // path, every later decode reuses it. The mutex serializes that one-time init
-// so two threads cannot both call FPDF_InitLibrary; the thread_safe feature
-// then makes concurrent use of the shared instance safe.
+// so two threads cannot both call FPDF_InitLibrary.
 static PDFIUM: OnceLock<Pdfium> = OnceLock::new();
 static INIT: Mutex<()> = Mutex::new(());
+
+// pdfium keeps internal state across FFI calls, so per-call locking (the
+// thread_safe feature) is not enough: two logical operations (load document,
+// walk pages, extract text or objects) interleaving their calls corrupt each
+// other's reads (observed as a page's text objects going missing under the
+// parallel test harness). One document at a time is the crate's contract, so
+// every public operation holds this lock end to end.
+static OPERATION: Mutex<()> = Mutex::new(());
+
+pub(crate) fn operation_lock() -> Result<std::sync::MutexGuard<'static, ()>, String> {
+    OPERATION.lock().map_err(|e| e.to_string())
+}
 
 pub(crate) fn pdfium(lib_path: &str) -> Result<&'static Pdfium, String> {
     if let Some(existing) = PDFIUM.get() {
@@ -89,6 +100,7 @@ pub struct DecodedPage {
 /// When the library cannot be loaded, the document cannot be parsed, or a page
 /// cannot be read or rendered.
 pub fn decode(lib_path: &str, pdf: &[u8], render_width: i32) -> Result<Vec<DecodedPage>, String> {
+    let _operation = operation_lock()?;
     let pdfium = pdfium(lib_path)?;
     let document = pdfium
         .load_pdf_from_byte_slice(pdf, None)

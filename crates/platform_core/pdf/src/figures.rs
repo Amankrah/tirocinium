@@ -84,6 +84,7 @@ pub struct PageFigures {
 /// # Errors
 /// When pdfium cannot load the document or read the page's objects.
 pub fn extract_figures(lib_path: &str, pdf: &[u8], page_index: u16) -> Result<PageFigures, String> {
+    let _operation = crate::operation_lock()?;
     let pdfium = pdfium(lib_path)?;
     let document = pdfium
         .load_pdf_from_byte_slice(pdf, None)
