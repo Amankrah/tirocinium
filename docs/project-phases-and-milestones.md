@@ -146,6 +146,24 @@ Two standing rules govern the whole plan. First, a phase is not complete until i
 
 ---
 
+## Phase 6.5: Student solution input modes
+
+Numbered 6.5, an inserted slice, so Phases 7 to 9 keep the numbers the decision records and skills already reference; the plan's phase count is unchanged. It lands after mastery integration on purpose: the two new modes emit evidence through the live model, so they arrive once that pipeline is stable rather than while it is still moving.
+
+**Goal.** Every student can submit a solution three ways: a photo of paper, a handwriting PDF exported from a tablet, or writing directly on the platform with a pen. All three funnel into the one submission, transcription, and evidence pipeline. This closes the two unbuilt modes from decision 0026 (mode A, the photo path, shipped in Phase 3). No mode adds an identity surface: a submission stays a seat's, and no student PII enters logs, prompts, or storage.
+
+**Milestones.**
+
+6.5.1 Mode B, the exported handwriting PDF, in the submission pipeline. The upload already accepts `application/pdf` (backend guide section 4 Stage 1), but transcription preprocesses every page as a camera image with no content-type branch, so a PDF submission is accepted at upload and then fails at transcription. Close the gap by branching the submission pipeline on content type: a page whose declared type is `application/pdf` is rendered to page rasters with `platform_core.pdf` (the decode member from 4.1) before preprocessing, and each rendered page then flows through the existing preprocess and vision handwriting read unchanged. A handwriting PDF has no text layer, so every page takes the scanned path (rendered, not text-extracted), which is exactly the photographed-page path; content-hash caching keys on the rendered page bytes as it does today. Page-count and size limits are enforced after render against the declared manifest. The committed real tablet-handwriting PDFs at `apps/api/tests/fixtures/submission-pdf/` drive the recorded-response transcription tests.
+
+6.5.2 Mode C, on-platform pen capture, frontend led. A stylus or touch canvas on a tablet or phone captures strokes and exports them as an image or PDF submitted through the existing upload path, so on the backend mode C reduces to mode A or B and needs no new server capability. The surface is the frontend's under its own decision record, honouring the accessibility floor (a keyboard and file-upload fallback wherever there is no pen or touch, reduced-motion stills, WCAG 2.2 AA) and adding no personalization that would tempt PII onto a student surface.
+
+6.5.3 The one submission surface. A single seat-facing create flow offers the three modes behind one entry, all landing in the same submission row with the same SSE progress and the same evidence emission (Phase 6), so the chosen mode is invisible downstream. Mode A, the photo path, is unchanged; the work here is unification and the picker, not a fourth pipeline.
+
+**Testing gate.** Mode B: a committed tablet-handwriting PDF round-trips through the pipeline to a cached transcription (recorded response) with status `processed`, following the same reading path as the equivalent photographed pages; an N-page PDF yields N rendered pages; an over-limit PDF is rejected with the specified page-count or size copy. Parity: the same handwriting submitted as a photo (mode A) and as an exported PDF (mode B) reaches the same transcription and the same evidence shape. Mode C: a Playwright journey captures with a pen on a touch viewport, exports, submits, and watches processing, with the keyboard and file-upload fallback exercised, axe clean, and the reduced-motion still rendered. No new identity surface: the log-scanning assertion that no student PII appears extends to cover all three modes.
+
+---
+
 ## Phase 7: The voice defense
 
 **Goal.** The signature learning moment, at conversation-grade latency.

@@ -43,3 +43,10 @@ file-upload fallback where there is no pen or touch, reduced-motion stills, WCAG
 surface. Flagged as a guide extension: the product's anti-paper intent supports
 it, but the guides do not yet mention on-platform capture, so this records the
 addition rather than assuming it.
+
+Addendum (2026-07-25): the implementations are now scheduled as their own slice,
+Phase 6.5 in the build plan, after mastery integration rather than as a Phase 3
+completion item, so evidence from the new modes flows through the live model
+instead of a pipeline that is still moving. The three-mode design above is
+unchanged; only the scheduling moved, and the plan document now carries it (mode
+B backend, mode C frontend capture, and the unified submission surface).
