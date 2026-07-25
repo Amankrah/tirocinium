@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import type { Schemas } from "@/lib/api/client";
 import type { SaveSpecResult } from "@/lib/api/params";
 import { strings } from "../../../../strings";
+import { AutoOverlay } from "./auto-overlay";
 
 type Parameter = NonNullable<Schemas["ParamSpec"]["parameters"]>[string];
 type ParamType = Parameter["type"];
@@ -46,6 +47,7 @@ const field =
 export function ParamPanel({
   courseId,
   caseStudyId,
+  body,
   initial,
   save,
   clear,
@@ -54,6 +56,7 @@ export function ParamPanel({
 }: {
   courseId: number;
   caseStudyId: number;
+  body: string;
   initial: Schemas["ParamSpec"] | null;
   save: (
     courseId: number,
@@ -75,6 +78,7 @@ export function ParamPanel({
   const [blocked, setBlocked] = useState<Schemas["BlockedParameter"][]>([]);
   const [busy, setBusy] = useState(false);
   const [proposing, setProposing] = useState(false);
+  const [proposal, setProposal] = useState<Schemas["ProposalOut"] | null>(null);
 
   function setParam(index: number, param: Parameter) {
     setRows((prev) => prev.map((r, i) => (i === index ? { ...r, param } : r)));
@@ -126,15 +130,19 @@ export function ParamPanel({
   async function onPropose() {
     setProposing(true);
     setStatus("idle");
-    const proposal = await propose(courseId, caseStudyId, makeId());
-    if (!proposal) {
-      setStatus("autoError");
-    } else {
-      setRows(toRows(proposal.spec));
-      setInvariants(proposal.spec.invariants ?? []);
-      setMethod(proposal.spec.solution_method ?? "");
-    }
+    const result = await propose(courseId, caseStudyId, makeId());
+    if (!result) setStatus("autoError");
+    else setProposal(result);
     setProposing(false);
+  }
+
+  // Accept loads the proposed spec into the form; the professor still saves.
+  function acceptProposal() {
+    if (!proposal) return;
+    setRows(toRows(proposal.spec));
+    setInvariants(proposal.spec.invariants ?? []);
+    setMethod(proposal.spec.solution_method ?? "");
+    setProposal(null);
   }
 
   return (
@@ -150,6 +158,14 @@ export function ParamPanel({
         <p role="status" className="text-sm text-ink-muted">
           {s.autoPending}
         </p>
+      ) : null}
+      {proposal ? (
+        <AutoOverlay
+          body={body}
+          proposal={proposal}
+          onAccept={acceptProposal}
+          onDismiss={() => setProposal(null)}
+        />
       ) : null}
 
       {rows.length === 0 ? (

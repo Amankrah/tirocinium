@@ -18,8 +18,10 @@ function renderPanel(
       invariants: ["NPV positive"],
       solution_method: null,
     },
-    annotations: {},
-    invariant_rationales: [],
+    annotations: {
+      discount_rate: { rationale: "It drives the discounting.", literal: "0.08", positions: [[12, 16]] },
+    },
+    invariant_rationales: ["Keeps the decision from flipping."],
     frozen: [],
     provenance: { model_id: "m", prompt_version: "auto-parameterize/v1" },
   }));
@@ -27,6 +29,7 @@ function renderPanel(
     <ParamPanel
       courseId={1}
       caseStudyId={2}
+      body="The rate is 0.08 in the base."
       initial={initial}
       save={save as never}
       clear={clear as never}
@@ -82,10 +85,16 @@ describe("ParamPanel", () => {
     ).toBeDefined();
   });
 
-  it("loads an auto-parameterize proposal into the form", async () => {
+  it("reviews an auto-parameterize proposal, then accepts it into the form", async () => {
     const { propose } = renderPanel(null);
     fireEvent.click(screen.getByRole("button", { name: "Auto-parameterize" }));
     await waitFor(() => expect(propose).toHaveBeenCalledWith(1, 2, "key-1"));
+    // The overlay reviews first: the rationale and the highlighted literal show.
+    expect(await screen.findByText("It drives the discounting.")).toBeDefined();
+    expect(screen.getByText("0.08")).toBeDefined();
+    // Nothing is in the form until accepted.
+    expect(screen.queryByDisplayValue("discount_rate")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Accept these" }));
     expect(await screen.findByDisplayValue("discount_rate")).toBeDefined();
     expect(screen.getByDisplayValue("NPV positive")).toBeDefined();
   });

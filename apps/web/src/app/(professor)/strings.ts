@@ -132,6 +132,16 @@ export const strings = {
     autoParameterize: "Auto-parameterize",
     autoPending: "Reading the problem and its figures…",
     autoError: "That did not work. Try again.",
+    // The auto-parameterize review overlay (guide 4.3).
+    proposalHeading: "Proposed parameters",
+    proposalIntro:
+      "Each highlighted value would vary. Review the ranges and reasons, then accept to load them into the form.",
+    aiProposed: "AI-proposed. Review before you save.",
+    rangeNumber: (from: number, to: number) => `${from} to ${to}`,
+    rangeChoice: (count: number) => `${count} choices`,
+    lockedTo: (value: string) => `${value}, locked to a figure`,
+    accept: "Accept these",
+    dismiss: "Dismiss",
   },
   seats: {
     back: "Back to course",

@@ -57,6 +57,7 @@ export default async function CaseStudyPreviewPage({
         <ParamPanel
           courseId={cid}
           caseStudyId={csid}
+          body={caseStudy.body}
           initial={spec}
           save={saveParamSpecAction}
           clear={deleteParamSpecAction}
