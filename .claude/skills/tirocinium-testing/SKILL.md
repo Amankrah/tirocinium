@@ -72,14 +72,15 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 176 tests (25 data layer, 16 case studies/concepts/courses,
+Python suite, 189 tests (25 data layer, 16 case studies/concepts/courses,
 15 seats, 12 auth, 16 submissions (incl. 4 transcription-read), 5 transcription,
-14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 50 imports
+14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 63 imports
 (4 decode pipeline + 2 figure pipeline (born-digital + scanned detector),
 9 endpoint, 8 confirm/list/metrics, 8 figure verbs (incl. the items read carrying
 figures+pages), 5 figure resolve (owner any, seat published-only, 404 hides
-existence), 1 edit-distance, 5 figure storage/placement, 4 segmentation, 1 purge,
-3 pdfium decoder/extractor that skip when the binary is absent), 7 backup,
+existence), 13 item verbs (merge + discard), 1 edit-distance, 5 figure
+storage/placement, 4 segmentation, 1 purge, 3 pdfium decoder/extractor that skip
+when the binary is absent), 7 backup,
 5 compression, 3 contract, 7 store, 1 latency gate) plus lint
 and the worker import smoke, from `apps/api`:
 
@@ -369,8 +370,21 @@ Phase 4, in progress:
   `ConfirmIn.solution_md` edits the solution. 5 figure-resolve tests (owner any,
   owner unknown 404, seat unpublished 404, seat published 200, seat wrong-course
   403) plus the items-read verb test above. The test_figures bbox assertion and the
-  test_confirm items assertion moved to the normalised/`figures[]` shapes. Merge,
-  split, and discard stay deferred with 0031's re-crop.
+  test_confirm items assertion moved to the normalised/`figures[]` shapes.
+- Item verbs merge and discard (decision 0034): the surface's last two item
+  verbs, pure link-and-state edits. `POST .../import-items/{item}/merge` takes a
+  `source_item_id` and folds that sibling into the survivor (question and solution
+  appended, figures moved with the survivor's role winning and the link deduped,
+  page span and notes combined, confidence the min), retiring the source to
+  `state = 'merged'`; a retry 409s because the source is no longer pending (no
+  double-append, no ledger). `POST .../{item}/discard` flips a spurious item to
+  `state = 'discarded'` (idempotent; a confirmed item 409s). `list_import_items`
+  now hides `discarded`/`merged`; confirm 409s on either. 13 tests in
+  `test_item_verbs.py` (merge appends+moves+dedups, combines solutions, retry 409,
+  self 400, missing-source 404, confirmed-source 409, non-owner 403; discard
+  hides, idempotent, confirmed 409, missing 404, confirm-rejects-discarded,
+  non-owner 403). Item/figure split stays deferred with 0031's re-crop (it alone
+  needs re-cropping from the lossless source, which the five-PDF corpus validates).
 - 4.4 (web, front half): the import-from-PDF upload and processing view (frontend
   guide 4.3). A professor picks a PDF (pre-checked against the 60 MiB ceiling),
   it PUTs direct to storage and completes, then a poll of the import status runs

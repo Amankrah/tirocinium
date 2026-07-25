@@ -1071,6 +1071,64 @@
         "title": "MappingsIn",
         "type": "object"
       },
+      "MergeIn": {
+        "properties": {
+          "source_item_id": {
+            "title": "Source Item Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "source_item_id"
+        ],
+        "title": "MergeIn",
+        "type": "object"
+      },
+      "MergedOut": {
+        "properties": {
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "merged_item_id": {
+            "title": "Merged Item Id",
+            "type": "integer"
+          },
+          "page_span": {
+            "title": "Page Span",
+            "type": "string"
+          },
+          "question_md": {
+            "title": "Question Md",
+            "type": "string"
+          },
+          "solution_md": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Solution Md"
+          },
+          "survivor_id": {
+            "title": "Survivor Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "survivor_id",
+          "merged_item_id",
+          "question_md",
+          "solution_md",
+          "page_span",
+          "confidence"
+        ],
+        "title": "MergedOut",
+        "type": "object"
+      },
       "PageIn": {
         "properties": {
           "content_hash": {
@@ -3415,6 +3473,96 @@
         ]
       }
     },
+    "/api/v1/courses/{course_id}/import-items/{item_id}/discard": {
+      "post": {
+        "description": "Discard a spurious staged item (guide Stage 3): it leaves the review and is\npurged with the job at 30 days. A state edit only, not a delete, so the item\nstays for the purge and its metrics. Idempotent on an already-discarded item;\na confirmed one is refused (unpublish or delete the draft instead), and a\nmerged one is already gone.",
+        "operationId": "discard_import_item_api_v1_courses__course_id__import_items__item_id__discard_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Discard Import Item",
+        "tags": [
+          "imports"
+        ]
+      }
+    },
     "/api/v1/courses/{course_id}/import-items/{item_id}/figures/from-box": {
       "post": {
         "description": "Add a figure the detectors missed by drawing a box on a page: the box is\na raster crop of the page (a page_crop figure, never a re-render), stored\ncontent-addressed and assigned to the item.",
@@ -3700,6 +3848,123 @@
           }
         ],
         "summary": "Set Item Figure",
+        "tags": [
+          "imports"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/import-items/{item_id}/merge": {
+      "post": {
+        "description": "Merge a sibling item into this one (guide Stage 3), for a single question\nthe segmenter split. This item is the survivor: the source's question (and\nsolution) markdown is appended with its fig:// tokens intact, the source's\nfigures move onto this item, the page span and notes combine, and the source\nleaves the review as `merged`. A link-and-state edit only (decision 0034); no\nfigure is re-cropped and no bytes change. Both items must be pending: a retry\nfinds the source already `merged` and 409s, so a double-submit cannot append\ntwice.",
+        "operationId": "merge_import_items_api_v1_courses__course_id__import_items__item_id__merge_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MergeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MergedOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Merge Import Items",
         "tags": [
           "imports"
         ]

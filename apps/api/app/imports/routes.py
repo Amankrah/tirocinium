@@ -15,7 +15,7 @@ import json
 import sqlite3
 import time
 import uuid
-from typing import Annotated, Literal
+from typing import Annotated, Literal, NamedTuple
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from pydantic import BaseModel, Field
@@ -293,9 +293,13 @@ async def list_import_items(
                 (import_id,),
             ).fetchall()
         ]
+        # Discarded and merged items leave the review: a discarded item is
+        # rejected, a merged one now lives inside its survivor. Pending and
+        # confirmed stay, so the surface still shows "N of M confirmed".
         rows = conn.execute(
             "SELECT id, title, question_z, solution_z, page_span, confidence, notes,"
-            " state, case_study_id FROM import_items WHERE job_id = ? ORDER BY id",
+            " state, case_study_id FROM import_items WHERE job_id = ?"
+            " AND state NOT IN ('discarded', 'merged') ORDER BY id",
             (import_id,),
         ).fetchall()
         items: list[ImportItemOut] = []
@@ -386,6 +390,12 @@ async def confirm_import_item(
         if row is None:
             raise HTTPException(status_code=404, detail="Import item not found.")
         job_id, title, question_z, state, existing = row
+        if state == "discarded":
+            raise HTTPException(status_code=409, detail="This item was discarded.")
+        if state == "merged":
+            raise HTTPException(
+                status_code=409, detail="This item was merged into another."
+            )
         if confirmed.solution_md is not None:
             conn.execute(
                 "UPDATE import_items SET solution_z = ? WHERE id = ?",
@@ -690,3 +700,219 @@ async def resolve_figure_image(
         width_px=width_px,
         height_px=height_px,
     )
+
+
+# ------------------------------------------------- item verbs (4.4): merge, discard
+
+
+class MergeIn(BaseModel):
+    # The sibling item to absorb into this one, for a question the segmenter split
+    # across two items (frontend guide 4.3: "merge with the next item"). Its text
+    # is appended, its figures move over, and it leaves the review as `merged`.
+    source_item_id: int
+
+
+class MergedOut(BaseModel):
+    survivor_id: int
+    merged_item_id: int
+    question_md: str
+    solution_md: str | None
+    page_span: str
+    confidence: float
+
+
+def _join_markdown(first: str | None, second: str | None) -> str | None:
+    """Concatenate two markdown bodies as consecutive blocks, dropping a side that
+    is absent. fig:// tokens ride along untouched."""
+    parts = [part for part in (first, second) if part is not None]
+    return "\n\n".join(parts) if parts else None
+
+
+@router.post(
+    "/{course_id}/import-items/{item_id}/merge",
+    response_model=MergedOut,
+    responses={
+        400: {"model": Problem},
+        401: {"model": Problem},
+        403: {"model": Problem},
+        404: {"model": Problem},
+        409: {"model": Problem},
+    },
+)
+async def merge_import_items(
+    course_id: int,
+    item_id: int,
+    body: MergeIn,
+    identity: Annotated[Identity, Depends(require_professor)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+) -> MergedOut:
+    """Merge a sibling item into this one (guide Stage 3), for a single question
+    the segmenter split. This item is the survivor: the source's question (and
+    solution) markdown is appended with its fig:// tokens intact, the source's
+    figures move onto this item, the page span and notes combine, and the source
+    leaves the review as `merged`. A link-and-state edit only (decision 0034); no
+    figure is re-cropped and no bytes change. Both items must be pending: a retry
+    finds the source already `merged` and 409s, so a double-submit cannot append
+    twice."""
+    await ensure_course_owner(shards, course_id, identity)
+    if body.source_item_id == item_id:
+        raise HTTPException(status_code=400, detail="An item cannot merge into itself.")
+
+    def apply(conn: sqlite3.Connection) -> tuple[str, str | None, str, float]:
+        survivor = _load_mergeable(conn, item_id, "Import item not found.")
+        source = _load_mergeable(conn, body.source_item_id, "Source item not found.")
+        if survivor.job_id != source.job_id:
+            raise HTTPException(
+                status_code=409, detail="Items from different imports cannot be merged."
+            )
+
+        question = _join_markdown(
+            decompress_text(conn, "problem_text", survivor.question_z),
+            decompress_text(conn, "problem_text", source.question_z),
+        )
+        assert question is not None  # both questions are NOT NULL
+        solution = _join_markdown(
+            _maybe_text(conn, survivor.solution_z),
+            _maybe_text(conn, source.solution_z),
+        )
+        page_span = (
+            survivor.page_span
+            if survivor.page_span == source.page_span
+            else f"{survivor.page_span}, {source.page_span}"
+        )
+        confidence = min(survivor.confidence, source.confidence)
+        notes = _join_notes(survivor.notes, source.notes)
+
+        conn.execute(
+            "UPDATE import_items SET question_z = ?, solution_z = ?, page_span = ?,"
+            " confidence = ?, notes = ? WHERE id = ?",
+            (
+                compress_text(conn, "problem_text", question),
+                None if solution is None else compress_text(conn, "problem_text", solution),
+                page_span,
+                confidence,
+                notes,
+                item_id,
+            ),
+        )
+        # Move the source's figures onto the survivor (its own role wins a clash),
+        # then unlink the source and retire it.
+        conn.execute(
+            "INSERT OR IGNORE INTO item_figures (item_id, figure_id, role)"
+            " SELECT ?, figure_id, role FROM item_figures WHERE item_id = ?",
+            (item_id, body.source_item_id),
+        )
+        conn.execute(
+            "DELETE FROM item_figures WHERE item_id = ?", (body.source_item_id,)
+        )
+        conn.execute(
+            "UPDATE import_items SET state = 'merged' WHERE id = ?", (body.source_item_id,)
+        )
+        return question, solution, page_span, confidence
+
+    question, solution, page_span, confidence = await shards.course(course_id).run(apply)
+    return MergedOut(
+        survivor_id=item_id,
+        merged_item_id=body.source_item_id,
+        question_md=question,
+        solution_md=solution,
+        page_span=page_span,
+        confidence=confidence,
+    )
+
+
+class _Mergeable(NamedTuple):
+    job_id: int
+    question_z: bytes
+    solution_z: bytes | None
+    page_span: str
+    confidence: float
+    notes: str | None
+
+
+def _load_mergeable(
+    conn: sqlite3.Connection, item_id: int, missing_detail: str
+) -> _Mergeable:
+    """Fetch an item that must be `pending` to take part in a merge, raising the
+    right problem otherwise: 404 if absent, 409 if already confirmed, discarded,
+    or merged (so a merge retry on a now-`merged` source is a clean 409)."""
+    row = conn.execute(
+        "SELECT job_id, question_z, solution_z, page_span, confidence, notes, state"
+        " FROM import_items WHERE id = ?",
+        (item_id,),
+    ).fetchone()
+    if row is None:
+        raise HTTPException(status_code=404, detail=missing_detail)
+    state = str(row[6])
+    if state != "pending":
+        detail = {
+            "confirmed": "A confirmed item cannot be merged.",
+            "discarded": "A discarded item cannot be merged.",
+            "merged": "This item was already merged.",
+        }.get(state, "This item cannot be merged.")
+        raise HTTPException(status_code=409, detail=detail)
+    return _Mergeable(
+        job_id=int(row[0]),
+        question_z=bytes(row[1]),
+        solution_z=None if row[2] is None else bytes(row[2]),
+        page_span=str(row[3]),
+        confidence=float(row[4]),
+        notes=None if row[5] is None else str(row[5]),
+    )
+
+
+def _maybe_text(conn: sqlite3.Connection, blob: bytes | None) -> str | None:
+    return None if blob is None else decompress_text(conn, "problem_text", blob)
+
+
+def _join_notes(first: str | None, second: str | None) -> str | None:
+    parts = [part for part in (first, second) if part is not None]
+    return "; ".join(parts) if parts else None
+
+
+@router.post(
+    "/{course_id}/import-items/{item_id}/discard",
+    status_code=204,
+    responses={
+        401: {"model": Problem},
+        403: {"model": Problem},
+        404: {"model": Problem},
+        409: {"model": Problem},
+    },
+)
+async def discard_import_item(
+    course_id: int,
+    item_id: int,
+    identity: Annotated[Identity, Depends(require_professor)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+) -> Response:
+    """Discard a spurious staged item (guide Stage 3): it leaves the review and is
+    purged with the job at 30 days. A state edit only, not a delete, so the item
+    stays for the purge and its metrics. Idempotent on an already-discarded item;
+    a confirmed one is refused (unpublish or delete the draft instead), and a
+    merged one is already gone."""
+    await ensure_course_owner(shards, course_id, identity)
+
+    def apply(conn: sqlite3.Connection) -> None:
+        row = conn.execute(
+            "SELECT state FROM import_items WHERE id = ?", (item_id,)
+        ).fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail="Import item not found.")
+        state = str(row[0])
+        if state == "discarded":
+            return  # idempotent
+        if state == "confirmed":
+            raise HTTPException(
+                status_code=409, detail="A confirmed item cannot be discarded."
+            )
+        if state == "merged":
+            raise HTTPException(
+                status_code=409, detail="A merged item cannot be discarded."
+            )
+        conn.execute(
+            "UPDATE import_items SET state = 'discarded' WHERE id = ?", (item_id,)
+        )
+
+    await shards.course(course_id).run(apply)
+    return Response(status_code=204)

@@ -22,10 +22,11 @@ model pass staging items with the 30-day purge, the vision figure detector
 closing Stage 1b's union with scanned-page page_crop figures, the 4.4 confirm
 endpoint copying a staged item into a draft case study, 4.5 logging the two
 extraction-accuracy metrics at confirmation, three figure verbs (decorative,
-reassign, add-a-box), and figure and source-page image serving built, and the
-five-PDF golden-corpus harness completed (decision 0033, awaiting its captured
-PDFs). The Phase 4 backend is complete bar figure re-crop, split, merge, and
-discard.
+reassign, add-a-box), figure and source-page image serving, and the item verbs
+merge and discard (decision 0034) built, and the five-PDF golden-corpus harness
+completed (decision 0033, awaiting its captured PDFs). The Phase 4 backend is
+complete bar item/figure split, which alone needs re-cropping from the lossless
+source and is deferred with the figure re-crop follow-up (decision 0031).
 
 Figure and source-page serving (decision 0032): a figure's bbox is stored
 normalised to 0..1 of its page (top-left origin, one frame across born-digital

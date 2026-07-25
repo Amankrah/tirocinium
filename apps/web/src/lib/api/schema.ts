@@ -279,6 +279,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/courses/{course_id}/import-items/{item_id}/discard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Discard Import Item
+         * @description Discard a spurious staged item (guide Stage 3): it leaves the review and is
+         *     purged with the job at 30 days. A state edit only, not a delete, so the item
+         *     stays for the purge and its metrics. Idempotent on an already-discarded item;
+         *     a confirmed one is refused (unpublish or delete the draft instead), and a
+         *     merged one is already gone.
+         */
+        post: operations["discard_import_item_api_v1_courses__course_id__import_items__item_id__discard_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses/{course_id}/import-items/{item_id}/figures/from-box": {
         parameters: {
             query?: never;
@@ -323,6 +347,33 @@ export interface paths {
          *     and stays; only this assignment goes).
          */
         delete: operations["unassign_item_figure_api_v1_courses__course_id__import_items__item_id__figures__figure_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/import-items/{item_id}/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Merge Import Items
+         * @description Merge a sibling item into this one (guide Stage 3), for a single question
+         *     the segmenter split. This item is the survivor: the source's question (and
+         *     solution) markdown is appended with its fig:// tokens intact, the source's
+         *     figures move onto this item, the page span and notes combine, and the source
+         *     leaves the review as `merged`. A link-and-state edit only (decision 0034); no
+         *     figure is re-cropped and no bytes change. Both items must be pending: a retry
+         *     finds the source already `merged` and 409s, so a double-submit cannot append
+         *     twice.
+         */
+        post: operations["merge_import_items_api_v1_courses__course_id__import_items__item_id__merge_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1007,6 +1058,26 @@ export interface components {
         MappingsIn: {
             /** Mappings */
             mappings: components["schemas"]["MappingIn"][];
+        };
+        /** MergeIn */
+        MergeIn: {
+            /** Source Item Id */
+            source_item_id: number;
+        };
+        /** MergedOut */
+        MergedOut: {
+            /** Confidence */
+            confidence: number;
+            /** Merged Item Id */
+            merged_item_id: number;
+            /** Page Span */
+            page_span: string;
+            /** Question Md */
+            question_md: string;
+            /** Solution Md */
+            solution_md: string | null;
+            /** Survivor Id */
+            survivor_id: number;
         };
         /** PageIn */
         PageIn: {
@@ -2388,6 +2459,72 @@ export interface operations {
             };
         };
     };
+    discard_import_item_api_v1_courses__course_id__import_items__item_id__discard_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     add_figure_from_box_api_v1_courses__course_id__import_items__item_id__figures_from_box_post: {
         parameters: {
             query?: never;
@@ -2553,6 +2690,87 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    merge_import_items_api_v1_courses__course_id__import_items__item_id__merge_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MergedOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
