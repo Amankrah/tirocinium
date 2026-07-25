@@ -143,6 +143,37 @@ export const strings = {
     accept: "Accept these",
     dismiss: "Dismiss",
   },
+  // Preview variants and the flagged review queue (Phase 5.3 to 5.5, guide 4.4).
+  variants: {
+    previewHeading: "Preview variants",
+    previewIntro:
+      "Generate a few sample variants to see what students would get before you publish.",
+    generate: "Generate preview variants",
+    generating: "Generating…",
+    seedLabel: (seed: number) => `Seed ${seed}`,
+    flagged: "Flagged for review",
+    generateError:
+      "Generation did not start. Save the parameters for this case study first.",
+    reviewLink: "Review flagged variants",
+    // The review queue.
+    reviewTitle: "Flagged variants",
+    reviewBack: "Back to the case study",
+    reviewEmpty: "No flagged variants. Every generated variant verified cleanly.",
+    reviewIntro:
+      "The independent re-solve disagreed with these. Compare them, then promote, edit, or discard.",
+    generated: "Generation",
+    reSolve: "Independent re-solve",
+    noReSolve: "The re-solve produced nothing to compare.",
+    answers: "Final answers",
+    values: "Values",
+    promote: "Promote",
+    editSolution: "Edit solution",
+    saveEdit: "Save",
+    cancelEdit: "Cancel",
+    discard: "Discard",
+    discardBlocked: "This variant has submissions and cannot be discarded.",
+    reviewError: "That did not go through. Try again.",
+  },
   seats: {
     back: "Back to course",
     heading: "Seats",

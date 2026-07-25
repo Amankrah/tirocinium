@@ -14,6 +14,12 @@ import {
   saveParamSpecAction,
 } from "./param-actions";
 import { ParamPanel } from "./param-panel";
+import {
+  generateVariantsAction,
+  getVariantAction,
+  listVariantsAction,
+} from "./variant-actions";
+import { VariantPreview } from "./variant-preview";
 
 // The professor's preview of a case study, published or draft, rendered through
 // the same ProblemBody a seat would read (decision 0014) so what the professor
@@ -62,6 +68,13 @@ export default async function CaseStudyPreviewPage({
           save={saveParamSpecAction}
           clear={deleteParamSpecAction}
           propose={autoParameterizeAction}
+        />
+        <VariantPreview
+          courseId={cid}
+          caseStudyId={csid}
+          generate={generateVariantsAction}
+          list={listVariantsAction}
+          get={getVariantAction}
         />
       </article>
     </ProfessorShell>
