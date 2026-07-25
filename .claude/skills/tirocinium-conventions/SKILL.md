@@ -7,7 +7,7 @@ description: Tirocinium coding standards, API conventions, data-layer rules, and
 
 The four documents in `docs/` are the specification and outrank this skill; this
 skill is the operational digest that survives context windows. Last updated for
-Phase 4.4 (data layer, auth, seats, and the authoring backend done; the
+Phase 5.1 (data layer, auth, seats, and the authoring backend done; the
 handwritten solution upload path live; scan preprocessing implemented in Rust;
 handwriting transcription running in an off-request-path worker with a recorded-
 response model seam and SSE progress; indexing and retrieval done, with FTS5 and
@@ -27,6 +27,34 @@ merge and discard (decision 0034) built, and the five-PDF golden-corpus harness
 completed (decision 0033, awaiting its captured PDFs). The Phase 4 backend is
 complete bar item/figure split, which alone needs re-cropping from the lossless
 source and is deferred with the figure re-crop follow-up (decision 0031).
+Phase 5 has begun: 5.1 (the parameter spec and the figure-frozen check) is done.
+
+The parameter spec (milestone 5.1, decision 0036): guide 6.1's typed spec
+(number, integer, choice, entity parameters; plain-language invariants passed
+verbatim into generation and verification prompts; a free-text solution method)
+as pydantic models in `app/params/schema.py`, extended with a per-parameter
+`base` value (the value in the base text, which the frozen check and base
+rendering need) and an optional entity `description`. Parameter names are clean
+identifier tokens. The editor surface is `GET`/`PUT`/`DELETE`
+`.../case-studies/{id}/param-spec`, professor-and-owner, the spec compressed
+into `case_studies.param_spec_z`. Saving runs the figure-frozen check
+(`app/params/figure_check.py`): each essential figure of the case study (via
+its confirmed item's `item_figures`; decorative figures excluded, which is one
+of the two escape hatches) has its displayed values read once ever through the
+`FigureReader` vision seam (`app/params/model.py`, Anthropic live under
+`prompts/figure-reading/v1`, recorded in tests), cached by content hash in
+`figure_readings` (migration course/0013); a parameter whose base value appears
+among a figure's displayed values is refused with a 409 whose `blocked`
+extension states each conflict's professor-facing reason (`app/problems.py` now
+merges dict-detail extension members into the problem body). Matching is
+literal and in Python (authoring-time string matching, not the mandated-Rust
+numeric comparer): parsed numeric tokens within relative tolerance,
+case-insensitive containment for choice and entity.
+
+pdfium is single-threaded in a way per-call locking does not cover: the crate
+holds one process-wide operation lock across each whole decode or
+extract_figures call (two interleaved logical operations corrupt each other's
+reads even with pdfium-render's `thread_safe` per-call mutex).
 
 Figure and source-page serving (decision 0032): a figure's bbox is stored
 normalised to 0..1 of its page (top-left origin, one frame across born-digital
@@ -52,8 +80,8 @@ them, and any code that would weaken one is wrong by definition.
 regenerated, described in place, or re-encoded lossily. Crops come from the
 lossless source; variants reference the same `figures` rows byte for byte; and
 figure bytes never enter a text prompt (figures travel as `fig://{id}` tokens in
-markdown, and as attached images only where the spec says so: verification
-re-solve, working assessment, the tutor's context).
+markdown, and as attached images only where the spec says so: the figure-frozen
+reading, verification re-solve, working assessment, the tutor's context).
 
 **The AI proposes and the professor disposes.** Nothing extracted, generated, or
 auto-parameterized becomes student-visible course content without explicit

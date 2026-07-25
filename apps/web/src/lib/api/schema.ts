@@ -158,6 +158,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/courses/{course_id}/case-studies/{case_study_id}/param-spec": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Param Spec */
+        get: operations["get_param_spec_api_v1_courses__course_id__case_studies__case_study_id__param_spec_get"];
+        /** Put Param Spec */
+        put: operations["put_param_spec_api_v1_courses__course_id__case_studies__case_study_id__param_spec_put"];
+        post?: never;
+        /** Delete Param Spec */
+        delete: operations["delete_param_spec_api_v1_courses__course_id__case_studies__case_study_id__param_spec_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses/{course_id}/case-studies/{case_study_id}/publish": {
         parameters: {
             query?: never;
@@ -714,6 +733,20 @@ export interface components {
             /** Token */
             token: string;
         };
+        /**
+         * BlockedParameter
+         * @description One parameter the check refuses, with the professor-facing reason.
+         */
+        BlockedParameter: {
+            /** Figure Id */
+            figure_id: number;
+            /** Parameter */
+            parameter: string;
+            /** Reason */
+            reason: string;
+            /** Value */
+            value: string;
+        };
         /** CaseStudyDetail */
         CaseStudyDetail: {
             /** Body */
@@ -766,6 +799,18 @@ export interface components {
             body?: string | null;
             /** Title */
             title?: string | null;
+        };
+        /** ChoiceParameter */
+        ChoiceParameter: {
+            /** Base */
+            base: string;
+            /** Options */
+            options: string[];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "choice";
         };
         /** ConceptIn */
         ConceptIn: {
@@ -860,6 +905,23 @@ export interface components {
         CourseUpdate: {
             /** Title */
             title: string;
+        };
+        /**
+         * EntityParameter
+         * @description A named thing the generator may replace freely (a company, a person, a
+         *     product), guided by a short description of what would keep the problem
+         *     coherent.
+         */
+        EntityParameter: {
+            /** Base */
+            base: string;
+            /** Description */
+            description?: string | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "entity";
         };
         /** FigureCreatedOut */
         FigureCreatedOut: {
@@ -1001,6 +1063,21 @@ export interface components {
             /** Page Index */
             page_index: number;
         };
+        /** IntegerParameter */
+        IntegerParameter: {
+            /** Base */
+            base: number;
+            /** Range */
+            range: [
+                number,
+                number
+            ];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "integer";
+        };
         /**
          * ItemFigureOut
          * @description A figure assigned to an item, with a presigned GET of its lossless crop so
@@ -1079,6 +1156,23 @@ export interface components {
             /** Survivor Id */
             survivor_id: number;
         };
+        /** NumberParameter */
+        NumberParameter: {
+            /** Base */
+            base: number;
+            /** Range */
+            range: [
+                number,
+                number
+            ];
+            /** Step */
+            step?: number | null;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "number";
+        };
         /** PageIn */
         PageIn: {
             /** Content Hash */
@@ -1118,6 +1212,42 @@ export interface components {
             regions: components["schemas"]["RegionOut"][];
             /** Reject Reason */
             reject_reason: string | null;
+        };
+        /**
+         * ParamSpec
+         * @description The stored specification. Invariants are the professor's control over
+         *     pedagogical equivalence and travel verbatim into generation and
+         *     verification prompts (guide 6.1).
+         */
+        ParamSpec: {
+            /** Invariants */
+            invariants?: string[];
+            /** Parameters */
+            parameters?: {
+                [key: string]: components["schemas"]["NumberParameter"] | components["schemas"]["IntegerParameter"] | components["schemas"]["ChoiceParameter"] | components["schemas"]["EntityParameter"];
+            };
+            /** Solution Method */
+            solution_method?: string | null;
+        };
+        /**
+         * ParamSpecBlockedProblem
+         * @description The 409 the frozen check returns: RFC 7807 with a `blocked` extension
+         *     listing each refused parameter and its professor-facing reason.
+         */
+        ParamSpecBlockedProblem: {
+            /** Blocked */
+            blocked?: components["schemas"]["BlockedParameter"][];
+            /** Detail */
+            detail?: string | null;
+            /** Status */
+            status: number;
+            /** Title */
+            title: string;
+            /**
+             * Type
+             * @default about:blank
+             */
+            type: string;
         };
         /**
          * Problem
@@ -2003,6 +2133,167 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Problem"];
                 };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_param_spec_api_v1_courses__course_id__case_studies__case_study_id__param_spec_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                case_study_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParamSpec"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_param_spec_api_v1_courses__course_id__case_studies__case_study_id__param_spec_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                case_study_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ParamSpec"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParamSpec"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParamSpecBlockedProblem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_param_spec_api_v1_courses__course_id__case_studies__case_study_id__param_spec_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                case_study_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Forbidden */
             403: {

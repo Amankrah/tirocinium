@@ -6,8 +6,8 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at milestone 4.5 (decisions 0030,
-0031, 0032: figure and source-page image serving):
+passes; green never goes red. Last updated at milestone 5.1 (decision 0036:
+the parameter spec and the figure-frozen check):
 Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 backend
 complete (3.1 the submission upload path done; 3.2 scan preprocessing
 implemented, its golden gate awaiting the 30-photo corpus; 3.3 handwriting
@@ -28,7 +28,9 @@ with its figures; 4.5 logs the two extraction-accuracy metrics (text edit
 distance and figure interventions per item) at confirmation; three figure verbs
 (mark decorative, reassign, add-a-box) are built, with re-crop and split
 deferred. The Phase 4 backend is complete bar those two; the confirmation
-surface is the frontend's.
+surface is the frontend's. Phase 5 has begun: 5.1 (the parameter spec, its
+editor panel backend, and the figure-frozen check behind the cached
+`FigureReader` vision seam) is done.
 The Phase 3 frontend half
 (3.5) is in
 progress: the upload flow (capture, pre-checks, orchestration, SSE processing)
@@ -72,9 +74,12 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 189 tests (25 data layer, 16 case studies/concepts/courses,
+Python suite, 208 tests (25 data layer, 16 case studies/concepts/courses,
 15 seats, 12 auth, 16 submissions (incl. 4 transcription-read), 5 transcription,
-14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 63 imports
+14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 19 params
+(the spec round-trip compressed at rest, 7 validation rejections, the frozen
+check blocking and the decorative unblock, the reading cache, no-figures no
+model call, and the auth surface), 63 imports
 (4 decode pipeline + 2 figure pipeline (born-digital + scanned detector),
 9 endpoint, 8 confirm/list/metrics, 8 figure verbs (incl. the items read carrying
 figures+pages), 5 figure resolve (owner any, seat published-only, 404 hides
@@ -392,6 +397,30 @@ Phase 4, in progress:
   controller with its side-effects injected and tested; the authed calls proxy
   through professor server actions. Reached from an "Import from PDF" link on the
   course page, and its ready state links into the confirmation surface.
+Phase 5, in progress:
+
+- 5.1 (done): the parameter spec and the figure-frozen check (decision 0036).
+  Typed spec models (`app/params/schema.py`, guide 6.1 plus per-parameter
+  `base`), `GET`/`PUT`/`DELETE` `.../case-studies/{id}/param-spec` storing the
+  spec compressed in `param_spec_z`, and the frozen check on every save: each
+  essential figure's displayed values via the `FigureReader` seam
+  (`AnthropicFigureReader` live, `RecordedFigureReader` in tests, prompt
+  `figure-reading/v1`), cached once-ever by content hash in `figure_readings`
+  (migration course/0013); conflicts are a 409 whose `blocked` extension names
+  each parameter, figure, value, and reason; decorative figures are excluded,
+  so the figure-verb escape hatch unblocks. The 19 tests in
+  `app/params/test_param_spec.py` cover the round-trip (compressed at rest),
+  GET-without-spec 404, DELETE, seven validation rejections (inverted range,
+  base outside range or options, zero step, unknown type, float in an integer
+  range, dirty name), the block (with reason copy and nothing stored), a
+  choice value blocked, the decorative unblock via the real figure verb, the
+  reading cache (one model call across two saves, provenance row), a
+  figure-less case study calling no model, and the auth surface (non-owner
+  403, seat 403, 401, unknown case study 404). The phase-gate item "blocks a
+  parameter whose value appears in a test schematic and unblocks it when the
+  figure is marked decorative" is green; the adversarial verification suite
+  and pool-invariant gates arrive with 5.3 and 5.4.
+
 - 4.4 (web, confirmation surface): built against the full contract (figure/page
   serving, confirm, discard, merge, figure verbs). The read renders each detected
   problem as a card: source pages with figure boxes drawn from the normalised
@@ -454,6 +483,12 @@ replays them; `platform_core.embedding.quantize` turns a vector into the stored
 int8 codes. The hybrid-retrieval tests build their embedder in memory from known
 texts and hand-authored vectors, so the gate needs no committed asset; the
 directory is where a captured corpus lands as one grows.
+
+Recorded figure-reading responses (the frozen check's displayed-value readings,
+a JSON `{"values": [...]}` per figure named for the sha256 of the exact figure
+bytes) live at `apps/api/tests/recorded/figure-reading/`, replayed by
+`RecordedFigureReader`; the param-spec tests build theirs in memory, so the
+gate needs no committed asset.
 
 Recorded segmentation responses live at `apps/api/tests/recorded/segmentation/`,
 one JSON array of items per file named for the sha256 of the assembled document

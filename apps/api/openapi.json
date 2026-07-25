@@ -53,6 +53,35 @@
         "title": "AuthOut",
         "type": "object"
       },
+      "BlockedParameter": {
+        "description": "One parameter the check refuses, with the professor-facing reason.",
+        "properties": {
+          "figure_id": {
+            "title": "Figure Id",
+            "type": "integer"
+          },
+          "parameter": {
+            "title": "Parameter",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "parameter",
+          "figure_id",
+          "value",
+          "reason"
+        ],
+        "title": "BlockedParameter",
+        "type": "object"
+      },
       "CaseStudyDetail": {
         "properties": {
           "body": {
@@ -218,6 +247,34 @@
           }
         },
         "title": "CaseStudyUpdate",
+        "type": "object"
+      },
+      "ChoiceParameter": {
+        "properties": {
+          "base": {
+            "title": "Base",
+            "type": "string"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 2,
+            "title": "Options",
+            "type": "array"
+          },
+          "type": {
+            "const": "choice",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "base",
+          "options"
+        ],
+        "title": "ChoiceParameter",
         "type": "object"
       },
       "ConceptIn": {
@@ -506,6 +563,38 @@
           "title"
         ],
         "title": "CourseUpdate",
+        "type": "object"
+      },
+      "EntityParameter": {
+        "description": "A named thing the generator may replace freely (a company, a person, a\nproduct), guided by a short description of what would keep the problem\ncoherent.",
+        "properties": {
+          "base": {
+            "minLength": 1,
+            "title": "Base",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "type": {
+            "const": "entity",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "base"
+        ],
+        "title": "EntityParameter",
         "type": "object"
       },
       "FigureCreatedOut": {
@@ -907,6 +996,40 @@
         "title": "ImportPageOut",
         "type": "object"
       },
+      "IntegerParameter": {
+        "properties": {
+          "base": {
+            "title": "Base",
+            "type": "integer"
+          },
+          "range": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "title": "Range",
+            "type": "array"
+          },
+          "type": {
+            "const": "integer",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "base",
+          "range"
+        ],
+        "title": "IntegerParameter",
+        "type": "object"
+      },
       "ItemFigureOut": {
         "description": "A figure assigned to an item, with a presigned GET of its lossless crop so\nthe confirmation surface can render it. `bbox` is normalised 0..1 (top-left),\nthe same frame `from-box` takes back. `token` is the fig:// token sitting in\nthe item's question_md, so the surface can render it inline at its position.",
         "properties": {
@@ -1129,6 +1252,52 @@
         "title": "MergedOut",
         "type": "object"
       },
+      "NumberParameter": {
+        "properties": {
+          "base": {
+            "title": "Base",
+            "type": "number"
+          },
+          "range": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Range",
+            "type": "array"
+          },
+          "step": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Step"
+          },
+          "type": {
+            "const": "number",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "base",
+          "range"
+        ],
+        "title": "NumberParameter",
+        "type": "object"
+      },
       "PageIn": {
         "properties": {
           "content_hash": {
@@ -1267,6 +1436,104 @@
           "regions"
         ],
         "title": "PageReadingOut",
+        "type": "object"
+      },
+      "ParamSpec": {
+        "description": "The stored specification. Invariants are the professor's control over\npedagogical equivalence and travel verbatim into generation and\nverification prompts (guide 6.1).",
+        "properties": {
+          "invariants": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Invariants",
+            "type": "array"
+          },
+          "parameters": {
+            "patternProperties": {
+              "^[a-z][a-z0-9_]*$": {
+                "discriminator": {
+                  "mapping": {
+                    "choice": "#/components/schemas/ChoiceParameter",
+                    "entity": "#/components/schemas/EntityParameter",
+                    "integer": "#/components/schemas/IntegerParameter",
+                    "number": "#/components/schemas/NumberParameter"
+                  },
+                  "propertyName": "type"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/NumberParameter"
+                  },
+                  {
+                    "$ref": "#/components/schemas/IntegerParameter"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ChoiceParameter"
+                  },
+                  {
+                    "$ref": "#/components/schemas/EntityParameter"
+                  }
+                ]
+              }
+            },
+            "title": "Parameters",
+            "type": "object"
+          },
+          "solution_method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Solution Method"
+          }
+        },
+        "title": "ParamSpec",
+        "type": "object"
+      },
+      "ParamSpecBlockedProblem": {
+        "description": "The 409 the frozen check returns: RFC 7807 with a `blocked` extension\nlisting each refused parameter and its professor-facing reason.",
+        "properties": {
+          "blocked": {
+            "items": {
+              "$ref": "#/components/schemas/BlockedParameter"
+            },
+            "title": "Blocked",
+            "type": "array"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "status": {
+            "title": "Status",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "type": {
+            "default": "about:blank",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "status"
+        ],
+        "title": "ParamSpecBlockedProblem",
         "type": "object"
       },
       "Problem": {
@@ -2832,6 +3099,243 @@
         "summary": "Set Case Study Concepts",
         "tags": [
           "case-studies"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/case-studies/{case_study_id}/param-spec": {
+      "delete": {
+        "operationId": "delete_param_spec_api_v1_courses__course_id__case_studies__case_study_id__param_spec_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "case_study_id",
+            "required": true,
+            "schema": {
+              "title": "Case Study Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Param Spec",
+        "tags": [
+          "parameterization"
+        ]
+      },
+      "get": {
+        "operationId": "get_param_spec_api_v1_courses__course_id__case_studies__case_study_id__param_spec_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "case_study_id",
+            "required": true,
+            "schema": {
+              "title": "Case Study Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParamSpec"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Param Spec",
+        "tags": [
+          "parameterization"
+        ]
+      },
+      "put": {
+        "operationId": "put_param_spec_api_v1_courses__course_id__case_studies__case_study_id__param_spec_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "case_study_id",
+            "required": true,
+            "schema": {
+              "title": "Case Study Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParamSpec"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParamSpec"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParamSpecBlockedProblem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Param Spec",
+        "tags": [
+          "parameterization"
         ]
       }
     },
