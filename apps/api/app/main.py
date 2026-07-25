@@ -25,6 +25,7 @@ from app.courses import router as courses_router
 from app.db import ShardManager
 from app.events import InMemoryEventBus, RedisEventBus
 from app.imports import router as imports_router
+from app.mastery import router as mastery_router
 from app.params import router as params_router
 from app.problems import install_problem_details
 from app.retrieval import router as retrieval_router
@@ -114,4 +115,5 @@ def create_app(
     app.include_router(imports_router)
     app.include_router(params_router)
     app.include_router(variants_router)
+    app.include_router(mastery_router)
     return app

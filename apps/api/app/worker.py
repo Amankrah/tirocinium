@@ -24,6 +24,9 @@ from app.imports.decoder import (
 )
 from app.imports.pipeline import run_import_pipeline
 from app.imports.segmentation import AnthropicSegmenter
+from app.mastery.emission import emit_submission_evidence
+from app.mastery.model import AnthropicWorkingAssessor
+from app.mastery.params import active_params_json
 from app.retrieval.indexing import index_submission
 from app.retrieval.model import OpenAIEmbedder
 from app.storage import get_object_storage
@@ -55,6 +58,7 @@ async def startup(ctx: dict[str, Any]) -> None:
     ctx["segmenter"] = AnthropicSegmenter()
     ctx["variant_generator"] = AnthropicVariantGenerator()
     ctx["variant_verifier"] = AnthropicVariantVerifier()
+    ctx["assessor"] = AnthropicWorkingAssessor()
     ctx["bus"] = RedisEventBus(_redis_url())
 
 
@@ -86,6 +90,16 @@ async def process_submission(ctx: dict[str, Any], course_id: int, submission_id:
             embedder=ctx["embedder"],
             course_id=course_id,
             submission_id=submission_id,
+        )
+        # Stage: evidence emission (milestone 6.2). Idempotent, so a job
+        # retry that already emitted this submission's events emits nothing.
+        await emit_submission_evidence(
+            shards=ctx["shards"],
+            storage=ctx["storage"],
+            assessor=ctx["assessor"],
+            course_id=course_id,
+            submission_id=submission_id,
+            params_json=await active_params_json(ctx["shards"]),
         )
     return status
 

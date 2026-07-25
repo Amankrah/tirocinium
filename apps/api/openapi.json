@@ -277,6 +277,52 @@
         "title": "ChoiceParameter",
         "type": "object"
       },
+      "ConceptDistribution": {
+        "description": "The professor's lens: how the class stands on one concept. Gaps fill\nin when the defense conversations of Phase 7 start naming them.",
+        "properties": {
+          "concept_id": {
+            "title": "Concept Id",
+            "type": "integer"
+          },
+          "developing": {
+            "title": "Developing",
+            "type": "integer"
+          },
+          "gaps": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Gaps",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "shaky": {
+            "title": "Shaky",
+            "type": "integer"
+          },
+          "solid": {
+            "title": "Solid",
+            "type": "integer"
+          },
+          "unseen": {
+            "title": "Unseen",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "concept_id",
+          "name",
+          "unseen",
+          "shaky",
+          "developing",
+          "solid"
+        ],
+        "title": "ConceptDistribution",
+        "type": "object"
+      },
       "ConceptIn": {
         "properties": {
           "description": {
@@ -330,6 +376,65 @@
           "concepts"
         ],
         "title": "ConceptListOut",
+        "type": "object"
+      },
+      "ConceptMastery": {
+        "description": "One concept in the student's picture. The trail ships with the state\n(spec section 9): the frontend never renders a bare label.",
+        "properties": {
+          "concept_id": {
+            "title": "Concept Id",
+            "type": "integer"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "due_for_revisit": {
+            "title": "Due For Revisit",
+            "type": "boolean"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "m_eff": {
+            "title": "M Eff",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "retention": {
+            "title": "Retention",
+            "type": "number"
+          },
+          "trail": {
+            "items": {
+              "$ref": "#/components/schemas/TrailLine"
+            },
+            "title": "Trail",
+            "type": "array"
+          }
+        },
+        "required": [
+          "concept_id",
+          "name",
+          "description",
+          "label",
+          "m_eff",
+          "retention",
+          "due_for_revisit",
+          "trail"
+        ],
+        "title": "ConceptMastery",
         "type": "object"
       },
       "ConceptOut": {
@@ -565,6 +670,22 @@
         "title": "CourseUpdate",
         "type": "object"
       },
+      "DistributionOut": {
+        "properties": {
+          "concepts": {
+            "items": {
+              "$ref": "#/components/schemas/ConceptDistribution"
+            },
+            "title": "Concepts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "concepts"
+        ],
+        "title": "DistributionOut",
+        "type": "object"
+      },
       "EntityParameter": {
         "description": "A named thing the generator may replace freely (a company, a person, a\nproduct), guided by a short description of what would keep the problem\ncoherent.",
         "properties": {
@@ -717,6 +838,45 @@
           "seeds"
         ],
         "title": "GenerateOut",
+        "type": "object"
+      },
+      "GradeIn": {
+        "description": "The professor's grade for a submission, already mapped to the spec's\n[0,1] scale.",
+        "properties": {
+          "score": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "type": "number"
+          }
+        },
+        "required": [
+          "score"
+        ],
+        "title": "GradeIn",
+        "type": "object"
+      },
+      "GradeOut": {
+        "properties": {
+          "graded_at": {
+            "title": "Graded At",
+            "type": "integer"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "submission_id": {
+            "title": "Submission Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "submission_id",
+          "score",
+          "graded_at"
+        ],
+        "title": "GradeOut",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -1226,6 +1386,22 @@
           "mappings"
         ],
         "title": "MappingsIn",
+        "type": "object"
+      },
+      "MasteryOut": {
+        "properties": {
+          "concepts": {
+            "items": {
+              "$ref": "#/components/schemas/ConceptMastery"
+            },
+            "title": "Concepts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "concepts"
+        ],
+        "title": "MasteryOut",
         "type": "object"
       },
       "MergeIn": {
@@ -1861,6 +2037,75 @@
         "title": "ReissueOut",
         "type": "object"
       },
+      "RevisitConcept": {
+        "description": "One revisit suggestion: the concept and one targeted variant, or none\nwhen no unattempted verified variant exists right now (the queue stays\ncalm either way).",
+        "properties": {
+          "concept_id": {
+            "title": "Concept Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "variant": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RevisitVariant"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "concept_id",
+          "name",
+          "variant"
+        ],
+        "title": "RevisitConcept",
+        "type": "object"
+      },
+      "RevisitOut": {
+        "properties": {
+          "concepts": {
+            "items": {
+              "$ref": "#/components/schemas/RevisitConcept"
+            },
+            "title": "Concepts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "concepts"
+        ],
+        "title": "RevisitOut",
+        "type": "object"
+      },
+      "RevisitVariant": {
+        "properties": {
+          "case_study_id": {
+            "title": "Case Study Id",
+            "type": "integer"
+          },
+          "case_study_title": {
+            "title": "Case Study Title",
+            "type": "string"
+          },
+          "variant_id": {
+            "title": "Variant Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "variant_id",
+          "case_study_id",
+          "case_study_title"
+        ],
+        "title": "RevisitVariant",
+        "type": "object"
+      },
       "RevokeOut": {
         "properties": {
           "seat_number": {
@@ -2187,6 +2432,24 @@
           "pages"
         ],
         "title": "SubmissionOut",
+        "type": "object"
+      },
+      "TrailLine": {
+        "properties": {
+          "at": {
+            "title": "At",
+            "type": "integer"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "text"
+        ],
+        "title": "TrailLine",
         "type": "object"
       },
       "TranscriptionOut": {
@@ -5671,6 +5934,209 @@
         ]
       }
     },
+    "/api/v1/courses/{course_id}/mastery": {
+      "get": {
+        "operationId": "seat_mastery_api_v1_courses__course_id__mastery_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MasteryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Seat Mastery",
+        "tags": [
+          "mastery"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/mastery/distribution": {
+      "get": {
+        "description": "The class's relationship to the material, per concept: label counts\nonly, no per-seat ranking (spec section 6). Seats that have produced no\nevidence on a concept count as unseen.",
+        "operationId": "mastery_distribution_api_v1_courses__course_id__mastery_distribution_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DistributionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Mastery Distribution",
+        "tags": [
+          "mastery"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/revisit": {
+      "get": {
+        "description": "The concepts worth a fresh look, most faded first, each with one\ntargeted variant (spec section 5): the highest-weight published case\nstudy for the concept, excluding cases attempted in the last 48 hours,\ndrawing an unattempted servable variant from the pool.",
+        "operationId": "revisit_queue_api_v1_courses__course_id__revisit_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisitOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Revisit Queue",
+        "tags": [
+          "mastery"
+        ]
+      }
+    },
     "/api/v1/courses/{course_id}/search": {
       "get": {
         "description": "Hybrid retrieval over a course's indexed submissions: FTS5 BM25 and int8\nvector similarity fused with reciprocal rank fusion, so an exact term and a\nparaphrase both find the work.",
@@ -5911,6 +6377,93 @@
         "summary": "Generate Seat Batch",
         "tags": [
           "seats"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/submissions/{submission_id}/grade": {
+      "post": {
+        "description": "The professor grades a submission: ground truth. One professor_grade\nevent per mapped concept (confidence 1.0), which triggers the\nsupersession replay inside the store, retracting the submission's\nautomatic events from the estimate (spec 4.6). Event insert, state\nreplay, and the grade column move in one writer transaction.",
+        "operationId": "grade_submission_api_v1_courses__course_id__submissions__submission_id__grade_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "submission_id",
+            "required": true,
+            "schema": {
+              "title": "Submission Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GradeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Grade Submission",
+        "tags": [
+          "mastery"
         ]
       }
     },

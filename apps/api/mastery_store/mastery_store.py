@@ -247,6 +247,32 @@ class MasteryStore:
             due_for_revisit=v["due_for_revisit"],
         )
 
+    def trail(
+        self,
+        seat_id: int,
+        concept_id: int,
+        now: int | None = None,
+        limit: int = 5,
+    ) -> list[dict[str, object]]:
+        """The plain-language evidence trail behind a label (spec section 9):
+        the last `limit` events rendered by the Rust core, newest first, with
+        the decay line when decay is the story. Rendered over the superseded
+        stream, so the trail never cites evidence the state has retracted.
+        Empty for an unseen concept."""
+        now = int(now if now is not None else time.time())
+        row = self._conn.execute(
+            "SELECT state_json FROM mastery_state WHERE seat_id=? AND concept_id=?",
+            (seat_id, concept_id),
+        ).fetchone()
+        if row is None:
+            return []
+        stream = self._event_stream_json(seat_id, concept_id)
+        superseded = _core.supersede_json(stream)
+        lines: list[dict[str, object]] = json.loads(
+            _core.evidence_trail_json(superseded, row[0], now, self._params, limit)
+        )
+        return lines
+
     def seat_view(self, seat_id: int, now: int | None = None) -> list[MasteryView]:
         """The student's mastery picture: one view per concept with state,
         plus implicit Unseen for concepts with no row (the caller renders

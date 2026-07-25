@@ -131,3 +131,20 @@ def test_check_constraints_reject_bad_events(store: MasteryStore) -> None:
             score=1.5, confidence=1.0, k=1.0,
             ref_kind="submission", ref_id=1, at=0,
         )
+
+
+def test_the_trail_explains_the_label(store: MasteryStore) -> None:
+    """The transparency contract (spec section 9): the trail renders the
+    recent events in plain language, newest first, and an unseen concept has
+    no trail at all."""
+    for day in range(3):
+        store.record_event(
+            seat_id=1, concept_id=7, source="answer_match",
+            score=1.0, confidence=0.95, k=1.0,
+            ref_kind="submission", ref_id=day, at=day * DAY,
+        )
+    lines = store.trail(1, 7, now=3 * DAY)
+    assert 1 <= len(lines) <= 5
+    assert all(set(line) == {"at", "text"} for line in lines)
+    assert int(str(lines[0]["at"])) >= int(str(lines[-1]["at"]))  # newest first
+    assert store.trail(1, 8) == []  # unseen: no state, no trail

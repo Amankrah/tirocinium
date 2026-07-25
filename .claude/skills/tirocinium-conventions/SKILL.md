@@ -30,7 +30,32 @@ source and is deferred with the figure re-crop follow-up (decision 0031).
 Phase 5 has begun: 5.1 (the parameter spec and the figure-frozen check),
 5.2 (auto-parameterization), 5.3 (generation and verification, with the
 `tirocinium-compare` member), and 5.4 (the variant pool) are done; 5.5 is the
+frontend's. The Phase 6 backend is complete (6.1 to 6.3, decisions 0040 and
+0041): the mastery model is live, evidence flows from the pipeline, and 6.4
+(the mastery picture, revisit queue, and distribution surfaces) is the
 frontend's.
+
+Mastery integration (Phase 6): all writes to evidence_events and
+mastery_state go through the `MasteryStore` adapter inside one
+`ShardWriter.run` transaction (event insert and state cache move together or
+not at all); the store's arithmetic is the Rust core only. Evidence emission
+(`app/mastery/emission.py`) runs as a worker step after indexing, idempotent
+per submission: `answer_match` via `platform_core.compare.answers_in_text`
+(contiguous-run containment of each stored final answer's numbers in the
+transcription; essay answers or a numberless reading emit nothing; confidence
+is the answer-holding region's, else overall), and `working_assessment` via
+the `WorkingAssessor` vision seam (`app/mastery/model.py`,
+`prompts/working-assessment/v1`, figures as images, rubric/3 with confidence =
+overall x model; unmapped concepts dropped). The professor grade
+(`POST .../submissions/{id}/grade`, score in [0,1]) emits professor_grade
+per mapped concept and triggers the store's supersession replay in the same
+transaction. The seat surfaces (`GET .../mastery` with per-concept trails
+from `evidence_trail_json`, `GET .../revisit` targeting spec section 5
+exactly) are seat-only; the professor reads
+`GET .../mastery/distribution` (label counts, no ranking, `gaps` empty until
+Phase 7). Parameter versions live in the directory's `mastery_params` table;
+`scripts/migrate_mastery_params.py` activates a version and bulk-replays
+every shard (milestone 6.3).
 
 The parameter spec (milestone 5.1, decision 0036): guide 6.1's typed spec
 (number, integer, choice, entity parameters; plain-language invariants passed

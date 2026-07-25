@@ -9,6 +9,7 @@
 
 use crate::engine::{apply, compute_label, replay, State};
 use crate::events::{apply_supersession, WeightedEvent};
+use crate::evidence_trail;
 use crate::params::Params;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -74,6 +75,25 @@ fn view_json(state_json: &str, now: i64, params_json: &str) -> PyResult<String> 
     serde_json::to_string(&out).map_err(jerr)
 }
 
+/// The plain-language evidence trail (spec section 9) for the most recent
+/// `limit` events, newest first, with the decay line when decay is the
+/// story. Rendering lives in the crate because the wording must match what
+/// the model actually did with each event.
+#[pyfunction]
+fn evidence_trail_json(
+    events_json: &str,
+    state_json: &str,
+    now: i64,
+    params_json: &str,
+    limit: usize,
+) -> PyResult<String> {
+    let params: Params = serde_json::from_str(params_json).map_err(jerr)?;
+    let events: Vec<WeightedEvent> = serde_json::from_str(events_json).map_err(jerr)?;
+    let st: State = serde_json::from_str(state_json).map_err(jerr)?;
+    let lines = evidence_trail(&events, &st, now, &params, limit);
+    serde_json::to_string(&lines).map_err(jerr)
+}
+
 /// Register the mastery surface onto a (sub)module; the `platform_core`
 /// umbrella crate calls this to expose `platform_core.mastery`.
 ///
@@ -85,6 +105,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(replay_json, m)?)?;
     m.add_function(wrap_pyfunction!(supersede_json, m)?)?;
     m.add_function(wrap_pyfunction!(view_json, m)?)?;
+    m.add_function(wrap_pyfunction!(evidence_trail_json, m)?)?;
     m.add("SPEC_VERSION", "0.2")?;
     Ok(())
 }

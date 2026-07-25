@@ -556,6 +556,68 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/courses/{course_id}/mastery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Seat Mastery */
+        get: operations["seat_mastery_api_v1_courses__course_id__mastery_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/mastery/distribution": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Mastery Distribution
+         * @description The class's relationship to the material, per concept: label counts
+         *     only, no per-seat ranking (spec section 6). Seats that have produced no
+         *     evidence on a concept count as unseen.
+         */
+        get: operations["mastery_distribution_api_v1_courses__course_id__mastery_distribution_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/revisit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Revisit Queue
+         * @description The concepts worth a fresh look, most faded first, each with one
+         *     targeted variant (spec section 5): the highest-weight published case
+         *     study for the concept, excluding cases attempted in the last 48 hours,
+         *     drawing an unattempted servable variant from the pool.
+         */
+        get: operations["revisit_queue_api_v1_courses__course_id__revisit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses/{course_id}/search": {
         parameters: {
             query?: never;
@@ -590,6 +652,30 @@ export interface paths {
         put?: never;
         /** Generate Seat Batch */
         post: operations["generate_seat_batch_api_v1_courses__course_id__seats_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/submissions/{submission_id}/grade": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Grade Submission
+         * @description The professor grades a submission: ground truth. One professor_grade
+         *     event per mapped concept (confidence 1.0), which triggers the
+         *     supersession replay inside the store, retracting the submission's
+         *     automatic events from the estimate (spec 4.6). Event insert, state
+         *     replay, and the grade column move in one writer transaction.
+         */
+        post: operations["grade_submission_api_v1_courses__course_id__submissions__submission_id__grade_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -932,6 +1018,27 @@ export interface components {
              */
             type: "choice";
         };
+        /**
+         * ConceptDistribution
+         * @description The professor's lens: how the class stands on one concept. Gaps fill
+         *     in when the defense conversations of Phase 7 start naming them.
+         */
+        ConceptDistribution: {
+            /** Concept Id */
+            concept_id: number;
+            /** Developing */
+            developing: number;
+            /** Gaps */
+            gaps?: string[];
+            /** Name */
+            name: string;
+            /** Shaky */
+            shaky: number;
+            /** Solid */
+            solid: number;
+            /** Unseen */
+            unseen: number;
+        };
         /** ConceptIn */
         ConceptIn: {
             /** Description */
@@ -945,6 +1052,29 @@ export interface components {
         ConceptListOut: {
             /** Concepts */
             concepts: components["schemas"]["ConceptOut"][];
+        };
+        /**
+         * ConceptMastery
+         * @description One concept in the student's picture. The trail ships with the state
+         *     (spec section 9): the frontend never renders a bare label.
+         */
+        ConceptMastery: {
+            /** Concept Id */
+            concept_id: number;
+            /** Description */
+            description: string | null;
+            /** Due For Revisit */
+            due_for_revisit: boolean;
+            /** Label */
+            label: string;
+            /** M Eff */
+            m_eff: number;
+            /** Name */
+            name: string;
+            /** Retention */
+            retention: number;
+            /** Trail */
+            trail: components["schemas"]["TrailLine"][];
         };
         /** ConceptOut */
         ConceptOut: {
@@ -1026,6 +1156,11 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** DistributionOut */
+        DistributionOut: {
+            /** Concepts */
+            concepts: components["schemas"]["ConceptDistribution"][];
+        };
         /**
          * EntityParameter
          * @description A named thing the generator may replace freely (a company, a person, a
@@ -1092,6 +1227,24 @@ export interface components {
             enqueued: number;
             /** Seeds */
             seeds: number[];
+        };
+        /**
+         * GradeIn
+         * @description The professor's grade for a submission, already mapped to the spec's
+         *     [0,1] scale.
+         */
+        GradeIn: {
+            /** Score */
+            score: number;
+        };
+        /** GradeOut */
+        GradeOut: {
+            /** Graded At */
+            graded_at: number;
+            /** Score */
+            score: number;
+            /** Submission Id */
+            submission_id: number;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1270,6 +1423,11 @@ export interface components {
         MappingsIn: {
             /** Mappings */
             mappings: components["schemas"]["MappingIn"][];
+        };
+        /** MasteryOut */
+        MasteryOut: {
+            /** Concepts */
+            concepts: components["schemas"]["ConceptMastery"][];
         };
         /** MergeIn */
         MergeIn: {
@@ -1507,6 +1665,33 @@ export interface components {
             /** Seat Number */
             seat_number: string;
         };
+        /**
+         * RevisitConcept
+         * @description One revisit suggestion: the concept and one targeted variant, or none
+         *     when no unattempted verified variant exists right now (the queue stays
+         *     calm either way).
+         */
+        RevisitConcept: {
+            /** Concept Id */
+            concept_id: number;
+            /** Name */
+            name: string;
+            variant: components["schemas"]["RevisitVariant"] | null;
+        };
+        /** RevisitOut */
+        RevisitOut: {
+            /** Concepts */
+            concepts: components["schemas"]["RevisitConcept"][];
+        };
+        /** RevisitVariant */
+        RevisitVariant: {
+            /** Case Study Id */
+            case_study_id: number;
+            /** Case Study Title */
+            case_study_title: string;
+            /** Variant Id */
+            variant_id: number;
+        };
         /** RevokeOut */
         RevokeOut: {
             /** Seat Number */
@@ -1622,6 +1807,13 @@ export interface components {
             submitted_at: number;
             /** Variant Id */
             variant_id: number;
+        };
+        /** TrailLine */
+        TrailLine: {
+            /** At */
+            at: number;
+            /** Text */
+            text: string;
         };
         /**
          * TranscriptionOut
@@ -3801,6 +3993,153 @@ export interface operations {
             };
         };
     };
+    seat_mastery_api_v1_courses__course_id__mastery_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MasteryOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mastery_distribution_api_v1_courses__course_id__mastery_distribution_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DistributionOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revisit_queue_api_v1_courses__course_id__revisit_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevisitOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     search_course_api_v1_courses__course_id__search_get: {
         parameters: {
             query: {
@@ -3933,6 +4272,60 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SeatBatchOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    grade_submission_api_v1_courses__course_id__submissions__submission_id__grade_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                submission_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GradeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GradeOut"];
                 };
             };
             /** @description Forbidden */

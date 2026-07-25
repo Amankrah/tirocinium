@@ -96,6 +96,55 @@ pub fn compare_answer_lists(a: &[String], b: &[String], rel_tol: f64, abs_tol: f
     }
 }
 
+/// Check whether every expected final answer appears in a free-text
+/// transcription (the `answer_match` evidence source, guide 6.6 and mastery
+/// spec section 3): each answer's number sequence must occur as a contiguous
+/// run, in order, among the numbers the text displays, each within
+/// tolerance.
+///
+/// [`Comparison::NoAnswers`] when the expected answers carry no numbers
+/// (essay-style, nothing to compare) or the text displays none (an illegible
+/// or numberless reading is not evidence either way; the event is simply not
+/// emitted). All answers found is a [`Comparison::Match`]; anything else is
+/// a [`Comparison::Mismatch`].
+#[must_use]
+pub fn answers_in_text(answers: &[String], text: &str, rel_tol: f64, abs_tol: f64) -> Comparison {
+    let expected: Vec<Vec<f64>> = answers
+        .iter()
+        .map(|answer| parse_numbers(answer))
+        .filter(|numbers| !numbers.is_empty())
+        .collect();
+    if expected.is_empty() {
+        return Comparison::NoAnswers;
+    }
+    let shown = parse_numbers(text);
+    if shown.is_empty() {
+        return Comparison::NoAnswers;
+    }
+    let all_found = expected
+        .iter()
+        .all(|sequence| contains_run(&shown, sequence, rel_tol, abs_tol));
+    if all_found {
+        Comparison::Match
+    } else {
+        Comparison::Mismatch
+    }
+}
+
+/// Whether `sequence` occurs as a contiguous run inside `shown`, each pair
+/// within tolerance.
+fn contains_run(shown: &[f64], sequence: &[f64], rel_tol: f64, abs_tol: f64) -> bool {
+    if sequence.is_empty() || sequence.len() > shown.len() {
+        return false;
+    }
+    shown.windows(sequence.len()).any(|window| {
+        window
+            .iter()
+            .zip(sequence)
+            .all(|(&a, &b)| numbers_agree(a, b, rel_tol, abs_tol))
+    })
+}
+
 /// Text comparison for answers without numbers: trimmed, whitespace
 /// collapsed, case folded. Deliberately strict beyond that; a paraphrase the
 /// comparer cannot vouch for goes to the professor as a flag, not to a
@@ -177,6 +226,55 @@ mod tests {
     #[test]
     fn empty_lists_are_no_answers_not_agreement() {
         assert_eq!(lists(&[], &[]), Comparison::NoAnswers);
+    }
+
+    fn in_text(answers: &[&str], text: &str) -> Comparison {
+        let answers: Vec<String> = answers.iter().map(ToString::to_string).collect();
+        answers_in_text(&answers, text, REL, ABS)
+    }
+
+    #[test]
+    fn an_answer_is_found_in_a_transcription() {
+        assert_eq!(
+            in_text(
+                &["2.553 mA"],
+                "Working: I = V/R = 12/4700, so I = 2.553 mA. Done."
+            ),
+            Comparison::Match
+        );
+        // Tolerance applies to the student's rounding too.
+        assert_eq!(in_text(&["2.553 mA"], "I = 2.55 mA"), Comparison::Match);
+    }
+
+    #[test]
+    fn a_wrong_answer_in_the_transcription_mismatches() {
+        assert_eq!(in_text(&["2.553 mA"], "I = 9.9 mA"), Comparison::Mismatch);
+    }
+
+    #[test]
+    fn a_multi_number_answer_must_appear_as_a_contiguous_run() {
+        assert_eq!(
+            in_text(&["x = 2 and y = 3"], "we get 2 and then 3"),
+            Comparison::Match
+        );
+        assert_eq!(
+            in_text(&["x = 2 and y = 3"], "we get 2, then 7, then 3"),
+            Comparison::Mismatch
+        );
+    }
+
+    #[test]
+    fn nothing_to_compare_is_no_answers_never_a_verdict() {
+        // Essay-style expected answers carry no numbers.
+        assert_eq!(
+            in_text(&["accept the project"], "I would accept it"),
+            Comparison::NoAnswers
+        );
+        // An illegible or numberless reading is not evidence either way.
+        assert_eq!(
+            in_text(&["2.553 mA"], "the working is smudged"),
+            Comparison::NoAnswers
+        );
     }
 
     #[test]

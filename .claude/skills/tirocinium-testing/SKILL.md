@@ -6,8 +6,8 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at milestone 5.4 (decision 0039:
-the variant pool):
+passes; green never goes red. Last updated at Phase 6 (decisions 0040, 0041:
+mastery integration; the backend of Phases 5 and 6 is complete):
 Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 backend
 complete (3.1 the submission upload path done; 3.2 scan preprocessing
 implemented, its golden gate awaiting the 30-photo corpus; 3.3 handwriting
@@ -49,6 +49,12 @@ solution" carries the variant id into the upload flow, which finally makes that
 path live rather than seed-only (the 3.5 gap, closed). Still to build: preview
 variants (generate three and render), and the flagged review queue (list, the
 verification diff, promote/edit/delete).
+The Phase 6 backend is complete: 6.1 (the store inside the writer
+transaction, the evidence trail exposed through the wheel), 6.2 (answer_match
+and working_assessment emission in the worker, the grade endpoint with
+supersession), 6.3 (the parameter-version migration path), and the mastery
+API surface (the seat picture with trails, the revisit queue, the professor
+distribution); 6.4's rendering is the frontend's.
 The Phase 3 frontend half
 (3.5) is in
 progress: the upload flow (capture, pre-checks, orchestration, SSE processing)
@@ -67,15 +73,16 @@ imports, lint, and both suites; see `infra/README.md` for flags):
 
     ./infra/setup.sh
 
-Rust workspace, 69 tests (mastery 15: 6 property, 9 scenario; codec 8;
+Rust workspace, 73 tests (mastery 15: 6 property, 9 scenario; codec 8;
 preprocess 8: 7 synthetic-image pipeline tests, 1 golden-corpus harness that is
 a no-op until the corpus lands; embedding 10: 7 scenario, 3 property; pdf 10:
 3 decode and 6 figure tests (5 skip when the pdfium binary is absent; the crop
-test is pure image and always runs), 1 no-op golden-corpus harness; compare 18:
-13 scenario (number-format reading, tolerance, structural mismatches, stable
-strings), 5 property (self-match, symmetry, tolerance monotonicity, scientific
-notation invariance, beyond-tolerance perturbation always mismatches)) plus
-lint:
+test is pure image and always runs), 1 no-op golden-corpus harness; compare 22:
+17 scenario (number-format reading, tolerance, structural mismatches, stable
+strings, and answers_in_text's containment: found, wrong, contiguous-run,
+nothing-comparable), 5 property (self-match, symmetry, tolerance monotonicity,
+scientific notation invariance, beyond-tolerance perturbation always
+mismatches)) plus lint:
 
     cd crates/platform_core
     cargo test --workspace
@@ -97,7 +104,7 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 258 tests (25 data layer, 16 case studies/concepts/courses,
+Python suite, 278 tests (25 data layer, 16 case studies/concepts/courses,
 15 seats, 12 auth, 16 submissions (incl. 4 transcription-read), 5 transcription,
 14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 28 params
 (19 param-spec: the spec round-trip compressed at rest, 7 validation
@@ -121,7 +128,11 @@ figures+pages), 5 figure resolve (owner any, seat published-only, 404 hides
 existence), 13 item verbs (merge + discard), 1 edit-distance, 5 figure
 storage/placement, 4 segmentation, 1 purge, 3 pdfium decoder/extractor that skip
 when the binary is absent), 7 backup,
-5 compression, 3 contract, 7 store, 1 latency gate) plus lint
+19 mastery (7 emission incl. the transactionality gate, 1 end-to-end
+seven-day trajectory gate, 8 surface: seat picture with trails and
+seat-only auth, revisit targeting per spec section 5, distribution counts
+and auth, grading with supersession and auth, 3 parameter-version
+migration), 5 compression, 3 contract, 8 store, 1 latency gate) plus lint
 and the worker import smoke, from `apps/api`:
 
     cd apps/api
@@ -521,6 +532,46 @@ Phase 5, in progress:
   split (404 until the five-PDF corpus), both with the affordance designed. That
   is the whole 4.4 frontend but for those; contract, surface, page-box, and
   keyboard tests are in.
+
+Phase 6, backend complete (decisions 0040, 0041):
+
+- 6.1 (done): the crate's tests and the store's 8 run in CI as they have
+  since Phase 0; the remaining hardening is in: every evidence write goes
+  through `MasteryStore` inside one `ShardWriter.run` transaction, and the
+  gate's transactionality test (a crashed write between event insert and
+  state update leaves both tables empty) is green. `evidence_trail_json` is
+  exposed through the wheel and the store's `trail()` renders over the
+  superseded stream.
+- 6.2 (done): evidence emission as a worker step after indexing, idempotent
+  per submission. answer_match via `platform_core.compare.answers_in_text`
+  (essay answers or a numberless reading emit nothing; region-level
+  confidence); working_assessment via the `WorkingAssessor` seam
+  (`RecordedWorkingAssessor` in tests, prompt `working-assessment/v1`,
+  figures as images, rubric/3, confidence = overall x model, unmapped
+  concepts dropped); the grade endpoint emits professor_grade with
+  supersession replay in the same transaction. The end-to-end trajectory
+  gate is green: seven daily correct submissions through the real
+  transcription pipeline (fixture scans, recorded transcriber and assessor)
+  reach the solid label on day 6, read through the seat API with its trail.
+- 6.3 (done): the parameter-version migration path. `mastery_params` in the
+  directory (migration directory/0004), `active_params_json` falling back to
+  the crate defaults, `activate_params` + `replay_course` +
+  `activate_and_replay_all` (`app/mastery/params.py`,
+  `scripts/migrate_mastery_params.py`), version recorded on every recomputed
+  state. 3 tests.
+- The mastery API surface behind 6.4: `GET .../mastery` (seat-only, every
+  concept with label and trail, unseen explicit), `GET .../revisit` (spec
+  section 5 targeting exactly), `GET .../mastery/distribution`
+  (professor-and-owner, label counts, `gaps` empty until Phase 7),
+  `POST .../submissions/{id}/grade`. 6.4's rendering (labels always
+  expandable, the calm queue, the distribution view) and the gate's UI test
+  ("every rendered label opens its trail") are the frontend's.
+
+Recorded working-assessment responses live at
+`apps/api/tests/recorded/working-assessment/`, one JSON per document sha256
+(`WorkingAssessment` shape: per-concept rubric 0..3 plus one stated
+confidence), replayed by `RecordedWorkingAssessor`; the emission tests build
+theirs in memory, so the gate needs no committed asset.
 
 ## Standing rules
 
