@@ -5,8 +5,10 @@ professor-and-owner authorization surface. Items are seeded straight into the
 shard (as the seat and submission suites seed), so the test never runs the
 worker."""
 
+import io
 from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -16,14 +18,36 @@ from app.db import ShardManager
 from app.db.connection import connect
 from app.imports.purge import THIRTY_DAYS_SECONDS, purge_stale_imports
 from app.main import create_app
+from app.storage import get_object_storage
 
 SECRET = "test-secret-not-for-production-0123"
 PASSWORD = "a sensible passphrase"
 
 
+class FakeStorage:
+    def __init__(self) -> None:
+        self.objects: dict[tuple[str, str], bytes] = {}
+
+    def create_bucket(self, *, Bucket: str) -> object:
+        return {}
+
+    def put_object(self, *, Bucket: str, Key: str, Body: Any) -> object:
+        self.objects[(Bucket, Key)] = Body.read() if hasattr(Body, "read") else bytes(Body)
+        return {}
+
+    def get_object(self, *, Bucket: str, Key: str) -> Any:
+        return {"Body": io.BytesIO(self.objects[(Bucket, Key)])}
+
+    def generate_presigned_url(
+        self, ClientMethod: str, Params: dict[str, str], ExpiresIn: int
+    ) -> str:
+        return f"https://storage.test/{Params['Key']}"
+
+
 @pytest.fixture()
 def client(tmp_path: Path) -> Iterator[TestClient]:
     app = create_app(data_dir=tmp_path, jwt_secret=SECRET)
+    app.dependency_overrides[get_object_storage] = FakeStorage
     with TestClient(app) as c:
         yield c
 
@@ -126,7 +150,10 @@ def test_confirm_creates_a_draft_case_study(client: TestClient, tmp_path: Path) 
     ).json()["items"]
     assert items[0]["state"] == "confirmed"
     assert items[0]["case_study_id"] == body["case_study_id"]
-    assert items[0]["figure_ids"] == [_fig]
+    figures = items[0]["figures"]
+    assert [f["figure_id"] for f in figures] == [_fig]
+    assert figures[0]["token"] == f"fig://{_fig}"
+    assert figures[0]["image_url"]  # a presigned crop URL, not just an id
 
 
 def test_confirm_is_idempotent(client: TestClient, tmp_path: Path) -> None:

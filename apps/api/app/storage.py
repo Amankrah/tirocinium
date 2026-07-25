@@ -45,6 +45,15 @@ def get_object_storage() -> ObjectStorage:
     return client
 
 
+def presigned_get(storage: ObjectStorage, bucket: str, key: str) -> str:
+    """A short-lived presigned GET for an object (figure crops, page rasters):
+    the professor's own source served straight from storage, no bytes through
+    the API, the same pattern as the seat CSV/PDF and the submission rendition."""
+    return storage.generate_presigned_url(
+        "get_object", Params={"Bucket": bucket, "Key": key}, ExpiresIn=PRESIGN_TTL_SECONDS
+    )
+
+
 def fetch_bytes(storage: ObjectStorage, bucket: str, key: str) -> bytes:
     """Read one object fully into memory. The worker uses this to pull a
     scan back for preprocessing; the API never does (it only ever hands out

@@ -59,7 +59,15 @@ async def store_figures_and_annotate(
                 Body=figure.image_2x,
             )
         figure_id = await writer.run(
-            _upsert_figure(content_hash, storage_key, storage_key_2x, figure, page_index)
+            _upsert_figure(
+                content_hash,
+                storage_key,
+                storage_key_2x,
+                figure,
+                page_index,
+                page_figures.page_width,
+                page_figures.page_height,
+            )
         )
         caption = figure.caption or ""
         placements.append((figure.bbox[1], f"![{caption}](fig://{figure_id})"))
@@ -119,17 +127,33 @@ async def detect_and_store_page_crops(
     )
 
 
+def normalized_bbox(
+    bbox: tuple[float, float, float, float], page_width: float, page_height: float
+) -> list[float]:
+    """Figure bbox as fractions of the page (0..1, top-left), the one frame that
+    is consistent across sources (born-digital points and page_crop pixels alike)
+    and that a client can map onto a displayed page or send back to a crop verb
+    without any page-dimension plumbing (decision 0032)."""
+    x, y, w, h = bbox
+    if page_width <= 0 or page_height <= 0:
+        return [x, y, w, h]
+    return [x / page_width, y / page_height, w / page_width, h / page_height]
+
+
 def _upsert_figure(
     content_hash: str,
     storage_key: str,
     storage_key_2x: str | None,
     figure: ExtractedFigure,
     page_index: int,
+    page_width: float,
+    page_height: float,
 ) -> Callable[[sqlite3.Connection], int]:
     """Insert the figure row if its content is new (deduped by content_hash),
     and return its id either way. The first occurrence's page and bbox are the
-    row's provenance; later identical figures reuse the row."""
-    bbox_json = json.dumps(list(figure.bbox))
+    row's provenance; later identical figures reuse the row. bbox is stored
+    normalised to 0..1 (decision 0032)."""
+    bbox_json = json.dumps(normalized_bbox(figure.bbox, page_width, page_height))
     now = int(time.time())
 
     def apply(conn: sqlite3.Connection) -> int:

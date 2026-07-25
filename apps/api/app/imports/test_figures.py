@@ -109,7 +109,10 @@ async def test_store_figures_places_token_and_rows(tmp_path: Path) -> None:
     assert rows[0][0] == digest
     assert rows[0][1] == "embedded_raster"
     assert rows[0][3] == "Figure 1"
-    assert json.loads(rows[0][4]) == [50.0, 100.0, 120.0, 90.0]
+    # bbox is stored normalised to 0..1 of the page (decision 0032).
+    assert json.loads(rows[0][4]) == pytest.approx(
+        [50.0 / 595.0, 100.0 / 842.0, 120.0 / 595.0, 90.0 / 842.0]
+    )
     assert rows[0][5] == 0
 
 

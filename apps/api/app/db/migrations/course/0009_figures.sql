@@ -10,8 +10,10 @@
 -- source records how the figure was obtained: an embedded_raster kept from the
 -- PDF stream byte for byte, a vector_render of a clustered drawing at 300 dpi,
 -- or a page_crop the vision detector proposes on a scanned page. bbox is the
--- figure's position on its source page as JSON [x, y, w, h] in page points with
--- a top-left origin, which the re-crop verb (4.4) maps back to the source.
+-- figure's position on its source page as JSON [x, y, w, h] normalised to 0..1
+-- of the page (top-left origin, decision 0032): the one frame consistent across
+-- born-digital points and page_crop pixels, which a client maps onto a displayed
+-- page or sends back to a crop verb with no page-dimension plumbing.
 CREATE TABLE figures (
   id INTEGER PRIMARY KEY,
   content_hash TEXT NOT NULL UNIQUE,

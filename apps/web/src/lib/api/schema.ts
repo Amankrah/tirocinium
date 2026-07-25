@@ -228,6 +228,31 @@ export interface paths {
         patch: operations["update_concept_api_v1_courses__course_id__concepts__concept_id__patch"];
         trace?: never;
     };
+    "/api/v1/courses/{course_id}/figures/{figure_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Resolve Figure Image
+         * @description Resolve one figure to a presigned image URL. This is what the confirmation
+         *     surface and the reading surface's fig:// resolver (decision 0014) point at.
+         *     A professor who owns the course resolves any figure in it (drafts included);
+         *     a seat resolves a figure only when it is carried by a published case study,
+         *     the same visibility rule as the case study body it sits in. The bytes are the
+         *     professor's own source, served straight from storage, never through the API.
+         */
+        get: operations["resolve_figure_image_api_v1_courses__course_id__figures__figure_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses/{course_id}/import-items/{item_id}/confirm": {
         parameters: {
             query?: never;
@@ -374,8 +399,9 @@ export interface paths {
         /**
          * List Import Items
          * @description The staged items of an import, for the confirmation surface (4.4): each
-         *     item's question and solution markdown (fig:// tokens intact), its figure
-         *     assignments, confidence, the model's notes, and its state.
+         *     item's question and solution markdown (fig:// tokens intact), its figures
+         *     with presigned crop URLs, confidence, the model's notes, and its state, plus
+         *     the job's source pages with presigned images for the review canvas.
          */
         get: operations["list_import_items_api_v1_courses__course_id__imports__import_id__items_get"];
         put?: never;
@@ -746,6 +772,8 @@ export interface components {
             figure_interventions: number;
             /** Question Md */
             question_md?: string | null;
+            /** Solution Md */
+            solution_md?: string | null;
         };
         /** ConfirmedOut */
         ConfirmedOut: {
@@ -786,6 +814,27 @@ export interface components {
         FigureCreatedOut: {
             /** Figure Id */
             figure_id: number;
+            /** Height Px */
+            height_px: number;
+            /** Image Url */
+            image_url: string;
+            /** Width Px */
+            width_px: number;
+        };
+        /** FigureImageOut */
+        FigureImageOut: {
+            /** Figure Id */
+            figure_id: number;
+            /** Height Px */
+            height_px: number;
+            /** Image Url */
+            image_url: string;
+            /** Image Url 2X */
+            image_url_2x: string | null;
+            /** Source */
+            source: string;
+            /** Width Px */
+            width_px: number;
         };
         /** FigureRoleIn */
         FigureRoleIn: {
@@ -859,8 +908,8 @@ export interface components {
             case_study_id: number | null;
             /** Confidence */
             confidence: number;
-            /** Figure Ids */
-            figure_ids: number[];
+            /** Figures */
+            figures: components["schemas"]["ItemFigureOut"][];
             /** Id */
             id: number;
             /** Notes */
@@ -880,6 +929,8 @@ export interface components {
         ImportItemsOut: {
             /** Items */
             items: components["schemas"]["ImportItemOut"][];
+            /** Pages */
+            pages: components["schemas"]["ImportPageOut"][];
         };
         /** ImportOut */
         ImportOut: {
@@ -891,6 +942,49 @@ export interface components {
             page_count: number | null;
             /** Status */
             status: string;
+        };
+        /** ImportPageOut */
+        ImportPageOut: {
+            /** Image Url */
+            image_url: string;
+            /** Page Index */
+            page_index: number;
+        };
+        /**
+         * ItemFigureOut
+         * @description A figure assigned to an item, with a presigned GET of its lossless crop so
+         *     the confirmation surface can render it. `bbox` is normalised 0..1 (top-left),
+         *     the same frame `from-box` takes back. `token` is the fig:// token sitting in
+         *     the item's question_md, so the surface can render it inline at its position.
+         */
+        ItemFigureOut: {
+            /** Bbox */
+            bbox: [
+                number,
+                number,
+                number,
+                number
+            ] | null;
+            /** Caption */
+            caption: string | null;
+            /** Figure Id */
+            figure_id: number;
+            /** Height Px */
+            height_px: number;
+            /** Image Url */
+            image_url: string;
+            /** Image Url 2X */
+            image_url_2x: string | null;
+            /** Page */
+            page: number | null;
+            /** Role */
+            role: string;
+            /** Source */
+            source: string;
+            /** Token */
+            token: string;
+            /** Width Px */
+            width_px: number;
         };
         /** LoginIn */
         LoginIn: {
@@ -2141,6 +2235,65 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ConceptOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resolve_figure_image_api_v1_courses__course_id__figures__figure_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                figure_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FigureImageOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
             /** @description Forbidden */

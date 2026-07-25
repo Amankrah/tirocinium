@@ -21,9 +21,24 @@ with fig:// tokens in the page markdown; 4.3 segmentation done, a fidelity-stric
 model pass staging items with the 30-day purge, the vision figure detector
 closing Stage 1b's union with scanned-page page_crop figures, the 4.4 confirm
 endpoint copying a staged item into a draft case study, 4.5 logging the two
-extraction-accuracy metrics at confirmation, and three figure verbs (decorative,
-reassign, add-a-box) built. The Phase 4 backend is complete bar figure re-crop
-and split).
+extraction-accuracy metrics at confirmation, three figure verbs (decorative,
+reassign, add-a-box), and figure and source-page image serving built. The
+Phase 4 backend is complete bar figure re-crop, split, merge, and discard.
+
+Figure and source-page serving (decision 0032): a figure's bbox is stored
+normalised to 0..1 of its page (top-left origin, one frame across born-digital
+points and page_crop pixels, `normalized_bbox` in `app/imports/figures.py`), so
+a client places a figure or draws a new box with no page-dimension plumbing. The
+confirmation read returns per-item `figures[]` (with a presigned `image_url` crop,
+its `fig://{id}` token, role, source, dims, page, normalised bbox, caption) and
+per-job `pages[]` (with a presigned page `image_url`); `from-box` returns the new
+crop's `image_url` and dims. `GET /courses/{id}/figures/{figure_id}` resolves one
+figure to a presigned URL for both the confirmation surface and the reading
+surface's `fig://` resolver (decision 0014): a professor-owner resolves any figure
+in the course, a seat only one a published case study carries (figure to
+item_figures to confirmed item to published case study), an unpublished or absent
+figure an identical 404 so existence never leaks. `ConfirmIn` also takes an
+editable `solution_md`. Presigned bytes only, never through the API.
 
 ## Inviolable constraints
 

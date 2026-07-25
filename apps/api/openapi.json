@@ -395,6 +395,17 @@
               }
             ],
             "title": "Question Md"
+          },
+          "solution_md": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Solution Md"
           }
         },
         "title": "ConfirmIn",
@@ -502,12 +513,72 @@
           "figure_id": {
             "title": "Figure Id",
             "type": "integer"
+          },
+          "height_px": {
+            "title": "Height Px",
+            "type": "integer"
+          },
+          "image_url": {
+            "title": "Image Url",
+            "type": "string"
+          },
+          "width_px": {
+            "title": "Width Px",
+            "type": "integer"
           }
         },
         "required": [
-          "figure_id"
+          "figure_id",
+          "image_url",
+          "width_px",
+          "height_px"
         ],
         "title": "FigureCreatedOut",
+        "type": "object"
+      },
+      "FigureImageOut": {
+        "properties": {
+          "figure_id": {
+            "title": "Figure Id",
+            "type": "integer"
+          },
+          "height_px": {
+            "title": "Height Px",
+            "type": "integer"
+          },
+          "image_url": {
+            "title": "Image Url",
+            "type": "string"
+          },
+          "image_url_2x": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url 2X"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "width_px": {
+            "title": "Width Px",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "figure_id",
+          "source",
+          "image_url",
+          "image_url_2x",
+          "width_px",
+          "height_px"
+        ],
+        "title": "FigureImageOut",
         "type": "object"
       },
       "FigureRoleIn": {
@@ -687,11 +758,11 @@
             "title": "Confidence",
             "type": "number"
           },
-          "figure_ids": {
+          "figures": {
             "items": {
-              "type": "integer"
+              "$ref": "#/components/schemas/ItemFigureOut"
             },
-            "title": "Figure Ids",
+            "title": "Figures",
             "type": "array"
           },
           "id": {
@@ -753,7 +824,7 @@
           "confidence",
           "notes",
           "state",
-          "figure_ids",
+          "figures",
           "case_study_id"
         ],
         "title": "ImportItemOut",
@@ -767,10 +838,18 @@
             },
             "title": "Items",
             "type": "array"
+          },
+          "pages": {
+            "items": {
+              "$ref": "#/components/schemas/ImportPageOut"
+            },
+            "title": "Pages",
+            "type": "array"
           }
         },
         "required": [
-          "items"
+          "items",
+          "pages"
         ],
         "title": "ImportItemsOut",
         "type": "object"
@@ -808,6 +887,132 @@
           "created_at"
         ],
         "title": "ImportOut",
+        "type": "object"
+      },
+      "ImportPageOut": {
+        "properties": {
+          "image_url": {
+            "title": "Image Url",
+            "type": "string"
+          },
+          "page_index": {
+            "title": "Page Index",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "page_index",
+          "image_url"
+        ],
+        "title": "ImportPageOut",
+        "type": "object"
+      },
+      "ItemFigureOut": {
+        "description": "A figure assigned to an item, with a presigned GET of its lossless crop so\nthe confirmation surface can render it. `bbox` is normalised 0..1 (top-left),\nthe same frame `from-box` takes back. `token` is the fig:// token sitting in\nthe item's question_md, so the surface can render it inline at its position.",
+        "properties": {
+          "bbox": {
+            "anyOf": [
+              {
+                "maxItems": 4,
+                "minItems": 4,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bbox"
+          },
+          "caption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caption"
+          },
+          "figure_id": {
+            "title": "Figure Id",
+            "type": "integer"
+          },
+          "height_px": {
+            "title": "Height Px",
+            "type": "integer"
+          },
+          "image_url": {
+            "title": "Image Url",
+            "type": "string"
+          },
+          "image_url_2x": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url 2X"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          },
+          "width_px": {
+            "title": "Width Px",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "figure_id",
+          "token",
+          "role",
+          "source",
+          "image_url",
+          "image_url_2x",
+          "width_px",
+          "height_px",
+          "page",
+          "bbox",
+          "caption"
+        ],
+        "title": "ItemFigureOut",
         "type": "object"
       },
       "LoginIn": {
@@ -3019,6 +3224,93 @@
         ]
       }
     },
+    "/api/v1/courses/{course_id}/figures/{figure_id}": {
+      "get": {
+        "description": "Resolve one figure to a presigned image URL. This is what the confirmation\nsurface and the reading surface's fig:// resolver (decision 0014) point at.\nA professor who owns the course resolves any figure in it (drafts included);\na seat resolves a figure only when it is carried by a published case study,\nthe same visibility rule as the case study body it sits in. The bytes are the\nprofessor's own source, served straight from storage, never through the API.",
+        "operationId": "resolve_figure_image_api_v1_courses__course_id__figures__figure_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "figure_id",
+            "required": true,
+            "schema": {
+              "title": "Figure Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FigureImageOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Resolve Figure Image",
+        "tags": [
+          "imports"
+        ]
+      }
+    },
     "/api/v1/courses/{course_id}/import-items/{item_id}/confirm": {
       "post": {
         "description": "Confirm a staged item into a draft case study (guide Stage 3). The\nconfirmed question (the professor's edit, or the extraction as-is) becomes\nthe case study body with its fig:// tokens intact; the item is marked\nconfirmed and linked, keeping its figures alive through the purge. Two\naccuracy metrics are logged (4.5): the edit distance from the extraction, and\nthe figure interventions the surface reports. Nothing copies automatically.\nIdempotent: re-confirming returns the same draft and its logged distance.",
@@ -3692,7 +3984,7 @@
     },
     "/api/v1/courses/{course_id}/imports/{import_id}/items": {
       "get": {
-        "description": "The staged items of an import, for the confirmation surface (4.4): each\nitem's question and solution markdown (fig:// tokens intact), its figure\nassignments, confidence, the model's notes, and its state.",
+        "description": "The staged items of an import, for the confirmation surface (4.4): each\nitem's question and solution markdown (fig:// tokens intact), its figures\nwith presigned crop URLs, confidence, the model's notes, and its state, plus\nthe job's source pages with presigned images for the review canvas.",
         "operationId": "list_import_items_api_v1_courses__course_id__imports__import_id__items_get",
         "parameters": [
           {

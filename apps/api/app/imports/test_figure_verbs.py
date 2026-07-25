@@ -13,6 +13,7 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
+from app.compression import compress_text
 from app.db.connection import connect
 from app.main import create_app
 from app.storage import IMPORTS_BUCKET, get_object_storage
@@ -102,8 +103,8 @@ def seed(tmp_path: Path, course_id: int) -> tuple[int, int, int]:
             cur = conn.execute(
                 "INSERT INTO import_items (job_id, question_z, page_span, confidence,"
                 " model_id, prompt_version, state)"
-                " VALUES (?, X'00', '0', 0.9, 'm', 'v1', 'pending')",
-                (job_id,),
+                " VALUES (?, ?, '0', 0.9, 'm', 'v1', 'pending')",
+                (job_id, compress_text(conn, "problem_text", "A question.")),
             )
             return int(cur.lastrowid or 0)
 
@@ -202,7 +203,12 @@ def test_add_figure_from_a_box(
     )
 
     assert r.status_code == 201, r.text
-    new_id = r.json()["figure_id"]
+    created = r.json()
+    new_id = created["figure_id"]
+    # The surface renders the new crop straight away: it gets the URL and dims
+    # back, no refetch. The crop is 0.5*120 x 0.3*90 = 60x27.
+    assert created["image_url"]
+    assert (created["width_px"], created["height_px"]) == (60, 27)
 
     def read(conn: sqlite3.Connection) -> tuple[str, int]:
         source = str(
@@ -235,6 +241,34 @@ def test_add_from_box_unknown_page_is_404(client: TestClient, tmp_path: Path) ->
         headers=headers,
     )
     assert r.status_code == 404
+
+
+def test_items_read_carries_figures_and_pages(
+    client: TestClient, tmp_path: Path
+) -> None:
+    headers, course_id, item1, _item2, figure_id = _base(client, tmp_path)
+    conn = connect(tmp_path / "courses" / f"{course_id}.db")
+    try:
+        job_id = int(
+            conn.execute("SELECT job_id FROM import_items WHERE id = ?", (item1,)).fetchone()[0]
+        )
+    finally:
+        conn.close()
+
+    body = client.get(
+        f"/api/v1/courses/{course_id}/imports/{job_id}/items", headers=headers
+    ).json()
+
+    # The page raster is served presigned for the review canvas.
+    assert [p["page_index"] for p in body["pages"]] == [0]
+    assert body["pages"][0]["image_url"]
+    # item1 carries its figure with a crop URL and a fig:// token, not a bare id.
+    figures = {item["id"]: item["figures"] for item in body["items"]}
+    assert [f["figure_id"] for f in figures[item1]] == [figure_id]
+    assert figures[item1][0]["token"] == f"fig://{figure_id}"
+    assert figures[item1][0]["image_url"]
+    assert figures[item1][0]["role"] == "essential"
+    assert figures[_item2] == []
 
 
 def test_non_owner_cannot_use_the_verbs(client: TestClient, tmp_path: Path) -> None:

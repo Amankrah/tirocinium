@@ -20,11 +20,12 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 
-from app.auth.deps import get_shards, require_professor
+from app.auth.deps import current_identity, get_shards, require_professor
 from app.auth.models import Identity
 from app.compression import compress_text, decompress_text
-from app.courses.routes import ensure_course_owner
+from app.courses.routes import ensure_course_owner, ensure_course_reader
 from app.db.shards import ShardManager
+from app.imports.figures import normalized_bbox
 from app.imports.metrics import edit_distance
 from app.problems import Problem
 from app.storage import (
@@ -33,6 +34,7 @@ from app.storage import (
     ObjectStorage,
     fetch_bytes,
     get_object_storage,
+    presigned_get,
 )
 from app.tasks import TaskQueue, get_task_queue
 
@@ -198,6 +200,30 @@ async def get_import(
 # ------------------------------------------------ staged items and confirmation
 
 
+class ItemFigureOut(BaseModel):
+    """A figure assigned to an item, with a presigned GET of its lossless crop so
+    the confirmation surface can render it. `bbox` is normalised 0..1 (top-left),
+    the same frame `from-box` takes back. `token` is the fig:// token sitting in
+    the item's question_md, so the surface can render it inline at its position."""
+
+    figure_id: int
+    token: str
+    role: str
+    source: str
+    image_url: str
+    image_url_2x: str | None
+    width_px: int
+    height_px: int
+    page: int | None
+    bbox: tuple[float, float, float, float] | None
+    caption: str | None
+
+
+class ImportPageOut(BaseModel):
+    page_index: int
+    image_url: str
+
+
 class ImportItemOut(BaseModel):
     id: int
     title: str | None
@@ -207,18 +233,23 @@ class ImportItemOut(BaseModel):
     confidence: float
     notes: str | None
     state: str
-    figure_ids: list[int]
+    figures: list[ItemFigureOut]
     case_study_id: int | None
 
 
 class ImportItemsOut(BaseModel):
     items: list[ImportItemOut]
+    pages: list[ImportPageOut]
 
 
 class ConfirmIn(BaseModel):
     # The professor's confirmed question text; None accepts the extraction as-is.
     # The edit distance from the extraction is logged as an accuracy metric (4.5).
     question_md: str | None = None
+    # The professor's confirmed solution text; None leaves the extracted solution
+    # untouched. The card's solution pane is editable too (frontend guide 4.3), so
+    # a misread solution can be fixed here; the fix is saved back onto the item.
+    solution_md: str | None = None
     # How many figure edits the professor made on the item (crop, reassign,
     # decorative, add), reported by the confirmation surface.
     figure_interventions: int = Field(default=0, ge=0)
@@ -241,14 +272,27 @@ async def list_import_items(
     import_id: int,
     identity: Annotated[Identity, Depends(require_professor)],
     shards: Annotated[ShardManager, Depends(get_shards)],
+    storage: Annotated[ObjectStorage, Depends(get_object_storage)],
 ) -> ImportItemsOut:
     """The staged items of an import, for the confirmation surface (4.4): each
-    item's question and solution markdown (fig:// tokens intact), its figure
-    assignments, confidence, the model's notes, and its state."""
+    item's question and solution markdown (fig:// tokens intact), its figures
+    with presigned crop URLs, confidence, the model's notes, and its state, plus
+    the job's source pages with presigned images for the review canvas."""
     await ensure_course_owner(shards, course_id, identity)
     await _load_import(shards, course_id, import_id)  # 404 if the import is not here
 
-    def read(conn: sqlite3.Connection) -> list[ImportItemOut]:
+    def read(conn: sqlite3.Connection) -> ImportItemsOut:
+        pages = [
+            ImportPageOut(
+                page_index=int(p[0]),
+                image_url=presigned_get(storage, IMPORTS_BUCKET, str(p[1])),
+            )
+            for p in conn.execute(
+                "SELECT page_index, image_key FROM import_pages"
+                " WHERE job_id = ? ORDER BY page_index",
+                (import_id,),
+            ).fetchall()
+        ]
         rows = conn.execute(
             "SELECT id, title, question_z, solution_z, page_span, confidence, notes,"
             " state, case_study_id FROM import_items WHERE job_id = ? ORDER BY id",
@@ -256,13 +300,13 @@ async def list_import_items(
         ).fetchall()
         items: list[ImportItemOut] = []
         for row in rows:
-            figure_ids = [
-                int(fr[0])
-                for fr in conn.execute(
-                    "SELECT figure_id FROM item_figures WHERE item_id = ? ORDER BY figure_id",
-                    (row[0],),
-                ).fetchall()
-            ]
+            figure_rows = conn.execute(
+                "SELECT itf.figure_id, itf.role, f.source, f.storage_key,"
+                " f.storage_key_2x, f.width_px, f.height_px, f.page, f.bbox, f.caption"
+                " FROM item_figures itf JOIN figures f ON itf.figure_id = f.id"
+                " WHERE itf.item_id = ? ORDER BY itf.figure_id",
+                (row[0],),
+            ).fetchall()
             items.append(
                 ImportItemOut(
                     id=int(row[0]),
@@ -275,13 +319,37 @@ async def list_import_items(
                     confidence=float(row[5]),
                     notes=None if row[6] is None else str(row[6]),
                     state=str(row[7]),
-                    figure_ids=figure_ids,
+                    figures=[_item_figure(storage, fr) for fr in figure_rows],
                     case_study_id=None if row[8] is None else int(row[8]),
                 )
             )
-        return items
+        return ImportItemsOut(items=items, pages=pages)
 
-    return ImportItemsOut(items=await shards.course_reads(course_id).run(read))
+    return await shards.course_reads(course_id).run(read)
+
+
+def _item_figure(storage: ObjectStorage, row: tuple) -> ItemFigureOut:  # type: ignore[type-arg]
+    figure_id, role, source, storage_key, storage_key_2x, width_px, height_px = row[:7]
+    page, bbox_json, caption = row[7:]
+    bbox: tuple[float, float, float, float] | None = None
+    if bbox_json is not None:
+        values = json.loads(bbox_json)
+        bbox = (float(values[0]), float(values[1]), float(values[2]), float(values[3]))
+    return ItemFigureOut(
+        figure_id=int(figure_id),
+        token=f"fig://{int(figure_id)}",
+        role=str(role),
+        source=str(source),
+        image_url=presigned_get(storage, IMPORTS_BUCKET, str(storage_key)),
+        image_url_2x=None
+        if storage_key_2x is None
+        else presigned_get(storage, IMPORTS_BUCKET, str(storage_key_2x)),
+        width_px=int(width_px),
+        height_px=int(height_px),
+        page=None if page is None else int(page),
+        bbox=bbox,
+        caption=None if caption is None else str(caption),
+    )
 
 
 @router.post(
@@ -318,6 +386,11 @@ async def confirm_import_item(
         if row is None:
             raise HTTPException(status_code=404, detail="Import item not found.")
         job_id, title, question_z, state, existing = row
+        if confirmed.solution_md is not None:
+            conn.execute(
+                "UPDATE import_items SET solution_z = ? WHERE id = ?",
+                (compress_text(conn, "problem_text", confirmed.solution_md), item_id),
+            )
         if state == "confirmed" and existing is not None:
             metric = conn.execute(
                 "SELECT text_edit_distance FROM import_item_metrics WHERE item_id = ?",
@@ -389,6 +462,9 @@ class AddBoxIn(BaseModel):
 
 class FigureCreatedOut(BaseModel):
     figure_id: int
+    image_url: str
+    width_px: int
+    height_px: int
 
 
 @router.put(
@@ -492,14 +568,24 @@ async def add_figure_from_box(
 
     from platform_core import pdf as _pdf
 
-    _pw, _ph, regions = await asyncio.to_thread(_pdf.crop_figures, raster, [body.bbox])
+    page_width, page_height, regions = await asyncio.to_thread(
+        _pdf.crop_figures, raster, [body.bbox]
+    )
     png, x, y, width, height = regions[0]
     content_hash = hashlib.sha256(png).hexdigest()
     storage_key = f"imports/{course_id}/figures/{content_hash}.png"
     await asyncio.to_thread(
         storage.put_object, Bucket=IMPORTS_BUCKET, Key=storage_key, Body=png
     )
-    bbox_json = json.dumps([x, y, width, height])
+    # Store the actual (clamped) crop normalised 0..1, the one bbox frame across
+    # sources (decision 0032), so the surface can redraw the box on the page.
+    bbox_json = json.dumps(
+        normalized_bbox(
+            (float(x), float(y), float(width), float(height)),
+            float(page_width),
+            float(page_height),
+        )
+    )
 
     def write(conn: sqlite3.Connection) -> int:
         conn.execute(
@@ -520,4 +606,87 @@ async def add_figure_from_box(
         )
         return figure_id
 
-    return FigureCreatedOut(figure_id=await shards.course(course_id).run(write))
+    figure_id = await shards.course(course_id).run(write)
+    return FigureCreatedOut(
+        figure_id=figure_id,
+        image_url=presigned_get(storage, IMPORTS_BUCKET, storage_key),
+        width_px=width,
+        height_px=height,
+    )
+
+
+# ------------------------------------------------- figure resolve (both surfaces)
+
+
+class FigureImageOut(BaseModel):
+    figure_id: int
+    source: str
+    image_url: str
+    image_url_2x: str | None
+    width_px: int
+    height_px: int
+
+
+@router.get(
+    "/{course_id}/figures/{figure_id}",
+    response_model=FigureImageOut,
+    responses={401: {"model": Problem}, 403: {"model": Problem}, 404: {"model": Problem}},
+)
+async def resolve_figure_image(
+    course_id: int,
+    figure_id: int,
+    identity: Annotated[Identity, Depends(current_identity)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+    storage: Annotated[ObjectStorage, Depends(get_object_storage)],
+) -> FigureImageOut:
+    """Resolve one figure to a presigned image URL. This is what the confirmation
+    surface and the reading surface's fig:// resolver (decision 0014) point at.
+    A professor who owns the course resolves any figure in it (drafts included);
+    a seat resolves a figure only when it is carried by a published case study,
+    the same visibility rule as the case study body it sits in. The bytes are the
+    professor's own source, served straight from storage, never through the API."""
+    can_see_drafts = await ensure_course_reader(shards, course_id, identity)
+
+    def read(conn: sqlite3.Connection) -> tuple[str, str | None, int, int, str]:
+        row = conn.execute(
+            "SELECT storage_key, storage_key_2x, width_px, height_px, source"
+            " FROM figures WHERE id = ?",
+            (figure_id,),
+        ).fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail="Figure not found.")
+        if not can_see_drafts:
+            # A seat may only resolve a figure that a published case study carries
+            # (figure -> item_figures -> confirmed item -> published case study).
+            published = conn.execute(
+                "SELECT 1 FROM item_figures itf"
+                " JOIN import_items ii ON itf.item_id = ii.id"
+                " JOIN case_studies cs ON ii.case_study_id = cs.id"
+                " WHERE itf.figure_id = ? AND cs.status = 'published' LIMIT 1",
+                (figure_id,),
+            ).fetchone()
+            if published is None:
+                # Indistinguishable from a missing figure, so an unpublished
+                # figure never leaks its existence to a student.
+                raise HTTPException(status_code=404, detail="Figure not found.")
+        return (
+            str(row[0]),
+            None if row[1] is None else str(row[1]),
+            int(row[2]),
+            int(row[3]),
+            str(row[4]),
+        )
+
+    storage_key, storage_key_2x, width_px, height_px, source = await shards.course_reads(
+        course_id
+    ).run(read)
+    return FigureImageOut(
+        figure_id=figure_id,
+        source=source,
+        image_url=presigned_get(storage, IMPORTS_BUCKET, storage_key),
+        image_url_2x=None
+        if storage_key_2x is None
+        else presigned_get(storage, IMPORTS_BUCKET, storage_key_2x),
+        width_px=width_px,
+        height_px=height_px,
+    )

@@ -7,7 +7,7 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 
 A milestone is done only when its gate is green and every earlier gate still
 passes; green never goes red. Last updated at milestone 4.5 (decisions 0030,
-0031):
+0031, 0032: figure and source-page image serving):
 Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 backend
 complete (3.1 the submission upload path done; 3.2 scan preprocessing
 implemented, its golden gate awaiting the 30-photo corpus; 3.3 handwriting
@@ -72,13 +72,14 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 170 tests (25 data layer, 16 case studies/concepts/courses,
+Python suite, 176 tests (25 data layer, 16 case studies/concepts/courses,
 15 seats, 12 auth, 16 submissions (incl. 4 transcription-read), 5 transcription,
-14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 44 imports
+14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 50 imports
 (4 decode pipeline + 2 figure pipeline (born-digital + scanned detector),
-9 endpoint, 8 confirm/list/metrics, 7 figure verbs, 1 edit-distance, 5 figure
-storage/placement, 4 segmentation, 1 purge, 3 pdfium decoder/extractor that skip
-when the binary is absent), 7 backup,
+9 endpoint, 8 confirm/list/metrics, 8 figure verbs (incl. the items read carrying
+figures+pages), 5 figure resolve (owner any, seat published-only, 404 hides
+existence), 1 edit-distance, 5 figure storage/placement, 4 segmentation, 1 purge,
+3 pdfium decoder/extractor that skip when the binary is absent), 7 backup,
 5 compression, 3 contract, 7 store, 1 latency gate) plus lint
 and the worker import smoke, from `apps/api`:
 
@@ -352,9 +353,23 @@ Phase 4, in progress:
   {figure}` assigns/sets role (`decorative` excludes from AI context); reassign is
   that PUT plus `DELETE`; `POST .../figures/from-box` crops the page raster at a
   drawn box (`platform_core.pdf.crop_figures`, a page_crop, never a re-render) and
-  assigns it. 7 tests (decorative, reassign, unassign 404, unknown-figure 404,
-  add-box, unknown-page 404, non-owner 403). Re-crop and split need per-kind
-  re-cropping from the lossless source and are deferred to the corpus.
+  assigns it. 8 tests (decorative, reassign, unassign 404, unknown-figure 404,
+  add-box, unknown-page 404, non-owner 403, and the items read carrying figures and
+  pages). Re-crop and split need per-kind re-cropping from the lossless source and
+  are deferred to the corpus.
+- Figure and source-page image serving (decision 0032): the confirmation read
+  returns per-item `figures[]` (presigned crop `image_url`, `fig://` token, role,
+  source, dims, page, normalised 0..1 bbox, caption) and per-job `pages[]`
+  (presigned page `image_url`); `from-box` returns the new crop's `image_url` and
+  dims. bbox is now stored normalised to 0..1 (`normalized_bbox`), so a client
+  needs no page dimensions. `GET /courses/{id}/figures/{figure_id}` resolves one
+  figure to a presigned URL for both surfaces: a professor-owner gets any figure, a
+  seat only one a published case study carries, else an identical 404.
+  `ConfirmIn.solution_md` edits the solution. 5 figure-resolve tests (owner any,
+  owner unknown 404, seat unpublished 404, seat published 200, seat wrong-course
+  403) plus the items-read verb test above. The test_figures bbox assertion and the
+  test_confirm items assertion moved to the normalised/`figures[]` shapes. Merge,
+  split, and discard stay deferred with 0031's re-crop.
 - 4.4 (web, front half): the import-from-PDF upload and processing view (frontend
   guide 4.3). A professor picks a PDF (pre-checked against the 60 MiB ceiling),
   it PUTs direct to storage and completes, then a poll of the import status runs
