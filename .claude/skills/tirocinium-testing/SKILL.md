@@ -64,6 +64,14 @@ disclosure element (zero client JS on course home, 106 kB), the revisit queue ca
 empty-when-empty, and the distribution anonymous counts with the gaps slot
 awaiting Phase 7. So Phase 6 is complete but for a Playwright pass on the mastery
 labels; the professor grade endpoint is live for the Phase 8.1 review surface.
+Phase 6.5 (student input modes, decision 0026): 6.5.1 (mode B) is done, the
+exported handwriting PDF expanding to rasters in the submission pipeline
+behind the `PdfDecoder` seam, limits re-enforced post-render, rows rewritten
+in one writer transaction, the cache keyed on rendered bytes, with the
+parity gate green (photo and PDF of the same handwriting reach the same
+transcription and evidence shape) and a skip-gated real-fixture round trip
+over the committed tablet PDFs; 6.5.2 (pen capture) and 6.5.3 (the unified
+submission surface) are the frontend's.
 The Phase 3 frontend half
 (3.5) is in
 progress: the upload flow (capture, pre-checks, orchestration, SSE processing)
@@ -113,8 +121,12 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 278 tests (25 data layer, 16 case studies/concepts/courses,
-15 seats, 12 auth, 16 submissions (incl. 4 transcription-read), 5 transcription,
+Python suite, 285 tests (25 data layer, 16 case studies/concepts/courses,
+15 seats, 12 auth, 16 submissions (incl. 4 transcription-read), 12
+transcription (5 pipeline; 7 mode B: PDF expansion and re-sequencing, the
+mixed photo+PDF order, the over-limit rejection copy, retry neither
+re-decodes nor re-reads, no-decoder failure, the photo/PDF parity gate, and
+the skip-gated real tablet-PDF round trip),
 14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 28 params
 (19 param-spec: the spec round-trip compressed at rest, 7 validation
 rejections, the frozen check blocking and the decorative unblock, the reading

@@ -50,3 +50,22 @@ completion item, so evidence from the new modes flows through the live model
 instead of a pipeline that is still moving. The three-mode design above is
 unchanged; only the scheduling moved, and the plan document now carries it (mode
 B backend, mode C frontend capture, and the unified submission surface).
+
+Addendum (2026-07-25, later): mode B is implemented as milestone 6.5.1. The
+submission pipeline gained a pre-loop expansion stage behind the existing
+`PdfDecoder` seam: an `application/pdf` page's bytes are rendered to rasters
+(always the raster, never a text layer), the page-count and per-page size
+limits are re-enforced against the rendered result (a PDF's true page count is
+unknown until render; over-limit fails the submission with the stated copy),
+the rasters are stored under the submission prefix, and the page rows are
+rewritten in one writer transaction as ordinary image rows, re-sequenced in
+place. Expansion is idempotent (no PDF row survives it, so a retried job skips
+it) and everything downstream, preprocess, the vision read, the content-hash
+cache keyed on the rendered bytes, regions, SSE, indexing, and evidence
+emission, is untouched, which the gate's parity test asserts: the same
+handwriting as a photo and as an exported PDF reaches the same transcription
+and the same evidence shape. The manifest limits moved to the dependency-free
+`app/limits.py` so both the upload surface and the pipeline enforce them
+without an import cycle. The committed tablet PDFs drive a skip-gated
+real-render round trip; modes C and the unified surface remain the frontend's
+(6.5.2, 6.5.3).

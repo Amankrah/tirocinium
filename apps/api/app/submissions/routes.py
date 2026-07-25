@@ -26,6 +26,7 @@ from app.auth.models import Identity
 from app.compression import decompress_text
 from app.db.shards import ShardManager
 from app.events import Event, EventBus, channel_for, get_event_bus
+from app.limits import MAX_PAGE_BYTES, MAX_PAGES
 from app.problems import Problem
 from app.storage import (
     PRESIGN_TTL_SECONDS,
@@ -38,8 +39,6 @@ from app.transcription.pipeline import TERMINAL_STATUSES
 
 router = APIRouter(prefix="/api/v1", tags=["submissions"])
 
-MAX_PAGES = 25
-MAX_PAGE_BYTES = 15 * 1024 * 1024  # 15 MiB, backend guide section 4 Stage 1
 _CREATE_SCOPE = "create_submission"
 
 PageContentType = Literal["image/jpeg", "image/png", "image/heic", "application/pdf"]

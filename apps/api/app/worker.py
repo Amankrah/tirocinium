@@ -83,6 +83,9 @@ async def process_submission(ctx: dict[str, Any], course_id: int, submission_id:
         bus=ctx["bus"],
         course_id=course_id,
         submission_id=submission_id,
+        # Mode B (6.5.1): an exported handwriting PDF renders to page rasters
+        # through the same decoder the import pipeline uses.
+        decoder=ctx["decoder"],
     )
     if status == STATUS_PROCESSED:
         await index_submission(

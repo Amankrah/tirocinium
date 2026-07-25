@@ -33,7 +33,22 @@ Phase 5 has begun: 5.1 (the parameter spec and the figure-frozen check),
 frontend's. The Phase 6 backend is complete (6.1 to 6.3, decisions 0040 and
 0041): the mastery model is live, evidence flows from the pipeline, and 6.4
 (the mastery picture, revisit queue, and distribution surfaces) is the
-frontend's.
+frontend's. Phase 6.5 (student input modes, decision 0026): 6.5.1 (mode B,
+the exported handwriting PDF) is done; 6.5.2 (pen capture) and 6.5.3 (the
+unified submission surface) are the frontend's, reducing to modes A/B on the
+backend.
+
+Mode B (milestone 6.5.1): the submission pipeline expands an
+`application/pdf` page before the page loop, behind the same `PdfDecoder`
+seam the import pipeline uses: bytes rendered to rasters (always the raster,
+never a text layer), the page-count and size limits re-enforced against the
+rendered result (over-limit fails with the stated copy; limits live in the
+dependency-free `app/limits.py`, shared with the upload surface), rasters
+stored under the submission prefix, and the page rows rewritten in one writer
+transaction as ordinary image rows re-sequenced in place. Idempotent (no PDF
+row survives expansion), and downstream is untouched: cache keyed on the
+rendered bytes, same preprocess, vision read, SSE, indexing, and evidence, so
+the mode is invisible (the parity gate asserts it).
 
 Mastery integration (Phase 6): all writes to evidence_events and
 mastery_state go through the `MasteryStore` adapter inside one

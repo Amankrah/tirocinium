@@ -6,9 +6,20 @@ content hash so retries and re-uploads are free), and record the result. Then
 aggregate the pages into the submission's recognized text. Progress is
 published to the submission's channel as it goes.
 
+Mode B (milestone 6.5.1, decision 0026): a page whose declared content type is
+application/pdf is an exported handwriting PDF. Before the page loop, it is
+rendered to page rasters through the PdfDecoder seam (always the raster, never
+a text layer) and its row is rewritten as one image row per rendered page, so
+everything downstream, preprocess, the vision read, the content-hash cache
+(keyed on the rendered bytes), regions, SSE, indexing, and evidence emission,
+sees ordinary pages and the chosen mode is invisible. The page-count and size
+limits are re-enforced after render, because a PDF's true page count is
+unknown until then.
+
 The pipeline is a plain coroutine with its collaborators injected (storage,
-transcriber, event bus, and even the preprocess function), so tests drive it
-with fakes and recorded responses and never touch a live model or a real image.
+transcriber, event bus, the decoder, and even the preprocess function), so
+tests drive it with fakes and recorded responses and never touch a live model
+or a real image.
 """
 
 import asyncio
@@ -23,6 +34,8 @@ from platform_core.preprocess import preprocess as _default_preprocess
 
 from app.compression import compress_text, decompress_text
 from app.events import EventBus, channel_for
+from app.imports.decoder import PdfDecoder
+from app.limits import MAX_PAGE_BYTES, MAX_PAGES
 from app.prompts import Prompt, load_prompt
 from app.storage import SCANS_BUCKET, ObjectStorage, fetch_bytes
 from app.transcription.model import DEFAULT_VISION_MODEL, PageTranscription, VisionTranscriber
@@ -55,6 +68,7 @@ async def run_submission_pipeline(
     submission_id: int,
     prompt: Prompt | None = None,
     preprocess: Preprocess | None = None,
+    decoder: PdfDecoder | None = None,
 ) -> str:
     """Process one submission end to end. Returns the terminal status."""
     from app.db.shards import ShardManager
@@ -74,10 +88,29 @@ async def run_submission_pipeline(
     await writer.run(_set_status(submission_id, STATUS_PROCESSING))
     await bus.publish(channel, {"type": "status", "status": STATUS_PROCESSING})
 
+    if any(content_type == "application/pdf" for _, _, content_type, _ in pages):
+        outcome = await _expand_pdf_pages(
+            writer=writer,
+            storage=storage,
+            decoder=decoder,
+            channel=channel,
+            bus=bus,
+            submission_id=submission_id,
+            prefix=prefix,
+            pages=pages,
+        )
+        if outcome is not None:
+            await writer.run(_set_status(submission_id, STATUS_FAILED))
+            await bus.publish(channel, {"type": "done", "status": STATUS_FAILED})
+            return STATUS_FAILED
+        reloaded = await reads.run(_read_input(submission_id))
+        assert reloaded is not None
+        prefix, pages = reloaded
+
     page_markdowns: list[str] = []
     confidences: list[float] = []
     try:
-        for page_index, storage_key in pages:
+        for page_index, storage_key, _content_type, _size in pages:
             data = await asyncio.to_thread(fetch_bytes, storage, SCANS_BUCKET, storage_key)
             content_hash = hashlib.sha256(data).hexdigest()
 
@@ -148,21 +181,130 @@ async def run_submission_pipeline(
 
 def _read_input(
     submission_id: int,
-) -> Callable[[sqlite3.Connection], tuple[str, list[tuple[int, str]]] | None]:
-    def read(conn: sqlite3.Connection) -> tuple[str, list[tuple[int, str]]] | None:
+) -> Callable[
+    [sqlite3.Connection], tuple[str, list[tuple[int, str, str, int]]] | None
+]:
+    def read(
+        conn: sqlite3.Connection,
+    ) -> tuple[str, list[tuple[int, str, str, int]]] | None:
         row = conn.execute(
             "SELECT storage_prefix FROM submissions WHERE id = ?", (submission_id,)
         ).fetchone()
         if row is None:
             return None
         pages = conn.execute(
-            "SELECT page_index, storage_key FROM submission_pages"
-            " WHERE submission_id = ? ORDER BY page_index",
+            "SELECT page_index, storage_key, content_type, size_bytes"
+            " FROM submission_pages WHERE submission_id = ? ORDER BY page_index",
             (submission_id,),
         ).fetchall()
-        return str(row[0]), [(int(p[0]), str(p[1])) for p in pages]
+        return str(row[0]), [
+            (int(p[0]), str(p[1]), str(p[2]), int(p[3])) for p in pages
+        ]
 
     return read
+
+
+# --------------------------------------------------------- mode B expansion
+
+
+async def _expand_pdf_pages(
+    *,
+    writer: object,
+    storage: ObjectStorage,
+    decoder: PdfDecoder | None,
+    channel: str,
+    bus: EventBus,
+    submission_id: int,
+    prefix: str,
+    pages: list[tuple[int, str, str, int]],
+) -> str | None:
+    """Render every application/pdf page to rasters and rewrite the page rows
+    in one writer transaction, one image row per rendered page, order
+    preserved in place. Returns None on success or a rejection reason; the
+    caller fails the submission on a reason. Idempotent by construction: once
+    rewritten, no application/pdf row remains, so a retried job skips this
+    entirely."""
+    from app.db.writer import ShardWriter
+
+    assert isinstance(writer, ShardWriter)
+    if decoder is None:
+        await bus.publish(
+            channel,
+            {
+                "type": "rejected",
+                "reason": "pdf_unsupported",
+                "message": "PDF submissions can't be processed right now.",
+            },
+        )
+        return "pdf_unsupported"
+
+    # Expand in declared order: an image page carries through; a PDF page
+    # contributes one entry per rendered raster, in reading order.
+    expanded: list[tuple[str, str, int]] = []  # (storage_key, content_type, size)
+    for page_index, storage_key, content_type, size_bytes in pages:
+        if content_type != "application/pdf":
+            expanded.append((storage_key, content_type, size_bytes))
+            continue
+        pdf_bytes = await asyncio.to_thread(
+            fetch_bytes, storage, SCANS_BUCKET, storage_key
+        )
+        rendered = await asyncio.to_thread(decoder.decode, pdf_bytes)
+        for page in rendered:
+            # A handwriting PDF is pixels: always the rendered raster, never
+            # a text layer (decision 0026).
+            raster_key = f"{prefix}/render/{page_index}.{page.page_index}.png"
+            if len(page.image_png) > MAX_PAGE_BYTES:
+                await bus.publish(
+                    channel,
+                    {
+                        "type": "rejected",
+                        "reason": "page_too_large",
+                        "message": "A rendered page exceeds the 15 MiB page limit.",
+                    },
+                )
+                return "page_too_large"
+            await asyncio.to_thread(
+                storage.put_object,
+                Bucket=SCANS_BUCKET,
+                Key=raster_key,
+                Body=page.image_png,
+            )
+            expanded.append((raster_key, "image/png", len(page.image_png)))
+
+    if len(expanded) > MAX_PAGES:
+        await bus.publish(
+            channel,
+            {
+                "type": "rejected",
+                "reason": "too_many_pages",
+                "message": (
+                    f"This submission has {len(expanded)} pages after rendering;"
+                    f" the limit is {MAX_PAGES}."
+                ),
+            },
+        )
+        return "too_many_pages"
+
+    def rewrite(conn: sqlite3.Connection) -> None:
+        conn.execute(
+            "DELETE FROM submission_pages WHERE submission_id = ?", (submission_id,)
+        )
+        conn.executemany(
+            "INSERT INTO submission_pages"
+            " (submission_id, page_index, storage_key, content_type, size_bytes)"
+            " VALUES (?, ?, ?, ?, ?)",
+            [
+                (submission_id, index, key, content_type, size)
+                for index, (key, content_type, size) in enumerate(expanded)
+            ],
+        )
+        conn.execute(
+            "UPDATE submissions SET page_count = ? WHERE id = ?",
+            (len(expanded), submission_id),
+        )
+
+    await writer.run(rewrite)
+    return None
 
 
 def _set_status(submission_id: int, status: str) -> Callable[[sqlite3.Connection], None]:
