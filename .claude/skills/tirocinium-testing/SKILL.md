@@ -6,8 +6,8 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at milestone 5.1 (decision 0036:
-the parameter spec and the figure-frozen check):
+passes; green never goes red. Last updated at milestone 5.2 (decision 0037:
+auto-parameterization):
 Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 backend
 complete (3.1 the submission upload path done; 3.2 scan preprocessing
 implemented, its golden gate awaiting the 30-photo corpus; 3.3 handwriting
@@ -30,7 +30,9 @@ distance and figure interventions per item) at confirmation; three figure verbs
 deferred. The Phase 4 backend is complete bar those two; the confirmation
 surface is the frontend's. Phase 5 has begun: 5.1 (the parameter spec, its
 editor panel backend, and the figure-frozen check behind the cached
-`FigureReader` vision seam) is done.
+`FigureReader` vision seam) and 5.2 (auto-parameterization behind the
+`SpecProposer` seam, with server-computed token positions, pre-professor
+frozen filtering, and the save-time edit signal) are done.
 The Phase 3 frontend half
 (3.5) is in
 progress: the upload flow (capture, pre-checks, orchestration, SSE processing)
@@ -74,12 +76,16 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 208 tests (25 data layer, 16 case studies/concepts/courses,
+Python suite, 217 tests (25 data layer, 16 case studies/concepts/courses,
 15 seats, 12 auth, 16 submissions (incl. 4 transcription-read), 5 transcription,
-14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 19 params
-(the spec round-trip compressed at rest, 7 validation rejections, the frozen
-check blocking and the decorative unblock, the reading cache, no-figures no
-model call, and the auth surface), 63 imports
+14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 28 params
+(19 param-spec: the spec round-trip compressed at rest, 7 validation
+rejections, the frozen check blocking and the decorative unblock, the reading
+cache, no-figures no model call, and the auth surface; 9 auto-parameterize:
+the draft with annotations and stored provenance, the document carrying
+solution and frozen values but never figure bytes, a frozen proposal locked
+out, no positions for an absent literal, idempotent replay, the save-time
+edit signal, and the auth surface), 63 imports
 (4 decode pipeline + 2 figure pipeline (born-digital + scanned detector),
 9 endpoint, 8 confirm/list/metrics, 8 figure verbs (incl. the items read carrying
 figures+pages), 5 figure resolve (owner any, seat published-only, 404 hides
@@ -420,6 +426,22 @@ Phase 5, in progress:
   parameter whose value appears in a test schematic and unblocks it when the
   figure is marked decorative" is green; the adversarial verification suite
   and pool-invariant gates arrive with 5.3 and 5.4.
+
+- 5.2 (done): auto-parameterization (decision 0037). `POST
+  .../case-studies/{id}/auto-parameterize` drafts a complete spec through the
+  `SpecProposer` seam (`app/params/proposal.py`, `AnthropicSpecProposer` live,
+  `RecordedSpecProposer` in tests, prompt `auto-parameterize/v1`): the
+  confirmed question and solution as delimited untrusted content plus the
+  cached frozen display values, parameters back with rationales and exact
+  literals, token positions computed server-side from the literal, the frozen
+  check re-run on the output (conflicts come back as `frozen` with reasons,
+  never in the draft), the payload stored compressed with provenance in
+  `spec_proposals` (migration course/0014), Idempotency-Key replay, and the
+  param-spec PUT scoring the latest unsaved proposal (kept/changed/dropped/
+  added, invariants edit distance) as the prompt-quality signal. The 9 tests
+  in `app/params/test_auto_parameterize.py` cover all of it; recorded assets
+  land under `apps/api/tests/recorded/auto-parameterize/` (in-memory in the
+  gate).
 
 - 4.4 (web, confirmation surface): built against the full contract (figure/page
   serving, confirm, discard, merge, figure verbs). The read renders each detected

@@ -137,6 +137,29 @@ export interface paths {
         patch: operations["update_case_study_api_v1_courses__course_id__case_studies__case_study_id__patch"];
         trace?: never;
     };
+    "/api/v1/courses/{course_id}/case-studies/{case_study_id}/auto-parameterize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Auto Parameterize
+         * @description Draft a complete parameter spec from the confirmed question and
+         *     solution (guide 6.2). The proposal is a draft only: it is returned, never
+         *     stored as the spec, and the professor saves through the param-spec PUT.
+         *     Frozen values are excluded before the professor ever sees them.
+         */
+        post: operations["auto_parameterize_api_v1_courses__course_id__case_studies__case_study_id__auto_parameterize_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses/{course_id}/case-studies/{case_study_id}/concepts": {
         parameters: {
             query?: never;
@@ -1250,6 +1273,23 @@ export interface components {
             type: string;
         };
         /**
+         * ParameterAnnotation
+         * @description What the editor overlay needs per proposed parameter: why it should
+         *     vary and where it sits in the question text (character offsets computed
+         *     server-side from the literal).
+         */
+        ParameterAnnotation: {
+            /** Literal */
+            literal: string;
+            /** Positions */
+            positions?: [
+                number,
+                number
+            ][];
+            /** Rationale */
+            rationale: string;
+        };
+        /**
          * Problem
          * @description The error body, also referenced from route response annotations so
          *     the contract documents error shapes.
@@ -1274,6 +1314,32 @@ export interface components {
             /** Id */
             id: number;
             role: components["schemas"]["Role"];
+        };
+        /**
+         * ProposalOut
+         * @description The proposal response: the stored payload plus its row id, so a retry
+         *     can be recognised and the edit signal can point back at it.
+         */
+        ProposalOut: {
+            /** Annotations */
+            annotations: {
+                [key: string]: components["schemas"]["ParameterAnnotation"];
+            };
+            /** Frozen */
+            frozen: components["schemas"]["BlockedParameter"][];
+            /** Invariant Rationales */
+            invariant_rationales: (string | null)[];
+            /** Proposal Id */
+            proposal_id: number;
+            provenance: components["schemas"]["ProposalProvenance"];
+            spec: components["schemas"]["ParamSpec"];
+        };
+        /** ProposalProvenance */
+        ProposalProvenance: {
+            /** Model Id */
+            model_id: string;
+            /** Prompt Version */
+            prompt_version: string;
         };
         /** RedeemIn */
         RedeemIn: {
@@ -2069,6 +2135,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CaseStudyDetail"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    auto_parameterize_api_v1_courses__course_id__case_studies__case_study_id__auto_parameterize_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "idempotency-key"?: string | null;
+            };
+            path: {
+                course_id: number;
+                case_study_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalOut"];
                 };
             };
             /** @description Forbidden */

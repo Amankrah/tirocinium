@@ -27,7 +27,8 @@ merge and discard (decision 0034) built, and the five-PDF golden-corpus harness
 completed (decision 0033, awaiting its captured PDFs). The Phase 4 backend is
 complete bar item/figure split, which alone needs re-cropping from the lossless
 source and is deferred with the figure re-crop follow-up (decision 0031).
-Phase 5 has begun: 5.1 (the parameter spec and the figure-frozen check) is done.
+Phase 5 has begun: 5.1 (the parameter spec and the figure-frozen check) and
+5.2 (auto-parameterization) are done.
 
 The parameter spec (milestone 5.1, decision 0036): guide 6.1's typed spec
 (number, integer, choice, entity parameters; plain-language invariants passed
@@ -50,6 +51,23 @@ merges dict-detail extension members into the problem body). Matching is
 literal and in Python (authoring-time string matching, not the mandated-Rust
 numeric comparer): parsed numeric tokens within relative tolerance,
 case-insensitive containment for choice and entity.
+
+Auto-parameterization (milestone 5.2, decision 0037): `POST
+.../case-studies/{id}/auto-parameterize`, professor-and-owner, one inline
+`SpecProposer` text call (`app/params/proposal.py`, Anthropic live under
+`prompts/auto-parameterize/v1`, recorded in tests) reading the confirmed
+question and solution (the confirmed item's, never a staged one) as delimited
+untrusted content plus the frozen display values from the 0036 cache. The model
+returns parameters with a rationale and the exact `literal` of each value;
+token positions are computed server-side by searching the body for the literal
+(model offsets are never trusted; an absent literal gets an empty list). The
+frozen check runs again on the output, so conflicts reach the professor as
+`frozen` entries with reasons, excluded from the draft `spec`. The full
+response payload is stored compressed in `spec_proposals` (migration
+course/0014) with provenance; an Idempotency-Key retry replays it exactly. The
+proposal is never the spec: the professor saves through the 5.1 PUT, and that
+save scores the latest unsaved proposal (kept/changed/dropped/added parameters,
+invariants edit distance) as the guide 6.2 prompt-quality signal.
 
 pdfium is single-threaded in a way per-call locking does not cover: the crate
 holds one process-wide operation lock across each whole decode or

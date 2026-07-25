@@ -1536,6 +1536,42 @@
         "title": "ParamSpecBlockedProblem",
         "type": "object"
       },
+      "ParameterAnnotation": {
+        "description": "What the editor overlay needs per proposed parameter: why it should\nvary and where it sits in the question text (character offsets computed\nserver-side from the literal).",
+        "properties": {
+          "literal": {
+            "title": "Literal",
+            "type": "string"
+          },
+          "positions": {
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Positions",
+            "type": "array"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rationale",
+          "literal"
+        ],
+        "title": "ParameterAnnotation",
+        "type": "object"
+      },
       "Problem": {
         "description": "The error body, also referenced from route response annotations so\nthe contract documents error shapes.",
         "properties": {
@@ -1591,6 +1627,77 @@
           "role"
         ],
         "title": "ProfessorOut",
+        "type": "object"
+      },
+      "ProposalOut": {
+        "description": "The proposal response: the stored payload plus its row id, so a retry\ncan be recognised and the edit signal can point back at it.",
+        "properties": {
+          "annotations": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ParameterAnnotation"
+            },
+            "title": "Annotations",
+            "type": "object"
+          },
+          "frozen": {
+            "items": {
+              "$ref": "#/components/schemas/BlockedParameter"
+            },
+            "title": "Frozen",
+            "type": "array"
+          },
+          "invariant_rationales": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Invariant Rationales",
+            "type": "array"
+          },
+          "proposal_id": {
+            "title": "Proposal Id",
+            "type": "integer"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/ProposalProvenance"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/ParamSpec"
+          }
+        },
+        "required": [
+          "spec",
+          "annotations",
+          "invariant_rationales",
+          "frozen",
+          "provenance",
+          "proposal_id"
+        ],
+        "title": "ProposalOut",
+        "type": "object"
+      },
+      "ProposalProvenance": {
+        "properties": {
+          "model_id": {
+            "title": "Model Id",
+            "type": "string"
+          },
+          "prompt_version": {
+            "title": "Prompt Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "model_id",
+          "prompt_version"
+        ],
+        "title": "ProposalProvenance",
         "type": "object"
       },
       "RedeemIn": {
@@ -3002,6 +3109,99 @@
         "summary": "Update Case Study",
         "tags": [
           "case-studies"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/case-studies/{case_study_id}/auto-parameterize": {
+      "post": {
+        "description": "Draft a complete parameter spec from the confirmed question and\nsolution (guide 6.2). The proposal is a draft only: it is returned, never\nstored as the spec, and the professor saves through the param-spec PUT.\nFrozen values are excluded before the professor ever sees them.",
+        "operationId": "auto_parameterize_api_v1_courses__course_id__case_studies__case_study_id__auto_parameterize_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "case_study_id",
+            "required": true,
+            "schema": {
+              "title": "Case Study Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposalOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Auto Parameterize",
+        "tags": [
+          "parameterization"
         ]
       }
     },
