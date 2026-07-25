@@ -32,6 +32,7 @@ from app.seats import router as seats_router
 from app.seats.ratelimit import RateLimiter
 from app.submissions import router as submissions_router
 from app.tasks import ArqTaskQueue, NullTaskQueue
+from app.variants import router as variants_router
 
 API_TITLE = "Tirocinium API"
 API_VERSION = "0.1.0"
@@ -112,4 +113,5 @@ def create_app(
     app.include_router(retrieval_router)
     app.include_router(imports_router)
     app.include_router(params_router)
+    app.include_router(variants_router)
     return app

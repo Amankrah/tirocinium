@@ -12,12 +12,17 @@ from fastapi import Request
 
 PROCESS_SUBMISSION = "process_submission"
 PROCESS_IMPORT = "process_import"
+GENERATE_VARIANT = "generate_variant"
 
 
 class TaskQueue(Protocol):
     async def enqueue_process_submission(self, course_id: int, submission_id: int) -> None: ...
 
     async def enqueue_process_import(self, course_id: int, import_id: int) -> None: ...
+
+    async def enqueue_generate_variant(
+        self, course_id: int, case_study_id: int, seed: int
+    ) -> None: ...
 
 
 class NullTaskQueue:
@@ -27,6 +32,11 @@ class NullTaskQueue:
         return None
 
     async def enqueue_process_import(self, course_id: int, import_id: int) -> None:
+        return None
+
+    async def enqueue_generate_variant(
+        self, course_id: int, case_study_id: int, seed: int
+    ) -> None:
         return None
 
 
@@ -41,6 +51,19 @@ class ArqTaskQueue:
 
     async def enqueue_process_import(self, course_id: int, import_id: int) -> None:
         await self._pool.enqueue_job(PROCESS_IMPORT, course_id, import_id)
+
+    async def enqueue_generate_variant(
+        self, course_id: int, case_study_id: int, seed: int
+    ) -> None:
+        # One job per seed, keyed by it, so a duplicate enqueue of the same
+        # variant collapses in the broker (seed dedupe, guide 6.4).
+        await self._pool.enqueue_job(
+            GENERATE_VARIANT,
+            course_id,
+            case_study_id,
+            seed,
+            _job_id=f"variant:{course_id}:{case_study_id}:{seed}",
+        )
 
 
 def get_task_queue(request: Request) -> TaskQueue:

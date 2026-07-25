@@ -29,6 +29,8 @@ from app.retrieval.model import OpenAIEmbedder
 from app.storage import get_object_storage
 from app.transcription.model import AnthropicTranscriber
 from app.transcription.pipeline import STATUS_PROCESSED, run_submission_pipeline
+from app.variants.model import AnthropicVariantGenerator, AnthropicVariantVerifier
+from app.variants.pipeline import generate_variant as run_variant_generation
 
 
 def _redis_url() -> str:
@@ -50,6 +52,8 @@ async def startup(ctx: dict[str, Any]) -> None:
     ctx["figure_extractor"] = PdfiumFigureExtractor()
     ctx["figure_detector"] = AnthropicFigureDetector()
     ctx["segmenter"] = AnthropicSegmenter()
+    ctx["variant_generator"] = AnthropicVariantGenerator()
+    ctx["variant_verifier"] = AnthropicVariantVerifier()
     ctx["bus"] = RedisEventBus(_redis_url())
 
 
@@ -101,12 +105,30 @@ async def process_import(ctx: dict[str, Any], course_id: int, import_id: int) ->
     )
 
 
+async def generate_variant(
+    ctx: dict[str, Any], course_id: int, case_study_id: int, seed: int
+) -> str:
+    """The generation-and-verification loop for one seed (milestone 5.3).
+    Idempotent by the (case study, seed) unique index: a retried job that
+    finds its variant already stored is a no-op, never a second model call."""
+    return await run_variant_generation(
+        shards=ctx["shards"],
+        storage=ctx["storage"],
+        generator=ctx["variant_generator"],
+        verifier=ctx["variant_verifier"],
+        course_id=course_id,
+        case_study_id=case_study_id,
+        seed=seed,
+    )
+
+
 class WorkerSettings:
     """arq entry point: `arq app.worker.WorkerSettings`."""
 
     functions: ClassVar[list[Callable[..., Coroutine[Any, Any, Any]]]] = [
         process_submission,
         process_import,
+        generate_variant,
     ]
     on_startup = startup
     on_shutdown = shutdown

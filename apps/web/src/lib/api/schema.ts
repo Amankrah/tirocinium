@@ -234,6 +234,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/courses/{course_id}/case-studies/{case_study_id}/variants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Variants
+         * @description The professor's view of a case study's variants, optionally filtered
+         *     by verification state (the review queue is ?state=flagged). Students never
+         *     read this surface; the practice loop serves from the pool (5.4).
+         */
+        get: operations["list_variants_api_v1_courses__course_id__case_studies__case_study_id__variants_get"];
+        put?: never;
+        /**
+         * Request Variants
+         * @description Enqueue generation of `count` variants. 409 without a parameter spec:
+         *     generation samples the spec, so there is nothing to generate from.
+         */
+        post: operations["request_variants_api_v1_courses__course_id__case_studies__case_study_id__variants_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses/{course_id}/concepts": {
         parameters: {
             query?: never;
@@ -539,6 +566,52 @@ export interface paths {
         put?: never;
         /** Generate Seat Batch */
         post: operations["generate_seat_batch_api_v1_courses__course_id__seats_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/variants/{variant_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Variant */
+        get: operations["get_variant_api_v1_courses__course_id__variants__variant_id__get"];
+        put?: never;
+        post?: never;
+        /** Discard Variant */
+        delete: operations["discard_variant_api_v1_courses__course_id__variants__variant_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Edit Variant
+         * @description The professor edits a variant's body or solution. An edited variant is
+         *     'manual': the professor took responsibility for its correctness, whatever
+         *     the models said before.
+         */
+        patch: operations["edit_variant_api_v1_courses__course_id__variants__variant_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/variants/{variant_id}/promote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Promote Variant
+         * @description The professor overrides a flag after review: flagged becomes 'manual'
+         *     (the professor vouches for it; it serves like verified). Only a flagged
+         *     variant promotes; anything else is already disposed.
+         */
+        post: operations["promote_variant_api_v1_courses__course_id__variants__variant_id__promote_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -980,6 +1053,21 @@ export interface components {
              * @enum {string}
              */
             role: "essential" | "decorative";
+        };
+        /** GenerateIn */
+        GenerateIn: {
+            /**
+             * Count
+             * @default 1
+             */
+            count: number;
+        };
+        /** GenerateOut */
+        GenerateOut: {
+            /** Enqueued */
+            enqueued: number;
+            /** Seeds */
+            seeds: number[];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1539,6 +1627,73 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /**
+         * VariantDetail
+         * @description The review read: the variant, both solutions (the flagged diff view
+         *     needs the generation solution and the independent re-solve side by side),
+         *     the sampled values, and full provenance.
+         */
+        VariantDetail: {
+            /** Body */
+            body: string;
+            /** Created At */
+            created_at: number;
+            /** Final Answers */
+            final_answers: string[];
+            /** Flag Reason */
+            flag_reason: string | null;
+            /** Generation Prompt Version */
+            generation_prompt_version: string | null;
+            /** Id */
+            id: number;
+            /** Model Id */
+            model_id: string;
+            /** Seed */
+            seed: number | null;
+            /** Solution */
+            solution: string;
+            /** Values */
+            values: {
+                [key: string]: number | string | null;
+            };
+            /** Verification */
+            verification: string;
+            /** Verification Prompt Version */
+            verification_prompt_version: string | null;
+            /** Verify Model Id */
+            verify_model_id: string | null;
+            /** Verify Solution */
+            verify_solution: string | null;
+        };
+        /** VariantEdit */
+        VariantEdit: {
+            /** Body */
+            body?: string | null;
+            /** Solution */
+            solution?: string | null;
+        };
+        /** VariantListOut */
+        VariantListOut: {
+            /** Items */
+            items: components["schemas"]["VariantSummary"][];
+            /** Next Cursor */
+            next_cursor: number | null;
+        };
+        /** VariantSummary */
+        VariantSummary: {
+            /** Created At */
+            created_at: number;
+            /** Flag Reason */
+            flag_reason: string | null;
+            /** Id */
+            id: number;
+            /** Model Id */
+            model_id: string;
+            /** Seed */
+            seed: number | null;
+            /** Verification */
+            verification: string;
         };
     };
     responses: never;
@@ -2524,6 +2679,125 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_variants_api_v1_courses__course_id__case_studies__case_study_id__variants_get: {
+        parameters: {
+            query?: {
+                state?: string | null;
+                cursor?: number | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                course_id: number;
+                case_study_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VariantListOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_variants_api_v1_courses__course_id__case_studies__case_study_id__variants_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "idempotency-key"?: string | null;
+            };
+            path: {
+                course_id: number;
+                case_study_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerateOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3584,6 +3858,226 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_variant_api_v1_courses__course_id__variants__variant_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                variant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VariantDetail"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    discard_variant_api_v1_courses__course_id__variants__variant_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                variant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_variant_api_v1_courses__course_id__variants__variant_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                variant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VariantEdit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VariantSummary"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    promote_variant_api_v1_courses__course_id__variants__variant_id__promote_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                variant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VariantSummary"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

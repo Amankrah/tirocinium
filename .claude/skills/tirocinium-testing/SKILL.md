@@ -6,8 +6,8 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at milestone 5.2 (decision 0037:
-auto-parameterization):
+passes; green never goes red. Last updated at milestone 5.3 (decision 0038:
+generation and verification):
 Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 backend
 complete (3.1 the submission upload path done; 3.2 scan preprocessing
 implemented, its golden gate awaiting the 30-photo corpus; 3.3 handwriting
@@ -32,7 +32,9 @@ surface is the frontend's. Phase 5 has begun: 5.1 (the parameter spec, its
 editor panel backend, and the figure-frozen check behind the cached
 `FigureReader` vision seam) and 5.2 (auto-parameterization behind the
 `SpecProposer` seam, with server-computed token positions, pre-professor
-frozen filtering, and the save-time edit signal) are done.
+frozen filtering, and the save-time edit signal), and 5.3 (the generation and
+verification loop with the `tirocinium-compare` Rust member and the seeded
+adversarial gate) are done.
 The Phase 3 frontend half
 (3.5) is in
 progress: the upload flow (capture, pre-checks, orchestration, SSE processing)
@@ -51,11 +53,15 @@ imports, lint, and both suites; see `infra/README.md` for flags):
 
     ./infra/setup.sh
 
-Rust workspace, 51 tests (mastery 15: 6 property, 9 scenario; codec 8;
+Rust workspace, 69 tests (mastery 15: 6 property, 9 scenario; codec 8;
 preprocess 8: 7 synthetic-image pipeline tests, 1 golden-corpus harness that is
 a no-op until the corpus lands; embedding 10: 7 scenario, 3 property; pdf 10:
 3 decode and 6 figure tests (5 skip when the pdfium binary is absent; the crop
-test is pure image and always runs), 1 no-op golden-corpus harness) plus lint:
+test is pure image and always runs), 1 no-op golden-corpus harness; compare 18:
+13 scenario (number-format reading, tolerance, structural mismatches, stable
+strings), 5 property (self-match, symmetry, tolerance monotonicity, scientific
+notation invariance, beyond-tolerance perturbation always mismatches)) plus
+lint:
 
     cd crates/platform_core
     cargo test --workspace
@@ -64,6 +70,7 @@ test is pure image and always runs), 1 no-op golden-corpus harness) plus lint:
     cargo clippy -p tirocinium-mastery --features python -- -D warnings
     cargo clippy -p tirocinium-embedding --features python -- -D warnings
     cargo clippy -p tirocinium-pdf --features python -- -D warnings
+    cargo clippy -p tirocinium-compare --features python -- -D warnings
 
 Criterion benches with the absolute-budget regression gate (decision 0004;
 budgets live in `crates/platform_core/bench-thresholds.json`, revised only
@@ -76,7 +83,7 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 217 tests (25 data layer, 16 case studies/concepts/courses,
+Python suite, 248 tests (25 data layer, 16 case studies/concepts/courses,
 15 seats, 12 auth, 16 submissions (incl. 4 transcription-read), 5 transcription,
 14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 28 params
 (19 param-spec: the spec round-trip compressed at rest, 7 validation
@@ -85,7 +92,11 @@ cache, no-figures no model call, and the auth surface; 9 auto-parameterize:
 the draft with annotations and stored provenance, the document carrying
 solution and frozen values but never figure bytes, a frozen proposal locked
 out, no positions for an absent literal, idempotent replay, the save-time
-edit signal, and the auth surface), 63 imports
+edit signal, and the auth surface), 31 variants (4 sampling, 18 pipeline of
+which 12 are the seeded adversarial gate (3 seeds x 4 corruption modes,
+always flagged and never in the verified list), 9 surface: enqueue, seed
+idempotency, no-spec 409, state filters, the flagged diff read, promote,
+edit, discard, auth), 63 imports
 (4 decode pipeline + 2 figure pipeline (born-digital + scanned detector),
 9 endpoint, 8 confirm/list/metrics, 8 figure verbs (incl. the items read carrying
 figures+pages), 5 figure resolve (owner any, seat published-only, 404 hides
@@ -443,6 +454,23 @@ Phase 5, in progress:
   land under `apps/api/tests/recorded/auto-parameterize/` (in-memory in the
   gate).
 
+- 5.3 (done): generation and verification (decision 0038). The
+  `tirocinium-compare` member (tolerant numeric comparer: number-format
+  reading with documented separator rules, `max(abs, rel*max)` tolerance,
+  element-wise ordered lists, conservative toward flagging; property-tested,
+  bench-budgeted, exposed as `platform_core.compare`). Seeded sampling as a
+  pure function of (spec, seed). The worker job `generate_variant`: one
+  generation call (body + solution + structured final answers), server-side
+  fidelity checks (fig:// token multiset preserved, answers exist) before the
+  verify call is spent, the independent re-solve seeing the question only with
+  essential figures attached as images, the comparer deciding, and the row
+  stored with full provenance under a unique `(case_study_id, seed)`. The
+  variant surface: enqueue with key-derived seeds, state-filtered list, the
+  flagged diff detail, promote/edit/discard. The phase gate's verification
+  property is green: 3 seeds x 4 corruption modes (wrong solution, text
+  contradicting its figure, dropped figure token, no answers) all flag and
+  never appear in the verified list. The pool invariant gate is 5.4's.
+
 - 4.4 (web, confirmation surface): built against the full contract (figure/page
   serving, confirm, discard, merge, figure verbs). The read renders each detected
   problem as a card: source pages with figure boxes drawn from the normalised
@@ -511,6 +539,13 @@ a JSON `{"values": [...]}` per figure named for the sha256 of the exact figure
 bytes) live at `apps/api/tests/recorded/figure-reading/`, replayed by
 `RecordedFigureReader`; the param-spec tests build theirs in memory, so the
 gate needs no committed asset.
+
+Recorded variant-generation and variant-verification responses (guide 6.3)
+live at `apps/api/tests/recorded/variant-generation/` and
+`.../variant-verification/`, one JSON per document sha256
+(`GeneratedVariant` / `ReSolveResult` shapes), replayed by
+`RecordedVariantGenerator` / `RecordedVariantVerifier`; the pipeline tests
+build theirs in memory, so the gate needs no committed asset.
 
 Recorded segmentation responses live at `apps/api/tests/recorded/segmentation/`,
 one JSON array of items per file named for the sha256 of the assembled document

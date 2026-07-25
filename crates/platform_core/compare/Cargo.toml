@@ -1,0 +1,33 @@
+# The tolerant numeric comparer (backend guide 6.3, milestone 5.3): decides
+# whether two final-answer lists agree, extracting the numbers each answer
+# displays and comparing them within relative and absolute tolerance. It is the
+# programmatic half of variant verification (agreement marks a variant
+# verified; disagreement flags it) and doubles as the answer_match evidence
+# source for the mastery model (guide 6.6). Pure functions of strings and
+# tolerances; pedantic and bench-budget gated like every member since the
+# codec (decisions 0001, 0004).
+[package]
+name = "tirocinium-compare"
+version = "0.1.0"
+edition = "2021"
+description = "Tirocinium numeric comparer: tolerant final-answer agreement as pure functions"
+license = "UNLICENSED"
+
+[dependencies]
+# abi3 keeps the single wheel serving CPython 3.10+; extension-module is
+# enabled only by the umbrella crate so this crate's tests link normally.
+pyo3 = { version = "0.23", features = ["abi3-py310"], optional = true }
+
+[dev-dependencies]
+proptest = "=1.4.0"
+criterion = "0.5"
+
+[features]
+python = ["dep:pyo3"]
+
+[[bench]]
+name = "compare"
+harness = false
+
+[lints]
+workspace = true

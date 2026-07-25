@@ -27,8 +27,9 @@ merge and discard (decision 0034) built, and the five-PDF golden-corpus harness
 completed (decision 0033, awaiting its captured PDFs). The Phase 4 backend is
 complete bar item/figure split, which alone needs re-cropping from the lossless
 source and is deferred with the figure re-crop follow-up (decision 0031).
-Phase 5 has begun: 5.1 (the parameter spec and the figure-frozen check) and
-5.2 (auto-parameterization) are done.
+Phase 5 has begun: 5.1 (the parameter spec and the figure-frozen check),
+5.2 (auto-parameterization), and 5.3 (generation and verification, with the
+`tirocinium-compare` member) are done.
 
 The parameter spec (milestone 5.1, decision 0036): guide 6.1's typed spec
 (number, integer, choice, entity parameters; plain-language invariants passed
@@ -68,6 +69,31 @@ course/0014) with provenance; an Idempotency-Key retry replays it exactly. The
 proposal is never the spec: the professor saves through the 5.1 PUT, and that
 save scores the latest unsaved proposal (kept/changed/dropped/added parameters,
 invariants edit distance) as the guide 6.2 prompt-quality signal.
+
+Generation and verification (milestone 5.3, decision 0038): the loop runs in
+the worker (`app/variants/pipeline.py`, job `generate_variant`), never in a
+request handler. Seeded sampling (`app/variants/sampling.py`) is a pure
+function of (spec, seed), sorted-name order, entity parameters sampling to
+None (the generator invents from the description). One text call generates
+body plus worked solution plus structured `final_answers` (seam
+`VariantGenerator`, `prompts/variant-generation/v1`); two deterministic
+fidelity checks run before the verify call is spent (fig:// token multiset
+equals the base's; final answers exist); then the independent re-solve
+(`VariantVerifier`, `prompts/variant-verification/v1`) sees the variant's
+question only with the essential figures attached as images, never the first
+pass's output. Agreement is decided by `platform_core.compare` (the Rust
+member: tolerant numeric comparer, 0.5% relative tolerance, conservative
+toward flagging; it doubles as Phase 6's answer_match). Everything stores with
+full provenance (seed, seed values, both prompt versions, both model ids, the
+re-solve's solution, the flag reason; migration course/0015, unique
+`(case_study_id, seed)`). A flagged variant is never served. The surface:
+`POST .../case-studies/{id}/variants` enqueues seeded jobs (seeds derived from
+the Idempotency-Key, so retries collapse; 409 without a spec), `GET` lists by
+state (?state=flagged is the review queue), `GET /courses/{id}/variants/{id}`
+serves the flagged diff (both solutions), promote flips flagged to `manual`,
+an edit always lands on `manual`, discard refuses (409) when submissions
+reference it. All professor-and-owner; students meet variants only through
+the 5.4 pool.
 
 pdfium is single-threaded in a way per-call locking does not cover: the crate
 holds one process-wide operation lock across each whole decode or

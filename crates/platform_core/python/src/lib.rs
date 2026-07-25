@@ -37,5 +37,10 @@ fn platform_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_submodule(&pdf)?;
     sys_modules.set_item("platform_core.pdf", &pdf)?;
 
+    let compare = PyModule::new(py, "compare")?;
+    tirocinium_compare::python::register(&compare)?;
+    m.add_submodule(&compare)?;
+    sys_modules.set_item("platform_core.compare", &compare)?;
+
     Ok(())
 }
