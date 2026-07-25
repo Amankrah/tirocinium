@@ -37,14 +37,18 @@ verification loop with the `tirocinium-compare` Rust member and the seeded
 adversarial gate), and 5.4 (the variant pool: publish pre-generation, the
 sequential fill job as the concurrency cap, per-course token accounting with
 the budget check, and the never-waiting practice read) are done. The Phase 5
-backend is complete; 5.5 is the frontend's, in progress: the parameterization
-panel is built (the typed editor for the four parameter kinds, invariants, and
-solution method, with the figure-frozen 409 surfaced and its escape hatches, plus
-auto-parameterize loading a proposal into the form to review and save). Still to
-build: the positioned auto-parameterize overlay, preview variants, the flagged
-review queue, and the practice-loop instant variant swap (which also finally
-wires the live upload path from the problem view, resolving the 3.5 variant_id
-gap).
+backend is complete; 5.5 is the frontend's, in progress. Built: the
+parameterization panel (the typed editor for the four parameter kinds,
+invariants, and solution method, with the figure-frozen 409 surfaced and its
+escape hatches); the auto-parameterize review overlay (the proposal highlighted
+in place at the verified positions, range and rationale chips, invariant
+rationales, figure locks, accept-into-the-form); and the practice loop, where the
+problem view serves a pooled variant and "New variant" swaps another in through a
+lazy client renderer (no generation spinner, route at 114 kB) and "Upload
+solution" carries the variant id into the upload flow, which finally makes that
+path live rather than seed-only (the 3.5 gap, closed). Still to build: preview
+variants (generate three and render), and the flagged review queue (list, the
+verification diff, promote/edit/delete).
 The Phase 3 frontend half
 (3.5) is in
 progress: the upload flow (capture, pre-checks, orchestration, SSE processing)
@@ -133,7 +137,7 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (188 Vitest tests: the token contract with its computed-contrast
+Web suite (197 Vitest tests: the token contract with its computed-contrast
 assertion, the primitives, the API clients, the upload flow's pre-checks,
 orchestration controller, SSE processing model, and transcription preview, and
 the PDF import upload and controller), plus lint, typecheck, and
