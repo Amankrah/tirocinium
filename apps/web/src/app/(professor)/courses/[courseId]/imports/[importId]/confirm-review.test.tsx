@@ -63,7 +63,7 @@ function renderReview(items: Schemas["ImportItemOut"][], pages: Schemas["ImportP
     page_span: "3, 4",
     confidence: 0.4,
   }));
-  render(
+  const view = render(
     <ConfirmReview
       courseId={1}
       importId={7}
@@ -77,7 +77,7 @@ function renderReview(items: Schemas["ImportItemOut"][], pages: Schemas["ImportP
       merge={merge as never}
     />,
   );
-  return { confirm, discard, refetch, addBox, setRole, removeFig, merge };
+  return { confirm, discard, refetch, addBox, setRole, removeFig, merge, view };
 }
 
 const page0: Schemas["ImportPageOut"] = { page_index: 0, image_url: "blob:page0" };
@@ -187,5 +187,18 @@ describe("ConfirmReview", () => {
     // The merge button belongs to the earlier (survivor) card.
     fireEvent.click(screen.getAllByRole("button", { name: "Merge with next" })[0]!);
     await waitFor(() => expect(merge).toHaveBeenCalledWith(1, 5, 8));
+  });
+
+  it("moves the cursor with j/k and confirms with a", async () => {
+    // Ordered low-confidence-first: Shaky (id 8) then Sure (id 5).
+    const { confirm, view } = renderReview([
+      item({ id: 5, title: "Sure", confidence: 0.95 }),
+      item({ id: 8, title: "Shaky", confidence: 0.3 }),
+    ]);
+    const root = view.container.firstElementChild!;
+    // Cursor starts on the first (Shaky); j moves to the second (Sure).
+    fireEvent.keyDown(root, { key: "j" });
+    fireEvent.keyDown(root, { key: "a" });
+    await waitFor(() => expect(confirm).toHaveBeenCalledWith(1, 5, expect.anything()));
   });
 });

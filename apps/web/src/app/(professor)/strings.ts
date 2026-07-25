@@ -91,6 +91,9 @@ export const strings = {
     // Merge folds the next detected problem into this one (a question the
     // segmenter split); split is deferred until the corpus lands.
     mergeNext: "Merge with next",
+    keys: "Move with j and k. Press a to confirm, e to edit.",
+    split: "Split",
+    splitSoon: "Splitting a joined problem is coming with the sample corpus.",
   },
   seats: {
     back: "Back to course",

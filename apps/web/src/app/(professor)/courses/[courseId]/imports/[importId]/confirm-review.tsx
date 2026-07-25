@@ -12,7 +12,7 @@
 // Merge, the figure verbs, draw-a-box, and the j/k keyboard model layer on next.
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { Schemas } from "@/lib/api/client";
@@ -97,6 +97,13 @@ export function ConfirmReview({
   // edits they have made per item (a 4.5 accuracy signal, sent on confirm).
   const [selectedFigure, setSelectedFigure] = useState<number | null>(null);
   const [interventions, setInterventions] = useState<Record<number, number>>({});
+  // The keyboard cursor through the queue (guide 4.4: j/k to move, a/e to approve
+  // or edit), and the surface takes focus on mount so the keys work at once.
+  const [cursor, setCursor] = useState(0);
+  const rootRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    rootRef.current?.focus();
+  }, []);
 
   const pageByIndex = useMemo(
     () => new Map(pages.map((p) => [p.page_index, p])),
@@ -194,18 +201,49 @@ export function ConfirmReview({
     setEditing(item.id);
   }
 
+  const cardRefs = useRef<(HTMLLIElement | null)[]>([]);
+  useEffect(() => {
+    // Guard the method itself: jsdom (tests) does not implement it.
+    cardRefs.current[cursor]?.scrollIntoView?.({ block: "nearest" });
+  }, [cursor]);
+
+  function onKeyDown(e: React.KeyboardEvent) {
+    const tag = (e.target as HTMLElement).tagName;
+    // Never hijack the keys while the professor is editing text.
+    if (tag === "TEXTAREA" || tag === "INPUT") return;
+    if (e.key === "j" || e.key === "ArrowDown") {
+      e.preventDefault();
+      setCursor((c) => Math.min(ordered.length - 1, c + 1));
+    } else if (e.key === "k" || e.key === "ArrowUp") {
+      e.preventDefault();
+      setCursor((c) => Math.max(0, c - 1));
+    } else if (e.key === "a") {
+      const current = ordered[cursor];
+      if (current && current.state === "pending") void onConfirm(current);
+    } else if (e.key === "e") {
+      const current = ordered[cursor];
+      if (current && current.state === "pending") beginEdit(current);
+    }
+  }
+
   if (items.length === 0) {
     return <p className="text-ink-muted">{s.empty}</p>;
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div
+      ref={rootRef}
+      tabIndex={-1}
+      onKeyDown={onKeyDown}
+      className="flex flex-col gap-6 outline-none"
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-ink" role="status">
           {s.progress(confirmedCount, items.length)}
         </p>
         <p className="max-w-prose text-sm text-ink-muted">{s.note}</p>
       </div>
+      <p className="text-xs text-ink-muted">{s.keys}</p>
 
       {error ? (
         <p role="alert" className="text-sm text-flag-amber">
@@ -214,10 +252,11 @@ export function ConfirmReview({
       ) : null}
 
       <ol className="flex flex-col gap-8">
-        {ordered.map((item) => {
+        {ordered.map((item, index) => {
           const isConfirmed = item.state === "confirmed";
           const isEditing = editing === item.id;
           const isBusy = busy === item.id;
+          const isCurrent = index === cursor;
           const low = item.confidence < LOW_CONFIDENCE;
           const selectedFig =
             item.figures.find((f) => f.figure_id === selectedFigure) ?? null;
@@ -232,7 +271,14 @@ export function ConfirmReview({
           return (
             <li
               key={item.id}
-              className="flex flex-col gap-4 rounded-md border border-rule-line p-4"
+              ref={(el) => {
+                cardRefs.current[index] = el;
+              }}
+              aria-current={isCurrent ? "true" : undefined}
+              className={
+                "flex flex-col gap-4 rounded-md border p-4 " +
+                (isCurrent ? "border-accent ring-2 ring-accent/40" : "border-rule-line")
+              }
             >
               <div className="flex flex-wrap items-center gap-3">
                 <h2 className="font-display text-xl">
@@ -439,6 +485,11 @@ export function ConfirmReview({
                         {s.mergeNext}
                       </Button>
                     ) : null}
+                    {/* Split is designed but waits on the corpus (it 404s until
+                        then), so the affordance is present but disabled. */}
+                    <Button variant="quiet" disabled title={s.splitSoon}>
+                      {s.split}
+                    </Button>
                   </>
                 )}
               </div>
