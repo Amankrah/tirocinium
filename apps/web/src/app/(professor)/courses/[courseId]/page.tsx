@@ -51,6 +51,12 @@ export default async function CoursePage({
             >
               {strings.course.importLink}
             </Link>
+            <Link
+              href={`/courses/${id}/mastery`}
+              className="text-sm text-accent underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            >
+              {strings.course.masteryLink}
+            </Link>
           </div>
         </div>
 

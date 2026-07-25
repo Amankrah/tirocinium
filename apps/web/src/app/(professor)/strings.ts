@@ -34,6 +34,29 @@ export const strings = {
     newAction: "Create case study",
     seatsLink: "Seats",
     importLink: "Import from PDF",
+    masteryLink: "Class progress",
+  },
+  // The professor's per-concept distribution (mastery spec 6, guide 4.2b): the
+  // class's relationship to the material, aggregated with restraint. No per-seat
+  // identity and no ranking exist here, by design; the counts are anonymous.
+  distribution: {
+    title: "Class progress",
+    back: "Back to course",
+    intro:
+      "How the class stands on each concept. No names and no ranking, just where the class is with the material.",
+    empty: "Progress will appear here as students practise.",
+    labels: {
+      unseen: "Unseen",
+      shaky: "Shaky",
+      developing: "Developing",
+      solid: "Solid",
+    } as Record<string, string>,
+    count: (n: number, label: string) => `${n} ${label.toLowerCase()}`,
+    seats: (n: number) => (n === 1 ? "1 seat" : `${n} seats`),
+    gaps: "Common gaps",
+    // The gaps slot is designed but empty until Phase 7's defenses name
+    // misconceptions verbatim.
+    gapsEmpty: "Common gaps will appear here once voice defenses begin.",
   },
   // The import-from-PDF door (guide 4.3). Decode reads the pages; the review
   // step where a professor confirms each detected problem and its figures is

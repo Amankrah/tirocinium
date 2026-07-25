@@ -21,10 +21,34 @@ export const strings = {
     greeting: (seatNumber: string, courseTitle: string) =>
       `Seat ${seatNumber}, welcome to ${courseTitle}.`,
     empty: "Your case studies will appear here as your professor publishes them.",
-    // A neutral activity stub, not a mastery label: real per-concept mastery,
-    // with its always-expandable evidence, is Phase 6 (mastery spec, constraint
-    // that a label is never shown bare).
     notAttempted: "Not attempted yet",
+  },
+  // The mastery picture (mastery spec 4.5 and 9). A label is never shown bare:
+  // it always resolves, on tap, to the plain-language evidence trail the model
+  // returned. Labels are calm, no ranking, no colour hierarchy; unseen concepts
+  // are quiet, not an error.
+  mastery: {
+    heading: "Your progress",
+    empty: "Your progress will grow here as you practise.",
+    notStarted: "Not started",
+    labels: {
+      shaky: "Shaky",
+      developing: "Developing",
+      solid: "Solid",
+    } as Record<string, string>,
+    // The disclosure names the evidence, honouring the transparency contract.
+    evidence: "See the evidence",
+    dueForRevisit: "Worth a fresh look",
+  },
+  // The revisit queue (mastery spec 6). Calm, one targeted variant per concept,
+  // never a nag; an empty queue is the normal state and simply not shown.
+  revisit: {
+    heading: (count: number) =>
+      count === 1
+        ? "One concept is worth a fresh look"
+        : `${count} concepts are worth a fresh look`,
+    practise: "Practise",
+    noVariant: "Nothing to practise right now.",
   },
   problem: {
     backToCourse: "Back to course",
