@@ -97,7 +97,7 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (168 Vitest tests: the token contract with its computed-contrast
+Web suite (177 Vitest tests: the token contract with its computed-contrast
 assertion, the primitives, the API clients, the upload flow's pre-checks,
 orchestration controller, SSE processing model, and transcription preview, and
 the PDF import upload and controller), plus lint, typecheck, and
@@ -397,12 +397,19 @@ Phase 4, in progress:
   problem as a card: source pages with figure boxes drawn from the normalised
   bboxes, the question and solution with figures inline at their fig:// tokens
   (lazy markdown + KaTeX in their own chunk; route holds at 111 kB),
-  low-confidence-first, an "N of M confirmed" line. Edit, confirm (to a draft),
-  and discard are wired; the items read omits discarded/merged so every verb
-  refetches as the source of truth. Client + server actions cover the whole verb
-  set. Still to layer on: merge, the figure verbs (role, remove, draw-a-box), the
-  j/k keyboard model, the split affordance (404 until the corpus), and Playwright
-  journey four. Contract-layer and surface tests are in.
+  low-confidence-first, an "N of M confirmed" line. The full verb set is wired:
+  edit, confirm (to a draft), discard, merge (next-in-reading-order into the
+  survivor), and the figure verbs on the interactive source page (mark
+  essential/decorative, remove, and draw-a-box, which the server crops from the
+  lossless source from a normalised bbox; every figure edit bumps the item's
+  figure-intervention count sent on confirm). The queue is keyboard-driven (j/k
+  to move, a/e to confirm/edit). The items read omits discarded/merged, so every
+  verb refetches as the source of truth. Playwright journey four (adjust, merge,
+  confirm, draft renders) is written and skip-gated. Two things wait on the
+  backend: re-crop-proper (a crop endpoint; it is remove-then-redraw for now) and
+  split (404 until the five-PDF corpus), both with the affordance designed. That
+  is the whole 4.4 frontend but for those; contract, surface, page-box, and
+  keyboard tests are in.
 
 ## Standing rules
 
