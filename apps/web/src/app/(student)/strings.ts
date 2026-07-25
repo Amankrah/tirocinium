@@ -70,6 +70,17 @@ export const strings = {
     back: "Back to the problem",
     intro:
       "Add clear photos of each handwritten page. You can reorder them before you send.",
+    // The three input modes (decision 0042). The file modes are the fallback
+    // for anyone without a pen or touch.
+    modePhotos: "Photos of paper",
+    modePdf: "Handwriting PDF",
+    modePen: "Write here",
+    modeHint: "How would you like to submit?",
+    choosePdf: "Choose a PDF",
+    penHint: "Write your solution with a pen, stylus, or finger. Add each page when it is done.",
+    penCanvas: "Handwriting page",
+    penAdd: "Add this page",
+    penClear: "Clear",
     dropPrompt: "Drag your pages here, or",
     choose: "Choose photos",
     capture: "Take a photo",

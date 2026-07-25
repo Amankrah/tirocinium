@@ -37,9 +37,17 @@ const TranscriptionPreview = dynamic(() =>
   import("./transcription-preview").then((m) => m.TranscriptionPreview),
 );
 
+// Pen capture (mode C) loads only when the student picks it, so its canvas code
+// stays out of the route's initial JS.
+const PenPad = dynamic(() => import("./pen-pad").then((m) => m.PenPad));
+
 type FetchTranscription = (
   submissionId: number,
 ) => Promise<Schemas["TranscriptionOut"] | null>;
+
+// The three input modes (decision 0042): photos of paper, a handwriting PDF, or
+// writing on the pad. The file modes are the accessibility fallback.
+type InputMode = "photos" | "pdf" | "pen";
 
 // Below this per-page confidence a page is worth a second look.
 const LOW_CONFIDENCE = 0.6;
@@ -90,6 +98,7 @@ export function UploadPanel({
   fetchTranscription?: FetchTranscription;
 }) {
   const [pages, setPages] = useState<SelectedPage[]>([]);
+  const [mode, setMode] = useState<InputMode>("photos");
   const [rejections, setRejections] = useState<Rejection[]>([]);
   const [upload, setUpload] = useState<UploadState | null>(null);
   const [processing, setProcessing] = useState<ProcessingState | null>(null);
@@ -234,42 +243,73 @@ export function UploadPanel({
       <p className="text-ink-muted">{s.intro}</p>
 
       {!locked ? (
-        <div
-          onDrop={onDrop}
-          onDragOver={(e) => e.preventDefault()}
-          className="flex flex-col items-center gap-3 rounded-md border-2 border-dashed border-rule-line px-6 py-10 text-center"
-        >
-          <p className="text-sm text-ink-muted">{s.dropPrompt}</p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <label className="cursor-pointer">
-              <span className="sr-only">{s.choose}</span>
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/heic,application/pdf"
-                multiple
-                onChange={onInputChange}
-                className="sr-only"
-                aria-label={s.choose}
-              />
-              <span className="inline-flex items-center justify-center rounded-md bg-accent px-4 py-2 font-medium text-on-accent">
-                {s.choose}
-              </span>
-            </label>
-            <label className="cursor-pointer">
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                multiple
-                onChange={onInputChange}
-                className="sr-only"
-                aria-label={s.capture}
-              />
-              <span className="inline-flex items-center justify-center rounded-md border border-rule-line px-4 py-2 font-medium text-ink">
-                {s.capture}
-              </span>
-            </label>
+        <div className="flex flex-col gap-4">
+          <div role="group" aria-label={s.modeHint} className="flex flex-wrap gap-2">
+            {(["photos", "pdf", "pen"] as const).map((option) => (
+              <Button
+                key={option}
+                variant={mode === option ? "primary" : "quiet"}
+                aria-pressed={mode === option}
+                onClick={() => setMode(option)}
+              >
+                {option === "photos"
+                  ? s.modePhotos
+                  : option === "pdf"
+                    ? s.modePdf
+                    : s.modePen}
+              </Button>
+            ))}
           </div>
+
+          {mode === "pen" ? (
+            <PenPad onCapture={(file) => void addFiles([file])} />
+          ) : (
+            <div
+              onDrop={onDrop}
+              onDragOver={(e) => e.preventDefault()}
+              className="flex flex-col items-center gap-3 rounded-md border-2 border-dashed border-rule-line px-6 py-10 text-center"
+            >
+              <p className="text-sm text-ink-muted">{s.dropPrompt}</p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <label className="cursor-pointer">
+                  <span className="sr-only">
+                    {mode === "pdf" ? s.choosePdf : s.choose}
+                  </span>
+                  <input
+                    type="file"
+                    accept={
+                      mode === "pdf"
+                        ? "application/pdf"
+                        : "image/jpeg,image/png,image/heic"
+                    }
+                    multiple={mode !== "pdf"}
+                    onChange={onInputChange}
+                    className="sr-only"
+                    aria-label={mode === "pdf" ? s.choosePdf : s.choose}
+                  />
+                  <span className="inline-flex items-center justify-center rounded-md bg-accent px-4 py-2 font-medium text-on-accent">
+                    {mode === "pdf" ? s.choosePdf : s.choose}
+                  </span>
+                </label>
+                {mode === "photos" ? (
+                  <label className="cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      multiple
+                      onChange={onInputChange}
+                      className="sr-only"
+                      aria-label={s.capture}
+                    />
+                    <span className="inline-flex items-center justify-center rounded-md border border-rule-line px-4 py-2 font-medium text-ink">
+                      {s.capture}
+                    </span>
+                  </label>
+                ) : null}
+              </div>
+            </div>
+          )}
         </div>
       ) : null}
 

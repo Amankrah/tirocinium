@@ -17,6 +17,10 @@ vi.mock("./transcription-preview", () => ({
     <div data-testid="preview">{`preview:${props.pages.length}`}</div>
   ),
 }));
+// Stub the lazily-loaded pen pad (canvas is a browser API).
+vi.mock("./pen-pad", () => ({
+  PenPad: () => <div data-testid="pen-pad">pad</div>,
+}));
 
 function transcription(): Schemas["TranscriptionOut"] {
   return {
@@ -118,6 +122,19 @@ describe("UploadPanel", () => {
       "disabled",
       true,
     );
+  });
+
+  it("offers the three input modes and switches between them", async () => {
+    renderPanel();
+    // Photos is the default: the photo choosers are shown.
+    expect(screen.getByLabelText("Choose photos")).toBeDefined();
+
+    fireEvent.click(screen.getByRole("button", { name: "Handwriting PDF" }));
+    expect(screen.getByLabelText("Choose a PDF")).toBeDefined();
+    expect(screen.queryByLabelText("Choose photos")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Write here" }));
+    expect(await screen.findByTestId("pen-pad")).toBeDefined();
   });
 
   it("adds an accepted photo as a page and enables submit", async () => {
