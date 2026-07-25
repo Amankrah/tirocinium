@@ -69,6 +69,7 @@ export const strings = {
     allDone: "Every item is confirmed. They are drafts in your course now.",
     note: "Confirmed problems become drafts in your course. The rest are discarded after 30 days.",
     sourcePages: "Source pages",
+    sourcePage: (index: number) => `Source page ${index}`,
     pageSpan: (span: string) => `Pages ${span}`,
     lowConfidence: "Low confidence",
     question: "Question",

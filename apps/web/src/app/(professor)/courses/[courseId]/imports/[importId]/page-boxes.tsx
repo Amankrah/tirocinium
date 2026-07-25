@@ -36,12 +36,14 @@ export function PageBoxes({
   imageUrl,
   boxes,
   selectedId,
+  label,
   onSelect,
   onDraw,
 }: {
   imageUrl: string;
   boxes: Box[];
   selectedId: number | null;
+  label: string;
   onSelect: (figureId: number | null) => void;
   onDraw: (bbox: [number, number, number, number]) => void;
 }) {
@@ -60,6 +62,8 @@ export function PageBoxes({
   return (
     <div
       ref={ref}
+      role="group"
+      aria-label={label}
       className="relative touch-none select-none overflow-hidden rounded border border-rule-line"
       onPointerDown={(e) => {
         // A press on the page background begins a draw and clears any selection.

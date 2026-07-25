@@ -325,6 +325,7 @@ export function ConfirmReview({
                           key={pageIndex}
                           imageUrl={page.image_url}
                           boxes={boxes}
+                          label={s.sourcePage(pageIndex + 1)}
                           selectedId={selectedFigure}
                           onSelect={isConfirmed ? () => {} : setSelectedFigure}
                           onDraw={(bbox) =>

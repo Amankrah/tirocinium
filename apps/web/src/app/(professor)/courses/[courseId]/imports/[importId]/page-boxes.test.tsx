@@ -35,6 +35,7 @@ describe("PageBoxes", () => {
         imageUrl="blob:page"
         boxes={boxes}
         selectedId={null}
+        label="Source page 1"
         onSelect={vi.fn()}
         onDraw={vi.fn()}
       />,
@@ -50,6 +51,7 @@ describe("PageBoxes", () => {
         imageUrl="blob:page"
         boxes={boxes}
         selectedId={null}
+        label="Source page 1"
         onSelect={onSelect}
         onDraw={vi.fn()}
       />,
@@ -64,6 +66,7 @@ describe("PageBoxes", () => {
         imageUrl="blob:page"
         boxes={boxes}
         selectedId={1}
+        label="Source page 1"
         onSelect={vi.fn()}
         onDraw={vi.fn()}
       />,
