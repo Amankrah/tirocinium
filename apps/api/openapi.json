@@ -1606,6 +1606,32 @@
         "title": "ParameterAnnotation",
         "type": "object"
       },
+      "PracticeVariantOut": {
+        "description": "What the practice loop swaps in: a servable variant's body, or the\nbase case study itself (variant_id null) when the pool has nothing yet.\nNever a solution, never a flagged variant, never a wait.",
+        "properties": {
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "variant_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variant Id"
+          }
+        },
+        "required": [
+          "variant_id",
+          "body"
+        ],
+        "title": "PracticeVariantOut",
+        "type": "object"
+      },
       "Problem": {
         "description": "The error body, also referenced from route response annotations so\nthe contract documents error shapes.",
         "properties": {
@@ -3820,6 +3846,99 @@
         "summary": "Put Param Spec",
         "tags": [
           "parameterization"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/case-studies/{case_study_id}/practice-variant": {
+      "get": {
+        "description": "The practice loop's \"new variant\": a random servable variant from the\npool (verified or manual, never flagged), preferring one other than\n`exclude` (the variant on screen). The pool invariant is absolute: this\nread never waits on generation. A dry pool serves the base case study\ninstantly and tops the pool up in the background.",
+        "operationId": "practice_variant_api_v1_courses__course_id__case_studies__case_study_id__practice_variant_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "case_study_id",
+            "required": true,
+            "schema": {
+              "title": "Case Study Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "exclude",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Exclude"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeVariantOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Practice Variant",
+        "tags": [
+          "variants"
         ]
       }
     },

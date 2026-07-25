@@ -31,6 +31,7 @@ from app.transcription.model import AnthropicTranscriber
 from app.transcription.pipeline import STATUS_PROCESSED, run_submission_pipeline
 from app.variants.model import AnthropicVariantGenerator, AnthropicVariantVerifier
 from app.variants.pipeline import generate_variant as run_variant_generation
+from app.variants.pool import fill_pool
 
 
 def _redis_url() -> str:
@@ -122,6 +123,22 @@ async def generate_variant(
     )
 
 
+async def fill_variant_pool(
+    ctx: dict[str, Any], course_id: int, case_study_id: int
+) -> dict[str, int]:
+    """Top a published case study's pool up to the target (milestone 5.4).
+    Sequential by construction (one job per case study), which is the
+    generation concurrency cap; budget-bounded by the course's token usage."""
+    return await fill_pool(
+        shards=ctx["shards"],
+        storage=ctx["storage"],
+        generator=ctx["variant_generator"],
+        verifier=ctx["variant_verifier"],
+        course_id=course_id,
+        case_study_id=case_study_id,
+    )
+
+
 class WorkerSettings:
     """arq entry point: `arq app.worker.WorkerSettings`."""
 
@@ -129,6 +146,7 @@ class WorkerSettings:
         process_submission,
         process_import,
         generate_variant,
+        fill_variant_pool,
     ]
     on_startup = startup
     on_shutdown = shutdown

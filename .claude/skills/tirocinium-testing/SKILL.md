@@ -6,8 +6,8 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at milestone 5.3 (decision 0038:
-generation and verification):
+passes; green never goes red. Last updated at milestone 5.4 (decision 0039:
+the variant pool):
 Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 backend
 complete (3.1 the submission upload path done; 3.2 scan preprocessing
 implemented, its golden gate awaiting the 30-photo corpus; 3.3 handwriting
@@ -32,9 +32,13 @@ surface is the frontend's. Phase 5 has begun: 5.1 (the parameter spec, its
 editor panel backend, and the figure-frozen check behind the cached
 `FigureReader` vision seam) and 5.2 (auto-parameterization behind the
 `SpecProposer` seam, with server-computed token positions, pre-professor
-frozen filtering, and the save-time edit signal), and 5.3 (the generation and
+frozen filtering, and the save-time edit signal), 5.3 (the generation and
 verification loop with the `tirocinium-compare` Rust member and the seeded
-adversarial gate) are done.
+adversarial gate), and 5.4 (the variant pool: publish pre-generation, the
+sequential fill job as the concurrency cap, per-course token accounting with
+the budget check, and the never-waiting practice read) are done. The Phase 5
+backend is complete; 5.5 (the parameterization panel, the auto-parameterize
+overlay, preview variants, and instant swapping) is the frontend's.
 The Phase 3 frontend half
 (3.5) is in
 progress: the upload flow (capture, pre-checks, orchestration, SSE processing)
@@ -83,7 +87,7 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 248 tests (25 data layer, 16 case studies/concepts/courses,
+Python suite, 258 tests (25 data layer, 16 case studies/concepts/courses,
 15 seats, 12 auth, 16 submissions (incl. 4 transcription-read), 5 transcription,
 14 retrieval (4 indexing, 4 hybrid-search, 6 search endpoint), 28 params
 (19 param-spec: the spec round-trip compressed at rest, 7 validation
@@ -92,11 +96,15 @@ cache, no-figures no model call, and the auth surface; 9 auto-parameterize:
 the draft with annotations and stored provenance, the document carrying
 solution and frozen values but never figure bytes, a frozen proposal locked
 out, no positions for an absent literal, idempotent replay, the save-time
-edit signal, and the auth surface), 31 variants (4 sampling, 18 pipeline of
+edit signal, and the auth surface), 41 variants (4 sampling, 18 pipeline of
 which 12 are the seeded adversarial gate (3 seeds x 4 corruption modes,
 always flagged and never in the verified list), 9 surface: enqueue, seed
 idempotency, no-spec 409, state filters, the flagged diff read, promote,
-edit, discard, auth), 63 imports
+edit, discard, auth; 10 pool: fill-to-target with token accounting,
+idempotent top-up, the flagging attempt ceiling, the exhausted budget,
+publish enqueues (and not without a spec), the seat read without a solution,
+exclude, flagged never practised, draft invisibility, and the 50-request
+empty-budget pool-invariant gate), 63 imports
 (4 decode pipeline + 2 figure pipeline (born-digital + scanned detector),
 9 endpoint, 8 confirm/list/metrics, 8 figure verbs (incl. the items read carrying
 figures+pages), 5 figure resolve (owner any, seat published-only, 404 hides
@@ -470,6 +478,20 @@ Phase 5, in progress:
   property is green: 3 seeds x 4 corruption modes (wrong solution, text
   contradicting its figure, dropped figure token, no answers) all flag and
   never appear in the verified list. The pool invariant gate is 5.4's.
+
+- 5.4 (done): the variant pool (decision 0039). Publish enqueues
+  `fill_variant_pool` for a spec'd case study; the fill (`app/variants/pool.py`,
+  one sequential job per case study, the structural concurrency cap) tops up
+  the shortfall to `TIRO_VARIANT_POOL_TARGET` (default 20), bounds flagged
+  attempts at 3x target, and stops on the rolling-30-day
+  `TIRO_GENERATION_TOKEN_BUDGET` read from `token_usage` (migration
+  course/0016, written by the pipeline per model call). The practice read
+  (`GET .../case-studies/{id}/practice-variant?exclude=`) serves a random
+  servable variant (never flagged, never a solution, published-only for
+  seats) and answers a dry pool with the base body instantly plus a
+  background top-up. The pool-invariant phase gate is green: fifty
+  consecutive reads against a dry pool with a zero budget all answer
+  instantly with zero request-path model calls.
 
 - 4.4 (web, confirmation surface): built against the full contract (figure/page
   serving, confirm, discard, merge, figure verbs). The read renders each detected

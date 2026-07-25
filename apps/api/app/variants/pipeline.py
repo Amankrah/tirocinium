@@ -184,6 +184,7 @@ async def generate_variant(
     flag_reason: str | None = None
     verify_solution: str | None = None
     verify_model_used: str | None = None
+    resolved_usage: tuple[str, str, int, int] | None = None
     if fig_tokens(generated.body_md) != fig_tokens(body):
         flag_reason = "The variant altered the base's figure tokens."
     elif not generated.final_answers:
@@ -206,6 +207,12 @@ async def generate_variant(
         )
         verify_solution = resolved.solution_md
         verify_model_used = verification_model
+        resolved_usage = (
+            "variant_verification",
+            verification_model,
+            resolved.input_tokens,
+            resolved.output_tokens,
+        )
         comparison = _compare.compare_answer_lists(
             generated.final_answers, resolved.final_answers, REL_TOL, ABS_TOL
         )
@@ -216,8 +223,19 @@ async def generate_variant(
 
     state = FLAGGED if flag_reason is not None else VERIFIED
     now = int(time.time())
+    usage_rows = [
+        ("variant_generation", generation_model, generated.input_tokens, generated.output_tokens)
+    ]
+    if resolved_usage is not None:
+        usage_rows.append(resolved_usage)
 
     def store(conn: sqlite3.Connection) -> None:
+        conn.executemany(
+            "INSERT INTO token_usage"
+            " (kind, model_id, input_tokens, output_tokens, created_at)"
+            " VALUES (?, ?, ?, ?, ?)",
+            [(*row, now) for row in usage_rows],
+        )
         conn.execute(
             "INSERT INTO variants"
             " (case_study_id, seed, seed_json_z, body_z, solution_z,"

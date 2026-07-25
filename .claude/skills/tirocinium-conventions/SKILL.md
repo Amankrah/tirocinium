@@ -28,8 +28,9 @@ completed (decision 0033, awaiting its captured PDFs). The Phase 4 backend is
 complete bar item/figure split, which alone needs re-cropping from the lossless
 source and is deferred with the figure re-crop follow-up (decision 0031).
 Phase 5 has begun: 5.1 (the parameter spec and the figure-frozen check),
-5.2 (auto-parameterization), and 5.3 (generation and verification, with the
-`tirocinium-compare` member) are done.
+5.2 (auto-parameterization), 5.3 (generation and verification, with the
+`tirocinium-compare` member), and 5.4 (the variant pool) are done; 5.5 is the
+frontend's.
 
 The parameter spec (milestone 5.1, decision 0036): guide 6.1's typed spec
 (number, integer, choice, entity parameters; plain-language invariants passed
@@ -94,6 +95,21 @@ serves the flagged diff (both solutions), promote flips flagged to `manual`,
 an edit always lands on `manual`, discard refuses (409) when submissions
 reference it. All professor-and-owner; students meet variants only through
 the 5.4 pool.
+
+The variant pool (milestone 5.4, decision 0039): publish enqueues
+`fill_variant_pool` when the case study has a spec, one sequential worker job
+per case study (the arq job id collapses repeats), which is the generation
+concurrency cap made structural. The fill (`app/variants/pool.py`) tops up
+only the shortfall to `TIRO_VARIANT_POOL_TARGET` (default 20), bounds flagged
+attempts at 3x target, and stops when the rolling-30-day per-course token
+budget (`TIRO_GENERATION_TOKEN_BUDGET`) is spent; the pipeline writes one
+`token_usage` row per model call (migration course/0016, provider usage block,
+zero in recorded replays). The practice read
+(`GET .../case-studies/{id}/practice-variant?exclude=`, course reader,
+published-only for seats) serves a random servable variant (verified or
+manual, never flagged), body and id only, never a solution; a dry pool serves
+the base case study instantly with a null id (never a wait, the pool
+invariant) and enqueues a background top-up.
 
 pdfium is single-threaded in a way per-call locking does not cover: the crate
 holds one process-wide operation lock across each whole decode or

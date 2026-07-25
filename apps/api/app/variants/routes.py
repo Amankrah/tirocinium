@@ -20,13 +20,14 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 
-from app.auth.deps import get_shards, require_professor
+from app.auth.deps import current_identity, get_shards, require_professor
 from app.auth.models import Identity
 from app.compression import compress_text, decompress_text
-from app.courses.routes import ensure_course_owner
+from app.courses.routes import ensure_course_owner, ensure_course_reader
 from app.db.shards import ShardManager
 from app.problems import Problem
 from app.tasks import TaskQueue, get_task_queue
+from app.variants.pool import SERVABLE_STATES, pool_target
 
 router = APIRouter(
     prefix="/api/v1/courses/{course_id}", tags=["variants"]
@@ -81,6 +82,15 @@ class VariantDetail(VariantSummary):
 class VariantEdit(BaseModel):
     body: str | None = Field(default=None, min_length=1)
     solution: str | None = Field(default=None, min_length=1)
+
+
+class PracticeVariantOut(BaseModel):
+    """What the practice loop swaps in: a servable variant's body, or the
+    base case study itself (variant_id null) when the pool has nothing yet.
+    Never a solution, never a flagged variant, never a wait."""
+
+    variant_id: int | None
+    body: str
 
 
 def _derived_seeds(key: str, count: int) -> list[int]:
@@ -207,6 +217,71 @@ async def list_variants(
 
     items, next_cursor = await shards.course_reads(course_id).run(read)
     return VariantListOut(items=items, next_cursor=next_cursor)
+
+
+@router.get(
+    "/case-studies/{case_study_id}/practice-variant",
+    response_model=PracticeVariantOut,
+    responses={403: {"model": Problem}, 404: {"model": Problem}},
+)
+async def practice_variant(
+    course_id: int,
+    case_study_id: int,
+    identity: Annotated[Identity, Depends(current_identity)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+    queue: Annotated[TaskQueue, Depends(get_task_queue)],
+    exclude: int | None = None,
+) -> PracticeVariantOut:
+    """The practice loop's "new variant": a random servable variant from the
+    pool (verified or manual, never flagged), preferring one other than
+    `exclude` (the variant on screen). The pool invariant is absolute: this
+    read never waits on generation. A dry pool serves the base case study
+    instantly and tops the pool up in the background."""
+    can_see_drafts = await ensure_course_reader(shards, course_id, identity)
+
+    def read(conn: sqlite3.Connection) -> tuple[int | None, str, int]:
+        row = conn.execute(
+            "SELECT body_z, status FROM case_studies WHERE id = ?",
+            (case_study_id,),
+        ).fetchone()
+        if row is None or (not can_see_drafts and str(row[1]) != "published"):
+            raise HTTPException(status_code=404, detail="Case study not found.")
+        base_body = decompress_text(conn, "problem_text", bytes(row[0]))
+        placeholders = ", ".join("?" for _ in SERVABLE_STATES)
+        pick = conn.execute(
+            "SELECT id, body_z FROM variants"
+            f" WHERE case_study_id = ? AND verification IN ({placeholders})"
+            " AND (? IS NULL OR id != ?)"
+            " ORDER BY RANDOM() LIMIT 1",
+            (case_study_id, *SERVABLE_STATES, exclude, exclude),
+        ).fetchone()
+        if pick is None and exclude is not None:
+            # Only the excluded one exists: repeating it beats waiting.
+            pick = conn.execute(
+                "SELECT id, body_z FROM variants"
+                f" WHERE case_study_id = ? AND verification IN ({placeholders})"
+                " ORDER BY RANDOM() LIMIT 1",
+                (case_study_id, *SERVABLE_STATES),
+            ).fetchone()
+        servable = conn.execute(
+            "SELECT COUNT(*) FROM variants"
+            f" WHERE case_study_id = ? AND verification IN ({placeholders})",
+            (case_study_id, *SERVABLE_STATES),
+        ).fetchone()
+        if pick is None:
+            return None, base_body, int(servable[0])
+        return (
+            int(pick[0]),
+            decompress_text(conn, "problem_text", bytes(pick[1])),
+            int(servable[0]),
+        )
+
+    variant_id, body, servable = await shards.course_reads(course_id).run(read)
+    if servable < pool_target():
+        # Opportunistic top-up, off the request path; the per-case-study job
+        # id collapses repeats, and a no-broker deployment simply no-ops.
+        await queue.enqueue_fill_pool(course_id, case_study_id)
+    return PracticeVariantOut(variant_id=variant_id, body=body)
 
 
 @router.get(

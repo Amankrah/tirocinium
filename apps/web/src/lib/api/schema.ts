@@ -200,6 +200,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/courses/{course_id}/case-studies/{case_study_id}/practice-variant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Practice Variant
+         * @description The practice loop's "new variant": a random servable variant from the
+         *     pool (verified or manual, never flagged), preferring one other than
+         *     `exclude` (the variant on screen). The pool invariant is absolute: this
+         *     read never waits on generation. A dry pool serves the base case study
+         *     instantly and tops the pool up in the background.
+         */
+        get: operations["practice_variant_api_v1_courses__course_id__case_studies__case_study_id__practice_variant_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses/{course_id}/case-studies/{case_study_id}/publish": {
         parameters: {
             query?: never;
@@ -1376,6 +1400,18 @@ export interface components {
             ][];
             /** Rationale */
             rationale: string;
+        };
+        /**
+         * PracticeVariantOut
+         * @description What the practice loop swaps in: a servable variant's body, or the
+         *     base case study itself (variant_id null) when the pool has nothing yet.
+         *     Never a solution, never a flagged variant, never a wait.
+         */
+        PracticeVariantOut: {
+            /** Body */
+            body: string;
+            /** Variant Id */
+            variant_id: number | null;
         };
         /**
          * Problem
@@ -2567,6 +2603,58 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    practice_variant_api_v1_courses__course_id__case_studies__case_study_id__practice_variant_get: {
+        parameters: {
+            query?: {
+                exclude?: number | null;
+            };
+            header?: never;
+            path: {
+                course_id: number;
+                case_study_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeVariantOut"];
+                };
             };
             /** @description Forbidden */
             403: {

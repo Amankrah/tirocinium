@@ -34,11 +34,14 @@ DEFAULT_VERIFICATION_MODEL = os.environ.get(
 class GeneratedVariant(BaseModel, frozen=True):
     """The generation pass's output: the variant body (fig:// tokens intact),
     a full worked solution, and the structured final answers the comparer
-    reads."""
+    reads. Token counts come from the provider response (zero in recorded
+    replays) and feed the per-course accounting (guide 6.4)."""
 
     body_md: str
     solution_md: str
     final_answers: list[str] = Field(default_factory=list)
+    input_tokens: int = 0
+    output_tokens: int = 0
 
 
 class ReSolveResult(BaseModel, frozen=True):
@@ -47,6 +50,8 @@ class ReSolveResult(BaseModel, frozen=True):
 
     solution_md: str
     final_answers: list[str] = Field(default_factory=list)
+    input_tokens: int = 0
+    output_tokens: int = 0
 
 
 def parse_generated(text: str) -> GeneratedVariant:
@@ -105,7 +110,14 @@ class AnthropicVariantGenerator:
                 }
             ],
         )
-        return parse_generated(_text_of(message))
+        generated = parse_generated(_text_of(message))
+        usage = getattr(message, "usage", None)
+        return generated.model_copy(
+            update={
+                "input_tokens": int(getattr(usage, "input_tokens", 0) or 0),
+                "output_tokens": int(getattr(usage, "output_tokens", 0) or 0),
+            }
+        )
 
 
 class AnthropicVariantVerifier:
@@ -147,7 +159,14 @@ class AnthropicVariantVerifier:
             max_tokens=8192,
             messages=[{"role": "user", "content": blocks}],
         )
-        return parse_resolved(_text_of(message))
+        resolved = parse_resolved(_text_of(message))
+        usage = getattr(message, "usage", None)
+        return resolved.model_copy(
+            update={
+                "input_tokens": int(getattr(usage, "input_tokens", 0) or 0),
+                "output_tokens": int(getattr(usage, "output_tokens", 0) or 0),
+            }
+        )
 
 
 class RecordedVariantGenerator:

@@ -21,6 +21,7 @@ from app.compression import compress_text, decompress_text
 from app.courses.routes import ensure_course_owner, ensure_course_reader
 from app.db.shards import ShardManager
 from app.problems import Problem
+from app.tasks import TaskQueue, get_task_queue
 
 router = APIRouter(
     prefix="/api/v1/courses/{course_id}/case-studies", tags=["case-studies"]
@@ -319,9 +320,24 @@ async def publish_case_study(
     case_study_id: int,
     identity: Annotated[Identity, Depends(require_professor)],
     shards: Annotated[ShardManager, Depends(get_shards)],
+    queue: Annotated[TaskQueue, Depends(get_task_queue)],
 ) -> CaseStudyDetail:
     await ensure_course_owner(shards, course_id, identity)
-    return await _set_status(shards, course_id, case_study_id, "published")
+    detail = await _set_status(shards, course_id, case_study_id, "published")
+
+    # Publishing a parameterized case study pre-generates its variant pool
+    # (guide 6.3: default 20 verified variants, asynchronously), so students
+    # never wait on generation. Without a spec there is nothing to fill.
+    def has_spec(conn: sqlite3.Connection) -> bool:
+        row = conn.execute(
+            "SELECT param_spec_z FROM case_studies WHERE id = ?",
+            (case_study_id,),
+        ).fetchone()
+        return row is not None and row[0] is not None
+
+    if await shards.course_reads(course_id).run(has_spec):
+        await queue.enqueue_fill_pool(course_id, case_study_id)
+    return detail
 
 
 @router.post(

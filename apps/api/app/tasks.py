@@ -13,6 +13,7 @@ from fastapi import Request
 PROCESS_SUBMISSION = "process_submission"
 PROCESS_IMPORT = "process_import"
 GENERATE_VARIANT = "generate_variant"
+FILL_VARIANT_POOL = "fill_variant_pool"
 
 
 class TaskQueue(Protocol):
@@ -23,6 +24,8 @@ class TaskQueue(Protocol):
     async def enqueue_generate_variant(
         self, course_id: int, case_study_id: int, seed: int
     ) -> None: ...
+
+    async def enqueue_fill_pool(self, course_id: int, case_study_id: int) -> None: ...
 
 
 class NullTaskQueue:
@@ -37,6 +40,9 @@ class NullTaskQueue:
     async def enqueue_generate_variant(
         self, course_id: int, case_study_id: int, seed: int
     ) -> None:
+        return None
+
+    async def enqueue_fill_pool(self, course_id: int, case_study_id: int) -> None:
         return None
 
 
@@ -63,6 +69,17 @@ class ArqTaskQueue:
             case_study_id,
             seed,
             _job_id=f"variant:{course_id}:{case_study_id}:{seed}",
+        )
+
+    async def enqueue_fill_pool(self, course_id: int, case_study_id: int) -> None:
+        # One fill job per case study at a time: the job id collapses repeat
+        # requests, and the fill itself runs sequentially, which is the
+        # generation concurrency cap (guide 6.4) made structural.
+        await self._pool.enqueue_job(
+            FILL_VARIANT_POOL,
+            course_id,
+            case_study_id,
+            _job_id=f"pool:{course_id}:{case_study_id}",
         )
 
 
