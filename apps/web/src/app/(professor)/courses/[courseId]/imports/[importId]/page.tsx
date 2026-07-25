@@ -8,9 +8,13 @@ import { ProfessorShell } from "../../../../professor-shell";
 import { signOut } from "../../../../sign-in/actions";
 import { strings } from "../../../../strings";
 import {
+  addFigureFromBoxAction,
   confirmItemAction,
   discardItemAction,
   getImportItemsAction,
+  mergeItemsAction,
+  removeFigureAction,
+  setFigureRoleAction,
 } from "./actions";
 import { ConfirmReview } from "./confirm-review";
 
@@ -54,6 +58,10 @@ export default async function ImportReviewPage({
           confirm={confirmItemAction}
           discard={discardItemAction}
           refetch={getImportItemsAction}
+          addBox={addFigureFromBoxAction}
+          setRole={setFigureRoleAction}
+          removeFig={removeFigureAction}
+          merge={mergeItemsAction}
         />
       </main>
     </ProfessorShell>

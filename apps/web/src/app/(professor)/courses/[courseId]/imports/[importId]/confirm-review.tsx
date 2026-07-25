@@ -17,6 +17,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { Schemas } from "@/lib/api/client";
 import { strings } from "../../../../strings";
+import { PageBoxes } from "./page-boxes";
 
 const FigureMarkdown = dynamic(() =>
   import("./figure-markdown").then((m) => m.FigureMarkdown),
@@ -27,6 +28,7 @@ const s = strings.confirm;
 
 type Item = Schemas["ImportItemOut"];
 type Page = Schemas["ImportPageOut"];
+type Role = "essential" | "decorative";
 
 type ConfirmAction = (
   courseId: number,
@@ -38,6 +40,27 @@ type RefetchAction = (
   courseId: number,
   importId: number,
 ) => Promise<Schemas["ImportItemsOut"] | null>;
+type AddBoxAction = (
+  courseId: number,
+  itemId: number,
+  body: Schemas["AddBoxIn"],
+) => Promise<Schemas["FigureCreatedOut"] | null>;
+type RoleAction = (
+  courseId: number,
+  itemId: number,
+  figureId: number,
+  role: Role,
+) => Promise<boolean>;
+type RemoveFigureAction = (
+  courseId: number,
+  itemId: number,
+  figureId: number,
+) => Promise<boolean>;
+type MergeAction = (
+  courseId: number,
+  survivorId: number,
+  sourceItemId: number,
+) => Promise<Schemas["MergedOut"] | null>;
 
 export function ConfirmReview({
   courseId,
@@ -46,6 +69,10 @@ export function ConfirmReview({
   confirm,
   discard,
   refetch,
+  addBox,
+  setRole,
+  removeFig,
+  merge,
 }: {
   courseId: number;
   importId: number;
@@ -53,6 +80,10 @@ export function ConfirmReview({
   confirm: ConfirmAction;
   discard: DiscardAction;
   refetch: RefetchAction;
+  addBox: AddBoxAction;
+  setRole: RoleAction;
+  removeFig: RemoveFigureAction;
+  merge: MergeAction;
 }) {
   const [items, setItems] = useState<Item[]>(initial.items);
   const [pages] = useState<Page[]>(initial.pages);
@@ -62,6 +93,10 @@ export function ConfirmReview({
   >({});
   const [busy, setBusy] = useState<number | null>(null);
   const [error, setError] = useState(false);
+  // The figure the professor has selected on a source page, and how many figure
+  // edits they have made per item (a 4.5 accuracy signal, sent on confirm).
+  const [selectedFigure, setSelectedFigure] = useState<number | null>(null);
+  const [interventions, setInterventions] = useState<Record<number, number>>({});
 
   const pageByIndex = useMemo(
     () => new Map(pages.map((p) => [p.page_index, p])),
@@ -81,9 +116,40 @@ export function ConfirmReview({
 
   const confirmedCount = items.filter((i) => i.state === "confirmed").length;
 
+  // "Merge with next" folds the next problem in reading order (by id) into this
+  // one, matching the backend's survivor-is-earlier rule; display order is
+  // low-confidence-first, so reading order is computed separately.
+  const nextOf = useMemo(() => {
+    const pending = items
+      .filter((i) => i.state === "pending")
+      .sort((a, b) => a.id - b.id);
+    const map = new Map<number, number>();
+    pending.forEach((it, i) => {
+      const next = pending[i + 1];
+      if (next) map.set(it.id, next.id);
+    });
+    return map;
+  }, [items]);
+
   async function reload() {
     const next = await refetch(courseId, importId);
     if (next) setItems(next.items);
+  }
+
+  function countIntervention(itemId: number) {
+    setInterventions((prev) => ({ ...prev, [itemId]: (prev[itemId] ?? 0) + 1 }));
+  }
+
+  // Every figure verb runs, then refetches for the item's updated figures.
+  async function runFigureVerb(itemId: number, verb: () => Promise<unknown>) {
+    setBusy(itemId);
+    setError(false);
+    const outcome = await verb();
+    if (outcome === false || outcome === null) setError(true);
+    else countIntervention(itemId);
+    setSelectedFigure(null);
+    await reload();
+    setBusy(null);
   }
 
   async function onConfirm(item: Item) {
@@ -93,7 +159,7 @@ export function ConfirmReview({
     const result = await confirm(courseId, item.id, {
       question_md: edit?.question_md ?? null,
       solution_md: edit?.solution_md ?? null,
-      figure_interventions: 0,
+      figure_interventions: interventions[item.id] ?? 0,
     });
     if (!result) setError(true);
     setEditing(null);
@@ -105,6 +171,14 @@ export function ConfirmReview({
     setBusy(item.id);
     setError(false);
     if (!(await discard(courseId, item.id))) setError(true);
+    await reload();
+    setBusy(null);
+  }
+
+  async function onMerge(survivor: Item, sourceId: number) {
+    setBusy(survivor.id);
+    setError(false);
+    if (!(await merge(courseId, survivor.id, sourceId))) setError(true);
     await reload();
     setBusy(null);
   }
@@ -145,6 +219,8 @@ export function ConfirmReview({
           const isEditing = editing === item.id;
           const isBusy = busy === item.id;
           const low = item.confidence < LOW_CONFIDENCE;
+          const selectedFig =
+            item.figures.find((f) => f.figure_id === selectedFigure) ?? null;
           const figurePages = [
             ...new Set(
               item.figures
@@ -181,46 +257,76 @@ export function ConfirmReview({
 
               <div className="grid gap-4 lg:grid-cols-2">
                 {figurePages.length > 0 ? (
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-3">
                     <h3 className="text-xs uppercase tracking-widest text-ink-muted">
                       {s.sourcePages}
                     </h3>
+                    {!isConfirmed ? (
+                      <p className="text-xs text-ink-muted">{s.figureHint}</p>
+                    ) : null}
                     {figurePages.map((pageIndex) => {
                       const page = pageByIndex.get(pageIndex);
                       if (!page) return null;
-                      const boxes = item.figures.filter(
-                        (f) => f.page === pageIndex && f.bbox,
-                      );
+                      const boxes = item.figures
+                        .filter((f) => f.page === pageIndex && f.bbox)
+                        .map((f) => ({
+                          figureId: f.figure_id,
+                          bbox: f.bbox as [number, number, number, number],
+                          role: f.role,
+                        }));
                       return (
-                        <div
+                        <PageBoxes
                           key={pageIndex}
-                          className="relative overflow-hidden rounded border border-rule-line"
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={page.image_url}
-                            alt=""
-                            className="block h-auto w-full"
-                          />
-                          {boxes.map((f) => {
-                            const [x, y, w, h] = f.bbox!;
-                            return (
-                              <span
-                                key={f.figure_id}
-                                aria-hidden
-                                className="absolute border-2 border-accent"
-                                style={{
-                                  left: `${x * 100}%`,
-                                  top: `${y * 100}%`,
-                                  width: `${w * 100}%`,
-                                  height: `${h * 100}%`,
-                                }}
-                              />
-                            );
-                          })}
-                        </div>
+                          imageUrl={page.image_url}
+                          boxes={boxes}
+                          selectedId={selectedFigure}
+                          onSelect={isConfirmed ? () => {} : setSelectedFigure}
+                          onDraw={(bbox) =>
+                            void runFigureVerb(item.id, () =>
+                              addBox(courseId, item.id, {
+                                page_index: pageIndex,
+                                bbox,
+                              }),
+                            )
+                          }
+                        />
                       );
                     })}
+                    {selectedFig ? (
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="quiet"
+                          disabled={isBusy}
+                          onClick={() =>
+                            void runFigureVerb(item.id, () =>
+                              setRole(
+                                courseId,
+                                item.id,
+                                selectedFig.figure_id,
+                                selectedFig.role === "decorative"
+                                  ? "essential"
+                                  : "decorative",
+                              ),
+                            )
+                          }
+                        >
+                          {selectedFig.role === "decorative"
+                            ? s.markEssential
+                            : s.markDecorative}
+                        </Button>
+                        <Button
+                          variant="quiet"
+                          disabled={isBusy}
+                          onClick={() =>
+                            void runFigureVerb(item.id, () =>
+                              removeFig(courseId, item.id, selectedFig.figure_id),
+                            )
+                          }
+                        >
+                          {s.removeFigure}
+                        </Button>
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
 
@@ -324,6 +430,15 @@ export function ConfirmReview({
                     >
                       {s.discard}
                     </Button>
+                    {nextOf.has(item.id) ? (
+                      <Button
+                        variant="quiet"
+                        onClick={() => void onMerge(item, nextOf.get(item.id) ?? 0)}
+                        disabled={isBusy}
+                      >
+                        {s.mergeNext}
+                      </Button>
+                    ) : null}
                   </>
                 )}
               </div>

@@ -81,6 +81,16 @@ export const strings = {
     openDraft: "Open the draft",
     discard: "Discard",
     error: "That did not go through. Try again.",
+    // Figure verbs, on a selected box (guide 4.3). Re-crop needs a server crop
+    // endpoint that does not exist yet, so adjusting a crop is remove then redraw.
+    figureHint:
+      "Drag on a page to capture a figure the detector missed. Select a box to change or remove it.",
+    markDecorative: "Mark decorative",
+    markEssential: "Mark essential",
+    removeFigure: "Remove figure",
+    // Merge folds the next detected problem into this one (a question the
+    // segmenter split); split is deferred until the corpus lands.
+    mergeNext: "Merge with next",
   },
   seats: {
     back: "Back to course",

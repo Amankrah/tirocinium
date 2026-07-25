@@ -26,6 +26,23 @@ function item(over: Partial<Schemas["ImportItemOut"]>): Schemas["ImportItemOut"]
   };
 }
 
+function figure(over: Partial<Schemas["ItemFigureOut"]>): Schemas["ItemFigureOut"] {
+  return {
+    figure_id: 1,
+    token: "fig://1",
+    role: "essential",
+    source: "embedded_raster",
+    image_url: "https://x",
+    image_url_2x: null,
+    width_px: 100,
+    height_px: 80,
+    page: 0,
+    bbox: [0.1, 0.1, 0.2, 0.2],
+    caption: null,
+    ...over,
+  };
+}
+
 function renderReview(items: Schemas["ImportItemOut"][], pages: Schemas["ImportPageOut"][] = []) {
   const confirm = vi.fn(async () => ({
     case_study_id: 9,
@@ -35,6 +52,17 @@ function renderReview(items: Schemas["ImportItemOut"][], pages: Schemas["ImportP
   }));
   const discard = vi.fn(async () => true);
   const refetch = vi.fn(async () => ({ items, pages }));
+  const addBox = vi.fn(async () => ({ figure_id: 2, image_url: "https://y", width_px: 10, height_px: 10 }));
+  const setRole = vi.fn(async () => true);
+  const removeFig = vi.fn(async () => true);
+  const merge = vi.fn(async () => ({
+    survivor_id: 1,
+    merged_item_id: 2,
+    question_md: "q",
+    solution_md: null,
+    page_span: "3, 4",
+    confidence: 0.4,
+  }));
   render(
     <ConfirmReview
       courseId={1}
@@ -43,10 +71,16 @@ function renderReview(items: Schemas["ImportItemOut"][], pages: Schemas["ImportP
       confirm={confirm as never}
       discard={discard as never}
       refetch={refetch as never}
+      addBox={addBox as never}
+      setRole={setRole as never}
+      removeFig={removeFig as never}
+      merge={merge as never}
     />,
   );
-  return { confirm, discard, refetch };
+  return { confirm, discard, refetch, addBox, setRole, removeFig, merge };
 }
+
+const page0: Schemas["ImportPageOut"] = { page_index: 0, image_url: "blob:page0" };
 
 afterEach(() => vi.clearAllMocks());
 
@@ -112,5 +146,46 @@ describe("ConfirmReview", () => {
     const link = screen.getByRole("link", { name: "Open the draft" });
     expect(link.getAttribute("href")).toBe("/courses/1/case-studies/42");
     expect(screen.queryByRole("button", { name: "Confirm" })).toBeNull();
+  });
+
+  it("changes a selected figure's role and counts the intervention", async () => {
+    const { setRole, confirm } = renderReview(
+      [item({ id: 5, figures: [figure({ figure_id: 11, role: "essential", page: 0 })] })],
+      [page0],
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Figure 11" }));
+    fireEvent.click(screen.getByRole("button", { name: "Mark decorative" }));
+    await waitFor(() =>
+      expect(setRole).toHaveBeenCalledWith(1, 5, 11, "decorative"),
+    );
+    // The intervention count rides along to confirm.
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    await waitFor(() =>
+      expect(confirm).toHaveBeenCalledWith(
+        1,
+        5,
+        expect.objectContaining({ figure_interventions: 1 }),
+      ),
+    );
+  });
+
+  it("removes a selected figure", async () => {
+    const { removeFig } = renderReview(
+      [item({ id: 5, figures: [figure({ figure_id: 11, page: 0 })] })],
+      [page0],
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Figure 11" }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove figure" }));
+    await waitFor(() => expect(removeFig).toHaveBeenCalledWith(1, 5, 11));
+  });
+
+  it("merges the next item into the survivor", async () => {
+    const { merge } = renderReview([
+      item({ id: 5, title: "First" }),
+      item({ id: 8, title: "Second" }),
+    ]);
+    // The merge button belongs to the earlier (survivor) card.
+    fireEvent.click(screen.getAllByRole("button", { name: "Merge with next" })[0]!);
+    await waitFor(() => expect(merge).toHaveBeenCalledWith(1, 5, 8));
   });
 });
