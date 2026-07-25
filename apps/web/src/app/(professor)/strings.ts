@@ -96,6 +96,43 @@ export const strings = {
     split: "Split",
     splitSoon: "Splitting a joined problem is coming with the sample corpus.",
   },
+  // The parameterization panel (guide 4.3, Phase 5.5). A parameter varies within
+  // its range while the invariants keep the problem pedagogically the same.
+  params: {
+    heading: "Parameters",
+    intro:
+      "Mark the values that should vary between students. Invariants keep every variant asking the same thing.",
+    empty: "No parameters yet. Add one, or let auto-parameterize propose a set.",
+    add: "Add a parameter",
+    name: "Name",
+    type: "Type",
+    typeNumber: "Number",
+    typeInteger: "Whole number",
+    typeChoice: "Choice",
+    typeEntity: "Name or entity",
+    baseLabel: "Base value",
+    rangeFrom: "From",
+    rangeTo: "To",
+    step: "Step (optional)",
+    options: "Choices (one per line)",
+    description: "What it stands for (optional)",
+    remove: "Remove",
+    invariants: "Invariants",
+    invariantPlaceholder: "e.g. The NPV must be positive in the base scenario",
+    addInvariant: "Add an invariant",
+    solutionMethod: "Solution method (optional)",
+    save: "Save parameters",
+    clear: "Clear all",
+    saved: "Parameters saved.",
+    error: "That did not save. Check the values and try again.",
+    // The frozen-check block (guide 5.1): a value printed inside a figure.
+    blockedHeading: "Some values appear inside a figure",
+    blockedHatch:
+      "To vary it anyway, mark that figure decorative on the import review, or edit the value out of the prose.",
+    autoParameterize: "Auto-parameterize",
+    autoPending: "Reading the problem and its figures…",
+    autoError: "That did not work. Try again.",
+  },
   seats: {
     back: "Back to course",
     heading: "Seats",

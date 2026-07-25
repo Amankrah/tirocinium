@@ -3,10 +3,17 @@ import { notFound } from "next/navigation";
 
 import { ProblemBody } from "@/components/reading/problem-body";
 import { getCaseStudy } from "@/lib/api/case-studies";
+import { getParamSpec } from "@/lib/api/params";
 import { requireProfessor } from "@/lib/professor-session";
 import { ProfessorShell } from "../../../../professor-shell";
 import { signOut } from "../../../../sign-in/actions";
 import { strings } from "../../../../strings";
+import {
+  autoParameterizeAction,
+  deleteParamSpecAction,
+  saveParamSpecAction,
+} from "./param-actions";
+import { ParamPanel } from "./param-panel";
 
 // The professor's preview of a case study, published or draft, rendered through
 // the same ProblemBody a seat would read (decision 0014) so what the professor
@@ -25,6 +32,7 @@ export default async function CaseStudyPreviewPage({
   const caseStudy = await getCaseStudy(token, cid, csid);
   if (!caseStudy) notFound();
   const published = caseStudy.status === "published";
+  const spec = await getParamSpec(token, cid, csid);
 
   return (
     <ProfessorShell email={email} signOut={signOut}>
@@ -46,6 +54,14 @@ export default async function CaseStudyPreviewPage({
           <h1 className="font-display text-4xl">{caseStudy.title}</h1>
         </header>
         <ProblemBody body={caseStudy.body} />
+        <ParamPanel
+          courseId={cid}
+          caseStudyId={csid}
+          initial={spec}
+          save={saveParamSpecAction}
+          clear={deleteParamSpecAction}
+          propose={autoParameterizeAction}
+        />
       </article>
     </ProfessorShell>
   );
