@@ -57,7 +57,13 @@ transaction, the evidence trail exposed through the wheel), 6.2 (answer_match
 and working_assessment emission in the worker, the grade endpoint with
 supersession), 6.3 (the parameter-version migration path), and the mastery
 API surface (the seat picture with trails, the revisit queue, the professor
-distribution); 6.4's rendering is the frontend's.
+distribution); 6.4's rendering is built (web): the student mastery picture and
+revisit queue on course home and the professor's class distribution, all as
+Server Components with the label-never-bare rule honoured through a native
+disclosure element (zero client JS on course home, 106 kB), the revisit queue calm and
+empty-when-empty, and the distribution anonymous counts with the gaps slot
+awaiting Phase 7. So Phase 6 is complete but for a Playwright pass on the mastery
+labels; the professor grade endpoint is live for the Phase 8.1 review surface.
 The Phase 3 frontend half
 (3.5) is in
 progress: the upload flow (capture, pre-checks, orchestration, SSE processing)
@@ -151,7 +157,7 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (212 Vitest tests: the token contract with its computed-contrast
+Web suite (223 Vitest tests: the token contract with its computed-contrast
 assertion, the primitives, the API clients, the upload flow's pre-checks,
 orchestration controller, SSE processing model, and transcription preview, and
 the PDF import upload and controller), plus lint, typecheck, and
