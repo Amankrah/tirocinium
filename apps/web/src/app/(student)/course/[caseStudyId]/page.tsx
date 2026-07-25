@@ -2,16 +2,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ProblemBody } from "@/components/reading/problem-body";
-import { Button } from "@/components/ui/button";
 import { getCaseStudy } from "@/lib/api/case-studies";
+import { getPracticeVariant } from "@/lib/api/practice";
 import { requireSeat } from "@/lib/seat-session";
 import { StudentShell } from "../../student-shell";
 import { strings } from "../../strings";
+import { getPracticeVariantAction } from "./actions";
+import { PracticeProblem } from "./practice-problem";
 
-// The problem view (guide 4.1): the case study body typeset in the reading
-// column, its concept tags, and the action rail. A Server Component; the body
-// renders server-side (decision 0014). A case study the seat may not see (a
-// draft, or another course) comes back null and is a 404, never a leak.
+// The problem view (guide 4.1): the current pooled variant typeset in the reading
+// column, its concept tags, and the action rail. A Server Component; the first
+// variant body renders server-side (decision 0014), and "New variant" swaps in
+// another from the pool instantly. A case study the seat may not see (a draft, or
+// another course) comes back null and is a 404, never a leak.
 export default async function ProblemViewPage({
   params,
 }: {
@@ -24,6 +27,12 @@ export default async function ProblemViewPage({
 
   const caseStudy = await getCaseStudy(token, seat.course_id, id);
   if (!caseStudy) notFound();
+
+  // The pool serves a variant instantly; its body reads identically to the base
+  // when the pool is empty (variant_id null). A failed call falls back to base.
+  const practice = await getPracticeVariant(token, seat.course_id, id, null);
+  const body = practice?.body ?? caseStudy.body;
+  const variantId = practice?.variant_id ?? null;
 
   return (
     <StudentShell seatNumber={seat.seat_number}>
@@ -54,15 +63,13 @@ export default async function ProblemViewPage({
           ) : null}
         </header>
 
-        <ProblemBody body={caseStudy.body} />
-
-        <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-rule-line pt-6">
-          <Button disabled>{strings.problem.newVariant}</Button>
-          <Button variant="quiet" disabled>
-            {strings.problem.upload}
-          </Button>
-          <span className="text-xs text-ink-muted">{strings.problem.soon}</span>
-        </div>
+        <PracticeProblem
+          caseStudyId={id}
+          initialVariantId={variantId}
+          swap={getPracticeVariantAction}
+        >
+          <ProblemBody body={body} />
+        </PracticeProblem>
       </article>
     </StudentShell>
   );

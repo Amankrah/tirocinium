@@ -29,12 +29,13 @@ export const strings = {
   problem: {
     backToCourse: "Back to course",
     concepts: "Concepts",
-    // The action rail (guide 4.1). New variant waits on the Phase 5 pool; upload
-    // is live, but needs a variant to file against, which is also Phase 5, so
-    // the rail stays quiet until then (decision 0019).
+    // The action rail (guide 4.1): a fresh pooled variant, or upload a solution
+    // for the current one. Upload needs a variant to file against, which the
+    // pool provides once a case study is parameterized and published.
     newVariant: "New variant",
     upload: "Upload solution",
-    soon: "Coming soon",
+    uploadNeedsVariant:
+      "Uploading opens once your professor publishes a variant of this problem.",
   },
   // The upload flow (guide 4.1): the most engineered student surface. Copy is
   // plain and honest; the client checks catch the obvious, and the server stays
