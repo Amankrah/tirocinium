@@ -70,8 +70,13 @@ behind the `PdfDecoder` seam, limits re-enforced post-render, rows rewritten
 in one writer transaction, the cache keyed on rendered bytes, with the
 parity gate green (photo and PDF of the same handwriting reach the same
 transcription and evidence shape) and a skip-gated real-fixture round trip
-over the committed tablet PDFs; 6.5.2 (pen capture) and 6.5.3 (the unified
-submission surface) are the frontend's.
+over the committed tablet PDFs; 6.5.2 and 6.5.3 are built (web, decision 0042):
+the upload surface opens on a three-mode picker (photos, handwriting PDF, write
+here), the file modes doubling as the no-pointer fallback, and mode C is a
+lazy-loaded pen pad (a pointer canvas exporting each page to a PNG that joins the
+same page list and orchestration, so mode C reduces to mode A). Vitest covers the
+pad's surface contract and the mode switch; the mode-C journey drives the pad end
+to end, seed-gated. Phase 6.5 is complete.
 The Phase 3 frontend half
 (3.5) is in
 progress: the upload flow (capture, pre-checks, orchestration, SSE processing)
@@ -169,7 +174,7 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (223 Vitest tests: the token contract with its computed-contrast
+Web suite (225 Vitest tests: the token contract with its computed-contrast
 assertion, the primitives, the API clients, the upload flow's pre-checks,
 orchestration controller, SSE processing model, and transcription preview, and
 the PDF import upload and controller), plus lint, typecheck, and
