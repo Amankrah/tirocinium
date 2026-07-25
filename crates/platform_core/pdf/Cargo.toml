@@ -21,6 +21,13 @@ image = { version = "0.25", default-features = false, features = ["png"] }
 # enabled only by the umbrella crate so this crate's tests link normally.
 pyo3 = { version = "0.23", features = ["abi3-py310"], optional = true }
 
+[dev-dependencies]
+# The golden-corpus harness reads and records an expectations manifest, and
+# decodes rendered figure crops to perceptual-hash them (the same image toolkit
+# the crate already builds on).
+serde_json = "1"
+image = { version = "0.25", default-features = false, features = ["png"] }
+
 [features]
 python = ["dep:pyo3"]
 

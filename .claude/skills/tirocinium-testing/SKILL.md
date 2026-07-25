@@ -301,7 +301,8 @@ Phase 4, in progress:
   (re-init aborts) and is exercised with real calls (deterministic CPU, not a
   model), the tests skipping when the binary is absent. The member is exempt from
   the bench-budget gate (native-render-bound). Still open for Phase 4: the
-  five-PDF golden corpus (an external asset).
+  five-PDF golden corpus's data (the harness is built, decision 0033; the real
+  PDFs are the captured asset it awaits).
 - 4.2 (done): figure extraction, the deterministic detector (decision 0025).
   `platform_core.pdf.extract_figures` walks a page's objects: an embedded JPEG
   stream is kept byte for byte (asserted against the source), other rasters are
@@ -433,8 +434,19 @@ PDF-upload path (decision 0026, not yet wired) live at
 `apps/api/tests/fixtures/submission-pdf/`.
 
 The five-PDF ingestion corpus lives at `crates/platform_core/pdf/corpus/` (PDFs
-under `pdfs/`, the spec in `README.md`); it is scaffolded but empty, so the
-harness in `pdf/tests/corpus.rs` is a no-op until it lands. Small fixture PDFs
+under `pdfs/`, the spec in `README.md`, baselines in `expectations.json`). The
+record-or-assert harness in `pdf/tests/corpus.rs` is complete (decision 0033):
+per PDF it decodes and figure-extracts against the recorded baseline, asserting
+page classification, a whitespace-normalised text fingerprint, and figure
+fidelity (an embedded raster byte-identical by FNV-1a + length, a vector render
+hash-stable by dHash within a Hamming tolerance of 6, bbox within 1 pt). It is a
+self-documenting no-op while `pdfs/` is empty and skips when pdfium is absent, so
+the gate stays green on a bare checkout and is real on CI. The data is the one
+missing piece (real problem-set PDFs, an external captured asset like the 30
+photos); once they land under `pdfs/`, record with `TIRO_RECORD=1 cargo test -p
+tirocinium-pdf --test corpus` and review `expectations.json` before committing,
+and capture the figure-detection/segmentation recorded responses from the same
+PDFs. Small fixture PDFs
 for the decode and figure unit tests live at
 `crates/platform_core/pdf/tests/fixtures/` (committed, LFS; generated with
 fpdf2/Pillow): a born-digital page, a no-text-layer page, a vector drawing, an

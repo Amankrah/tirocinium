@@ -1843,6 +1843,7 @@ dependencies = [
  "image",
  "pdfium-render",
  "pyo3",
+ "serde_json",
 ]
 
 [[package]]
