@@ -82,12 +82,9 @@ describe("ImportPanel", () => {
     expect(create).toHaveBeenCalledWith(1, pdf("problems.pdf").size, "key-1");
     expect(complete).toHaveBeenCalledWith(1, 7);
     expect(poll).toHaveBeenCalledWith(1, 7);
-    // Honest that confirmation is not built yet.
-    expect(
-      screen.getByText(
-        "Next you will review each detected problem and its figures before it becomes a draft. That step is coming soon.",
-      ),
-    ).toBeDefined();
+    // Links into the confirmation surface for the import just read.
+    const review = screen.getByRole("link", { name: "Review the extracted problems" });
+    expect(review.getAttribute("href")).toBe("/courses/1/imports/7");
   });
 
   it("surfaces an error when create is refused", async () => {

@@ -53,12 +53,34 @@ export const strings = {
     reading: "Reading your PDF…",
     ready: (count: number) =>
       count === 1 ? "Read 1 page." : `Read ${count} pages.`,
-    // The confirmation surface is the next milestone; be honest that it is not
-    // here yet rather than imply the import is finished.
-    confirmSoon:
-      "Next you will review each detected problem and its figures before it becomes a draft. That step is coming soon.",
     error: "That did not work. Check your connection and try again.",
     another: "Import another PDF",
+    review: "Review the extracted problems",
+  },
+  // The import confirmation surface (guide 4.3): each detected problem beside its
+  // source pages, confirmed into a draft before anything reaches students. The
+  // AI proposes and the professor disposes.
+  confirm: {
+    title: "Review and confirm",
+    back: "Back to course",
+    progress: (confirmed: number, total: number) =>
+      `${confirmed} of ${total} confirmed`,
+    empty: "This import produced nothing to review.",
+    allDone: "Every item is confirmed. They are drafts in your course now.",
+    note: "Confirmed problems become drafts in your course. The rest are discarded after 30 days.",
+    sourcePages: "Source pages",
+    pageSpan: (span: string) => `Pages ${span}`,
+    lowConfidence: "Low confidence",
+    question: "Question",
+    solution: "Solution",
+    noSolution: "No solution was found for this problem.",
+    edit: "Edit text",
+    done: "Done editing",
+    confirm: "Confirm",
+    confirmed: "Confirmed",
+    openDraft: "Open the draft",
+    discard: "Discard",
+    error: "That did not go through. Try again.",
   },
   seats: {
     back: "Back to course",

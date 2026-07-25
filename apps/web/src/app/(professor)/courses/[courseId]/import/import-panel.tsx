@@ -4,8 +4,10 @@
 // choose or drop a PDF, pre-check it on the device, then drive the injected
 // import controller (create, PUT direct to storage, complete, poll to ready).
 // A client island; the authed calls arrive as bound server actions so the
-// professor JWT never reaches here (decision 0019's shape, reused). The review
-// step where each detected problem is confirmed is the next milestone.
+// professor JWT never reaches here (decision 0019's shape, reused). On "ready"
+// it links into the confirmation surface where the detected problems are
+// reviewed and confirmed.
+import Link from "next/link";
 import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -163,10 +165,15 @@ export function ImportPanel({
               <p className="text-sm text-ink">
                 {s.ready(state.pageCount ?? 0)}
               </p>
-              <p className="rounded-md border border-rule-line p-3 text-sm text-ink-muted">
-                {s.confirmSoon}
-              </p>
-              <div>
+              <div className="flex flex-wrap items-center gap-4">
+                {state.importId !== null ? (
+                  <Link
+                    href={`/courses/${courseId}/imports/${state.importId}`}
+                    className="inline-flex items-center justify-center rounded-md bg-accent px-4 py-2 font-medium text-on-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  >
+                    {s.review}
+                  </Link>
+                ) : null}
                 <Button variant="quiet" onClick={reset}>
                   {s.another}
                 </Button>
