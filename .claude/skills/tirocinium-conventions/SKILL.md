@@ -322,6 +322,15 @@ model change. Embedding a submission's recognized text crosses no new line: it
 is student work, not student identity, and Stage 3 already sends the page to a
 provider.
 
+The provider keys and any runtime overrides can live in a gitignored
+`apps/api/.env` (decision 0035): `app/env.py`'s `load_local_env()` runs once at
+package import so the API factory, the arq worker, and the scripts pick it up
+before any client is built, but it is a no-op when `TIRO_TESTING` is set, so the
+recorded-mock suite never inherits real keys or a broker URL (`conftest.py` sets
+the flag). A real environment variable still overrides the file (`override=False`),
+so shells and deployments are unaffected. `.env.example` documents the names;
+never commit `.env`, and keys stay credentials.
+
 ## When the guides are silent
 
 Decide, implement, and record the decision in one paragraph in

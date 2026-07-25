@@ -399,10 +399,13 @@ Phase 4, in progress:
 ## Standing rules
 
 Model calls in tests are recorded-response mocks, always; live-model smoke
-tests run in a separate non-blocking CI lane. The realistic course-shard
-fixture (50 case studies, 500 submissions) becomes the shared data-layer
-fixture when Phase 1 builds it. Property tests belong in Rust next to the
-arithmetic they pin down.
+tests run in a separate non-blocking CI lane. `conftest.py` sets `TIRO_TESTING=1`
+before the app imports, which makes `load_local_env()` a no-op (decision 0035),
+so a developer's `apps/api/.env` never leaks real keys or a broker URL into the
+suite; if you add config that a test must exercise, set it explicitly in the test
+or conftest, not via `.env`. The realistic course-shard fixture (50 case studies,
+500 submissions) becomes the shared data-layer fixture when Phase 1 builds it.
+Property tests belong in Rust next to the arithmetic they pin down.
 
 ## Golden fixtures
 
