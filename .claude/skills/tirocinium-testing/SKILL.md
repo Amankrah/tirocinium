@@ -97,7 +97,7 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (154 Vitest tests: the token contract with its computed-contrast
+Web suite (168 Vitest tests: the token contract with its computed-contrast
 assertion, the primitives, the API clients, the upload flow's pre-checks,
 orchestration controller, SSE processing model, and transcription preview, and
 the PDF import upload and controller), plus lint, typecheck, and
@@ -391,10 +391,18 @@ Phase 4, in progress:
   to "ready" with the page count. Orchestration is a framework-agnostic
   controller with its side-effects injected and tested; the authed calls proxy
   through professor server actions. Reached from an "Import from PDF" link on the
-  course page. The surface stops honestly at "read": the confirmation review of
-  each detected problem and its figures (the rest of 4.4) waits on the backend's
-  figure extraction (4.2) and segmentation (4.3), and Playwright journey four
-  waits on that confirmation surface. 23 Vitest tests.
+  course page, and its ready state links into the confirmation surface.
+- 4.4 (web, confirmation surface): built against the full contract (figure/page
+  serving, confirm, discard, merge, figure verbs). The read renders each detected
+  problem as a card: source pages with figure boxes drawn from the normalised
+  bboxes, the question and solution with figures inline at their fig:// tokens
+  (lazy markdown + KaTeX in their own chunk; route holds at 111 kB),
+  low-confidence-first, an "N of M confirmed" line. Edit, confirm (to a draft),
+  and discard are wired; the items read omits discarded/merged so every verb
+  refetches as the source of truth. Client + server actions cover the whole verb
+  set. Still to layer on: merge, the figure verbs (role, remove, draw-a-box), the
+  j/k keyboard model, the split affordance (404 until the corpus), and Playwright
+  journey four. Contract-layer and surface tests are in.
 
 ## Standing rules
 
