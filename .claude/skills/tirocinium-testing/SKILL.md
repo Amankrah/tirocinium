@@ -46,9 +46,12 @@ rationales, figure locks, accept-into-the-form); and the practice loop, where th
 problem view serves a pooled variant and "New variant" swaps another in through a
 lazy client renderer (no generation spinner, route at 114 kB) and "Upload
 solution" carries the variant id into the upload flow, which finally makes that
-path live rather than seed-only (the 3.5 gap, closed). Still to build: preview
-variants (generate three and render), and the flagged review queue (list, the
-verification diff, promote/edit/delete).
+path live rather than seed-only (the 3.5 gap, closed); preview variants (generate
+three, poll the pool, render each verified body, a flagged one links out); and
+the flagged review queue (guide 4.4, the Phase 8.2 surface pulled forward on its
+live 5.3 contract: the two solutions side by side, promote/edit/discard, refetch
+as the source of truth). Phase 5.5 is complete. The Phase 8.2 review queue is
+therefore also done ahead of its slot.
 The Phase 6 backend is complete: 6.1 (the store inside the writer
 transaction, the evidence trail exposed through the wheel), 6.2 (answer_match
 and working_assessment emission in the worker, the grade endpoint with
@@ -148,7 +151,7 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (197 Vitest tests: the token contract with its computed-contrast
+Web suite (212 Vitest tests: the token contract with its computed-contrast
 assertion, the primitives, the API clients, the upload flow's pre-checks,
 orchestration controller, SSE processing model, and transcription preview, and
 the PDF import upload and controller), plus lint, typecheck, and
