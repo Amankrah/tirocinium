@@ -26,3 +26,44 @@ Development and operations tooling. Populated across Phase 0-1:
 Scripts are kept LF (`.gitattributes`) so they run in CI regardless of checkout OS.
 The build host for this milestone is Windows; the compose services and Litestream
 binary target the Unix CI and deploy environments.
+
+## Running the API locally
+
+`setup.sh` provisions and gates but does not start a server; there is no launcher
+script, because the API is a `create_app()` factory and the worker is an arq app.
+To run the backend against the dev services, four steps (commands from `apps/api`
+unless noted; venv binaries are under `.venv/Scripts` on Windows, `.venv/bin`
+elsewhere).
+
+First, start the dev services (MinIO and Redis), from the repo root:
+
+    docker compose -f infra/docker-compose.yml up -d --wait
+
+Second, put the local configuration in `apps/api/.env` (gitignored, loaded on
+import for real runs, decision 0035; copy `apps/api/.env.example`). A JWT secret
+keeps professor sessions alive across restarts, and the provider keys are needed
+only for the live worker and the retrieval query embed:
+
+    TIRO_JWT_SECRET=any-long-random-dev-string
+    TIRO_ANTHROPIC_API_KEY=...
+    TIRO_OPENAI_API_KEY=...
+
+Third, create the object-storage buckets once (nothing creates them on startup;
+the app only reads and writes keys within them):
+
+    .venv/Scripts/python -c "from app.db.backup import s3_client_from_env; from app.storage import SCANS_BUCKET, IMPORTS_BUCKET, ARTIFACTS_BUCKET; c=s3_client_from_env(); [c.create_bucket(Bucket=b) for b in (SCANS_BUCKET, IMPORTS_BUCKET, ARTIFACTS_BUCKET)]; print('buckets ready')"
+
+Fourth, run the two processes in separate terminals. The API serves auth, courses,
+case studies, seats, and the read and search endpoints, and degrades gracefully
+without Redis (enqueue and SSE no-op); the worker is what runs transcription, PDF
+import, and indexing, so start it (and Redis) when you want that work to process:
+
+    .venv/Scripts/uvicorn app.main:create_app --factory --reload --port 8000
+    .venv/Scripts/arq app.worker.WorkerSettings
+
+The interactive API docs are then at `http://localhost:8000/docs` (routes live
+under `/api/v1`) and the MinIO console at `http://localhost:9001` (login
+`tirocinium` / `tirocinium-dev`). `--factory` is required because `app.main`
+exposes `create_app()`, not a module-level `app`. If `import platform_core` fails
+after a `uv sync` (which prunes the extension), rebuild the single wheel into the
+venv with the `maturin develop` command in the `tirocinium-testing` skill.
