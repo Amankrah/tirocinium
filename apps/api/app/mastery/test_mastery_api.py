@@ -4,6 +4,7 @@ prescribes, the professor's distribution counts labels without ranking seats,
 and grading supersedes automatic evidence in one transaction."""
 
 import io
+import json
 import time
 from collections.abc import Iterator
 from pathlib import Path
@@ -294,9 +295,82 @@ def test_the_distribution_counts_labels_without_ranking(
     assert concept["unseen"] == 1
     assert concept["shaky"] == 1
     assert concept["solid"] == 1
-    assert concept["gaps"] == []  # named gaps arrive with the Phase 7 defense
+    assert concept["gaps"] == []  # no defences yet, so nothing is named
     # No per-seat ranking exists anywhere in the shape.
     assert "seats" not in concept and "seat_ids" not in concept
+
+
+def seed_closed_defence(
+    tmp_path: Path,
+    course_id: int,
+    concept_id: int,
+    *,
+    gap: str,
+    seat_id: int,
+    submission_id: int,
+) -> None:
+    """A closed conversation carrying a validated verdict, the way the Phase 7
+    close flow leaves one behind."""
+    rubric = {
+        "concepts": [{"concept_id": concept_id, "reasoning": 1, "gap": gap}],
+        "concept_to_revisit": concept_id,
+        "session_confidence": 0.8,
+    }
+    conn = connect(tmp_path / "courses" / f"{course_id}.db")
+    try:
+        conn.execute(
+            "INSERT INTO conversations (submission_id, seat_id, status,"
+            " rubric_json, concept_to_revisit, turn_count, started_at, closed_at)"
+            " VALUES (?, ?, 'closed', ?, ?, 4, 0, 0)",
+            (submission_id, seat_id, json.dumps(rubric), concept_id),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def test_the_distribution_names_the_defence_gaps_verbatim(
+    client: TestClient, tmp_path: Path, storage: FakeStorage
+) -> None:
+    """Spec section 6: the professor's lens on the class is the tutor's own
+    words, counted, most frequent first. This is the half of the distribution
+    that only exists once voice defences do."""
+    headers = professor(client)
+    course_id, concept_id = make_course(client, headers)
+    seat(client, headers, course_id, storage)
+    _case_id, variant_ids = seed_case_with_pool(
+        tmp_path, course_id, concept_id, title="Circuit", weight=1.0
+    )
+    submission_id = add_submission(
+        tmp_path, course_id, variant_ids[0], seat_id=1, at=0
+    )
+    common = "Reads V/R as a definition rather than a relation"
+    rare = "Cannot say why the loop current is common"
+    for seat_id in (1, 2):
+        seed_closed_defence(
+            tmp_path,
+            course_id,
+            concept_id,
+            gap=common,
+            seat_id=seat_id,
+            submission_id=submission_id,
+        )
+    seed_closed_defence(
+        tmp_path,
+        course_id,
+        concept_id,
+        gap=rare,
+        seat_id=3,
+        submission_id=submission_id,
+    )
+
+    r = client.get(
+        f"/api/v1/courses/{course_id}/mastery/distribution", headers=headers
+    )
+
+    assert r.status_code == 200, r.text
+    # Verbatim, most frequent first, and still no seat attached to any of it.
+    assert r.json()["concepts"][0]["gaps"] == [common, rare]
 
 
 def test_the_distribution_is_owner_only(

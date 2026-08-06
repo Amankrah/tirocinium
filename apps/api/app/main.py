@@ -23,6 +23,7 @@ from app.case_studies import router as case_studies_router
 from app.concepts import router as concepts_router
 from app.courses import router as courses_router
 from app.db import ShardManager
+from app.defense import router as defense_router
 from app.events import InMemoryEventBus, RedisEventBus
 from app.imports import router as imports_router
 from app.mastery import router as mastery_router
@@ -116,4 +117,5 @@ def create_app(
     app.include_router(params_router)
     app.include_router(variants_router)
     app.include_router(mastery_router)
+    app.include_router(defense_router)
     return app

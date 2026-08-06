@@ -601,6 +601,34 @@
         "title": "ConfirmedOut",
         "type": "object"
       },
+      "ConversationOut": {
+        "properties": {
+          "conversation_id": {
+            "title": "Conversation Id",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "stream_path": {
+            "title": "Stream Path",
+            "type": "string"
+          },
+          "submission_id": {
+            "title": "Submission Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "conversation_id",
+          "submission_id",
+          "status",
+          "stream_path"
+        ],
+        "title": "ConversationOut",
+        "type": "object"
+      },
       "CourseIn": {
         "properties": {
           "title": {
@@ -7186,6 +7214,84 @@
         "summary": "Complete Submission",
         "tags": [
           "submissions"
+        ]
+      }
+    },
+    "/api/v1/submissions/{submission_id}/conversation": {
+      "post": {
+        "description": "Open a defence session on the seat's own processed submission.",
+        "operationId": "open_conversation_api_v1_submissions__submission_id__conversation_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "submission_id",
+            "required": true,
+            "schema": {
+              "title": "Submission Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Open Conversation",
+        "tags": [
+          "defense"
         ]
       }
     },

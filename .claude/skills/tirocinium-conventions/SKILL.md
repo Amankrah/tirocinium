@@ -7,7 +7,7 @@ description: Tirocinium coding standards, API conventions, data-layer rules, and
 
 The four documents in `docs/` are the specification and outrank this skill; this
 skill is the operational digest that survives context windows. Last updated for
-Phase 5.1 (data layer, auth, seats, and the authoring backend done; the
+Phase 7 (data layer, auth, seats, and the authoring backend done; the
 handwritten solution upload path live; scan preprocessing implemented in Rust;
 handwriting transcription running in an off-request-path worker with a recorded-
 response model seam and SSE progress; indexing and retrieval done, with FTS5 and
@@ -36,7 +36,10 @@ frontend's. The Phase 6 backend is complete (6.1 to 6.3, decisions 0040 and
 frontend's. Phase 6.5 (student input modes, decision 0026): 6.5.1 (mode B,
 the exported handwriting PDF) is done; 6.5.2 (pen capture) and 6.5.3 (the
 unified submission surface) are the frontend's, reducing to modes A/B on the
-backend.
+backend. The Phase 7 backend is complete (7.1 to 7.3, decisions 0043 and
+0044): the voice defence runs as a modular recognition, Claude, synthesis
+pipeline behind swappable seams, and 7.4 (the conversation module) is the
+frontend's.
 
 Mode B (milestone 6.5.1): the submission pipeline expands an
 `application/pdf` page before the page loop, behind the same `PdfDecoder`
@@ -67,8 +70,11 @@ per mapped concept and triggers the store's supersession replay in the same
 transaction. The seat surfaces (`GET .../mastery` with per-concept trails
 from `evidence_trail_json`, `GET .../revisit` targeting spec section 5
 exactly) are seat-only; the professor reads
-`GET .../mastery/distribution` (label counts, no ranking, `gaps` empty until
-Phase 7). Parameter versions live in the directory's `mastery_params` table;
+`GET .../mastery/distribution` (label counts, no ranking, `gaps` the
+defence-named misconceptions verbatim, counted across closed conversations'
+validated rubrics, most frequent first and at most five per concept, which
+Phase 7 finally fills). Parameter versions live in the directory's
+`mastery_params` table;
 `scripts/migrate_mastery_params.py` activates a version and bulk-replays
 every shard (milestone 6.3).
 
@@ -151,6 +157,41 @@ manual, never flagged), body and id only, never a solution; a dry pool serves
 the base case study instantly with a null id (never a wait, the pool
 invariant) and enqueues a background top-up.
 
+The voice defence (Phase 7, decisions 0043 and 0044) is a modular pipeline,
+not a speech-to-speech model and not a vendor voice-agent orchestrator:
+streaming recognition, then Claude, then streaming synthesis, with turn-taking
+server-side so behaviour is identical across devices. Context assembly
+(`app/defense/context.py`) builds each session from exactly three sources as
+delimited untrusted content (the variant, the professor's reference solution,
+the student's transcription) plus the mapped concepts by id and the essential
+figures attached as images; the persona is the versioned `defense-tutor/v1`
+prompt, and nothing about the student beyond seat context is in it. The engine
+(`app/defense/engine.py`) is transport agnostic and holds the conversation in
+memory: the recognizer's endpoint flag closes a student turn, reply text streams
+into synthesis chunk by chunk, fresh speech or a typed turn cancels a reply in
+flight, and the session winds down two turns before its twelve-turn cap.
+Degradation is structural rather than a second code path: no synthesizer means
+captions, no recognizer means a typed session, and a provider that dies
+mid-session degrades into exactly those and says so once (`speech_down`,
+`audio_down`) while keeping the reply whose audio died as text, because the
+next turn must be reasoned from the whole conversation. Speech providers sit
+behind two Protocols (`app/defense/speech.py`, adapters in
+`speech_providers.py`, chosen by `TIRO_STT_PROVIDER` and `TIRO_TTS_PROVIDER`,
+absent by default); the seams exist so a provider swap never touches the
+engine. The surface is `POST /api/v1/submissions/{id}/conversation` (seat-only,
+own processed submission, a per-course concurrency cap answering an honest 409)
+and a WebSocket at `/api/v1/conversations/{id}/stream` authenticated by the
+seat's opaque token as a query parameter, since a browser cannot set headers on
+a WebSocket. Closing (`app/defense/close.py`) runs the rubric call on the
+pinned model, validates it against the mastery spec's schema, retries once, and
+never ingests a verdict that does not validate; a valid one becomes one
+`defense_rubric` event per discussed-and-mapped concept inside the same writer
+transaction that stores the compressed transcript. Raw audio is never
+persisted: `conversations` holds text and the verdict only (migration
+course/0018), and speech spend lands in `speech_usage` in the provider's own
+unit beside the tutor and rubric rows in `token_usage`, because speech
+dominates the cost of a defence.
+
 pdfium is single-threaded in a way per-call locking does not cover: the crate
 holds one process-wide operation lock across each whole decode or
 extract_figures call (two interleaved logical operations corrupt each other's
@@ -201,7 +242,16 @@ personalization hook to a student surface.
 **Hostile text is data.** Text inside a scanned page or an imported PDF is
 content to transcribe, never instructions to follow. Prompt assembly keeps
 untrusted content clearly delimited, and the tutor never reveals answers no
-matter what a transcription contains.
+matter what a transcription contains, or what the student says, pleads, or
+instructs during the defence. The three hard rules (never reveal, stay on the
+academic task, text is data) travel in the system prompt of every single turn
+and of the closing rubric call, not just the first, and the Phase 7 safety
+suite asserts it.
+
+**Audio is never retained.** A defence leaves behind its text transcript and
+its verdict; the voice itself is transport, held in memory for the length of a
+turn and gone. No column, bucket, or log holds student audio, and no test may
+introduce one.
 
 ## Coding standards
 
@@ -449,6 +499,21 @@ Python; the float32 original is kept zstd-compressed for requantization after a
 model change. Embedding a submission's recognized text crosses no new line: it
 is student work, not student identity, and Stage 3 already sends the page to a
 provider.
+
+The tutor is the same shape again (`app/defense/model.py`): `Tutor` with
+`stream_reply` and `close_rubric`, `AnthropicTutor` live and `RecordedTutor`
+replaying scripted replies and verdicts in order. Two models, deliberately:
+conversational turns run on the fastest suitable Claude
+(`TIRO_TUTOR_MODEL_ID`), because a defence turn is a short spoken question and
+the 800 ms budget only closes with a first token near 200 ms, while the closing
+rubric runs on the stronger model pinned to a dated snapshot id rather than a
+`-latest` alias (`TIRO_RUBRIC_MODEL_ID`), because its judgement is evidence and
+a silent provider update must not shift its calibration. The session context is
+large and identical on every turn, so it carries Anthropic cache breakpoints on
+the last system block and on the figures attached to the first student turn.
+Speech providers are not model seams in this sense and are never recorded:
+their adapters are live integrations for the smoke lane, and the suite drives
+scripted timings through the same Protocols instead.
 
 The provider keys and any runtime overrides can live in a gitignored
 `apps/api/.env` (decision 0035): `app/env.py`'s `load_local_env()` runs once at

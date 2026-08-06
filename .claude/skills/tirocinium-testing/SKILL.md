@@ -6,8 +6,8 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at Phase 6 (decisions 0040, 0041:
-mastery integration; the backend of Phases 5 and 6 is complete):
+passes; green never goes red. Last updated at Phase 7 (decisions 0043, 0044:
+the voice defence; the backend of Phases 5, 6, 6.5, and 7 is complete):
 Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 backend
 complete (3.1 the submission upload path done; 3.2 scan preprocessing
 implemented, its golden gate awaiting the 30-photo corpus; 3.3 handwriting
@@ -77,6 +77,12 @@ lazy-loaded pen pad (a pointer canvas exporting each page to a PNG that joins th
 same page list and orchestration, so mode C reduces to mode A). Vitest covers the
 pad's surface contract and the mode switch; the mode-C journey drives the pad end
 to end, seed-gated. Phase 6.5 is complete.
+The Phase 7 backend is complete (7.1 to 7.3; 7.4, the conversation module, is
+the frontend's): context assembly, the transport-agnostic turn engine behind
+streaming speech seams with Deepgram Flux and Cartesia Sonic adapters, the
+WebSocket surface with its per-course concurrency cap, and the closing rubric
+that becomes defence evidence. All four gate items are green, the latency one
+thinly so (782 ms p95 against 800).
 The Phase 3 frontend half
 (3.5) is in
 progress: the upload flow (capture, pre-checks, orchestration, SSE processing)
@@ -126,7 +132,7 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 285 tests (25 data layer, 16 case studies/concepts/courses,
+Python suite, 328 tests (25 data layer, 16 case studies/concepts/courses,
 15 seats, 12 auth, 16 submissions (incl. 4 transcription-read), 12
 transcription (5 pipeline; 7 mode B: PDF expansion and re-sequencing, the
 mixed photo+PDF order, the over-limit rejection copy, retry neither
@@ -154,11 +160,15 @@ figures+pages), 5 figure resolve (owner any, seat published-only, 404 hides
 existence), 13 item verbs (merge + discard), 1 edit-distance, 5 figure
 storage/placement, 4 segmentation, 1 purge, 3 pdfium decoder/extractor that skip
 when the binary is absent), 7 backup,
-19 mastery (7 emission incl. the transactionality gate, 1 end-to-end
-seven-day trajectory gate, 8 surface: seat picture with trails and
+20 mastery (7 emission incl. the transactionality gate, 1 end-to-end
+seven-day trajectory gate, 9 surface: seat picture with trails and
 seat-only auth, revisit targeting per spec section 5, distribution counts
-and auth, grading with supersession and auth, 3 parameter-version
-migration), 5 compression, 3 contract, 8 store, 1 latency gate) plus lint
+and auth, the defence-named gaps verbatim and most frequent first, grading
+with supersession and auth, 3 parameter-version migration), 42 defence (4 context assembly, 6 engine turn-taking, 8 close
+(the rubric contract, evidence, transcript, accounting, and the no-audio-column
+assertion), 9 surface and WebSocket transport, 3 safety, 2 fallback, 8 provider
+wire translation, 2 latency: the p95 gate and the loop-adds-nothing
+regression), 5 compression, 3 contract, 8 store, 1 latency gate) plus lint
 and the worker import smoke, from `apps/api`:
 
     cd apps/api
@@ -593,6 +603,57 @@ Phase 6, backend complete (decisions 0040, 0041):
   expandable, the calm queue, the distribution view) and the gate's UI test
   ("every rendered label opens its trail") are the frontend's.
 
+Phase 7, backend complete (decisions 0043, 0044):
+
+- 7.1 (done): session context assembly. Exactly the three sources guide 6.5
+  names (the variant, the professor's reference solution, the student's own
+  transcription) as delimited untrusted content, the essential figures attached
+  as pixels, the mapped concepts by id so the rubric can score them, and the
+  versioned `defense-tutor/v1` persona carrying the never-reveal, stay-on-task,
+  and text-is-data rules. The 4 tests cover the three sources and figures (byte
+  for byte, never in the text), no seat identity in the prompt, an unprocessed
+  submission having no context, and a decorative figure staying unattached.
+- 7.2 (done): the streaming loop. `DefenseEngine` is transport agnostic, so the
+  WebSocket route, the safety suite, and the latency harness drive the same
+  loop: the recognizer's endpoint flag closes a student turn, reply text streams
+  into synthesis with audio out before the reply is complete, fresh speech or a
+  typed turn cancels a reply in flight, the session winds down two turns before
+  its cap and stops at it. The 6 engine tests cover those plus the typed
+  fallback and figures reaching the tutor as pixels. Speech lives behind two
+  Protocols (`app/defense/speech.py`) with Deepgram Flux and Cartesia Sonic
+  adapters; the sockets are live integrations for the smoke lane, but the wire
+  translation is pure and pinned by 8 tests (only `EndOfTurn` commits a turn,
+  the eager ending never does, noise is ignored, the incremental synthesis
+  protocol under one context id, the audio frames, and the registry falling to
+  typed sessions with nothing configured and failing loudly on a typo).
+- 7.3 (done): the closing rubric and the accounting. 8 tests: a valid verdict
+  becomes one `defense_rubric` event per discussed-and-mapped concept
+  (reasoning/3, the tutor's session confidence, the mapping weight) inside the
+  same transaction that stores the compressed transcript; the gate's rubric
+  contract (malformed output rejected, retried once, never ingested); unmapped
+  concepts dropped; no student turns means no rubric call; the pinned rubric
+  model; token and speech usage per course; and no column anywhere holding
+  audio. The surface (9 tests) is seat-only on the seat's own processed
+  submission, caps live conversations per course with an honest 409 while
+  sweeping stale rows, authenticates the socket by query-parameter token (4401)
+  and hides another seat's conversation (4404), and runs the whole loop through
+  the transport to a verdict.
+- The gate's four items are green. Latency: the harness in
+  `app/defense/test_latency.py` drives 200 turns on a virtual clock against
+  decision 0044's measured provider distributions and reports a 634 ms median
+  and 782 ms p95 against the 800 ms budget, with p99 at 828 ms, so the margin is
+  thin and the harness is a gate to defend, not a result to celebrate; re-run it
+  first whenever a provider or the tutor model changes. Rubric contract: in the
+  close tests above. Safety: 3 tests drive a stuck student escalating from
+  pleading to instructing and an off-task session with an injection, asserting
+  that no fragment of the ground truth reaches captions, transcript, or verdict,
+  that the three hard rules travel with every turn, and that hostile text from
+  the student or from a scanned page is carried as delimited data. Fallback: 2
+  tests kill each speech layer mid-session (a dropped recognizer socket, a
+  refused synthesis connection) and assert the session continues, says so once
+  (`speech_down`, `audio_down`), keeps the reply whose audio died as captions and
+  as a turn, and hands the tutor the whole conversation across the mode switch.
+
 Recorded working-assessment responses live at
 `apps/api/tests/recorded/working-assessment/`, one JSON per document sha256
 (`WorkingAssessment` shape: per-concept rubric 0..3 plus one stated
@@ -665,6 +726,16 @@ live at `apps/api/tests/recorded/figure-detection/`, replayed by
 `RecordedFigureDetector`. Real digital-handwriting PDFs for the student
 PDF-upload path (decision 0026, not yet wired) live at
 `apps/api/tests/fixtures/submission-pdf/`.
+
+Recorded defence sessions live at `apps/api/tests/recorded/defense/`, one
+directory per scripted session holding `replies.json` and `rubrics.json` (raw
+verdicts in order, so a test can stage a malformed one followed by a well-formed
+retry), replayed by `RecordedTutor.from_dir`; the latency, safety, and fallback
+tests build their scripts in memory, so the gate needs no committed asset, and
+the directory is where the sessions the live-model smoke lane replays land.
+Speech is never recorded: audio is not retained anywhere, and the speech seams
+are driven by scripted timings in `app/defense/conftest.py`. Versioned prompts
+live at `apps/api/prompts/defense-tutor/` and `apps/api/prompts/defense-rubric/`.
 
 The five-PDF ingestion corpus lives at `crates/platform_core/pdf/corpus/` (PDFs
 under `pdfs/`, the spec in `README.md`, baselines in `expectations.json`). The

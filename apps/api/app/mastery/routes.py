@@ -9,8 +9,10 @@ transaction; reads assemble views through the same store so every number
 comes from the Rust core.
 """
 
+import json
 import sqlite3
 import time
+from collections import Counter
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -284,6 +286,7 @@ async def mastery_distribution(
         concepts = conn.execute(
             "SELECT id, name FROM concepts ORDER BY position, id"
         ).fetchall()
+        gaps = _common_gaps(conn)
         seat_ids = [
             int(r[0])
             for r in conn.execute(
@@ -309,11 +312,40 @@ async def mastery_distribution(
                 shaky=counts[int(cid)]["shaky"],
                 developing=counts[int(cid)]["developing"],
                 solid=counts[int(cid)]["solid"],
+                gaps=gaps.get(int(cid), []),
             )
             for cid, name in concepts
         ]
 
     return DistributionOut(concepts=await shards.course_reads(course_id).run(read))
+
+
+GAPS_PER_CONCEPT = 5
+
+
+def _common_gaps(conn: sqlite3.Connection) -> dict[int, list[str]]:
+    """The most common defence-named gaps per concept, verbatim (mastery spec
+    section 6): read from the closed conversations' validated rubrics, counted
+    by exact wording, most frequent first."""
+    tallies: dict[int, Counter[str]] = {}
+    rows = conn.execute(
+        "SELECT rubric_json FROM conversations WHERE rubric_json IS NOT NULL"
+    ).fetchall()
+    for (rubric_json,) in rows:
+        try:
+            rubric = json.loads(str(rubric_json))
+        except ValueError:
+            continue
+        for scored in rubric.get("concepts", []):
+            gap = scored.get("gap")
+            concept_id = scored.get("concept_id")
+            if not gap or not isinstance(concept_id, int):
+                continue
+            tallies.setdefault(concept_id, Counter())[str(gap)] += 1
+    return {
+        concept_id: [gap for gap, _n in counter.most_common(GAPS_PER_CONCEPT)]
+        for concept_id, counter in tallies.items()
+    }
 
 
 @router.post(

@@ -27,6 +27,10 @@ dependencies = [
     "openai>=1.50,<2.0",
     "fpdf2>=2.7,<3.0",
     "python-dotenv>=1.0,<2.0",
+    # Direct client of the speech providers' streaming sockets (Phase 7); it
+    # arrives transitively with uvicorn[standard] too, but an import in our own
+    # code is a dependency we declare.
+    "websockets>=13,<17",
 ]
 
 [dependency-groups]
