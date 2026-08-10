@@ -69,6 +69,26 @@ jobs:
       - name: Python suite
         run: .venv/bin/python -m pytest -q
 
+  rust-audit:
+    # The Rust half of the dependency audit (milestone 9.2). New advisories fail
+    # the build; the two open pyo3 ones are listed explicitly, so accepting them
+    # is a visible decision with a name attached rather than a silent pass, and
+    # anything else that appears is loud. See docs/decisions/0054.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: crates/platform_core
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+      - name: Audit
+        run: |
+          cargo audit \
+            --ignore RUSTSEC-2025-0020 \
+            --ignore RUSTSEC-2026-0177
+
   setup-script:
     # The 0.2 gate itself: a fresh machine reaches a working, verified state
     # in one command. Criterion is exercised separately once benches land.

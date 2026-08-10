@@ -47,7 +47,12 @@ the whole Phase 8 backend is complete and only the frontend's journeys five and
 six remain on its gate. Phase 9 has begun: 9.1 (load testing, decision 0051) and
 9.2 (the security pass, decision 0052) and 9.4 (the scheduled backup drill with
 alerting, decision 0053) are done; 9.3 and 9.5 are the frontend's and 9.6 is the
-discretionary list. Backups are verified as well as drilled: `verify_snapshots`
+discretionary list. Two standing cautions from decision 0054: the Python suite
+segfaults on roughly one full run in ten (a GC crash on an anyio worker thread,
+independent of pytest and pyo3 versions), so never call a gate green or red from
+a single run; and the pyo3 pin stays at 0.23 despite two open RUSTSEC advisories,
+because 0.29 quadrupled that crash rate when measured. Backups are verified as
+well as drilled: `verify_snapshots`
 in `app/db/backup.py` fails a shard whose newest snapshot is missing, older than
 36 h, or zero bytes, and shard discovery comes from the data directory so a new
 course reports as unbacked rather than going unnoticed.

@@ -757,10 +757,10 @@ Phase 8, in progress:
   `infra/dashboards.json`, and a test pins that every panel queries an
   instrument the code emits, so renaming an instrument without the dashboard
   fails. The 22 tests are in `app/test_telemetry.py`.
-  Two gotchas. Adding OTel means `uv sync` prunes `platform_core`: rebuild the
-  wheel after any dependency change (the command is above). And piping pytest
-  to `tail` can produce a SIGPIPE faulthandler dump that looks like a crash and
-  is not; capture full output before believing a fatal error.
+  One gotcha: adding OTel means `uv sync` prunes `platform_core`, so rebuild the
+  wheel after any dependency change (the command is above). (An earlier note
+  here blamed faulthandler dumps on piping pytest to `tail`. That was wrong; see
+  the segfault entry under 9.2.)
 - Phase 8's remaining gate items are the frontend's: Playwright journeys five
   and six. Still open from 8.4: frontend guide 4.2's (started, submitted) span
   has no `started_at`, so the history view cannot show engaged time yet.
@@ -798,11 +798,23 @@ Phase 9, in progress:
   deterministic; if you add a model seam, key it that way or every replay will
   miss. `RecordedTutor.seen_rubric_systems` was added because the closing rubric
   call carried the hard rules in fact but in no test.
-  Dependency audit: one advisory, PYSEC-2026-1845 on pytest 8.4.2 (dev only),
-  fixed in 9.0.3, deferred because pytest 9.1.1 makes this suite segfault
-  intermittently (native teardown around PyO3/pdfium is the suspect). Do not
-  re-attempt that upgrade without investigating the segfault first. `cargo
-  audit` is still unwired.
+  Dependency audit, both halves (decision 0054). Python: one advisory,
+  PYSEC-2026-1845 on pytest 8.4.2 (dev only), fixed in 9.0.3. Rust: `cargo audit`
+  now runs in CI as the `rust-audit` job, with RUSTSEC-2025-0020 and
+  RUSTSEC-2026-0177 (both pyo3 0.23.5) ignored by id so a new advisory still
+  fails; upgrading pyo3 fixes both and was rejected on measurement, see below.
+
+  **The suite segfaults about one full run in ten.** Read this before trusting a
+  green run or diagnosing a crash. It is mid garbage collection on an anyio
+  worker thread inside Starlette request handling, it predates Phase 9, and it
+  is independent of pytest version (8 and 9) and pyo3 version (0.23 and 0.29).
+  Measured rates on the full suite: pyo3 0.23 five crashes in fifty runs, pyo3
+  0.29 five in twelve, which is why the pyo3 upgrade (and with it the pytest
+  one, whose earlier failure was this same crash) is not landed. It does not
+  reproduce running the newer suites alone, only across the whole suite. Next
+  step is a native backtrace with `core_pattern` set to a plain file, since
+  apport intercepts cores on this host. Never conclude a gate is green, or red,
+  from one run.
 - 9.4 (done): the scheduled backup drill with alerting (decision 0053).
   `.github/workflows/backup-drill.yml` runs daily (05:20 UTC, plus manual
   dispatch): the restore drill, then a snapshot-and-verify loop against real
