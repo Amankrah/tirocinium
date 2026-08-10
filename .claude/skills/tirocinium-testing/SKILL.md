@@ -6,9 +6,11 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at Phase 8 (decisions 0046, 0047:
-the PDF gate preconditions and the submission review read; the backend of
-Phases 5, 6, 6.5, and 7 is complete and 8.1 is done):
+passes; green never goes red. Last updated at Phase 8 (decisions 0046 to 0050:
+the PDF gate preconditions, the submission review read, course reporting, the
+understanding unfold, and observability; the backend of Phases 5, 6, 6.5, and 7
+is complete and the whole Phase 8 backend, 8.1 to 8.5, is done, leaving only
+the frontend's journeys five and six on that gate):
 Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 backend
 complete (3.1 the submission upload path done; 3.2 scan preprocessing
 implemented, its golden gate awaiting the 30-photo corpus; 3.3 handwriting
@@ -135,8 +137,9 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 361 tests (25 data layer, 16 case studies/concepts/courses,
-16 reports (8.3, see the gate table),
+Python suite, 419 tests (25 data layer, 16 case studies/concepts/courses,
+16 reports (8.3), 36 unfold (8.4: 18 stepper, 18 surface), and 22 telemetry
+(8.5), see the gate table,
 15 seats, 12 auth, 16 submissions (incl. 4 transcription-read),
 12 submission review (8.1: the list with seat numbers, cursor pagination, the
 status and variant filters, the empty course; the detail with regions and both
@@ -712,7 +715,54 @@ Phase 8, in progress:
   `priced: false`. Every statistic is null rather than fabricated when its
   denominator is empty, so a test that expects 0.0 from an empty course is
   testing the wrong thing.
-- 8.4 and 8.5 are unstarted.
+- 8.4 (done): the understanding unfold and the personal history (decision
+  0049). The stepper (`app/unfold/steps.py`) splits a worked solution
+  deterministically in Python, never by a model: block boundaries and top-level
+  list items, with fenced code and display math atomic and a bare heading
+  joining the block it introduces. Its 18 tests carry a shared fidelity
+  assertion (`assert_faithful`) that every step's span is ordered,
+  non-overlapping, exactly its text, and separated only by whitespace, so
+  nothing the professor wrote is lost, moved, or altered; add new stepper cases
+  through that helper, not around it. The surface (`app/unfold/routes.py`,
+  migration course/0019 `solution_reveals`): `GET
+  .../variants/{id}/solution` returns total steps plus the ones the seat has
+  unfolded (a professor-owner sees all of it), and `POST .../solution/reveal`
+  takes an absolute `through_step` so a retry never rewinds. A seat who has
+  neither submitted nor revealed gets a 403 whose copy names both routes in;
+  the first reveal without a submission records `gave_up`. `GET
+  .../history` is the seat's own submissions newest first, seat-only like the
+  mastery picture, cursor walking backwards through ids. 18 surface tests cover
+  the gate, step-by-step reveal (with the unrevealed text genuinely absent from
+  the payload), no-rewind and past-the-end, giving up recorded and not recorded,
+  seat isolation, the professor read, an unpublished variant 404, the auth
+  surface, the shared numbering, history ordering, isolation, pagination,
+  seat-only, and no PII.
+  Note the coupling: 8.4 renumbered the reference solution inside the tutor's
+  context and states how far the student has read, so the persona moved to
+  `defense-tutor/v2` and `test_context.py` asserts v2 plus the numbering. A
+  prompt bump like that breaks the provenance assertion, not the recorded
+  replays, which are ordered rather than hash-keyed.
+- 8.5 (done): observability (decision 0050). `app/telemetry.py` owns the lot:
+  JSON logs carrying trace and span ids, spans, the W3C carrier that crosses
+  the queue, and the four dashboards' instruments. The gate's item, trace
+  continuity across a full submission lifecycle, is asserted twice: once on the
+  primitives and once through the real seams (`ArqTaskQueue` with a fake pool
+  injecting, `worker.run_job` resuming, the real transcription pipeline running
+  under it with the native preprocess span inside). Both halves are
+  mutation-checked: dropping `trace_context` from the enqueue or ignoring the
+  carrier in `continued_span` fails the gate. Rust boundary spans are opened on
+  the Python side of the PyO3 call (preprocess, embedding quantize, compare,
+  pdfium); the codec is deliberately uninstrumented. Dashboards live as data in
+  `infra/dashboards.json`, and a test pins that every panel queries an
+  instrument the code emits, so renaming an instrument without the dashboard
+  fails. The 22 tests are in `app/test_telemetry.py`.
+  Two gotchas. Adding OTel means `uv sync` prunes `platform_core`: rebuild the
+  wheel after any dependency change (the command is above). And piping pytest
+  to `tail` can produce a SIGPIPE faulthandler dump that looks like a crash and
+  is not; capture full output before believing a fatal error.
+- Phase 8's remaining gate items are the frontend's: Playwright journeys five
+  and six. Still open from 8.4: frontend guide 4.2's (started, submitted) span
+  has no `started_at`, so the history view cannot show engaged time yet.
 
 Recorded working-assessment responses live at
 `apps/api/tests/recorded/working-assessment/`, one JSON per document sha256

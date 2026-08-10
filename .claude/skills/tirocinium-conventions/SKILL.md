@@ -40,8 +40,56 @@ backend. The Phase 7 backend is complete (7.1 to 7.3, decisions 0043 and
 0044): the voice defence runs as a modular recognition, Claude, synthesis
 pipeline behind swappable seams, and 7.4 (the conversation module) is the
 frontend's. Phase 8 has begun: 8.1's backend read is done (decision 0047, the
-professor's submission review), 8.2 landed early during 5.5, and 8.3 (course
-reporting, decision 0048) is done; 8.4 and 8.5 are unstarted.
+professor's submission review), 8.2 landed early during 5.5, 8.3 (course
+reporting, decision 0048), 8.4 (the understanding unfold and the personal
+history, decision 0049), and 8.5 (observability, decision 0050) are done, so
+the whole Phase 8 backend is complete and only the frontend's journeys five and
+six remain on its gate.
+
+Observability (milestone 8.5, decision 0050) lives in `app/telemetry.py` and
+nowhere else: JSON logs (one object per line, trace and span id attached, extra
+context passed as `extra=`), spans, the W3C carrier, and the four dashboards'
+instruments. Rules that hold. Spans at the Rust boundary are opened on the
+Python side around the PyO3 call (`native_span`), covering the native call and
+nothing around it, and the codec is deliberately uninstrumented because a span
+per compressed blob makes a trace less observable, not more. Every enqueue
+carries `trace_context` and `worker.run_job` resumes it, so a submission's
+lifecycle is one trace; the keyword has a default and an unparseable carrier
+starts a fresh trace, because losing continuity must never lose the work, and
+`run_job` is the single place jobs get instrumented so a new job never has to
+remember. No metric label carries an identifier: API latency is labelled by
+matched route template, never path, and nothing about a seat is a dimension
+anywhere. Logs and spans carry seat and course ids, never a seat code, which is
+a credential. The dashboards are committed data (`infra/dashboards.json`),
+reviewed like code, and a test pins that every panel queries an instrument the
+code actually emits. With no `TIRO_OTEL_ENDPOINT` the SDK still creates spans
+and drops them, so dev and production run identical code paths.
+
+The understanding unfold (milestone 8.4, decision 0049) splits a worked
+solution into steps deterministically in Python (`app/unfold/steps.py`), never
+by a model: a model asked to "break this into steps" would paraphrase or
+renumber, which is the same rewriting the import pipeline forbids. The split
+only cuts (markdown block boundaries and top-level list items; fenced code and
+display math are atomic; a bare heading joins the block it introduces), and the
+fidelity property is mechanical: spans are ordered, non-overlapping, exactly the
+step text, and separated only by whitespace, so a `fig://` token stays inside
+its step at the position the professor put it. The solution is earned, not
+browsed: `GET .../variants/{id}/solution` opens once a seat has submitted for
+that variant or deliberately given up, `POST .../solution/reveal` takes an
+absolute `through_step` (a retry never rewinds), and a first reveal without a
+submission records `gave_up` in `solution_reveals` (migration course/0019),
+because the platform never records a solution as earned by work that did not
+happen. The step numbering is shared with the tutor: the defence context carries
+the reference solution numbered in the same numbering the student unfolds plus a
+line stating how far they have read, so a step sent into the conversation lands
+where the student meant it and the never-reveal rule has a precise line (a step
+already unfolded is theirs to discuss, everything past it is not). That changed
+what ships to the model, so the persona is `defense-tutor/v2`. The personal
+history (`GET .../history`) is seat-only like the mastery picture, newest first;
+a professor reads the class through the 8.3 reporting surfaces, never through a
+student's own view. A variant's stored solution is read back through
+`app/variants/solution.py`, which tolerates both the 5.3 JSON blob and bare
+markdown, and is the one implementation both the unfold and the tutor use.
 
 Course reporting (milestone 8.3, decision 0048) is four professor-and-owner
 reads under `/api/v1/courses/{id}/reports/` (`app/reports/`), lenses over rows
