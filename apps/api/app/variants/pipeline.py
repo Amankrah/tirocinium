@@ -27,6 +27,7 @@ from app.params.figure_check import load_essential_figures
 from app.params.schema import ParamSpec
 from app.prompts import load_prompt
 from app.storage import IMPORTS_BUCKET, ObjectStorage, fetch_bytes
+from app.telemetry import record_variant_verification
 from app.variants.model import (
     DEFAULT_GENERATION_MODEL,
     DEFAULT_VERIFICATION_MODEL,
@@ -222,6 +223,9 @@ async def generate_variant(
             flag_reason = "Neither pass produced final answers to compare."
 
     state = FLAGGED if flag_reason is not None else VERIFIED
+    # Product-health dashboard four: the verification pass rate, counted at
+    # the moment the independent re-solve decides.
+    record_variant_verification(state)
     now = int(time.time())
     usage_rows = [
         ("variant_generation", generation_model, generated.input_tokens, generated.output_tokens)

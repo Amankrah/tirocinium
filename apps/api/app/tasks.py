@@ -4,11 +4,19 @@ the API stays green without a broker. When TIRO_REDIS_URL is set, the lifespan
 builds an arq-backed queue; otherwise a no-op queue keeps dev and the test
 suite running (completing a submission succeeds, processing simply does not
 fire).
+
+Every enqueue carries the caller's W3C trace context as a job keyword
+(milestone 8.5), so the worker's spans continue the request's trace instead of
+starting an orphan one. It is a keyword rather than a positional argument
+because a job enqueued by an older process must still run on a newer worker,
+and vice versa: an absent carrier simply starts a new trace.
 """
 
 from typing import Any, Protocol
 
 from fastapi import Request
+
+from app.telemetry import trace_carrier
 
 PROCESS_SUBMISSION = "process_submission"
 PROCESS_IMPORT = "process_import"
@@ -53,10 +61,14 @@ class ArqTaskQueue:
         self._pool = pool
 
     async def enqueue_process_submission(self, course_id: int, submission_id: int) -> None:
-        await self._pool.enqueue_job(PROCESS_SUBMISSION, course_id, submission_id)
+        await self._pool.enqueue_job(
+            PROCESS_SUBMISSION, course_id, submission_id, trace_context=trace_carrier()
+        )
 
     async def enqueue_process_import(self, course_id: int, import_id: int) -> None:
-        await self._pool.enqueue_job(PROCESS_IMPORT, course_id, import_id)
+        await self._pool.enqueue_job(
+            PROCESS_IMPORT, course_id, import_id, trace_context=trace_carrier()
+        )
 
     async def enqueue_generate_variant(
         self, course_id: int, case_study_id: int, seed: int
@@ -68,6 +80,7 @@ class ArqTaskQueue:
             course_id,
             case_study_id,
             seed,
+            trace_context=trace_carrier(),
             _job_id=f"variant:{course_id}:{case_study_id}:{seed}",
         )
 
@@ -79,6 +92,7 @@ class ArqTaskQueue:
             FILL_VARIANT_POOL,
             course_id,
             case_study_id,
+            trace_context=trace_carrier(),
             _job_id=f"pool:{course_id}:{case_study_id}",
         )
 

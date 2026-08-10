@@ -1,0 +1,105 @@
+{
+  "_comment": [
+    "The four dashboards of backend guide section 8 (milestone 8.5), defined as",
+    "data rather than clicked together in a UI, so they are reviewed like code",
+    "and survive a backend change. Two are infrastructure metrics and two are",
+    "product-health metrics, which is the distinction the guide draws and the",
+    "reason the last two exist at all: they say whether the product is working,",
+    "not whether the servers are.",
+    "",
+    "The instruments are emitted by app/telemetry.py and exported over OTLP when",
+    "TIRO_OTEL_ENDPOINT is set. Panel queries are written in PromQL against an",
+    "OTLP-to-Prometheus collector, the common deployment; a different backend",
+    "keeps the same instruments and rewrites the query strings.",
+    "",
+    "No panel groups by anything identifying. The API panel groups by route",
+    "template, never path, so a course or submission id can never become a",
+    "label, and nothing about a seat is a metric dimension anywhere."
+  ],
+  "dashboards": [
+    {
+      "name": "API latency",
+      "kind": "infrastructure",
+      "budget": "p95 under 150 ms for reads and 400 ms for writes, excluding AI calls (backend guide 2)",
+      "panels": [
+        {
+          "title": "p95 by route",
+          "query": "histogram_quantile(0.95, sum by (route, le) (rate(tirocinium_api_request_duration_milliseconds_bucket[5m])))",
+          "unit": "ms",
+          "threshold": 150
+        },
+        {
+          "title": "p99 overall",
+          "query": "histogram_quantile(0.99, sum by (le) (rate(tirocinium_api_request_duration_milliseconds_bucket[5m])))",
+          "unit": "ms"
+        },
+        {
+          "title": "Error rate by route",
+          "query": "sum by (route) (rate(tirocinium_api_request_duration_milliseconds_count{status_code=~\"5..\"}[5m])) / sum by (route) (rate(tirocinium_api_request_duration_milliseconds_count[5m]))",
+          "unit": "ratio"
+        }
+      ]
+    },
+    {
+      "name": "Queue depth",
+      "kind": "infrastructure",
+      "budget": "depth should drain between deadline peaks; a rising floor means the worker is under-provisioned",
+      "panels": [
+        {
+          "title": "Jobs waiting",
+          "query": "tirocinium_worker_queue_depth",
+          "unit": "jobs"
+        },
+        {
+          "title": "p95 job duration by job",
+          "query": "histogram_quantile(0.95, sum by (job, le) (rate(tirocinium_worker_job_duration_milliseconds_bucket[5m])))",
+          "unit": "ms"
+        },
+        {
+          "title": "Job failure rate",
+          "query": "sum by (job) (rate(tirocinium_worker_job_duration_milliseconds_count{outcome=\"error\"}[15m])) / sum by (job) (rate(tirocinium_worker_job_duration_milliseconds_count[15m]))",
+          "unit": "ratio"
+        }
+      ]
+    },
+    {
+      "name": "Recognition confidence",
+      "kind": "product-health",
+      "budget": "the low tail is the signal: a growing share under 0.5 means the reader is struggling with real handwriting",
+      "panels": [
+        {
+          "title": "Confidence distribution",
+          "query": "sum by (le) (rate(tirocinium_recognition_confidence_bucket[1h]))",
+          "unit": "pages"
+        },
+        {
+          "title": "Median confidence",
+          "query": "histogram_quantile(0.5, sum by (le) (rate(tirocinium_recognition_confidence_bucket[1h])))",
+          "unit": "confidence"
+        },
+        {
+          "title": "Share of pages below 0.5",
+          "query": "sum(rate(tirocinium_recognition_confidence_bucket{le=\"0.5\"}[1h])) / sum(rate(tirocinium_recognition_confidence_count[1h]))",
+          "unit": "ratio"
+        }
+      ]
+    },
+    {
+      "name": "Variant verification pass rate",
+      "kind": "product-health",
+      "budget": "a falling pass rate means generation or the prompts have drifted; flagged variants are never served, so this is a cost and authoring-burden signal, not a correctness one",
+      "panels": [
+        {
+          "title": "Pass rate",
+          "query": "sum(rate(tirocinium_variant_verification_total{result=\"verified\"}[6h])) / sum(rate(tirocinium_variant_verification_total[6h]))",
+          "unit": "ratio"
+        },
+        {
+          "title": "Outcomes per hour",
+          "query": "sum by (result) (rate(tirocinium_variant_verification_total[1h]))",
+          "unit": "variants/s"
+        }
+      ]
+    }
+  ]
+}

@@ -56,8 +56,13 @@ async def test_context_carries_the_three_sources_and_figures_as_pixels(
     assert context.figures == [FIGURE_BYTES]
     assert "PNG" not in context.system
     assert FIGURE_KEY not in context.system
+    # The reference solution is numbered in the unfold's numbering (8.4), and
+    # a seat that has unfolded nothing is stated as such, so the tutor knows
+    # exactly which steps it must not volunteer.
+    assert "[step 1]" in context.system
+    assert "unfolded none of the 1 steps" in context.system
     # Provenance: the versioned prompt id, stored with the session.
-    assert context.prompt_version.startswith("defense-tutor/v1")
+    assert context.prompt_version.startswith("defense-tutor/v2")
 
 
 async def test_the_prompt_carries_no_student_identity(tmp_path: Path) -> None:

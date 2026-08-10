@@ -22,6 +22,7 @@ from platform_core import embedding
 from app.compression import compress_bytes, decompress_text
 from app.db.shards import ShardManager
 from app.retrieval.model import DEFAULT_EMBEDDING_MODEL, Embedder
+from app.telemetry import native_span
 
 # The single ref/kind these indices use in 3.4. FTS5's `kind` column and the
 # embeddings table's `ref_kind` share the vocabulary so a hit in either points
@@ -48,7 +49,8 @@ async def index_submission(
         return False
 
     vector = await embedder.embed(text, model_id=model_id)
-    codes, scale = embedding.quantize(vector)
+    with native_span("embedding", "quantize", **{"vector.dimensions": len(vector)}):
+        codes, scale = embedding.quantize(vector)
     vec_f32_z = compress_bytes(struct.pack(f"<{len(vector)}f", *vector))
 
     await writer.run(

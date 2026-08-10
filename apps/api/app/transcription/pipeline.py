@@ -38,6 +38,7 @@ from app.imports.decoder import PdfDecoder
 from app.limits import MAX_PAGE_BYTES, MAX_PAGES
 from app.prompts import Prompt, load_prompt
 from app.storage import SCANS_BUCKET, ObjectStorage, fetch_bytes
+from app.telemetry import native_span, record_recognition_confidence
 from app.transcription.model import DEFAULT_VISION_MODEL, PageTranscription, VisionTranscriber
 
 # Status vocabulary the pipeline drives submissions through (submissions.status
@@ -115,7 +116,14 @@ async def run_submission_pipeline(
             content_hash = hashlib.sha256(data).hexdigest()
 
             try:
-                gray, binarized, metrics_json = await asyncio.to_thread(run_preprocess, data)
+                # The Python-to-Rust boundary, made visible (milestone 8.5):
+                # the span covers the native call and nothing around it.
+                with native_span(
+                    "preprocess", "preprocess", **{"page.bytes": len(data)}
+                ):
+                    gray, binarized, metrics_json = await asyncio.to_thread(
+                        run_preprocess, data
+                    )
             except PageRejected as rejected:
                 reason, message = _unpack_rejection(rejected)
                 await writer.run(_mark_rejected(submission_id, page_index, reason))
@@ -160,6 +168,9 @@ async def run_submission_pipeline(
             )
             page_markdowns.append(markdown)
             confidences.append(confidence)
+            # Product-health dashboard three: how well the reader is reading
+            # real handwriting, recorded as it happens.
+            record_recognition_confidence(confidence)
             await bus.publish(
                 channel,
                 {"type": "page", "page_index": page_index, "confidence": confidence},

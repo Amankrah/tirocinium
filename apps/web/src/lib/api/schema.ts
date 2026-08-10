@@ -346,6 +346,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/courses/{course_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Personal History
+         * @description The seat's own record of work, newest first: what they attempted, how it
+         *     was read, what it was graded, whether they defended it, and whether they
+         *     unfolded the solution. Seat-only, like the mastery picture: a professor
+         *     reads the class through the reporting surfaces, never a student's history
+         *     dressed up as their own view.
+         */
+        get: operations["personal_history_api_v1_courses__course_id__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses/{course_id}/import-items/{item_id}/confirm": {
         parameters: {
             query?: never;
@@ -878,6 +902,52 @@ export interface paths {
          *     variant promotes; anything else is already disposed.
          */
         post: operations["promote_variant_api_v1_courses__course_id__variants__variant_id__promote_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/variants/{variant_id}/solution": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Solution
+         * @description The unfold as it currently stands. A professor who owns the course sees
+         *     the whole solution, because they wrote it; a seat sees what they have
+         *     unfolded, and gets an honest 403 before they have earned any of it.
+         */
+        get: operations["read_solution_api_v1_courses__course_id__variants__variant_id__solution_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/variants/{variant_id}/solution/reveal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reveal Solution Steps
+         * @description Unfold through a step. For a student who has not submitted, the first
+         *     call is the act of giving up on this variant and is recorded as such: the
+         *     platform never pretends a solution was earned when it was asked for. The
+         *     target is absolute, so a retry or an out-of-order call never rewinds what
+         *     is already read and never double-counts.
+         */
+        post: operations["reveal_solution_steps_api_v1_courses__course_id__variants__variant_id__solution_reveal_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1458,6 +1528,38 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** HistoryEntry */
+        HistoryEntry: {
+            /** Case Study Id */
+            case_study_id: number;
+            /** Case Study Title */
+            case_study_title: string;
+            /** Concept To Revisit */
+            concept_to_revisit: number | null;
+            /** Defended */
+            defended: boolean;
+            /** Grade */
+            grade: number | null;
+            /** Recognition Conf */
+            recognition_conf: number | null;
+            /** Solution Unfolded */
+            solution_unfolded: boolean;
+            /** Status */
+            status: string;
+            /** Submission Id */
+            submission_id: number;
+            /** Submitted At */
+            submitted_at: number;
+            /** Variant Id */
+            variant_id: number;
+        };
+        /** HistoryOut */
+        HistoryOut: {
+            /** Entries */
+            entries: components["schemas"]["HistoryEntry"][];
+            /** Next Cursor */
+            next_cursor: number | null;
+        };
         /**
          * Identity
          * @description Who is calling, as resolved by the dependency layer. Professors and
@@ -1891,6 +1993,15 @@ export interface components {
             seat_number: string;
         };
         /**
+         * RevealIn
+         * @description Unfold through this step number, 1-based. Setting a target rather than
+         *     incrementing makes a retry harmless.
+         */
+        RevealIn: {
+            /** Through Step */
+            through_step: number;
+        };
+        /**
          * ReviewPageOut
          * @description One page as the professor reads it: the scan itself, the cleaned
          *     rendition the model read, and that page's reading with its regions.
@@ -2063,6 +2174,13 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** SolutionStep */
+        SolutionStep: {
+            /** Markdown */
+            markdown: string;
+            /** Number */
+            number: number;
+        };
         /** SpeechUsageRow */
         SpeechUsageRow: {
             /** Amount */
@@ -2214,6 +2332,24 @@ export interface components {
             status: string;
             /** Submission Id */
             submission_id: number;
+        };
+        /**
+         * UnfoldOut
+         * @description The solution as far as the student has unfolded it. `total_steps` is
+         *     always honest so the interface can show how much is left; the text of an
+         *     unrevealed step is simply not here.
+         */
+        UnfoldOut: {
+            /** Gave Up */
+            gave_up: boolean;
+            /** Steps */
+            steps: components["schemas"]["SolutionStep"][];
+            /** Steps Revealed */
+            steps_revealed: number;
+            /** Total Steps */
+            total_steps: number;
+            /** Variant Id */
+            variant_id: number;
         };
         /** UploadTarget */
         UploadTarget: {
@@ -3753,6 +3889,67 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FigureImageOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    personal_history_api_v1_courses__course_id__history_get: {
+        parameters: {
+            query?: {
+                cursor?: number | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoryOut"];
                 };
             };
             /** @description Unauthorized */
@@ -5409,6 +5606,128 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_solution_api_v1_courses__course_id__variants__variant_id__solution_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                variant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnfoldOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reveal_solution_steps_api_v1_courses__course_id__variants__variant_id__solution_reveal_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                variant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevealIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnfoldOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

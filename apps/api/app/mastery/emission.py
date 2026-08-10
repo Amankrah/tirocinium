@@ -35,6 +35,7 @@ from app.mastery.model import (
 from app.params.figure_check import load_essential_figures
 from app.prompts import load_prompt
 from app.storage import IMPORTS_BUCKET, ObjectStorage, fetch_bytes
+from app.telemetry import native_span
 from mastery_store import MasteryStore
 
 # The comparer's tolerances for reading a student's final answer: the same
@@ -127,9 +128,12 @@ async def emit_submission_evidence(
     match_score: float | None = None
     match_confidence = 0.0
     if final_answers:
-        verdict = _compare.answers_in_text(
-            final_answers, transcription, REL_TOL, ABS_TOL
-        )
+        with native_span(
+            "compare", "answers_in_text", **{"answers.count": len(final_answers)}
+        ):
+            verdict = _compare.answers_in_text(
+                final_answers, transcription, REL_TOL, ABS_TOL
+            )
         if verdict == "match":
             match_score = 1.0
         elif verdict == "mismatch":

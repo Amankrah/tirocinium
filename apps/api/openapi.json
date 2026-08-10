@@ -974,6 +974,118 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "HistoryEntry": {
+        "properties": {
+          "case_study_id": {
+            "title": "Case Study Id",
+            "type": "integer"
+          },
+          "case_study_title": {
+            "title": "Case Study Title",
+            "type": "string"
+          },
+          "concept_to_revisit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concept To Revisit"
+          },
+          "defended": {
+            "title": "Defended",
+            "type": "boolean"
+          },
+          "grade": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade"
+          },
+          "recognition_conf": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recognition Conf"
+          },
+          "solution_unfolded": {
+            "title": "Solution Unfolded",
+            "type": "boolean"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "submission_id": {
+            "title": "Submission Id",
+            "type": "integer"
+          },
+          "submitted_at": {
+            "title": "Submitted At",
+            "type": "integer"
+          },
+          "variant_id": {
+            "title": "Variant Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "submission_id",
+          "variant_id",
+          "case_study_id",
+          "case_study_title",
+          "status",
+          "submitted_at",
+          "recognition_conf",
+          "grade",
+          "defended",
+          "concept_to_revisit",
+          "solution_unfolded"
+        ],
+        "title": "HistoryEntry",
+        "type": "object"
+      },
+      "HistoryOut": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryEntry"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "entries",
+          "next_cursor"
+        ],
+        "title": "HistoryOut",
+        "type": "object"
+      },
       "Identity": {
         "description": "Who is calling, as resolved by the dependency layer. Professors and\nadmins carry user_id and email; seat identities carry course and seat\ncontext instead and never anything about a person.",
         "properties": {
@@ -2174,6 +2286,22 @@
         "title": "ReissueOut",
         "type": "object"
       },
+      "RevealIn": {
+        "description": "Unfold through this step number, 1-based. Setting a target rather than\nincrementing makes a retry harmless.",
+        "properties": {
+          "through_step": {
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Through Step",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "through_step"
+        ],
+        "title": "RevealIn",
+        "type": "object"
+      },
       "ReviewPageOut": {
         "description": "One page as the professor reads it: the scan itself, the cleaned\nrendition the model read, and that page's reading with its regions.",
         "properties": {
@@ -2685,6 +2813,24 @@
         "title": "SignupIn",
         "type": "object"
       },
+      "SolutionStep": {
+        "properties": {
+          "markdown": {
+            "title": "Markdown",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "number",
+          "markdown"
+        ],
+        "title": "SolutionStep",
+        "type": "object"
+      },
       "SpeechUsageRow": {
         "properties": {
           "amount": {
@@ -3156,6 +3302,43 @@
           "pages"
         ],
         "title": "TranscriptionOut",
+        "type": "object"
+      },
+      "UnfoldOut": {
+        "description": "The solution as far as the student has unfolded it. `total_steps` is\nalways honest so the interface can show how much is left; the text of an\nunrevealed step is simply not here.",
+        "properties": {
+          "gave_up": {
+            "title": "Gave Up",
+            "type": "boolean"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/SolutionStep"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "steps_revealed": {
+            "title": "Steps Revealed",
+            "type": "integer"
+          },
+          "total_steps": {
+            "title": "Total Steps",
+            "type": "integer"
+          },
+          "variant_id": {
+            "title": "Variant Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "variant_id",
+          "total_steps",
+          "steps_revealed",
+          "gave_up",
+          "steps"
+        ],
+        "title": "UnfoldOut",
         "type": "object"
       },
       "UploadTarget": {
@@ -5755,6 +5938,110 @@
         ]
       }
     },
+    "/api/v1/courses/{course_id}/history": {
+      "get": {
+        "description": "The seat's own record of work, newest first: what they attempted, how it\nwas read, what it was graded, whether they defended it, and whether they\nunfolded the solution. Seat-only, like the mastery picture: a professor\nreads the class through the reporting surfaces, never a student's history\ndressed up as their own view.",
+        "operationId": "personal_history_api_v1_courses__course_id__history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Personal History",
+        "tags": [
+          "unfold"
+        ]
+      }
+    },
     "/api/v1/courses/{course_id}/import-items/{item_id}/confirm": {
       "post": {
         "description": "Confirm a staged item into a draft case study (guide Stage 3). The\nconfirmed question (the professor's edit, or the extraction as-is) becomes\nthe case study body with its fig:// tokens intact; the item is marked\nconfirmed and linked, keeping its figures alive through the purge. Two\naccuracy metrics are logged (4.5): the edit distance from the extraction, and\nthe figure interventions the surface reports. Nothing copies automatically.\nIdempotent: re-confirming returns the same draft and its logged distance.",
@@ -8222,6 +8509,190 @@
         "summary": "Promote Variant",
         "tags": [
           "variants"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/variants/{variant_id}/solution": {
+      "get": {
+        "description": "The unfold as it currently stands. A professor who owns the course sees\nthe whole solution, because they wrote it; a seat sees what they have\nunfolded, and gets an honest 403 before they have earned any of it.",
+        "operationId": "read_solution_api_v1_courses__course_id__variants__variant_id__solution_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "variant_id",
+            "required": true,
+            "schema": {
+              "title": "Variant Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnfoldOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Solution",
+        "tags": [
+          "unfold"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/variants/{variant_id}/solution/reveal": {
+      "post": {
+        "description": "Unfold through a step. For a student who has not submitted, the first\ncall is the act of giving up on this variant and is recorded as such: the\nplatform never pretends a solution was earned when it was asked for. The\ntarget is absolute, so a retry or an out-of-order call never rewinds what\nis already read and never double-counts.",
+        "operationId": "reveal_solution_steps_api_v1_courses__course_id__variants__variant_id__solution_reveal_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "variant_id",
+            "required": true,
+            "schema": {
+              "title": "Variant Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevealIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnfoldOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Reveal Solution Steps",
+        "tags": [
+          "unfold"
         ]
       }
     },

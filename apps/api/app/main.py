@@ -9,13 +9,14 @@ the lifespan, so contract generation stays database-free.
 
 import os
 import secrets
+import time
 import warnings
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, Request, Response
 from pydantic import BaseModel
 
 from app.auth import router as auth_router
@@ -36,6 +37,8 @@ from app.seats.ratelimit import RateLimiter
 from app.submissions import review_router as submission_review_router
 from app.submissions import router as submissions_router
 from app.tasks import ArqTaskQueue, NullTaskQueue
+from app.telemetry import configure_observability, record_api_latency, span
+from app.unfold import router as unfold_router
 from app.variants import router as variants_router
 
 API_TITLE = "Tirocinium API"
@@ -54,6 +57,37 @@ router = APIRouter(prefix="/api/v1")
 @router.get("/health", response_model=HealthOut, tags=["meta"])
 def health() -> HealthOut:
     return HealthOut(status="ok")
+
+
+def install_request_telemetry(app: FastAPI) -> None:
+    """One span and one latency measurement per request (milestone 8.5). The
+    span is the root of everything the request does, including the native work
+    below it, and it is what an enqueued job's trace context continues from.
+
+    Metric labels use the matched route template, never the concrete path, so
+    a course id or a submission id can never become label cardinality, and no
+    identifier reaches the metrics backend at all."""
+
+    @app.middleware("http")
+    async def telemetry_middleware(request: Request, call_next: Any) -> Response:
+        started = time.perf_counter()
+        with span(
+            f"{request.method} {request.url.path}",
+            **{"http.request.method": request.method, "url.path": request.url.path},
+        ) as current:
+            response: Response = await call_next(request)
+            current.set_attribute("http.response.status_code", response.status_code)
+        # The route is only known after matching, and an unmatched request is
+        # labelled as such rather than by its path.
+        route = request.scope.get("route")
+        template = getattr(route, "path", "unmatched")
+        record_api_latency(
+            str(template),
+            request.method,
+            response.status_code,
+            (time.perf_counter() - started) * 1000,
+        )
+        return response
 
 
 def create_app(
@@ -106,7 +140,9 @@ def create_app(
     app = FastAPI(title=API_TITLE, version=API_VERSION, lifespan=lifespan)
     app.state.jwt_secret = resolved_secret
     app.state.rate_limiter = RateLimiter()
+    configure_observability()
     install_problem_details(app)
+    install_request_telemetry(app)
     app.include_router(router)
     app.include_router(auth_router)
     app.include_router(courses_router)
@@ -121,5 +157,6 @@ def create_app(
     app.include_router(variants_router)
     app.include_router(mastery_router)
     app.include_router(reports_router)
+    app.include_router(unfold_router)
     app.include_router(defense_router)
     return app
