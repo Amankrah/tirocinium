@@ -6,8 +6,9 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at Phase 7 (decisions 0043, 0044:
-the voice defence; the backend of Phases 5, 6, 6.5, and 7 is complete):
+passes; green never goes red. Last updated at Phase 8 (decisions 0046, 0047:
+the PDF gate preconditions and the submission review read; the backend of
+Phases 5, 6, 6.5, and 7 is complete and 8.1 is done):
 Phase 0 and Phase 1 complete, Phase 2 backend (2.1) done, Phase 3 backend
 complete (3.1 the submission upload path done; 3.2 scan preprocessing
 implemented, its golden gate awaiting the 30-photo corpus; 3.3 handwriting
@@ -101,11 +102,13 @@ imports, lint, and both suites; see `infra/README.md` for flags):
 
     ./infra/setup.sh
 
-Rust workspace, 73 tests (mastery 15: 6 property, 9 scenario; codec 8;
+Rust workspace, 74 tests (mastery 15: 6 property, 9 scenario; codec 8;
 preprocess 8: 7 synthetic-image pipeline tests, 1 golden-corpus harness that is
-a no-op until the corpus lands; embedding 10: 7 scenario, 3 property; pdf 10:
-3 decode and 6 figure tests (5 skip when the pdfium binary is absent; the crop
-test is pure image and always runs), 1 no-op golden-corpus harness; compare 22:
+a no-op until the corpus lands; embedding 10: 7 scenario, 3 property; pdf 11:
+3 decode and 6 figure tests (5 need pdfium and its LFS-tracked fixture and skip
+naming whichever is absent, decision 0046; the crop test is pure image and
+always runs), 1 testkit test pinning the LFS-pointer detector, 1 no-op
+golden-corpus harness; compare 22:
 17 scenario (number-format reading, tolerance, structural mismatches, stable
 strings, and answers_in_text's containment: found, wrong, contiguous-run,
 nothing-comparable), 5 property (self-match, symmetry, tolerance monotonicity,
@@ -132,8 +135,15 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 328 tests (25 data layer, 16 case studies/concepts/courses,
-15 seats, 12 auth, 16 submissions (incl. 4 transcription-read), 12
+Python suite, 361 tests (25 data layer, 16 case studies/concepts/courses,
+16 reports (8.3, see the gate table),
+15 seats, 12 auth, 16 submissions (incl. 4 transcription-read),
+12 submission review (8.1: the list with seat numbers, cursor pagination, the
+status and variant filters, the empty course; the detail with regions and both
+renditions, the unprocessed status, the unknown 404; the page-rendition refresh
+and its 404; the grade reading back; the professor-and-owner surface; the
+course-in-the-path scope; and the no-PII assertion), 5 lfs (the LFS-pointer
+detector, decision 0046), 12
 transcription (5 pipeline; 7 mode B: PDF expansion and re-sequencing, the
 mixed photo+PDF order, the over-limit rejection copy, retry neither
 re-decodes nor re-reads, no-decoder failure, the photo/PDF parity gate, and
@@ -159,7 +169,7 @@ empty-budget pool-invariant gate), 63 imports
 figures+pages), 5 figure resolve (owner any, seat published-only, 404 hides
 existence), 13 item verbs (merge + discard), 1 edit-distance, 5 figure
 storage/placement, 4 segmentation, 1 purge, 3 pdfium decoder/extractor that skip
-when the binary is absent), 7 backup,
+when the binary or the LFS fixture is absent), 7 backup,
 20 mastery (7 emission incl. the transactionality gate, 1 end-to-end
 seven-day trajectory gate, 9 surface: seat picture with trails and
 seat-only auth, revisit targeting per spec section 5, distribution counts
@@ -654,6 +664,56 @@ Phase 7, backend complete (decisions 0043, 0044):
   (`speech_down`, `audio_down`), keeps the reply whose audio died as captions and
   as a turn, and hands the tutor the whole conversation across the mode switch.
 
+Phase 8, in progress:
+
+- 8.1 (backend, done): the professor's submission review read (decision 0047).
+  Grading landed with 6.2, so this is the read half: `GET
+  /courses/{id}/submissions` (the review queue, cursor-paginated, filterable by
+  `status` and `variant_id`, carrying seat number, case study, mean recognition
+  confidence, and the grade already given), `GET .../submissions/{id}` (the scan
+  beside the transcription: per page a presigned scan URL, the grayscale
+  rendition the model read, the reading with region boxes and per-region
+  confidence), and `GET .../submissions/{id}/pages/{n}` (fresh presigned URLs
+  for one page, because presigned links outlive nothing and a review session
+  outlives them). Professor-and-owner throughout, a separate course-scoped
+  router in `app/submissions/review.py` so the seat endpoints keep no role
+  branch. No migration: `submissions.grade`/`graded_at` (0017) and the page
+  renditions (0005, 0008) already held everything. Seat numbers resolve from the
+  directory in Python, never a cross-shard SQL join. The 12 tests in
+  `app/submissions/test_review.py` cover the list (seat numbers, status and
+  confidence, cursor pagination, the status and variant filters, the empty
+  course), the detail (scan beside transcription with regions and both
+  renditions, an unprocessed submission reporting its status rather than 404, an
+  unknown id 404), the page-rendition refresh (and its 404), the grade reading
+  back on list and detail, the authorization surface (401, non-owner 403, a seat
+  refused on all three routes), the course-in-the-path scope (a colliding id
+  from a busy course does not resolve against an empty sibling), and the no-PII
+  assertion extended to this surface (no professor email, no seat token, the
+  seat number the only identifier).
+- 8.2 (done ahead of its slot): the flagged-variant queue, built on the 5.3
+  contract during 5.5.
+- 8.3 (done): course reporting and the two product-health dashboards
+  (decision 0048). Four professor-and-owner reads under
+  `/courses/{id}/reports/`, no new table and no migration: `/activity` (every
+  seat by number with submissions, graded, defences, last submitted; ordered by
+  seat number, never by volume, since a report sorted by who did most is the
+  ranking lens spec section 6 rules out), `/usage` (token and speech spend by
+  kind and model, `?since=`), `/health` (recognition confidence in ten buckets
+  with mean and rejected count, plus the verification pass rate), and
+  `/rubric-agreement` (the spec section 10 calibration loop). The 16 tests in
+  `app/reports/test_reports.py` cover the activity rows and totals including a
+  silent seat at zero, usage aggregation and the window, the unpriced and priced
+  paths, the confidence buckets and an empty distribution, the pass rate and its
+  null without generated variants, the agreement means and signed bias, the
+  both-halves requirement, the single-pair null correlation, and Pearson on a
+  perfectly correlated series, plus the auth surface and the no-PII assertion.
+  Prices are configuration, never code: with no `TIRO_MODEL_PRICES` /
+  `TIRO_SPEECH_PRICES` the reports carry real usage, null costs, and
+  `priced: false`. Every statistic is null rather than fabricated when its
+  denominator is empty, so a test that expects 0.0 from an empty course is
+  testing the wrong thing.
+- 8.4 and 8.5 are unstarted.
+
 Recorded working-assessment responses live at
 `apps/api/tests/recorded/working-assessment/`, one JSON per document sha256
 (`WorkingAssessment` shape: per-concept rubric 0..3 plus one stated
@@ -676,6 +736,19 @@ Property tests belong in Rust next to the arithmetic they pin down.
 Corpora are project assets in Git LFS (`.gitattributes` already routes pdf,
 png, jpg, jpeg, heic, webp there; run `git lfs install` before adding the
 first one).
+
+An LFS-tracked fixture is a short text pointer until `git lfs pull` has run, so
+every fixture-backed test checks for that and skips naming it, exactly as it
+skips when the pdfium binary is unprovisioned (decision 0046):
+`platform_core::pdf::testkit::ready` on the Rust side, `app.lfs.any_unfetched`
+plus `SKIP_REASON` on the Python side. Without both preconditions those tests
+assert nothing, which is why CI checks out with `lfs: true` and runs
+`infra/provision-pdfium.sh` in the `rust`, `api`, and `setup-script` jobs;
+`infra/setup.sh` does the same locally and warns when git-lfs is missing. If
+you see `PdfiumLibraryInternalError(FormatError)`, that is an unfetched pointer
+reaching pdfium, not a decode regression: install git-lfs and pull. On a host
+without git-lfs those tests skip, so read a green local run as "not verified
+here", and check the CI run before calling a PDF gate green.
 
 The 30-photo handwriting corpus lives at
 `crates/platform_core/preprocess/corpus/` (photos under `images/`, golden

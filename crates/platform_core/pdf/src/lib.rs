@@ -13,6 +13,11 @@
 mod figures;
 #[cfg(feature = "python")]
 pub mod python;
+// Test support, shared by the unit tests and the integration-test corpus
+// harness. Public only because an integration test links against the public
+// API; it is not part of the crate's contract.
+#[doc(hidden)]
+pub mod testkit;
 
 pub use figures::{
     crop_figures, extract_figures, CroppedRegion, ExtractedFigure, FigureSource, PageFigures,
@@ -148,39 +153,17 @@ pub(crate) fn encode_png(image: &image::DynamicImage) -> Result<Vec<u8>, String>
 
 #[cfg(test)]
 mod tests {
-    use std::path::Path;
-
     use super::*;
+    use crate::testkit;
 
     const PNG_MAGIC: &[u8] = b"\x89PNG\r\n\x1a\n";
 
-    /// The vendored pdfium binary for the current platform, if provisioned
-    /// (infra/setup.sh, or `TIRO_PDFIUM_LIB`). Decode tests that need the native
-    /// library return early when it is absent, so `cargo test` stays green on a
-    /// bare checkout while the assertion still runs wherever it is provisioned.
-    fn lib_path() -> Option<String> {
-        if let Ok(path) = std::env::var("TIRO_PDFIUM_LIB") {
-            if Path::new(&path).exists() {
-                return Some(path);
-            }
-        }
-        let vendor = concat!(env!("CARGO_MANIFEST_DIR"), "/vendor");
-        [
-            format!("{vendor}/bin/pdfium.dll"),
-            format!("{vendor}/lib/libpdfium.so"),
-            format!("{vendor}/lib/libpdfium.dylib"),
-        ]
-        .into_iter()
-        .find(|candidate| Path::new(candidate).exists())
-    }
-
     #[test]
     fn born_digital_page_extracts_text_and_renders() {
-        let Some(lib) = lib_path() else {
-            eprintln!("pdfium not provisioned; skipping (see pdf/corpus/README.md)");
+        let pdf = include_bytes!("../tests/fixtures/born_digital.pdf");
+        let Some(lib) = testkit::ready(&[pdf]) else {
             return;
         };
-        let pdf = include_bytes!("../tests/fixtures/born_digital.pdf");
         let pages = decode(&lib, pdf, 1000).expect("decode");
         assert_eq!(pages.len(), 1);
         let page = &pages[0];
@@ -198,11 +181,10 @@ mod tests {
 
     #[test]
     fn a_page_without_a_text_layer_is_scanned() {
-        let Some(lib) = lib_path() else {
-            eprintln!("pdfium not provisioned; skipping");
+        let pdf = include_bytes!("../tests/fixtures/no_text_layer.pdf");
+        let Some(lib) = testkit::ready(&[pdf]) else {
             return;
         };
-        let pdf = include_bytes!("../tests/fixtures/no_text_layer.pdf");
         let pages = decode(&lib, pdf, 1000).expect("decode");
         assert_eq!(pages.len(), 1);
         assert_eq!(pages[0].kind, PageKind::Scanned);

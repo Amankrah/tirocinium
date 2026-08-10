@@ -21,7 +21,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 API="$ROOT/apps/api"
 CRATES="$ROOT/crates/platform_core"
 LITESTREAM_VERSION="v0.3.13"
-PDFIUM_VERSION="chromium/7961"  # pinned pdfium binary (decision 0024)
+# The pdfium pin lives in infra/provision-pdfium.sh, which this script calls.
 
 say()  { printf '\n\033[1m== %s\033[0m\n' "$*"; }
 warn() { printf '\033[33mwarning: %s\033[0m\n' "$*"; }
@@ -101,38 +101,25 @@ else
 fi
 
 # ---------------------------------------------------------------- pdfium
-say "pdfium ($PDFIUM_VERSION, native binary in crates/platform_core/pdf/vendor)"
-PDF_VENDOR="$CRATES/pdf/vendor"
-mkdir -p "$PDF_VENDOR"
-if [ -f "$PDF_VENDOR/bin/pdfium.dll" ] || [ -f "$PDF_VENDOR/lib/libpdfium.so" ] \
-   || [ -f "$PDF_VENDOR/lib/libpdfium.dylib" ]; then
-  echo "already present"
-else
-  case "$(uname -s)-$(uname -m)" in
-    MINGW*-*|MSYS*-*|CYGWIN*-*) PDF_ASSET="pdfium-win-x64.tgz" ;;
-    Linux-x86_64)               PDF_ASSET="pdfium-linux-x64.tgz" ;;
-    Linux-aarch64)              PDF_ASSET="pdfium-linux-arm64.tgz" ;;
-    Darwin-x86_64)              PDF_ASSET="pdfium-mac-x64.tgz" ;;
-    Darwin-arm64)               PDF_ASSET="pdfium-mac-arm64.tgz" ;;
-    *)                          PDF_ASSET="" ;;
-  esac
-  if [ -n "$PDF_ASSET" ] && command -v curl >/dev/null 2>&1; then
-    # The release tag carries a slash, so URL-encode it.
-    PDF_TAG="${PDFIUM_VERSION/\//%2F}"
-    PDF_URL="https://github.com/bblanchon/pdfium-binaries/releases/download/$PDF_TAG/$PDF_ASSET"
-    if curl -fsSL "$PDF_URL" -o "$PDF_VENDOR/$PDF_ASSET"; then
-      # The archive carries bin/ (Windows) or lib/ (Linux, macOS); extract both
-      # so the crate and Python resolver find whichever this platform produced.
-      tar -xzf "$PDF_VENDOR/$PDF_ASSET" -C "$PDF_VENDOR" bin lib 2>/dev/null || \
-        tar -xzf "$PDF_VENDOR/$PDF_ASSET" -C "$PDF_VENDOR"
-      rm -f "$PDF_VENDOR/$PDF_ASSET"
-      echo "pdfium provisioned"
-    else
-      warn "pdfium download failed; PDF import (Phase 4) decode cannot run without it"
-    fi
+# The pin and the platform mapping live in provision-pdfium.sh, so CI can
+# provision pdfium without running the whole bootstrap.
+say "pdfium (native binary in crates/platform_core/pdf/vendor)"
+"$ROOT/infra/provision-pdfium.sh"
+
+# ---------------------------------------------------------------- Git LFS
+# The golden corpora and fixture PDFs are LFS-tracked project assets. Without
+# them the fixture-backed tests skip with a stated reason rather than fail, so
+# a missing git-lfs is a warning here, not an error.
+say "Git LFS assets"
+if command -v git-lfs >/dev/null 2>&1; then
+  git -C "$ROOT" lfs install --local >/dev/null 2>&1 || true
+  if git -C "$ROOT" lfs pull 2>/dev/null; then
+    echo "LFS assets fetched"
   else
-    warn "no pdfium build mapped for this host ($(uname -s)-$(uname -m)); set TIRO_PDFIUM_LIB"
+    warn "git lfs pull failed; fixture-backed PDF tests will skip"
   fi
+else
+  warn "git-lfs not installed; fixture-backed PDF tests will skip (see .gitattributes)"
 fi
 
 # ---------------------------------------------------------------- Node / web

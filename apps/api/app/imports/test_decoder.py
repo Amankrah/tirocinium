@@ -1,23 +1,31 @@
 """Milestone 4.1 follow-up: the real PdfiumDecoder wiring (decision 0024).
 Exercises the seam end to end (platform_core.pdf -> DecodedPage models) against
 a committed fixture PDF. pdfium is deterministic CPU work, not a model, so this
-is a direct call, not a recorded response. Skipped when the native binary is not
-provisioned (a bare checkout without infra/setup.sh), so the gate stays green;
-CI and the dev host provision it and run the assertion."""
+is a direct call, not a recorded response. Skipped when either precondition is
+absent (the native binary unprovisioned on a bare checkout without
+infra/setup.sh, or the LFS-tracked fixture unfetched), so the gate stays green;
+CI provisions both and runs the assertion."""
 
 from pathlib import Path
 
 import pytest
 
 from app.imports.decoder import PdfiumDecoder, pdfium_lib_path
+from app.lfs import SKIP_REASON, any_unfetched
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 FIXTURES = REPO_ROOT / "crates" / "platform_core" / "pdf" / "tests" / "fixtures"
 
-pytestmark = pytest.mark.skipif(
-    not Path(pdfium_lib_path()).exists(),
-    reason="pdfium binary not provisioned (run infra/setup.sh, or set TIRO_PDFIUM_LIB)",
-)
+pytestmark = [
+    pytest.mark.skipif(
+        not Path(pdfium_lib_path()).exists(),
+        reason="pdfium binary not provisioned (run infra/setup.sh, or set TIRO_PDFIUM_LIB)",
+    ),
+    pytest.mark.skipif(
+        any_unfetched(FIXTURES / "born_digital.pdf", FIXTURES / "no_text_layer.pdf"),
+        reason=SKIP_REASON,
+    ),
+]
 
 
 def test_pdfium_decoder_reads_a_born_digital_page() -> None:

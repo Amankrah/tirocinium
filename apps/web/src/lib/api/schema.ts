@@ -595,6 +595,94 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/courses/{course_id}/reports/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Activity Report
+         * @description Activity by seat number. Every seat appears, ordered by number: the
+         *     order is the roster's, not a leaderboard's.
+         */
+        get: operations["activity_report_api_v1_courses__course_id__reports_activity_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/reports/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Health Report
+         * @description The two product-health metrics. These are product metrics, not
+         *     infrastructure ones: they say whether the pipeline is serving this
+         *     course's material well.
+         */
+        get: operations["health_report_api_v1_courses__course_id__reports_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/reports/rubric-agreement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Rubric Agreement Report
+         * @description Defence rubric against professor grade, over the submissions that carry
+         *     both. A positive signed difference means the tutor read the work more
+         *     generously than the professor did, which is the drift the anchored prompt
+         *     is written to resist and this report exists to watch.
+         */
+        get: operations["rubric_agreement_report_api_v1_courses__course_id__reports_rubric_agreement_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/reports/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Usage Report
+         * @description Token and speech usage per course, optionally since a Unix timestamp,
+         *     grouped by caller and model. Speech is reported in its own units because
+         *     it is billed in them, and it dominates the cost of a defence.
+         */
+        get: operations["usage_report_api_v1_courses__course_id__reports_usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses/{course_id}/revisit": {
         parameters: {
             query?: never;
@@ -658,6 +746,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/courses/{course_id}/submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Submissions
+         * @description The course's submissions as a review queue, oldest first, filterable by
+         *     status and by variant. Pending and processing work stays in the list: what
+         *     is worth opening is the professor's call, not ours.
+         */
+        get: operations["list_submissions_api_v1_courses__course_id__submissions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/submissions/{submission_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Review Submission
+         * @description The scan beside the transcription (Stage 5). Every page carries its
+         *     presigned scan URL and its reading with region boxes and per-region
+         *     confidence, so the surface can hover-link between the two and highlight
+         *     what the model was unsure of. Recognized text is assistive; the scan is
+         *     what a grade is given against.
+         */
+        get: operations["review_submission_api_v1_courses__course_id__submissions__submission_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses/{course_id}/submissions/{submission_id}/grade": {
         parameters: {
             query?: never;
@@ -676,6 +810,28 @@ export interface paths {
          *     replay, and the grade column move in one writer transaction.
          */
         post: operations["grade_submission_api_v1_courses__course_id__submissions__submission_id__grade_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/submissions/{submission_id}/pages/{page_index}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Submission Page Renditions
+         * @description Fresh presigned URLs for one page. Presigned links are short-lived, and
+         *     a long review session outlives them; refreshing one page should not mean
+         *     refetching the whole submission.
+         */
+        get: operations["submission_page_renditions_api_v1_courses__course_id__submissions__submission_id__pages__page_index__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -941,6 +1097,17 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActivityOut */
+        ActivityOut: {
+            /** Active Seats */
+            active_seats: number;
+            /** Seat Count */
+            seat_count: number;
+            /** Seats */
+            seats: components["schemas"]["SeatActivity"][];
+            /** Total Submissions */
+            total_submissions: number;
+        };
         /** AddBoxIn */
         AddBoxIn: {
             /** Bbox */
@@ -1129,6 +1296,15 @@ export interface components {
             /** Position */
             position?: number | null;
         };
+        /** ConfidenceBucket */
+        ConfidenceBucket: {
+            /** Count */
+            count: number;
+            /** Lower */
+            lower: number;
+            /** Upper */
+            upper: number;
+        };
         /** ConfirmIn */
         ConfirmIn: {
             /**
@@ -1281,17 +1457,6 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
-        };
-        /**
-         * HealthOut
-         * @description Liveness of the API process itself; no dependencies are probed.
-         */
-        HealthOut: {
-            /**
-             * Status
-             * @constant
-             */
-            status: "ok";
         };
         /**
          * Identity
@@ -1538,6 +1703,19 @@ export interface components {
             reject_reason: string | null;
         };
         /**
+         * PageRenditionsOut
+         * @description One page's presigned renditions, so an expired URL can be refreshed
+         *     without refetching the whole review.
+         */
+        PageRenditionsOut: {
+            /** Grayscale Url */
+            grayscale_url: string | null;
+            /** Image Url */
+            image_url: string;
+            /** Page Index */
+            page_index: number;
+        };
+        /**
          * ParamSpec
          * @description The stored specification. Invariants are the professor's control over
          *     pedagogical equivalence and travel verbatim into generation and
@@ -1654,6 +1832,22 @@ export interface components {
             /** Prompt Version */
             prompt_version: string;
         };
+        /**
+         * RecognitionHealth
+         * @description How well the reader is reading this course's handwriting. A
+         *     distribution, not just a mean, because the low tail is what needs acting
+         *     on (backend guide section 8).
+         */
+        RecognitionHealth: {
+            /** Buckets */
+            buckets: components["schemas"]["ConfidenceBucket"][];
+            /** Mean Confidence */
+            mean_confidence: number | null;
+            /** Pages Read */
+            pages_read: number;
+            /** Rejected Pages */
+            rejected_pages: number;
+        };
         /** RedeemIn */
         RedeemIn: {
             /** Code */
@@ -1697,6 +1891,29 @@ export interface components {
             seat_number: string;
         };
         /**
+         * ReviewPageOut
+         * @description One page as the professor reads it: the scan itself, the cleaned
+         *     rendition the model read, and that page's reading with its regions.
+         */
+        ReviewPageOut: {
+            /** Confidence */
+            confidence: number | null;
+            /** Grayscale Url */
+            grayscale_url: string | null;
+            /** Image Url */
+            image_url: string;
+            /** Markdown */
+            markdown: string;
+            /** Page Index */
+            page_index: number;
+            /** Quality Status */
+            quality_status: string | null;
+            /** Regions */
+            regions: components["schemas"]["RegionOut"][];
+            /** Reject Reason */
+            reject_reason: string | null;
+        };
+        /**
          * RevisitConcept
          * @description One revisit suggestion: the concept and one targeted variant, or none
          *     when no unattempted verified variant exists right now (the queue stays
@@ -1735,6 +1952,29 @@ export interface components {
          * @enum {string}
          */
         Role: "professor" | "admin" | "seat";
+        /**
+         * RubricAgreementOut
+         * @description The calibration loop of mastery spec section 10. Every figure is null
+         *     until there is something to compute it from, because a fabricated
+         *     correlation is worse than an absent one, and this report exists precisely
+         *     to catch the rubric drifting.
+         */
+        RubricAgreementOut: {
+            /** Correlation */
+            correlation: number | null;
+            /** Generated At */
+            generated_at: number;
+            /** Mean Absolute Difference */
+            mean_absolute_difference: number | null;
+            /** Mean Grade */
+            mean_grade: number | null;
+            /** Mean Rubric Score */
+            mean_rubric_score: number | null;
+            /** Mean Signed Difference */
+            mean_signed_difference: number | null;
+            /** Pairs */
+            pairs: number;
+        };
         /** SearchHit */
         SearchHit: {
             /** Recognition Conf */
@@ -1754,6 +1994,23 @@ export interface components {
             hits: components["schemas"]["SearchHit"][];
             /** Query */
             query: string;
+        };
+        /** SeatActivity */
+        SeatActivity: {
+            /** Defences */
+            defences: number;
+            /** Graded */
+            graded: number;
+            /** Last Submitted At */
+            last_submitted_at: number | null;
+            /** Last Used At */
+            last_used_at: number | null;
+            /** Seat Number */
+            seat_number: string;
+            /** Status */
+            status: string;
+            /** Submissions */
+            submissions: number;
         };
         /** SeatBatchIn */
         SeatBatchIn: {
@@ -1806,6 +2063,21 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** SpeechUsageRow */
+        SpeechUsageRow: {
+            /** Amount */
+            amount: number;
+            /** Calls */
+            calls: number;
+            /** Cost */
+            cost: number | null;
+            /** Kind */
+            kind: string;
+            /** Provider */
+            provider: string;
+            /** Unit */
+            unit: string;
+        };
         /** SubmissionCreated */
         SubmissionCreated: {
             /** Status */
@@ -1821,6 +2093,13 @@ export interface components {
         SubmissionIn: {
             /** Pages */
             pages: components["schemas"]["PageIn"][];
+        };
+        /** SubmissionListOut */
+        SubmissionListOut: {
+            /** Next Cursor */
+            next_cursor: number | null;
+            /** Submissions */
+            submissions: components["schemas"]["SubmissionSummary"][];
         };
         /** SubmissionOut */
         SubmissionOut: {
@@ -1838,6 +2117,77 @@ export interface components {
             submitted_at: number;
             /** Variant Id */
             variant_id: number;
+        };
+        /** SubmissionReviewOut */
+        SubmissionReviewOut: {
+            /** Case Study Id */
+            case_study_id: number;
+            /** Case Study Title */
+            case_study_title: string;
+            /** Grade */
+            grade: number | null;
+            /** Graded At */
+            graded_at: number | null;
+            /** Id */
+            id: number;
+            /** Pages */
+            pages: components["schemas"]["ReviewPageOut"][];
+            /** Recognition Conf */
+            recognition_conf: number | null;
+            /** Recognized Markdown */
+            recognized_markdown: string | null;
+            /** Seat Number */
+            seat_number: string;
+            /** Status */
+            status: string;
+            /** Submitted At */
+            submitted_at: number;
+            /** Variant Id */
+            variant_id: number;
+        };
+        /**
+         * SubmissionSummary
+         * @description One row of the review queue. Labelled by seat number only: there is no
+         *     per-student identity to show, by design (backend guide 7.1).
+         */
+        SubmissionSummary: {
+            /** Case Study Id */
+            case_study_id: number;
+            /** Case Study Title */
+            case_study_title: string;
+            /** Grade */
+            grade: number | null;
+            /** Graded At */
+            graded_at: number | null;
+            /** Id */
+            id: number;
+            /** Page Count */
+            page_count: number;
+            /** Recognition Conf */
+            recognition_conf: number | null;
+            /** Seat Number */
+            seat_number: string;
+            /** Status */
+            status: string;
+            /** Submitted At */
+            submitted_at: number;
+            /** Variant Id */
+            variant_id: number;
+        };
+        /** TokenUsageRow */
+        TokenUsageRow: {
+            /** Calls */
+            calls: number;
+            /** Cost */
+            cost: number | null;
+            /** Input Tokens */
+            input_tokens: number;
+            /** Kind */
+            kind: string;
+            /** Model Id */
+            model_id: string;
+            /** Output Tokens */
+            output_tokens: number;
         };
         /** TrailLine */
         TrailLine: {
@@ -1873,6 +2223,27 @@ export interface components {
             storage_key: string;
             /** Url */
             url: string;
+        };
+        /**
+         * UsageOut
+         * @description Spend on this course. `priced` is false when no rates are configured,
+         *     in which case every cost is null and the usage still stands on its own.
+         */
+        UsageOut: {
+            /** Priced */
+            priced: boolean;
+            /** Since */
+            since: number | null;
+            /** Speech */
+            speech: components["schemas"]["SpeechUsageRow"][];
+            /** Tokens */
+            tokens: components["schemas"]["TokenUsageRow"][];
+            /** Total Cost */
+            total_cost: number | null;
+            /** Total Input Tokens */
+            total_input_tokens: number;
+            /** Total Output Tokens */
+            total_output_tokens: number;
         };
         /** ValidationError */
         ValidationError: {
@@ -1953,6 +2324,38 @@ export interface components {
             seed: number | null;
             /** Verification */
             verification: string;
+        };
+        /**
+         * VerificationHealth
+         * @description What share of generated variants the independent re-solve agreed with
+         *     (guide 6.3). Manual variants are the professor's own call and belong to
+         *     neither half of the rate, so they are counted but not divided.
+         */
+        VerificationHealth: {
+            /** Flagged */
+            flagged: number;
+            /** Manual */
+            manual: number;
+            /** Pass Rate */
+            pass_rate: number | null;
+            /** Verified */
+            verified: number;
+        };
+        /**
+         * HealthOut
+         * @description Liveness of the API process itself; no dependencies are probed.
+         */
+        app__main__HealthOut: {
+            /**
+             * Status
+             * @constant
+             */
+            status: "ok";
+        };
+        /** HealthOut */
+        app__reports__routes__HealthOut: {
+            recognition: components["schemas"]["RecognitionHealth"];
+            verification: components["schemas"]["VerificationHealth"];
         };
     };
     responses: never;
@@ -4122,6 +4525,240 @@ export interface operations {
             };
         };
     };
+    activity_report_api_v1_courses__course_id__reports_activity_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    health_report_api_v1_courses__course_id__reports_health_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__reports__routes__HealthOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rubric_agreement_report_api_v1_courses__course_id__reports_rubric_agreement_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RubricAgreementOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    usage_report_api_v1_courses__course_id__reports_usage_get: {
+        parameters: {
+            query?: {
+                since?: number | null;
+            };
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     revisit_queue_api_v1_courses__course_id__revisit_get: {
         parameters: {
             query?: never;
@@ -4334,6 +4971,128 @@ export interface operations {
             };
         };
     };
+    list_submissions_api_v1_courses__course_id__submissions_get: {
+        parameters: {
+            query?: {
+                status?: string | null;
+                variant_id?: number | null;
+                cursor?: number | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_submission_api_v1_courses__course_id__submissions__submission_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                submission_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionReviewOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     grade_submission_api_v1_courses__course_id__submissions__submission_id__grade_post: {
         parameters: {
             query?: never;
@@ -4357,6 +5116,66 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GradeOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submission_page_renditions_api_v1_courses__course_id__submissions__submission_id__pages__page_index__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                submission_id: number;
+                page_index: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageRenditionsOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
             /** @description Forbidden */
@@ -4623,7 +5442,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HealthOut"];
+                    "application/json": components["schemas"]["app__main__HealthOut"];
                 };
             };
         };

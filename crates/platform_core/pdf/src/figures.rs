@@ -373,34 +373,16 @@ fn extract_raster(image: &PdfPageImageObject, rect: Rect) -> Result<ExtractedFig
 
 #[cfg(test)]
 mod tests {
-    use std::path::Path;
-
     use super::*;
-
-    fn lib_path() -> Option<String> {
-        if let Ok(path) = std::env::var("TIRO_PDFIUM_LIB") {
-            if Path::new(&path).exists() {
-                return Some(path);
-            }
-        }
-        let vendor = concat!(env!("CARGO_MANIFEST_DIR"), "/vendor");
-        [
-            format!("{vendor}/bin/pdfium.dll"),
-            format!("{vendor}/lib/libpdfium.so"),
-            format!("{vendor}/lib/libpdfium.dylib"),
-        ]
-        .into_iter()
-        .find(|candidate| Path::new(candidate).exists())
-    }
+    use crate::testkit;
 
     #[test]
     fn embedded_jpeg_is_extracted_byte_identical() {
-        let Some(lib) = lib_path() else {
-            eprintln!("pdfium not provisioned; skipping");
-            return;
-        };
         let pdf = include_bytes!("../tests/fixtures/embedded_image.pdf");
         let source = include_bytes!("../tests/fixtures/source.jpg");
+        let Some(lib) = testkit::ready(&[pdf, source]) else {
+            return;
+        };
 
         let page = extract_figures(&lib, pdf, 0).expect("extract");
         let figures = &page.figures;
@@ -419,11 +401,10 @@ mod tests {
 
     #[test]
     fn a_vector_drawing_is_rendered_as_a_region() {
-        let Some(lib) = lib_path() else {
-            eprintln!("pdfium not provisioned; skipping");
+        let pdf = include_bytes!("../tests/fixtures/vector_drawing.pdf");
+        let Some(lib) = testkit::ready(&[pdf]) else {
             return;
         };
-        let pdf = include_bytes!("../tests/fixtures/vector_drawing.pdf");
         let figures = extract_figures(&lib, pdf, 0).expect("extract").figures;
 
         // The box and its two diagonals cluster into one drawing.
@@ -442,22 +423,20 @@ mod tests {
 
     #[test]
     fn a_text_only_page_has_no_figures() {
-        let Some(lib) = lib_path() else {
-            eprintln!("pdfium not provisioned; skipping");
+        let pdf = include_bytes!("../tests/fixtures/born_digital.pdf");
+        let Some(lib) = testkit::ready(&[pdf]) else {
             return;
         };
-        let pdf = include_bytes!("../tests/fixtures/born_digital.pdf");
         let figures = extract_figures(&lib, pdf, 0).expect("extract").figures;
         assert!(figures.is_empty());
     }
 
     #[test]
     fn a_caption_below_a_figure_is_guessed() {
-        let Some(lib) = lib_path() else {
-            eprintln!("pdfium not provisioned; skipping");
+        let pdf = include_bytes!("../tests/fixtures/captioned_figure.pdf");
+        let Some(lib) = testkit::ready(&[pdf]) else {
             return;
         };
-        let pdf = include_bytes!("../tests/fixtures/captioned_figure.pdf");
         let figures = extract_figures(&lib, pdf, 0).expect("extract").figures;
         assert_eq!(figures.len(), 1);
         assert_eq!(

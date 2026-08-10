@@ -5,6 +5,10 @@
 # (eslint, vitest, tsc, next build) since the apps/web scaffold landed
 # (decision 0005). Lighthouse CI and axe join the web job at the Phase 2 gate,
 # when the routes they measure exist.
+#
+# The jobs that carry the Phase 4 PDF gates check out with lfs: true and
+# provision the pinned pdfium binary, because both are preconditions of those
+# assertions running at all (decision 0046).
 name: ci
 
 on:
@@ -19,10 +23,18 @@ jobs:
       run:
         working-directory: crates/platform_core
     steps:
+      # lfs: true and the pdfium step below are both preconditions of the
+      # Phase 4 decode and figure gates: without them those tests skip with a
+      # stated reason instead of asserting anything, which is how they went
+      # unverified until Phase 8.
       - uses: actions/checkout@v4
+        with:
+          lfs: true
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
+      - name: Provision the pinned pdfium binary (decision 0024)
+        run: ../../infra/provision-pdfium.sh
       - run: cargo fmt --all -- --check
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo clippy -p tirocinium-mastery --features python -- -D warnings
@@ -39,8 +51,12 @@ jobs:
         working-directory: apps/api
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
       - uses: dtolnay/rust-toolchain@stable
       - uses: astral-sh/setup-uv@v5
+      - name: Provision the pinned pdfium binary (decision 0024)
+        run: ../../infra/provision-pdfium.sh
       - name: Install the locked environment (Python 3.12 via uv)
         run: uv sync --locked
       - name: Build the platform_core extension into the venv
@@ -50,7 +66,7 @@ jobs:
         run: |
           .venv/bin/ruff check .
           .venv/bin/mypy .
-      - name: Store suite (7 tests)
+      - name: Python suite
         run: .venv/bin/python -m pytest -q
 
   setup-script:
@@ -59,6 +75,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
       - uses: dtolnay/rust-toolchain@stable
       - uses: astral-sh/setup-uv@v5
       - run: TIRO_SKIP_CRITERION=1 ./infra/setup.sh

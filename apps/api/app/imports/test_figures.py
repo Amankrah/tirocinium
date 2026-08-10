@@ -20,6 +20,7 @@ from app.imports.decoder import (
     pdfium_lib_path,
 )
 from app.imports.figures import _place_tokens, store_figures_and_annotate
+from app.lfs import SKIP_REASON, any_unfetched
 from app.storage import IMPORTS_BUCKET
 
 
@@ -171,6 +172,10 @@ FIXTURES = (
 @pytest.mark.skipif(
     not Path(pdfium_lib_path()).exists(),
     reason="pdfium binary not provisioned (run infra/setup.sh, or set TIRO_PDFIUM_LIB)",
+)
+@pytest.mark.skipif(
+    any_unfetched(FIXTURES / "captioned_figure.pdf", FIXTURES / "source.jpg"),
+    reason=SKIP_REASON,
 )
 def test_pdfium_figure_extractor_reads_a_captioned_figure() -> None:
     pdf_bytes = (FIXTURES / "captioned_figure.pdf").read_bytes()

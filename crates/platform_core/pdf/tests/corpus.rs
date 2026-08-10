@@ -319,6 +319,13 @@ fn golden_corpus_round_trips() {
             .unwrap()
             .to_string();
         let bytes = std::fs::read(&path).expect("read corpus pdf");
+        if tirocinium_pdf::testkit::is_lfs_pointer(&bytes) {
+            eprintln!(
+                "{name}: corpus PDF is an unfetched Git LFS pointer; skipping corpus gate \
+                 (run `git lfs install && git lfs pull`)"
+            );
+            return;
+        }
         let actual = fingerprint(&lib, &bytes);
 
         if recording {

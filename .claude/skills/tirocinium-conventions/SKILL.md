@@ -7,7 +7,7 @@ description: Tirocinium coding standards, API conventions, data-layer rules, and
 
 The four documents in `docs/` are the specification and outrank this skill; this
 skill is the operational digest that survives context windows. Last updated for
-Phase 7 (data layer, auth, seats, and the authoring backend done; the
+Phase 8 (data layer, auth, seats, and the authoring backend done; the
 handwritten solution upload path live; scan preprocessing implemented in Rust;
 handwriting transcription running in an off-request-path worker with a recorded-
 response model seam and SSE progress; indexing and retrieval done, with FTS5 and
@@ -39,7 +39,50 @@ unified submission surface) are the frontend's, reducing to modes A/B on the
 backend. The Phase 7 backend is complete (7.1 to 7.3, decisions 0043 and
 0044): the voice defence runs as a modular recognition, Claude, synthesis
 pipeline behind swappable seams, and 7.4 (the conversation module) is the
-frontend's.
+frontend's. Phase 8 has begun: 8.1's backend read is done (decision 0047, the
+professor's submission review), 8.2 landed early during 5.5, and 8.3 (course
+reporting, decision 0048) is done; 8.4 and 8.5 are unstarted.
+
+Course reporting (milestone 8.3, decision 0048) is four professor-and-owner
+reads under `/api/v1/courses/{id}/reports/` (`app/reports/`), lenses over rows
+the pipelines already write, so no new table and no migration: `/activity`
+(every seat by number with submissions, graded, defences, and last submitted,
+the roster joined to the shard's counts in Python), `/usage` (`token_usage` and
+`speech_usage` by kind and model, `?since=`), `/health` (the two guide-section-8
+product-health metrics: recognition confidence in ten buckets, and the variant
+verification pass rate over verified and flagged only, since a manual variant is
+the professor's own call), and `/rubric-agreement` (the mastery spec section 10
+calibration loop: each closed conversation's validated rubric paired with the
+grade on its submission, reported as means, the signed bias where positive means
+the tutor read more generously, the mean absolute difference, and Pearson's r).
+Two standing rules here. Prices are configuration and never code: no rate ships,
+`TIRO_MODEL_PRICES` and `TIRO_SPEECH_PRICES` supply them, and with none
+configured the reports carry real usage with null costs and `priced: false`,
+because an invented number in a cost report is worse than no number. And a
+statistic with an empty denominator is null, never zero: no pairs, one pair, a
+zero-variance series, and a course with no machine-verified variants all report
+null rather than a figure that reads like a finding. Activity is ordered by seat
+number and never by volume, because a report sorted by who did most is the
+per-seat ranking lens spec section 6 rules out.
+
+Submission review (milestone 8.1, decision 0047) is the professor's read of the
+same submissions the seat endpoints serve, and it is a separate course-scoped
+router (`app/submissions/review.py`, professor-and-owner through
+`ensure_course_owner`) rather than a role branch inside the seat reads:
+`GET /courses/{id}/submissions` is the review queue (cursor-paginated,
+`?status=` and `?variant_id=` filters, each row carrying the seat number, the
+case study, mean recognition confidence, and the grade already given),
+`GET .../submissions/{id}` puts the scan beside the transcription (per page the
+presigned original, the grayscale rendition the model read, and the reading with
+region boxes and per-region confidence, which is what hover-linking and
+low-confidence highlighting are built from), and
+`GET .../submissions/{id}/pages/{n}` reissues one page's presigned URLs, since
+they are short-lived and a review session outlives them. Grading is unchanged
+(the 6.2 endpoint, because a grade is evidence first). The variant's body and
+reference solution are not duplicated here; `GET /courses/{id}/variants/{id}`
+serves both and the detail carries the `variant_id`. Seat numbers live in the
+directory and submissions in the shard, so that join happens in Python, never in
+SQL, and the seat number is the only thing about a student on the surface.
 
 Mode B (milestone 6.5.1): the submission pipeline expands an
 `application/pdf` page before the page loop, behind the same `PdfDecoder`
@@ -196,6 +239,15 @@ pdfium is single-threaded in a way per-call locking does not cover: the crate
 holds one process-wide operation lock across each whole decode or
 extract_figures call (two interleaved logical operations corrupt each other's
 reads even with pdfium-render's `thread_safe` per-call mutex).
+
+A fixture-backed pdfium test has two preconditions, the native binary and the
+LFS-tracked fixture, and skips naming whichever is missing (decision 0046):
+`platform_core::pdf::testkit::ready` in Rust, `app.lfs.any_unfetched` in Python.
+A `PdfiumLibraryInternalError(FormatError)` is an unfetched LFS pointer reaching
+pdfium, not a decode bug. The pdfium version pin lives in
+`infra/provision-pdfium.sh` only; `infra/setup.sh` and CI both call it, and CI
+checks out with `lfs: true`, which is what makes those gates real rather than
+vacuously skipped.
 
 Figure and source-page serving (decision 0032): a figure's bbox is stored
 normalised to 0..1 of its page (top-left origin, one frame across born-digital

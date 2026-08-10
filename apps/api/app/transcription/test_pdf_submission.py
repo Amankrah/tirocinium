@@ -17,6 +17,7 @@ import pytest
 from app.compression import compress_text
 from app.db.shards import ShardManager
 from app.imports.decoder import DecodedPage, FakePdfDecoder, PdfiumDecoder, pdfium_lib_path
+from app.lfs import SKIP_REASON, any_unfetched
 from app.limits import MAX_PAGES
 from app.mastery.emission import emit_submission_evidence
 from app.mastery.model import (
@@ -382,6 +383,7 @@ async def test_parity_photo_and_pdf_reach_the_same_transcription_and_evidence(
     not Path(pdfium_lib_path()).exists(),
     reason="pdfium not provisioned (infra/setup.sh)",
 )
+@pytest.mark.skipif(any_unfetched(FIXTURES / "question-1.pdf"), reason=SKIP_REASON)
 async def test_a_committed_tablet_pdf_round_trips_through_the_pipeline(
     tmp_path: Path,
 ) -> None:

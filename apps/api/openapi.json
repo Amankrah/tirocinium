@@ -1,6 +1,37 @@
 {
   "components": {
     "schemas": {
+      "ActivityOut": {
+        "properties": {
+          "active_seats": {
+            "title": "Active Seats",
+            "type": "integer"
+          },
+          "seat_count": {
+            "title": "Seat Count",
+            "type": "integer"
+          },
+          "seats": {
+            "items": {
+              "$ref": "#/components/schemas/SeatActivity"
+            },
+            "title": "Seats",
+            "type": "array"
+          },
+          "total_submissions": {
+            "title": "Total Submissions",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "seat_count",
+          "active_seats",
+          "total_submissions",
+          "seats"
+        ],
+        "title": "ActivityOut",
+        "type": "object"
+      },
       "AddBoxIn": {
         "properties": {
           "bbox": {
@@ -539,6 +570,29 @@
         "title": "ConceptUpdate",
         "type": "object"
       },
+      "ConfidenceBucket": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "lower": {
+            "title": "Lower",
+            "type": "number"
+          },
+          "upper": {
+            "title": "Upper",
+            "type": "number"
+          }
+        },
+        "required": [
+          "lower",
+          "upper",
+          "count"
+        ],
+        "title": "ConfidenceBucket",
+        "type": "object"
+      },
       "ConfirmIn": {
         "properties": {
           "figure_interventions": {
@@ -918,21 +972,6 @@
           }
         },
         "title": "HTTPValidationError",
-        "type": "object"
-      },
-      "HealthOut": {
-        "description": "Liveness of the API process itself; no dependencies are probed.",
-        "properties": {
-          "status": {
-            "const": "ok",
-            "title": "Status",
-            "type": "string"
-          }
-        },
-        "required": [
-          "status"
-        ],
-        "title": "HealthOut",
         "type": "object"
       },
       "Identity": {
@@ -1676,6 +1715,37 @@
         "title": "PageReadingOut",
         "type": "object"
       },
+      "PageRenditionsOut": {
+        "description": "One page's presigned renditions, so an expired URL can be refreshed\nwithout refetching the whole review.",
+        "properties": {
+          "grayscale_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grayscale Url"
+          },
+          "image_url": {
+            "title": "Image Url",
+            "type": "string"
+          },
+          "page_index": {
+            "title": "Page Index",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "page_index",
+          "image_url",
+          "grayscale_url"
+        ],
+        "title": "PageRenditionsOut",
+        "type": "object"
+      },
       "ParamSpec": {
         "description": "The stored specification. Invariants are the professor's control over\npedagogical equivalence and travel verbatim into generation and\nverification prompts (guide 6.1).",
         "properties": {
@@ -1964,6 +2034,45 @@
         "title": "ProposalProvenance",
         "type": "object"
       },
+      "RecognitionHealth": {
+        "description": "How well the reader is reading this course's handwriting. A\ndistribution, not just a mean, because the low tail is what needs acting\non (backend guide section 8).",
+        "properties": {
+          "buckets": {
+            "items": {
+              "$ref": "#/components/schemas/ConfidenceBucket"
+            },
+            "title": "Buckets",
+            "type": "array"
+          },
+          "mean_confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Confidence"
+          },
+          "pages_read": {
+            "title": "Pages Read",
+            "type": "integer"
+          },
+          "rejected_pages": {
+            "title": "Rejected Pages",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "pages_read",
+          "mean_confidence",
+          "rejected_pages",
+          "buckets"
+        ],
+        "title": "RecognitionHealth",
+        "type": "object"
+      },
       "RedeemIn": {
         "properties": {
           "code": {
@@ -2065,6 +2174,86 @@
         "title": "ReissueOut",
         "type": "object"
       },
+      "ReviewPageOut": {
+        "description": "One page as the professor reads it: the scan itself, the cleaned\nrendition the model read, and that page's reading with its regions.",
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "grayscale_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grayscale Url"
+          },
+          "image_url": {
+            "title": "Image Url",
+            "type": "string"
+          },
+          "markdown": {
+            "title": "Markdown",
+            "type": "string"
+          },
+          "page_index": {
+            "title": "Page Index",
+            "type": "integer"
+          },
+          "quality_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality Status"
+          },
+          "regions": {
+            "items": {
+              "$ref": "#/components/schemas/RegionOut"
+            },
+            "title": "Regions",
+            "type": "array"
+          },
+          "reject_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reject Reason"
+          }
+        },
+        "required": [
+          "page_index",
+          "image_url",
+          "grayscale_url",
+          "quality_status",
+          "reject_reason",
+          "confidence",
+          "markdown",
+          "regions"
+        ],
+        "title": "ReviewPageOut",
+        "type": "object"
+      },
       "RevisitConcept": {
         "description": "One revisit suggestion: the concept and one targeted variant, or none\nwhen no unattempted verified variant exists right now (the queue stays\ncalm either way).",
         "properties": {
@@ -2161,6 +2350,85 @@
         "title": "Role",
         "type": "string"
       },
+      "RubricAgreementOut": {
+        "description": "The calibration loop of mastery spec section 10. Every figure is null\nuntil there is something to compute it from, because a fabricated\ncorrelation is worse than an absent one, and this report exists precisely\nto catch the rubric drifting.",
+        "properties": {
+          "correlation": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correlation"
+          },
+          "generated_at": {
+            "title": "Generated At",
+            "type": "integer"
+          },
+          "mean_absolute_difference": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Absolute Difference"
+          },
+          "mean_grade": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Grade"
+          },
+          "mean_rubric_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Rubric Score"
+          },
+          "mean_signed_difference": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Signed Difference"
+          },
+          "pairs": {
+            "title": "Pairs",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "pairs",
+          "mean_rubric_score",
+          "mean_grade",
+          "mean_signed_difference",
+          "mean_absolute_difference",
+          "correlation",
+          "generated_at"
+        ],
+        "title": "RubricAgreementOut",
+        "type": "object"
+      },
       "SearchHit": {
         "properties": {
           "recognition_conf": {
@@ -2220,6 +2488,63 @@
           "hits"
         ],
         "title": "SearchResults",
+        "type": "object"
+      },
+      "SeatActivity": {
+        "properties": {
+          "defences": {
+            "title": "Defences",
+            "type": "integer"
+          },
+          "graded": {
+            "title": "Graded",
+            "type": "integer"
+          },
+          "last_submitted_at": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Submitted At"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "seat_number": {
+            "title": "Seat Number",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "submissions": {
+            "title": "Submissions",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "seat_number",
+          "status",
+          "last_used_at",
+          "submissions",
+          "graded",
+          "defences",
+          "last_submitted_at"
+        ],
+        "title": "SeatActivity",
         "type": "object"
       },
       "SeatBatchIn": {
@@ -2360,6 +2685,51 @@
         "title": "SignupIn",
         "type": "object"
       },
+      "SpeechUsageRow": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "number"
+          },
+          "calls": {
+            "title": "Calls",
+            "type": "integer"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "provider",
+          "unit",
+          "calls",
+          "amount",
+          "cost"
+        ],
+        "title": "SpeechUsageRow",
+        "type": "object"
+      },
       "SubmissionCreated": {
         "properties": {
           "status": {
@@ -2407,6 +2777,34 @@
           "pages"
         ],
         "title": "SubmissionIn",
+        "type": "object"
+      },
+      "SubmissionListOut": {
+        "properties": {
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "submissions": {
+            "items": {
+              "$ref": "#/components/schemas/SubmissionSummary"
+            },
+            "title": "Submissions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "submissions",
+          "next_cursor"
+        ],
+        "title": "SubmissionListOut",
         "type": "object"
       },
       "SubmissionOut": {
@@ -2460,6 +2858,235 @@
           "pages"
         ],
         "title": "SubmissionOut",
+        "type": "object"
+      },
+      "SubmissionReviewOut": {
+        "properties": {
+          "case_study_id": {
+            "title": "Case Study Id",
+            "type": "integer"
+          },
+          "case_study_title": {
+            "title": "Case Study Title",
+            "type": "string"
+          },
+          "grade": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade"
+          },
+          "graded_at": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Graded At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "pages": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewPageOut"
+            },
+            "title": "Pages",
+            "type": "array"
+          },
+          "recognition_conf": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recognition Conf"
+          },
+          "recognized_markdown": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recognized Markdown"
+          },
+          "seat_number": {
+            "title": "Seat Number",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "submitted_at": {
+            "title": "Submitted At",
+            "type": "integer"
+          },
+          "variant_id": {
+            "title": "Variant Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "seat_number",
+          "variant_id",
+          "case_study_id",
+          "case_study_title",
+          "status",
+          "submitted_at",
+          "recognition_conf",
+          "grade",
+          "graded_at",
+          "recognized_markdown",
+          "pages"
+        ],
+        "title": "SubmissionReviewOut",
+        "type": "object"
+      },
+      "SubmissionSummary": {
+        "description": "One row of the review queue. Labelled by seat number only: there is no\nper-student identity to show, by design (backend guide 7.1).",
+        "properties": {
+          "case_study_id": {
+            "title": "Case Study Id",
+            "type": "integer"
+          },
+          "case_study_title": {
+            "title": "Case Study Title",
+            "type": "string"
+          },
+          "grade": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade"
+          },
+          "graded_at": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Graded At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "page_count": {
+            "title": "Page Count",
+            "type": "integer"
+          },
+          "recognition_conf": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recognition Conf"
+          },
+          "seat_number": {
+            "title": "Seat Number",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "submitted_at": {
+            "title": "Submitted At",
+            "type": "integer"
+          },
+          "variant_id": {
+            "title": "Variant Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "seat_number",
+          "variant_id",
+          "case_study_id",
+          "case_study_title",
+          "status",
+          "page_count",
+          "submitted_at",
+          "recognition_conf",
+          "grade",
+          "graded_at"
+        ],
+        "title": "SubmissionSummary",
+        "type": "object"
+      },
+      "TokenUsageRow": {
+        "properties": {
+          "calls": {
+            "title": "Calls",
+            "type": "integer"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "input_tokens": {
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "model_id": {
+            "title": "Model Id",
+            "type": "string"
+          },
+          "output_tokens": {
+            "title": "Output Tokens",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "model_id",
+          "calls",
+          "input_tokens",
+          "output_tokens",
+          "cost"
+        ],
+        "title": "TokenUsageRow",
         "type": "object"
       },
       "TrailLine": {
@@ -2552,6 +3179,70 @@
           "url"
         ],
         "title": "UploadTarget",
+        "type": "object"
+      },
+      "UsageOut": {
+        "description": "Spend on this course. `priced` is false when no rates are configured,\nin which case every cost is null and the usage still stands on its own.",
+        "properties": {
+          "priced": {
+            "title": "Priced",
+            "type": "boolean"
+          },
+          "since": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Since"
+          },
+          "speech": {
+            "items": {
+              "$ref": "#/components/schemas/SpeechUsageRow"
+            },
+            "title": "Speech",
+            "type": "array"
+          },
+          "tokens": {
+            "items": {
+              "$ref": "#/components/schemas/TokenUsageRow"
+            },
+            "title": "Tokens",
+            "type": "array"
+          },
+          "total_cost": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Cost"
+          },
+          "total_input_tokens": {
+            "title": "Total Input Tokens",
+            "type": "integer"
+          },
+          "total_output_tokens": {
+            "title": "Total Output Tokens",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "since",
+          "priced",
+          "total_input_tokens",
+          "total_output_tokens",
+          "total_cost",
+          "tokens",
+          "speech"
+        ],
+        "title": "UsageOut",
         "type": "object"
       },
       "ValidationError": {
@@ -2842,6 +3533,73 @@
           "created_at"
         ],
         "title": "VariantSummary",
+        "type": "object"
+      },
+      "VerificationHealth": {
+        "description": "What share of generated variants the independent re-solve agreed with\n(guide 6.3). Manual variants are the professor's own call and belong to\nneither half of the rate, so they are counted but not divided.",
+        "properties": {
+          "flagged": {
+            "title": "Flagged",
+            "type": "integer"
+          },
+          "manual": {
+            "title": "Manual",
+            "type": "integer"
+          },
+          "pass_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pass Rate"
+          },
+          "verified": {
+            "title": "Verified",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "verified",
+          "flagged",
+          "manual",
+          "pass_rate"
+        ],
+        "title": "VerificationHealth",
+        "type": "object"
+      },
+      "app__main__HealthOut": {
+        "description": "Liveness of the API process itself; no dependencies are probed.",
+        "properties": {
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "HealthOut",
+        "type": "object"
+      },
+      "app__reports__routes__HealthOut": {
+        "properties": {
+          "recognition": {
+            "$ref": "#/components/schemas/RecognitionHealth"
+          },
+          "verification": {
+            "$ref": "#/components/schemas/VerificationHealth"
+          }
+        },
+        "required": [
+          "recognition",
+          "verification"
+        ],
+        "title": "HealthOut",
         "type": "object"
       }
     },
@@ -6097,6 +6855,334 @@
         ]
       }
     },
+    "/api/v1/courses/{course_id}/reports/activity": {
+      "get": {
+        "description": "Activity by seat number. Every seat appears, ordered by number: the\norder is the roster's, not a leaderboard's.",
+        "operationId": "activity_report_api_v1_courses__course_id__reports_activity_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Activity Report",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/reports/health": {
+      "get": {
+        "description": "The two product-health metrics. These are product metrics, not\ninfrastructure ones: they say whether the pipeline is serving this\ncourse's material well.",
+        "operationId": "health_report_api_v1_courses__course_id__reports_health_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/app__reports__routes__HealthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Health Report",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/reports/rubric-agreement": {
+      "get": {
+        "description": "Defence rubric against professor grade, over the submissions that carry\nboth. A positive signed difference means the tutor read the work more\ngenerously than the professor did, which is the drift the anchored prompt\nis written to resist and this report exists to watch.",
+        "operationId": "rubric_agreement_report_api_v1_courses__course_id__reports_rubric_agreement_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RubricAgreementOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Rubric Agreement Report",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/reports/usage": {
+      "get": {
+        "description": "Token and speech usage per course, optionally since a Unix timestamp,\ngrouped by caller and model. Speech is reported in its own units because\nit is billed in them, and it dominates the cost of a defence.",
+        "operationId": "usage_report_api_v1_courses__course_id__reports_usage_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "since",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Since"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Usage Report",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
     "/api/v1/courses/{course_id}/revisit": {
       "get": {
         "description": "The concepts worth a fresh look, most faded first, each with one\ntargeted variant (spec section 5): the highest-weight published case\nstudy for the concept, excluding cases attempted in the last 48 hours,\ndrawing an unattempted servable variant from the pool.",
@@ -6408,6 +7494,229 @@
         ]
       }
     },
+    "/api/v1/courses/{course_id}/submissions": {
+      "get": {
+        "description": "The course's submissions as a review queue, oldest first, filterable by\nstatus and by variant. Pending and processing work stays in the list: what\nis worth opening is the professor's call, not ours.",
+        "operationId": "list_submissions_api_v1_courses__course_id__submissions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "variant_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Variant Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Submissions",
+        "tags": [
+          "submission-review"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/submissions/{submission_id}": {
+      "get": {
+        "description": "The scan beside the transcription (Stage 5). Every page carries its\npresigned scan URL and its reading with region boxes and per-region\nconfidence, so the surface can hover-link between the two and highlight\nwhat the model was unsure of. Recognized text is assistive; the scan is\nwhat a grade is given against.",
+        "operationId": "review_submission_api_v1_courses__course_id__submissions__submission_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "submission_id",
+            "required": true,
+            "schema": {
+              "title": "Submission Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionReviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Review Submission",
+        "tags": [
+          "submission-review"
+        ]
+      }
+    },
     "/api/v1/courses/{course_id}/submissions/{submission_id}/grade": {
       "post": {
         "description": "The professor grades a submission: ground truth. One professor_grade\nevent per mapped concept (confidence 1.0), which triggers the\nsupersession replay inside the store, retracting the submission's\nautomatic events from the estimate (spec 4.6). Event insert, state\nreplay, and the grade column move in one writer transaction.",
@@ -6492,6 +7801,102 @@
         "summary": "Grade Submission",
         "tags": [
           "mastery"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/submissions/{submission_id}/pages/{page_index}": {
+      "get": {
+        "description": "Fresh presigned URLs for one page. Presigned links are short-lived, and\na long review session outlives them; refreshing one page should not mean\nrefetching the whole submission.",
+        "operationId": "submission_page_renditions_api_v1_courses__course_id__submissions__submission_id__pages__page_index__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "submission_id",
+            "required": true,
+            "schema": {
+              "title": "Submission Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "page_index",
+            "required": true,
+            "schema": {
+              "title": "Page Index",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageRenditionsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Submission Page Renditions",
+        "tags": [
+          "submission-review"
         ]
       }
     },
@@ -6828,7 +8233,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HealthOut"
+                  "$ref": "#/components/schemas/app__main__HealthOut"
                 }
               }
             },
