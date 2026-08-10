@@ -4,9 +4,10 @@
     .venv/Scripts/python scripts/snapshot_shards.py --data-dir ../../data
 
 Each shard is vacuumed to a temporary file and stored under
-snapshots/{UTC date}/{relative shard path} in the snapshots bucket. Wiring
-this onto a schedule with alerting is milestone 9.4; until then it runs from
-cron or by hand, and the restore drill proves the artifacts restorable.
+snapshots/{UTC date}/{relative shard path} in the snapshots bucket. The
+scheduled job that runs this, verifies the result, and alerts on failure is
+.github/workflows/backup-drill.yml (milestone 9.4); scripts/verify_backups.py
+is the check that the artefacts it wrote are really there and current.
 """
 
 import argparse

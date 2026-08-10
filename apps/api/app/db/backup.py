@@ -1,14 +1,21 @@
-"""Backups (backend guide 3.5, milestone 1.3): VACUUM INTO snapshots, the
-shard digest the restore drill verifies against, and the object-storage
-upload seam. Litestream handles continuous WAL replication (configured by
-scripts/litestream_config.py and drilled by infra/restore-drill.sh); this
-module owns the snapshot half and the verification currency.
+"""Backups (backend guide 3.5, milestones 1.3 and 9.4): VACUUM INTO snapshots,
+the shard digest the restore drill verifies against, the object-storage upload
+seam, and the verification that says whether the backups a course depends on
+actually exist and are current. Litestream handles continuous WAL replication
+(configured by scripts/litestream_config.py and drilled by
+infra/restore-drill.sh); this module owns the snapshot half.
+
+A backup nobody checks is a backup nobody has. The restore drill proves the
+mechanism works; `verify_snapshots` proves last night's artefacts are really
+there, which is the failure the drill cannot see because the drill makes its
+own fixture.
 """
 
+import datetime
 import hashlib
 import os
 from pathlib import Path
-from typing import BinaryIO, Protocol
+from typing import Any, BinaryIO, Protocol
 
 from pydantic import BaseModel
 
@@ -20,6 +27,8 @@ class ObjectStorageClient(Protocol):
     and tests stub it."""
 
     def put_object(self, *, Bucket: str, Key: str, Body: BinaryIO) -> object: ...
+
+    def list_objects_v2(self, **kwargs: Any) -> Any: ...
 
 
 class TableDigest(BaseModel, frozen=True):
@@ -108,3 +117,116 @@ def s3_client_from_env() -> ObjectStorageClient:
         config=Config(s3={"addressing_style": "path"}),
     )
     return client
+
+
+# A nightly job that misses one run is worth an alert; the default window gives
+# a night's schedule drift and no more, so a silent two-day gap cannot hide.
+DEFAULT_MAX_AGE_SECONDS = 36 * 3600
+
+
+class SnapshotReport(BaseModel, frozen=True):
+    """What the latest snapshot of one shard looks like, or why there is none."""
+
+    shard: str
+    key: str | None = None
+    age_seconds: float | None = None
+    size_bytes: int | None = None
+    ok: bool
+    reason: str | None = None
+
+
+class BackupVerification(BaseModel, frozen=True):
+    """The whole check. `ok` is false if any shard's backup is missing, stale,
+    or empty, which is what the scheduled job alerts on."""
+
+    ok: bool
+    checked_at: int
+    max_age_seconds: float
+    snapshots: list[SnapshotReport]
+
+    @property
+    def failures(self) -> list[SnapshotReport]:
+        return [report for report in self.snapshots if not report.ok]
+
+
+def _latest_by_shard(
+    client: ObjectStorageClient, bucket: str, prefix: str
+) -> dict[str, tuple[str, datetime.datetime, int]]:
+    """The most recent object per shard under the snapshot prefix.
+
+    Keys are `{prefix}{date}/{shard path}`, so the shard is everything after
+    the date segment; grouping on that rather than on the date is what makes
+    the check independent of how the job names its runs."""
+    latest: dict[str, tuple[str, datetime.datetime, int]] = {}
+    token: str | None = None
+    while True:
+        kwargs: dict[str, Any] = {"Bucket": bucket, "Prefix": prefix}
+        if token:
+            kwargs["ContinuationToken"] = token
+        page = client.list_objects_v2(**kwargs)
+        for item in page.get("Contents", []) or []:
+            key = str(item["Key"])
+            tail = key[len(prefix) :]
+            if "/" not in tail:
+                continue
+            shard = tail.split("/", 1)[1]
+            modified = item["LastModified"]
+            size = int(item.get("Size", 0))
+            current = latest.get(shard)
+            if current is None or modified > current[1]:
+                latest[shard] = (key, modified, size)
+        if not page.get("IsTruncated"):
+            return latest
+        token = page.get("NextContinuationToken")
+        if not token:
+            return latest
+
+
+def verify_snapshots(
+    client: ObjectStorageClient,
+    bucket: str,
+    shards: list[str],
+    *,
+    now: datetime.datetime,
+    prefix: str = "snapshots/",
+    max_age_seconds: float = DEFAULT_MAX_AGE_SECONDS,
+) -> BackupVerification:
+    """Check that every shard has a recent, non-empty snapshot in storage.
+
+    `shards` are the shard paths relative to the data directory, the same form
+    the snapshot job writes, so a course that exists but was never snapshotted
+    reports as missing rather than being silently absent from the result.
+    """
+    latest = _latest_by_shard(client, bucket, prefix)
+    reports: list[SnapshotReport] = []
+    for shard in sorted(shards):
+        found = latest.get(shard)
+        if found is None:
+            reports.append(
+                SnapshotReport(shard=shard, ok=False, reason="no snapshot found")
+            )
+            continue
+        key, modified, size = found
+        age = (now - modified).total_seconds()
+        if size <= 0:
+            reason = "snapshot is empty"
+        elif age > max_age_seconds:
+            reason = f"snapshot is {age / 3600:.1f} h old"
+        else:
+            reason = None
+        reports.append(
+            SnapshotReport(
+                shard=shard,
+                key=key,
+                age_seconds=age,
+                size_bytes=size,
+                ok=reason is None,
+                reason=reason,
+            )
+        )
+    return BackupVerification(
+        ok=all(report.ok for report in reports),
+        checked_at=int(now.timestamp()),
+        max_age_seconds=max_age_seconds,
+        snapshots=reports,
+    )

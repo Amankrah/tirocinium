@@ -45,8 +45,12 @@ reporting, decision 0048), 8.4 (the understanding unfold and the personal
 history, decision 0049), and 8.5 (observability, decision 0050) are done, so
 the whole Phase 8 backend is complete and only the frontend's journeys five and
 six remain on its gate. Phase 9 has begun: 9.1 (load testing, decision 0051) and
-9.2 (the security pass, decision 0052) are done, 9.4 is the remaining backend
-milestone, and 9.3 and 9.5 are the frontend's.
+9.2 (the security pass, decision 0052) and 9.4 (the scheduled backup drill with
+alerting, decision 0053) are done; 9.3 and 9.5 are the frontend's and 9.6 is the
+discretionary list. Backups are verified as well as drilled: `verify_snapshots`
+in `app/db/backup.py` fails a shard whose newest snapshot is missing, older than
+36 h, or zero bytes, and shard discovery comes from the data directory so a new
+course reports as unbacked rather than going unnoticed.
 
 Untrusted text never goes into a prompt by hand (milestone 9.2, decision 0052).
 `app/prompt_safety.py` is the only way: `new_fence()` once per assembled

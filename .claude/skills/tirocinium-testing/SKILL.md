@@ -137,7 +137,8 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 453 tests (25 data layer, 4 load (9.1), 34 security (9.2), 16 case studies/concepts/courses,
+Python suite, 462 tests (25 data layer + 9 backup verification (9.4), 4 load
+(9.1), 34 security (9.2), 16 case studies/concepts/courses,
 16 reports (8.3), 36 unfold (8.4: 18 stepper, 18 surface), and 22 telemetry
 (8.5), see the gate table,
 15 seats, 12 auth, 16 submissions (incl. 4 transcription-read),
@@ -802,9 +803,28 @@ Phase 9, in progress:
   intermittently (native teardown around PyO3/pdfium is the suspect). Do not
   re-attempt that upgrade without investigating the segfault first. `cargo
   audit` is still unwired.
-- 9.4 is the remaining backend milestone; 9.3 and 9.5 are the frontend's.
-  Carried forward: the redemption limiter is in-memory and per-process, so a
-  multi-process deployment multiplies the allowance by the worker count.
+- 9.4 (done): the scheduled backup drill with alerting (decision 0053).
+  `.github/workflows/backup-drill.yml` runs daily (05:20 UTC, plus manual
+  dispatch): the restore drill, then a snapshot-and-verify loop against real
+  MinIO. `app/db/backup.py` gained `verify_snapshots` (newest object per shard;
+  fails on missing, stale past 36 h, or zero bytes) with
+  `scripts/verify_backups.py` as the command; discovering no shards exits
+  non-zero, because verifying nothing is not verification. 9 tests in
+  `app/db/test_backup_verify.py` cover each failure mode plus the paginated
+  listing. Both the pass and fail paths were proven against a real MinIO here,
+  not only reasoned about.
+  Alerting is a GitHub issue on failure (a comment on the open one rather than a
+  second issue; closed automatically when green again), plus a webhook when
+  `TIRO_ALERT_WEBHOOK` is set. The release gate wants this to have run on
+  schedule twice, which only real elapsed days can supply.
+  Fixed on the way: `infra/setup.sh` and `infra/restore-drill.sh` were recorded
+  in git as non-executable while `ci.yml` invokes them as `./infra/...`, so
+  those jobs would have failed on a permission error. If you add a script under
+  `infra/`, check `git ls-files -s` shows 100755.
+- Phase 9's remaining backend item is 9.6's discretionary list; 9.3 and 9.5 are
+  the frontend's. Carried forward: the redemption limiter is in-memory and
+  per-process, so a multi-process deployment multiplies the allowance by the
+  worker count.
 
 Recorded working-assessment responses live at
 `apps/api/tests/recorded/working-assessment/`, one JSON per document sha256
