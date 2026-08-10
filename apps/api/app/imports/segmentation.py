@@ -11,13 +11,14 @@ professor's wording, do not summarize, keep every figure token in place), and
 treats the page content as data, never as instructions (hostile text is data).
 """
 
-import hashlib
 import json
 import os
 from pathlib import Path
 from typing import Protocol
 
 from pydantic import BaseModel, Field
+
+from app.prompt_safety import document_key
 
 # Claude via the Anthropic API (a text pass). The concrete model id is
 # deployment configuration; provenance records whatever was used.
@@ -104,7 +105,7 @@ class RecordedSegmenter:
         self, document: str, prompt: str, *, model_id: str
     ) -> list[SegmentedItem]:
         self.calls += 1
-        key = hashlib.sha256(document.encode("utf-8")).hexdigest()
+        key = document_key(document)
         if key not in self._responses:
             raise KeyError(f"no recorded segmentation for document sha256 {key}")
         return list(self._responses[key])
@@ -116,7 +117,7 @@ class RecordedSegmenter:
         """Build from plain document text (not hashes), hashing each key."""
         return cls(
             {
-                hashlib.sha256(text.encode("utf-8")).hexdigest(): items
+                document_key(text): items
                 for text, items in mapping.items()
             }
         )

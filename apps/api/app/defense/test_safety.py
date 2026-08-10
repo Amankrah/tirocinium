@@ -18,6 +18,7 @@ gate needs no asset, and captured live sessions land there as the corpus grows.
 """
 
 import asyncio
+import re
 from pathlib import Path
 
 import pytest
@@ -228,9 +229,15 @@ async def test_hostile_text_in_a_scanned_page_stays_data(tmp_path: Path) -> None
     poison = system.index("SYSTEM OVERRIDE")
     # The rules come first and the content is fenced: the hostile line sits
     # inside a delimited block that the prompt has already framed as data.
+    # The fence markers carry a per-document nonce (milestone 9.2), so the
+    # assertion looks for the real markers rather than a fixed string a page
+    # could have written for itself.
+    fence = re.search(r"<<<content-([0-9a-f]{16})", system)
+    assert fence is not None
+    opening, closing = fence.group(0), f"content-{fence.group(1)}>>>"
     assert system.index(TEXT_IS_DATA) < poison
-    assert system.rindex("<<<content", 0, poison) > system.index(TEXT_IS_DATA)
-    assert system.index("content>>>", poison) > poison
+    assert system.rindex(opening, 0, poison) > system.index(TEXT_IS_DATA)
+    assert system.index(closing, poison) > poison
     # And it never became an instruction the tutor was handed separately.
     assert tutor.seen_systems == [system]
     assert all("SYSTEM OVERRIDE" not in turn.text for turn in turns)

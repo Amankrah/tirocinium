@@ -11,13 +11,14 @@ one of the spec's sanctioned attach points (the verification re-solve).
 Tests always use the recorded implementations.
 """
 
-import hashlib
 import json
 import os
 from pathlib import Path
 from typing import Protocol
 
 from pydantic import BaseModel, Field
+
+from app.prompt_safety import document_key
 
 # Claude via the Anthropic API for both passes. Concrete model ids are
 # deployment configuration; provenance records whatever ran. Two variables so
@@ -180,7 +181,7 @@ class RecordedVariantGenerator:
         self.documents: list[str] = []
 
     def record(self, document: str, variant: GeneratedVariant) -> None:
-        key = hashlib.sha256(document.encode("utf-8")).hexdigest()
+        key = document_key(document)
         self._responses[key] = variant
 
     async def generate(
@@ -188,7 +189,7 @@ class RecordedVariantGenerator:
     ) -> GeneratedVariant:
         self.calls += 1
         self.documents.append(document)
-        key = hashlib.sha256(document.encode("utf-8")).hexdigest()
+        key = document_key(document)
         if key not in self._responses:
             raise KeyError(f"no recorded generation for document sha256 {key}")
         return self._responses[key]
@@ -218,7 +219,7 @@ class RecordedVariantVerifier:
         self.images: list[list[bytes]] = []
 
     def record(self, document: str, result: ReSolveResult) -> None:
-        key = hashlib.sha256(document.encode("utf-8")).hexdigest()
+        key = document_key(document)
         self._responses[key] = result
 
     async def resolve(
@@ -227,7 +228,7 @@ class RecordedVariantVerifier:
         self.calls += 1
         self.documents.append(document)
         self.images.append(list(images))
-        key = hashlib.sha256(document.encode("utf-8")).hexdigest()
+        key = document_key(document)
         if key not in self._responses:
             raise KeyError(f"no recorded re-solve for document sha256 {key}")
         return self._responses[key]

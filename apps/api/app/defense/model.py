@@ -249,6 +249,10 @@ class RecordedTutor:
         self.reply_calls = 0
         self.rubric_calls = 0
         self.seen_systems: list[str] = []
+        # The rubric call's system is recorded separately so the turn-count
+        # assertions in the safety suite stay about turns, while the closing
+        # call's carriage of the hard rules can still be asserted (9.2).
+        self.seen_rubric_systems: list[str] = []
         self.seen_turns: list[list[Turn]] = []
         self.seen_figures: list[list[bytes]] = []
 
@@ -286,6 +290,7 @@ class RecordedTutor:
         figures: list[bytes],
         model_id: str,
     ) -> str:
+        self.seen_rubric_systems.append(system)
         index = self.rubric_calls
         self.rubric_calls += 1
         if index >= len(self._rubrics):

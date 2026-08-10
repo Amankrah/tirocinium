@@ -137,7 +137,7 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 423 tests (25 data layer, 4 load (9.1), 16 case studies/concepts/courses,
+Python suite, 453 tests (25 data layer, 4 load (9.1), 34 security (9.2), 16 case studies/concepts/courses,
 16 reports (8.3), 36 unfold (8.4: 18 stepper, 18 surface), and 22 telemetry
 (8.5), see the gate table,
 15 seats, 12 auth, 16 submissions (incl. 4 transcription-read),
@@ -779,10 +779,32 @@ Phase 9, in progress:
   workload. Building the world trips the redemption rate limiter (10/IP/hour),
   so the harness redeems each seat from its own address rather than disabling
   the control.
-- 9.2 and 9.4 are the remaining backend milestones; 9.3 and 9.5 are the
-  frontend's. Carried into 9.2: the redemption limiter is in-memory and
-  per-process, and its own note says a multi-process deployment may need it
-  behind Redis.
+- 9.2 (done): the security pass (decision 0052, checklist in
+  `docs/security-review.md`). `app/security/` holds 34 tests: an access sweep
+  over the live route table asserting every non-public route 401s (four public
+  routes enumerated; mutation-checked with a planted route), token forgery
+  (tampered, foreign secret, expired, `alg: none`), cross-role refusals, a
+  revoked seat dying at once, generic auth copy, and no stack traces or SQL in
+  error bodies; rate limiting including the honest negative result that per-IP
+  throttling does not stop a distributed attempt (entropy does, asserted as
+  80 bits) and the positive one that per-IP limiting stops an attacker locking
+  the class out; and the prompt-injection red team.
+  The red team found a real vulnerability and it is fixed: the prompt fence used
+  fixed markers, so a page writing `content>>>` escaped it into the document's
+  own voice. `app/prompt_safety.py` now mints a per-document nonce; every
+  untrusted block goes through `fence.wrap()` and never by hand. Recorded seams
+  key on `document_key()` (canonical, nonce normalised out) so replays stay
+  deterministic; if you add a model seam, key it that way or every replay will
+  miss. `RecordedTutor.seen_rubric_systems` was added because the closing rubric
+  call carried the hard rules in fact but in no test.
+  Dependency audit: one advisory, PYSEC-2026-1845 on pytest 8.4.2 (dev only),
+  fixed in 9.0.3, deferred because pytest 9.1.1 makes this suite segfault
+  intermittently (native teardown around PyO3/pdfium is the suspect). Do not
+  re-attempt that upgrade without investigating the segfault first. `cargo
+  audit` is still unwired.
+- 9.4 is the remaining backend milestone; 9.3 and 9.5 are the frontend's.
+  Carried forward: the redemption limiter is in-memory and per-process, so a
+  multi-process deployment multiplies the allowance by the worker count.
 
 Recorded working-assessment responses live at
 `apps/api/tests/recorded/working-assessment/`, one JSON per document sha256

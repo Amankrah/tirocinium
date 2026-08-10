@@ -44,9 +44,21 @@ professor's submission review), 8.2 landed early during 5.5, 8.3 (course
 reporting, decision 0048), 8.4 (the understanding unfold and the personal
 history, decision 0049), and 8.5 (observability, decision 0050) are done, so
 the whole Phase 8 backend is complete and only the frontend's journeys five and
-six remain on its gate. Phase 9 has begun: 9.1 (load testing, decision 0051) is
-done, 9.2 and 9.4 are the remaining backend milestones, and 9.3 and 9.5 are the
-frontend's.
+six remain on its gate. Phase 9 has begun: 9.1 (load testing, decision 0051) and
+9.2 (the security pass, decision 0052) are done, 9.4 is the remaining backend
+milestone, and 9.3 and 9.5 are the frontend's.
+
+Untrusted text never goes into a prompt by hand (milestone 9.2, decision 0052).
+`app/prompt_safety.py` is the only way: `new_fence()` once per assembled
+document, then `fence.wrap(text)` around every block the platform did not write.
+The fence markers carry a random per-document nonce because the previous fixed
+markers were forgeable: a page that wrote `content>>>` closed the fence and
+escaped into the document's own voice, which the red team found and this fixed.
+Recorded-response seams key on `document_key(document)`, which canonicalises the
+nonce out, so production keeps a fresh fence on every assembly while replays stay
+deterministic; a new model seam that hashes the raw document will never match a
+recording. Every prompt that reads untrusted text states the hostile-text rule in
+its own words, and a test enumerates them, so a new prompt that forgets fails.
 
 Observability (milestone 8.5, decision 0050) lives in `app/telemetry.py` and
 nowhere else: JSON logs (one object per line, trace and span id attached, extra
