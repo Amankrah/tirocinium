@@ -137,7 +137,7 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 419 tests (25 data layer, 16 case studies/concepts/courses,
+Python suite, 423 tests (25 data layer, 4 load (9.1), 16 case studies/concepts/courses,
 16 reports (8.3), 36 unfold (8.4: 18 stepper, 18 surface), and 22 telemetry
 (8.5), see the gate table,
 15 seats, 12 auth, 16 submissions (incl. 4 transcription-read),
@@ -763,6 +763,26 @@ Phase 8, in progress:
 - Phase 8's remaining gate items are the frontend's: Playwright journeys five
   and six. Still open from 8.4: frontend guide 4.2's (started, submitted) span
   has no `started_at`, so the history view cannot show engaged time yet.
+
+Phase 9, in progress:
+
+- 9.1 (done): load against the guide's p95 budgets (decision 0051).
+  `app/test_load.py` drives the real ASGI app concurrently, sixteen redeemed
+  seats through the practice reads and the write path, against the realistic
+  fixture shard, and asserts reads p95 under 150 ms and writes under 400 ms with
+  a separate test that reads stay inside budget while every seat writes at once
+  (the single-writer queue's most load-sensitive claim). Current margins are
+  wide: reads ~28 ms, writes ~36 ms, reads-under-write-load ~59 ms, printed on
+  every run. The gate asserts every response is 2xx and that the expected call
+  count was made, because a 404 is fast and a run full of them would report a
+  flattering p95 while measuring nothing; keep that assertion when editing the
+  workload. Building the world trips the redemption rate limiter (10/IP/hour),
+  so the harness redeems each seat from its own address rather than disabling
+  the control.
+- 9.2 and 9.4 are the remaining backend milestones; 9.3 and 9.5 are the
+  frontend's. Carried into 9.2: the redemption limiter is in-memory and
+  per-process, and its own note says a multi-process deployment may need it
+  behind Redis.
 
 Recorded working-assessment responses live at
 `apps/api/tests/recorded/working-assessment/`, one JSON per document sha256

@@ -44,7 +44,9 @@ professor's submission review), 8.2 landed early during 5.5, 8.3 (course
 reporting, decision 0048), 8.4 (the understanding unfold and the personal
 history, decision 0049), and 8.5 (observability, decision 0050) are done, so
 the whole Phase 8 backend is complete and only the frontend's journeys five and
-six remain on its gate.
+six remain on its gate. Phase 9 has begun: 9.1 (load testing, decision 0051) is
+done, 9.2 and 9.4 are the remaining backend milestones, and 9.3 and 9.5 are the
+frontend's.
 
 Observability (milestone 8.5, decision 0050) lives in `app/telemetry.py` and
 nowhere else: JSON logs (one object per line, trace and span id attached, extra
