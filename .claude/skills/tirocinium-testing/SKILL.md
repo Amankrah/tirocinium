@@ -811,10 +811,22 @@ Phase 9, in progress:
   Measured rates on the full suite: pyo3 0.23 five crashes in fifty runs, pyo3
   0.29 five in twelve, which is why the pyo3 upgrade (and with it the pytest
   one, whose earlier failure was this same crash) is not landed. It does not
-  reproduce running the newer suites alone, only across the whole suite. Next
-  step is a native backtrace with `core_pattern` set to a plain file, since
-  apport intercepts cores on this host. Never conclude a gate is green, or red,
-  from one run.
+  reproduce running the newer suites alone, only across the whole suite.
+  Chased to a native backtrace (decision 0056): the faulting frame is CPython's
+  own `gc_collect_main`, with no third-party native frame on the stack, on a
+  python-build-standalone Clang PGO + thin-LTO interpreter. Also ruled out:
+  `PYTHONMALLOC=debug` reports no corrupted block; 3.12.11 (3 in 15) and 3.13.12
+  (1 in 14) crash too, so a newer Python is not a remedy; `gc.freeze()` does not
+  help; and two standalone harnesses, one with no project code and one
+  exercising every native module including ours, fail to reproduce in 12 and 14
+  runs, so the trigger needs the real suite's scale. Leading hypothesis is an
+  optimisation-sensitive interpreter problem (cf. pydantic issue 7181, which
+  vanished on an `-O0` CPython), unproven; the decisive experiment left is a
+  non-PGO/LTO CPython 3.12. To get a backtrace, loop
+  `gdb -batch -ex run -ex "bt 40" --args .venv/bin/python -m pytest -q`; apport
+  intercepts cores on this host, so gdb is the route, not core files.
+  Never conclude a gate is green, or red, from one run, and treat a signal-11
+  exit as a distinct outcome from a test failure.
 - 9.4 (done): the scheduled backup drill with alerting (decision 0053).
   `.github/workflows/backup-drill.yml` runs daily (05:20 UTC, plus manual
   dispatch): the restore drill, then a snapshot-and-verify loop against real
