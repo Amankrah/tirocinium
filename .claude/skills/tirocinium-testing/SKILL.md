@@ -80,12 +80,12 @@ lazy-loaded pen pad (a pointer canvas exporting each page to a PNG that joins th
 same page list and orchestration, so mode C reduces to mode A). Vitest covers the
 pad's surface contract and the mode switch; the mode-C journey drives the pad end
 to end, seed-gated. Phase 6.5 is complete.
-The Phase 7 backend is complete (7.1 to 7.3; 7.4, the conversation module, is
-the frontend's): context assembly, the transport-agnostic turn engine behind
-streaming speech seams with Deepgram Flux and Cartesia Sonic adapters, the
-WebSocket surface with its per-course concurrency cap, and the closing rubric
-that becomes defence evidence. All four gate items are green, the latency one
-thinly so (782 ms p95 against 800).
+Phase 7 is complete: the backend (7.1 to 7.3) is context assembly, the
+transport-agnostic turn engine behind streaming speech seams with Deepgram Flux
+and Cartesia Sonic adapters, the WebSocket surface with its per-course
+concurrency cap, and the closing rubric that becomes defence evidence, with all
+four gate items green and the latency one thinly so (782 ms p95 against 800);
+7.4 (web, decision 0055) is the conversation module, built.
 The Phase 3 frontend half
 (3.5) is in
 progress: the upload flow (capture, pre-checks, orchestration, SSE processing)
@@ -198,14 +198,21 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (225 Vitest tests: the token contract with its computed-contrast
-assertion, the primitives, the API clients, the upload flow's pre-checks,
-orchestration controller, SSE processing model, and transcription preview, and
-the PDF import upload and controller), plus lint, typecheck, and
+Web suite (358 Vitest tests across 50 files: the token contract with its
+computed-contrast assertion, the primitives, the API clients, the upload flow's
+pre-checks, orchestration controller, SSE processing model, and transcription
+preview, the PDF import upload and controller, the defence conversation's
+protocol, state reducer, PCM arithmetic, playback queue, and surface, and the
+Phase 8 surfaces: the review queue and its keyboard model, the submission review
+with its region geometry, the four reports, and the unfold). `vitest.setup.ts`
+raises Testing Library's async budget to 5 s; read its comment before lowering
+it. Plus lint, typecheck, and
 build, from `apps/web` (typecheck needs a build first on a fresh checkout,
 decision 0005). The Playwright journeys run separately (`pnpm test:e2e`, needs
-`playwright install chromium` once); journeys one to three are skip-gated on a
-seeded backend:
+`playwright install chromium` once, and a run of it overwrites `.next` with a
+dev build, so rebuild before `pnpm lighthouse`); journeys one to four and the
+defence journey are skip-gated on a seeded backend, and 22 unseeded tests
+(landing, sign-in, seat entry, session guards) pass on a bare checkout:
 
     cd apps/web
     pnpm test
@@ -373,12 +380,18 @@ Phase 3, in progress:
   on processed it renders the recognized markdown beside the thumbnails with
   low-confidence region spans surfaced, lazy-loaded via next/dynamic so
   react-markdown and KaTeX stay out of the route's initial JS (holds at 112 kB),
-  and journey two asserts it. The one thing left in 3.5 is CI enforcement: the
-  whole Phase 2 to 3 Playwright/Lighthouse/axe gate is still not wired into the
-  `web` job (which runs only lint, test, build, typecheck). Lighthouse is ready
-  to land green (decision 0022 made LCP a warning, the other three budgets stay
-  blocking and pass); the remaining `ci.yml` edit is a joint one with the backend
-  (handoffs in docs/handoffs/).
+  and journey two asserts it. CI enforcement landed after 7.4 as two jobs, parts
+  A and C of `docs/handoffs/e2e-and-lighthouse-ci.md`: `web-e2e` installs
+  Chromium and runs `pnpm test:e2e` (22 entry-surface tests on desktop and
+  mobile with their axe WCAG 2.2 AA checks, uploading the Playwright report on
+  failure), and `web-lighthouse` builds and runs `pnpm lighthouse`
+  (accessibility, total blocking time, and script size blocking and green; LCP a
+  warning by decision 0022, back to blocking when the particle hero ships).
+  They are separate jobs because Playwright starts `next dev`, which replaces
+  the production build Lighthouse needs, so sharing a job would mean building
+  twice. What is still open in 3.5 is part B, the backend's: without a committed
+  E2E seeder every seeded journey (one to four, mode C, and the defence) skips
+  in CI naming what it wants, so those paths are written but unenforced.
 
 Phase 4, in progress:
 
@@ -617,7 +630,7 @@ Phase 6, backend complete (decisions 0040, 0041):
   expandable, the calm queue, the distribution view) and the gate's UI test
   ("every rendered label opens its trail") are the frontend's.
 
-Phase 7, backend complete (decisions 0043, 0044):
+Phase 7, complete (decisions 0043, 0044, 0045, 0055):
 
 - 7.1 (done): session context assembly. Exactly the three sources guide 6.5
   names (the variant, the professor's reference solution, the student's own
@@ -667,6 +680,33 @@ Phase 7, backend complete (decisions 0043, 0044):
   refused synthesis connection) and assert the session continues, says so once
   (`speech_down`, `audio_down`), keeps the reply whose audio died as captions and
   as a turn, and hands the tutor the whole conversation across the mode switch.
+- 7.4 (web, done): the conversation module (decision 0055). Its own route
+  (`/course/{caseStudyId}/defence/{submissionId}`), a Server Component holding
+  the invitation and the no-audio-is-kept line, with the REST open running on
+  the student's click rather than on page load, because opening consumes one of
+  the course's capped live conversations. The session arrives through
+  next/dynamic, so the route is 115 kB and the audio code is in nobody's initial
+  JS. Logic is pure and injected-seam tested like the upload controller:
+  `lib/defence/protocol.ts` (frame parsing, total: an unknown or malformed frame
+  is ignored, never thrown on), `session.ts` (the reducer, where a committed
+  `turn` supersedes the partial, an interrupted reply keeps the fragment that
+  was spoken, and a refused microphone lands in exactly the `speech_down`
+  state), `pcm.ts` and `playback.ts` (conversion, 80 ms chunking, ordered
+  playback and flush-on-barge-in). 58 Vitest tests cover those plus the surface
+  (microphone opened on `ready`, audio streamed as binary frames, captions under
+  `audio_down`, the typed path present from the first frame, a clean close
+  distinguished from a dropped socket, the verdict naming the concept with its
+  fresh variant, teardown releasing the socket and microphone) and the two
+  upload-panel tests that the defence is offered only once the pages are read.
+  `e2e/defence.spec.ts` drives the typed path and the keyboard-only route with
+  axe, seed-gated on `E2E_DEFENCE_SUBMISSION_ID`.
+  Two things are flagged to the backend rather than worked around
+  (`docs/handoffs/defence-surface-gaps.md`): decision 0045's query-parameter
+  token forces the seat credential into client memory, undoing decision 0011's
+  XSS property (a single-use conversation-scoped ticket would restore it), and
+  no seat-readable endpoint returns a named variant's body, so the surface shows
+  the student's transcription and not the problem, which 8.4's unfold will hit
+  too.
 
 Phase 8, in progress:
 
@@ -761,9 +801,48 @@ Phase 8, in progress:
   wheel after any dependency change (the command is above). (An earlier note
   here blamed faulthandler dumps on piping pytest to `tail`. That was wrong; see
   the segfault entry under 9.2.)
-- Phase 8's remaining gate items are the frontend's: Playwright journeys five
-  and six. Still open from 8.4: frontend guide 4.2's (started, submitted) span
-  has no `started_at`, so the history view cannot show engaged time yet.
+- 8.1 (web, done): the review queue and the submission detail (decision 0056).
+  The queue is a Server Component around a client island carrying the j/k model,
+  the status filter, and cursor paging; rows are ordinary links, so it works by
+  pointer, keyboard, or neither, and the order is the backend's (newest first,
+  never re-sorted by volume or grade). The detail puts the page beside its
+  reading with the regions boxed, hover and focus linking both directions, low
+  confidence marked in image and text and never hidden, and the grade form,
+  which is the 6.2 endpoint and therefore evidence. The load-bearing decision:
+  boxes are drawn on the grayscale rendition, not the original scan, because
+  preprocessing deskews and downscales before the model reads and a bbox
+  normalised against the rendition would sit visibly wrong on the original; the
+  original is one keystroke away, unboxed, and the surface says which is which.
+  Note the two bbox conventions do not match: a region is `[x0, y0, x1, y1]`
+  (the handwriting-transcription prompt) while a figure is `[x, y, w, h]`
+  (decision 0032), so `regionRect` and the import surface's overlay cannot share
+  a helper. Watch this: `app/transcription/test_pipeline.py` and
+  `test_emission.py` build regions like `(0, 0.5, 1, 0.5)`, which is degenerate
+  under the documented convention, so the fixtures and the prompt disagree and
+  the prompt was followed. 27 Vitest tests; `e2e/journey-five.spec.ts` drives
+  the gate's journey with axe, seed-gated.
+- 8.2 (web, completed): the flagged queue gained the j/k model guide 4.4 makes a
+  launch requirement (j/k move, Enter opens the comparison, a promotes, e opens
+  a closed card into its editor, and the keys are inert inside a textarea). 5
+  new tests; `e2e/journey-six.spec.ts` triages the queue without a mouse.
+- 8.3 (web, done): the four reports (decision 0057), Server Components start to
+  finish, so the route ships no client JavaScript. Every null renders as "Not
+  enough yet" through one helper, and unpriced usage shows real counts beside
+  "Not priced": a test asserts the words appear and that no zero does, which is
+  the whole point of decision 0048's null rule. The confidence distribution is
+  ten hairline bars from the token layer, deliberately not a charting
+  dependency. 15 tests.
+- 8.4 (web, done): the unfold and the personal history (decision 0058). A 403
+  from the solution read is a state, not a failure, so the surface names both
+  ways in and offers giving up as a real button through a plain server-action
+  form; reveals carry an absolute `through_step` so a retry cannot rewind. A
+  step goes to the tutor as an unsent draft in the answer box, never
+  auto-submitted, and the link appears only when the seat has a processed
+  submission for that variant (the join lives in history, the one seat-readable
+  place with both ids). History pages by cursor link, never infinite scroll. 15
+  tests.
+- Still open from 8.4: frontend guide 4.2's (started, submitted) span has no
+  `started_at`, so the history view cannot show engaged time yet.
 
 Phase 9, in progress:
 
@@ -819,12 +898,20 @@ Phase 9, in progress:
   (1 in 14) crash too, so a newer Python is not a remedy; `gc.freeze()` does not
   help; and two standalone harnesses, one with no project code and one
   exercising every native module including ours, fail to reproduce in 12 and 14
-  runs, so the trigger needs the real suite's scale. Leading hypothesis is an
-  optimisation-sensitive interpreter problem (cf. pydantic issue 7181, which
-  vanished on an `-O0` CPython), unproven; the decisive experiment left is a
-  non-PGO/LTO CPython 3.12. To get a backtrace, loop
+  runs, so the trigger needs the real suite's scale. Two hypotheses are now
+  refuted (decision 0057). It is **not** the PGO/LTO interpreter build: a
+  CPython 3.12.13 built here with `--disable-optimizations --without-lto` still
+  crashes. And **disabling the GC does not fix it**, despite every backtrace
+  landing in the collector.
+  Count crashes by exit status (139), never by grepping for `Fatal Python
+  error`: a process can take SIGSEGV without faulthandler printing, so the
+  rates quoted in 0054 and 0056 are lower bounds, and the pyo3 0.23-vs-0.29
+  comparison behind rejecting that upgrade needs re-measuring before it is
+  treated as settled. To get a backtrace, loop
   `gdb -batch -ex run -ex "bt 40" --args .venv/bin/python -m pytest -q`; apport
-  intercepts cores on this host, so gdb is the route, not core files.
+  intercepts cores on this host, so gdb is the route, not core files. Next step
+  is bisection by native extension (hiredis, websockets.speedups, Pillow), each
+  measured over ~30 runs on exit status.
   Never conclude a gate is green, or red, from one run, and treat a signal-11
   exit as a distinct outcome from a test failure.
 - 9.4 (done): the scheduled backup drill with alerting (decision 0053).
