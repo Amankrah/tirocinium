@@ -104,7 +104,7 @@ export function PenPad({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerLeave={onPointerUp}
-        className="aspect-[1000/1414] w-full max-w-sm touch-none rounded-md border border-rule-line bg-paper"
+        className="aspect-[1000/1414] w-full max-w-sm touch-none rounded-md border border-field-border bg-paper"
       />
       <div className="flex gap-3">
         <Button onClick={addPage} disabled={!hasInk}>

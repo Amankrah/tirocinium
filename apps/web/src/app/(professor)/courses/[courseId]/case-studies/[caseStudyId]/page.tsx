@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { ProblemBody } from "@/components/reading/problem-body";
 import { getCaseStudy } from "@/lib/api/case-studies";
+import { resolveFigures } from "@/lib/api/figures";
 import { getParamSpec } from "@/lib/api/params";
 import { requireProfessor } from "@/lib/professor-session";
 import { ProfessorShell } from "../../../../professor-shell";
@@ -38,7 +39,14 @@ export default async function CaseStudyPreviewPage({
   const caseStudy = await getCaseStudy(token, cid, csid);
   if (!caseStudy) notFound();
   const published = caseStudy.status === "published";
-  const spec = await getParamSpec(token, cid, csid);
+  // A draft straight out of an import carries its figures as fig:// tokens, and
+  // this is the surface where the professor judges whether the platform kept
+  // their diagram (guide 4.3), so the pixels are resolved before it renders
+  // rather than left to the unresolved branch (decision 0066).
+  const [spec, figures] = await Promise.all([
+    getParamSpec(token, cid, csid),
+    resolveFigures(token, cid, caseStudy.body),
+  ]);
 
   return (
     <ProfessorShell email={email} signOut={signOut}>
@@ -59,7 +67,7 @@ export default async function CaseStudyPreviewPage({
           </span>
           <h1 className="font-display text-4xl">{caseStudy.title}</h1>
         </header>
-        <ProblemBody body={caseStudy.body} />
+        <ProblemBody body={caseStudy.body} figures={figures} />
         <ParamPanel
           courseId={cid}
           caseStudyId={csid}

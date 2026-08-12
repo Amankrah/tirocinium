@@ -25,6 +25,8 @@ const FigureMarkdown = dynamic(() =>
 
 const LOW_CONFIDENCE = 0.6;
 const s = strings.confirm;
+// Ties the queue's focus stop to the line that already lists its keys.
+const KEYS_ID = "confirm-queue-keys";
 
 type Item = Schemas["ImportItemOut"];
 type Page = Schemas["ImportPageOut"];
@@ -233,9 +235,15 @@ export function ConfirmReview({
   return (
     <div
       ref={rootRef}
-      tabIndex={-1}
+      // A tab stop as well as a programmatic focus target (decision 0067): the
+      // surface still takes focus on mount, and a professor who tabs away can
+      // now tab back to the queue instead of having to click a card.
+      tabIndex={0}
       onKeyDown={onKeyDown}
-      className="flex flex-col gap-6 outline-none"
+      role="group"
+      aria-label={s.queueLabel}
+      aria-describedby={KEYS_ID}
+      className="flex flex-col gap-6 rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-ink" role="status">
@@ -243,7 +251,9 @@ export function ConfirmReview({
         </p>
         <p className="max-w-prose text-sm text-ink-muted">{s.note}</p>
       </div>
-      <p className="text-xs text-ink-muted">{s.keys}</p>
+      <p id={KEYS_ID} className="text-xs text-ink-muted">
+        {s.keys}
+      </p>
 
       {error ? (
         <p role="alert" className="text-sm text-flag-amber">
@@ -396,7 +406,7 @@ export function ConfirmReview({
                             }))
                           }
                           rows={8}
-                          className="rounded-md border border-rule-line bg-paper px-3 py-2 font-mono text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                          className="rounded-md border border-field-border bg-paper px-3 py-2 font-mono text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                         />
                       </label>
                       <label className="flex flex-col gap-1">
@@ -415,7 +425,7 @@ export function ConfirmReview({
                             }))
                           }
                           rows={8}
-                          className="rounded-md border border-rule-line bg-paper px-3 py-2 font-mono text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                          className="rounded-md border border-field-border bg-paper px-3 py-2 font-mono text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                         />
                       </label>
                     </>
@@ -454,7 +464,7 @@ export function ConfirmReview({
                 {isConfirmed ? (
                   <Link
                     href={`/courses/${courseId}/case-studies/${item.case_study_id}`}
-                    className="text-sm text-accent underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                   >
                     {s.openDraft}
                   </Link>

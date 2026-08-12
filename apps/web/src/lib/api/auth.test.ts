@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { fetchProfessor, professorLogin } from "./auth";
+import { fetchProfessor, professorLogin, professorSignup } from "./auth";
 
 // Backend guide 7.1: login's failure is one generic outcome (401, unknown
 // email and wrong password indistinguishable), and to the professor a backend
@@ -32,6 +32,49 @@ describe("professorLogin", () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("down")));
     expect(await professorLogin("prof@uni.edu", "secretpass1")).toEqual({
       ok: false,
+    });
+  });
+});
+
+describe("professorSignup", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("returns the auth payload on a 201", async () => {
+    const auth = {
+      token: "jwt.abc",
+      professor: { id: 1, email: "prof@uni.edu", role: "professor" },
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: true, status: 201, json: async () => auth }),
+    );
+    expect(await professorSignup("prof@uni.edu", "secretpass1")).toEqual({
+      ok: true,
+      auth,
+    });
+  });
+
+  it("surfaces a duplicate email as exists", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 409 }));
+    expect(await professorSignup("prof@uni.edu", "secretpass1")).toEqual({
+      ok: false,
+      reason: "exists",
+    });
+  });
+
+  it("surfaces a validation refusal as invalid", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 422 }));
+    expect(await professorSignup("not-an-email", "short")).toEqual({
+      ok: false,
+      reason: "invalid",
+    });
+  });
+
+  it("treats a backend outage as unavailable", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("down")));
+    expect(await professorSignup("prof@uni.edu", "secretpass1")).toEqual({
+      ok: false,
+      reason: "unavailable",
     });
   });
 });

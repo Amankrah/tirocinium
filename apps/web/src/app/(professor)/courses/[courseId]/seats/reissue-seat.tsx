@@ -59,7 +59,7 @@ export function ReissueSeat({
             <button
               type="button"
               onClick={copy}
-              className="text-xs text-accent underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="text-xs text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               {copied ? s.copied : s.copy}
             </button>

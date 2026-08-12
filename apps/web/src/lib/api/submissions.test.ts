@@ -31,7 +31,23 @@ describe("createSubmission", () => {
           authorization: "Bearer seat_abc",
           "idempotency-key": "key-1",
         }),
-        body: JSON.stringify({ pages: PAGES }),
+        // No attempt cited, which the backend reads as "nobody recorded the
+        // start" rather than as a zero span (decision 0058).
+        body: JSON.stringify({ pages: PAGES, attempt_id: null }),
+      }),
+    );
+  });
+
+  it("cites the attempt when the student started one", async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
+    vi.stubGlobal("fetch", fetchSpy);
+
+    await createSubmission("seat_abc", 9, PAGES, "key-1", 77);
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: JSON.stringify({ pages: PAGES, attempt_id: 77 }),
       }),
     );
   });

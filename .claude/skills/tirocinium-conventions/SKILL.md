@@ -6,7 +6,13 @@ description: Tirocinium coding standards, API conventions, data-layer rules, and
 # Tirocinium conventions
 
 The four documents in `docs/` are the specification and outrank this skill; this
-skill is the operational digest that survives context windows. Last updated for
+skill is the operational digest that survives context windows. Last updated
+after milestone 3.5 part B (decision 0064: the committed E2E seeder, the `e2e`
+CI job, and the browser-tier seam substitution behind `TIRO_E2E_RECORDED_DIR`;
+the seeded Playwright journeys run now instead of skipping, which is how the
+content-type-unbound presign and the redemption-ceiling collision were found.
+See the two new paragraphs at the end of the model-call rules, and the presigned
+upload note under API conventions). Before that,
 Phase 8 (data layer, auth, seats, and the authoring backend done; the
 handwritten solution upload path live; scan preprocessing implemented in Rust;
 handwriting transcription running in an off-request-path worker with a recorded-
@@ -446,7 +452,14 @@ row rather than duplicating it; naturally idempotent state transitions
 storage via presigned URLs with server-chosen keys under a per-submission
 prefix (scans bucket, `app/storage.py`); the API never receives the bytes,
 limits are enforced on the declared manifest (backend guide section 4 Stage 1),
-and a seat reads only its own submissions (another seat's row is a 404).
+and a seat reads only its own submissions (another seat's row is a 404). A
+presigned PUT is signed over the declared `ContentType` as well as the key
+(decision 0064), and this is not optional politeness: a browser sends
+`Content-Type` on every PUT, and a URL signed without it is refused outright,
+which is a 403 that reads like a permissions problem and is not. It also pins
+the upload to the type the manifest declared and the limits were checked
+against. The same applies to the import PDF's URL. This was invisible until the
+seeded journeys first ran a real browser against real MinIO.
 
 Heavy work runs off the request path in an arq worker (`app/worker.py`,
 milestone 3.3, decision 0018), never inside a request handler. The API only
@@ -633,6 +646,82 @@ built from the token layer rather than a dependency: the design language spends
 its one visual flourish on the particle field, and a library would ship a
 palette that is not ours.
 
+The particle field (milestone 9.5, decision 0063) is the product's one ambient
+animation and lives in exactly two places, the landing and course home heroes.
+Its rules are guide 3.3's and none of them bends: it is reached only through
+`next/dynamic` with `ssr: false` so content never waits for it; the per-frame
+cost is two uniforms and one `drawArrays`, so nothing may add a JavaScript loop
+over particles; reduced motion, a missing WebGL2 context, and a failed compile
+all render the same SVG still, which is drawn from the same `shape.ts` functions
+that feed the GPU so the two can never drift; and it pauses off-screen and on a
+hidden tab rather than idling. The canvas is `aria-hidden`, `pointer-events:
+none`, and behind the content, and a Playwright test asserts the landing LCP
+element is the wordmark rather than the canvas. Guide 7 gives the shader an
+owner: do not edit `field.ts`'s GLSL casually, and never add a second ambient
+animation anywhere in the product.
+
+Figures resolve on the server, and they resolve everywhere (decision 0066).
+`lib/api/figures.ts` is the one door: `figureIdsIn` scans a body for `fig://{id}`
+and `resolveFigures` turns each distinct id into pixels through
+`GET /courses/{id}/figures/{figure_id}`, returning the map `ProblemBody` and
+`ClientProblemBody` take. It carries a token, so it never runs in a client
+island: an action that hands a body to the client (the practice swap, the
+variant read) hands back the figures with it. Rendering is `next/image` with a
+per-figure custom loader returning the backend's own URLs, never the default
+loader, because `/_next/image` re-encodes and a re-encode of the professor's
+diagram is exactly what constraint 2 forbids; the loader answers `image_url_2x`
+above the intrinsic width, which is guide 2's high-density rule met with the
+rendition ingestion already made. Next warns in development that the loader
+"does not implement width": that is expected, and `unoptimized` is not the fix,
+because it drops the srcSet and with it the 2x rendition. Two boundary traps
+came out of building it and both are cheap to repeat: a function prop cannot
+cross into a Server Component, so `FigureImage` is a client component; and a
+*value* exported from a `"use client"` module reaches a Server Component as a
+reference rather than the value, which is why `FIG_PREFIX` lives in the plain
+`figure.ts` and why the server renderer was silently sanitising every `fig://`
+URL away when it did not. A figure that fails to resolve stays out of the map
+and renders the amber marker, because a figure is never silently omitted.
+
+The unfold typesets its steps too (decision 0068), which closed the last surface
+rendering a professor's markdown as source. The pattern there is the practice
+loop's and is worth copying whenever a client island shows server-owned prose:
+what is already on the page is rendered by the Server Component and passed in as
+nodes, so it needs no JavaScript to read and keeps the markdown engine out of the
+route, while anything revealed afterwards goes through the lazy client twin. Two
+rules hold either way. What travels onward is always the source the server sent
+and never the rendered result, which is why a step sent into the conversation
+carries its own markdown. And typesetting is a rendering of the professor's text,
+never a rewriting of it: the deterministic split stays the backend's, and nothing
+on this side re-segments or renumbers.
+
+A keyboard queue has to be reachable by keyboard (decision 0067). All three j/k
+surfaces bound their keys to a `tabIndex={-1}` wrapper, which is a handler with
+no route into it; the flagged queue now carries the keys and `tabIndex={0}` on
+the `<ol>` itself (everything focusable is inside it), while the submission
+queue and the confirmation surface keep the keys on the wrapper, because their
+filters sit outside the list and must keep answering j and k, and only their
+tabindex changes. Every such focus stop gets a name and a description
+(`aria-label`, `aria-describedby` pointing at the line that already lists the
+keys) and a visible focus ring. The testing lesson generalises: a keyboard test
+that dispatches the event itself has assumed away the only part that was broken,
+so assert that the element the keys are bound to can actually hold focus.
+
+Colour is audited, not asserted (milestone 9.3, decision 0062). Every pair the
+product renders is checked in both themes by `tokens.test.ts` at the threshold
+its role demands: 4.5:1 for anything used as text, since every semantic colour
+appears at `text-sm` or `text-xs` somewhere and the large-text allowance never
+applies, and 3:1 for a form field's boundary and the focus ring under WCAG 2.2
+1.4.11. Two token rules came out of it and hold. The accent as *text* is
+`--color-accent-text`, not `--color-accent`: the fill is untouched in both
+themes (so guide 3.2's "the accent stays" is literally true and on-accent still
+reads 5.36:1), while text lightens in dark where the accent alone reaches only
+3.28:1. And a field's boundary uses `--color-field-border`, never the hairline,
+which at 1.22:1 is structure and cannot identify a component. When adding a
+colour, add it to that test in both themes first; when adding a dark theme
+value, remember that a token which does not invert does not stay neutral, it
+inverts its contrast (rule-line was rendering at 14.40:1 on the dark ground
+until this audit).
+
 ## Model-call rules
 
 Every prompt shipped to a model lives versioned in `apps/api/prompts/{name}/
@@ -687,6 +776,36 @@ recorded-mock suite never inherits real keys or a broker URL (`conftest.py` sets
 the flag). A real environment variable still overrides the file (`override=False`),
 so shells and deployments are unaffected. `.env.example` documents the names;
 never commit `.env`, and keys stay credentials.
+
+The browser tier substitutes its seams one level out (milestone 3.5 part B,
+decision 0064), because a real uvicorn and a real arq worker build their seams
+from module-level factories and cannot be injected the way pytest injects.
+`app/e2e.py` is the only place that may answer with a double in a live process,
+and it is gated on `TIRO_E2E_RECORDED_DIR`: unset, which is every deployment and
+every developer shell, each factory returns None and the live seam stands; set
+to a directory that is not there, it raises rather than falling through, because
+a journey that quietly reached a provider would be both a cost and a lie about
+what was verified. Both directions are pinned by test. What is recorded and what
+is stubbed is deliberate: the transcriber and the tutor are recorded, because a
+journey asserts on the reading the student sees and on the tutor's reply, and
+they key exactly as the live seams key; the embedder and the working assessor
+are stubs, because no journey asserts on a vector or a rubric score and a
+hash-keyed asset for either would couple the seed to the pipeline's internal
+document assembly with nothing standing behind it. The transcriber has one
+stated fallback for mode C, whose pen strokes cannot be recorded in advance, and
+it logs every time it fires so a drifted key elsewhere is visible. If you add a
+seam the journeys need, add it here and to `scripts/seed_e2e.py`'s recorded
+output together; a live process that silently reached a provider is the failure
+this module exists to prevent. And the scripted tutor obeys the hard rules like
+any other: a reply that revealed the answer would sit in the repository as an
+example of the one thing the tutor must never do, so a test asserts it does not.
+
+The redemption ceiling is configuration (`TIRO_SEAT_REDEEM_MAX_ATTEMPTS`,
+`RateLimiter.from_env`), because every seeded journey redeems from one address
+and a real run passes ten. It can only be raised: a value below backend guide
+7.1's ten is refused at startup, so a control that became configurable did not
+become one an operator can switch off. The default is untouched and is what
+every deployment gets.
 
 ## When the guides are silent
 

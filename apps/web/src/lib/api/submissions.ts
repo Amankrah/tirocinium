@@ -20,8 +20,9 @@ export async function createSubmission(
   variantId: number,
   pages: Schemas["PageIn"][],
   idempotencyKey: string,
+  attemptId: number | null = null,
 ): Promise<Schemas["SubmissionCreated"] | null> {
-  const body: Schemas["SubmissionIn"] = { pages };
+  const body: Schemas["SubmissionIn"] = { pages, attempt_id: attemptId };
   let response: Response;
   try {
     response = await fetch(

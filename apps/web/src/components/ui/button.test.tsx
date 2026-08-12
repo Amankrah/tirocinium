@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { Button } from "./button";
+import { Button, ButtonLink } from "./button";
 
 describe("Button", () => {
   it("renders a real button with its label", () => {
@@ -18,5 +18,15 @@ describe("Button", () => {
   it("passes type=submit through for form actions", () => {
     render(<Button type="submit">Enter course</Button>);
     expect(screen.getByRole("button").getAttribute("type")).toBe("submit");
+  });
+});
+
+describe("ButtonLink", () => {
+  it("is a link that shares the button look", () => {
+    render(<ButtonLink href="/enter">Enter course</ButtonLink>);
+    const link = screen.getByRole("link", { name: "Enter course" });
+    expect(link.tagName).toBe("A");
+    expect(link.getAttribute("href")).toBe("/enter");
+    expect(link.className).toContain("rounded-md");
   });
 });

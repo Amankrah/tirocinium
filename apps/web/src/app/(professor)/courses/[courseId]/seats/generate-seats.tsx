@@ -36,7 +36,7 @@ export function GenerateSeats({
             max={500}
             defaultValue={30}
             required
-            className="w-32 rounded-md border border-rule-line bg-paper px-4 py-3 text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="w-32 rounded-md border border-field-border bg-paper px-4 py-3 text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           />
         </label>
         <Button type="submit" disabled={pending}>
@@ -51,13 +51,13 @@ export function GenerateSeats({
             <div className="flex flex-wrap gap-4">
               <a
                 href={state.batch.csv_url}
-                className="text-sm text-accent underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               >
                 {s.csvLink}
               </a>
               <a
                 href={state.batch.pdf_url}
-                className="text-sm text-accent underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               >
                 {s.pdfLink}
               </a>

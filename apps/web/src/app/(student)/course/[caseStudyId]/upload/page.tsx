@@ -18,16 +18,21 @@ export default async function UploadPage({
   searchParams,
 }: {
   params: Promise<{ caseStudyId: string }>;
-  searchParams: Promise<{ variant?: string }>;
+  searchParams: Promise<{ variant?: string; attempt?: string }>;
 }) {
   const { seat } = await requireSeat();
   const { caseStudyId } = await params;
-  const { variant } = await searchParams;
+  const { variant, attempt } = await searchParams;
 
   const caseId = Number(caseStudyId);
   const variantId = Number(variant);
   if (!Number.isInteger(caseId) || caseId <= 0) notFound();
   if (!Number.isInteger(variantId) || variantId <= 0) notFound();
+  // A missing or malformed attempt is simply no attempt: a stale id from a
+  // reloaded page costs the span, never the submission (decision 0058).
+  const attemptId = Number(attempt);
+  const attemptToCite =
+    Number.isInteger(attemptId) && attemptId > 0 ? attemptId : null;
 
   return (
     <StudentShell seatNumber={seat.seat_number}>
@@ -41,6 +46,8 @@ export default async function UploadPage({
         <h1 className="font-display text-4xl">{strings.upload.title}</h1>
         <UploadPanel
           variantId={variantId}
+          caseStudyId={caseId}
+          attemptId={attemptToCite}
           create={createSubmissionAction}
           complete={completeSubmissionAction}
         />

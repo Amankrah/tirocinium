@@ -7,6 +7,7 @@
 // PUT direct to storage; the authed create and complete come in as bound server
 // actions so the seat token never reaches here.
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,7 @@ export type CreateAction = (
   variantId: number,
   pages: Schemas["PageIn"][],
   idempotencyKey: string,
+  attemptId: number | null,
 ) => Promise<Schemas["SubmissionCreated"] | null>;
 export type CompleteAction = (submissionId: number) => Promise<boolean>;
 
@@ -81,6 +83,8 @@ function rejectionLine(r: Rejection): string {
 
 export function UploadPanel({
   variantId,
+  caseStudyId,
+  attemptId = null,
   create,
   complete,
   makeId = () => crypto.randomUUID(),
@@ -88,6 +92,11 @@ export function UploadPanel({
   fetchTranscription = getTranscriptionAction,
 }: {
   variantId: number;
+  // Only needed to link on to the defence once the work has been read.
+  caseStudyId: number;
+  // The attempt this submission cites, if the student started one (decision
+  // 0058). Carried through untouched: no time is computed here.
+  attemptId?: number | null;
   create: CreateAction;
   complete: CompleteAction;
   // Injectable so a test need not lean on crypto/URL specifics.
@@ -112,6 +121,7 @@ export function UploadPanel({
 
   const submitting = upload !== null && upload.phase !== "error";
   const locked = submitting;
+  const submissionId = upload?.submissionId ?? null;
 
   const addFiles = useCallback(
     async (files: FileList | File[]) => {
@@ -178,7 +188,7 @@ export function UploadPanel({
   const submit = async () => {
     if (pages.length === 0) return;
     const deps: UploadDeps = {
-      create: (manifest, key) => create(variantId, manifest, key),
+      create: (manifest, key) => create(variantId, manifest, key, attemptId),
       put: putPage,
       complete,
       newIdempotencyKey: makeId,
@@ -446,13 +456,23 @@ export function UploadPanel({
               thumbnails={pages.map((p) => p.previewUrl)}
             />
           ) : null}
-          {processing.done || processing.error ? (
-            <div>
+          <div className="flex flex-wrap gap-3">
+            {/* The defence is offered once the work has been read, and never
+                gates the submission (guide 4.2): the scan stands on its own. */}
+            {processing.terminalStatus === "processed" && submissionId !== null ? (
+              <Link
+                href={`/course/${caseStudyId}/defence/${submissionId}`}
+                className="inline-flex items-center justify-center rounded-md bg-accent px-4 py-2 font-medium text-on-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              >
+                {s.defend}
+              </Link>
+            ) : null}
+            {processing.done || processing.error ? (
               <Button variant="quiet" onClick={reset}>
                 {s.startOver}
               </Button>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
         </section>
       ) : null}
 

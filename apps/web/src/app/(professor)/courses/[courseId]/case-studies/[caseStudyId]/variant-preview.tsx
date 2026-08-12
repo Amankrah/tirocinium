@@ -10,6 +10,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 
+import type { FigureMap } from "@/components/reading/problem-body";
 import { Button } from "@/components/ui/button";
 import type { Schemas } from "@/lib/api/client";
 import { strings } from "../../../../strings";
@@ -24,7 +25,7 @@ const POLL_MS = 3000;
 
 type Preview =
   | { seed: number; state: "pending" }
-  | { seed: number; state: "verified"; body: string }
+  | { seed: number; state: "verified"; body: string; figures: FigureMap }
   | { seed: number; state: "flagged"; variantId: number };
 
 type GenerateAction = (
@@ -41,7 +42,7 @@ type ListAction = (
 type GetAction = (
   courseId: number,
   variantId: number,
-) => Promise<Schemas["VariantDetail"] | null>;
+) => Promise<{ detail: Schemas["VariantDetail"]; figures: FigureMap } | null>;
 
 export function VariantPreview({
   courseId,
@@ -87,8 +88,15 @@ export function VariantPreview({
           continue;
         }
         if (item.verification === "verified" || item.verification === "manual") {
-          const detail = await get(courseId, item.id);
-          if (detail) resolved.set(item.seed, { seed: item.seed, state: "verified", body: detail.body });
+          const got = await get(courseId, item.id);
+          if (got) {
+            resolved.set(item.seed, {
+              seed: item.seed,
+              state: "verified",
+              body: got.detail.body,
+              figures: got.figures,
+            });
+          }
         } else if (item.verification === "flagged") {
           resolved.set(item.seed, { seed: item.seed, state: "flagged", variantId: item.id });
         }
@@ -106,7 +114,7 @@ export function VariantPreview({
         <div className="flex flex-wrap gap-3">
           <Link
             href={`/courses/${courseId}/case-studies/${caseStudyId}/review`}
-            className="inline-flex items-center text-sm text-accent underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="inline-flex items-center text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             {s.reviewLink}
           </Link>
@@ -141,7 +149,7 @@ export function VariantPreview({
                   {s.flagged}
                 </Link>
               ) : (
-                <ClientProblemBody body={preview.body} />
+                <ClientProblemBody body={preview.body} figures={preview.figures} />
               )}
             </li>
           ))}

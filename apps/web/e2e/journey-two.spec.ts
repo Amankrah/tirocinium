@@ -26,6 +26,12 @@ test.describe("journey two: upload a solution and see it read", () => {
   );
 
   test("a seat uploads a page and it processes to read", async ({ page }) => {
+    // The wait for processing below asks for 30 s, which is unreachable inside
+    // Playwright's own 30 s test budget: redeeming the seat, loading the upload
+    // surface, and running axe all spend from the same clock, so under parallel
+    // load the test died before the assertion it exists for could time out. The
+    // budget is the whole journey's, not the worker's.
+    test.setTimeout(120_000);
     await page.goto("/enter");
     await page.getByLabel("Course code").fill(seatCode!);
     await page.getByRole("button", { name: "Enter course" }).click();

@@ -3,11 +3,12 @@ import { notFound } from "next/navigation";
 
 import { ProblemBody } from "@/components/reading/problem-body";
 import { getCaseStudy } from "@/lib/api/case-studies";
+import { resolveFigures } from "@/lib/api/figures";
 import { getPracticeVariant } from "@/lib/api/practice";
 import { requireSeat } from "@/lib/seat-session";
 import { StudentShell } from "../../student-shell";
 import { strings } from "../../strings";
-import { getPracticeVariantAction } from "./actions";
+import { getPracticeVariantAction, startAttemptAction } from "./actions";
 import { PracticeProblem } from "./practice-problem";
 
 // The problem view (guide 4.1): the current pooled variant typeset in the reading
@@ -33,6 +34,10 @@ export default async function ProblemViewPage({
   const practice = await getPracticeVariant(token, seat.course_id, id, null);
   const body = practice?.body ?? caseStudy.body;
   const variantId = practice?.variant_id ?? null;
+  // Generation preserves the base's fig:// tokens by a fidelity check (decision
+  // 0038), so a variant body carries the professor's diagrams exactly as the
+  // base does and the seat sees the pixels either way (decision 0066).
+  const figures = await resolveFigures(token, seat.course_id, body);
 
   return (
     <StudentShell seatNumber={seat.seat_number}>
@@ -67,8 +72,9 @@ export default async function ProblemViewPage({
           caseStudyId={id}
           initialVariantId={variantId}
           swap={getPracticeVariantAction}
+          startAttempt={startAttemptAction}
         >
-          <ProblemBody body={body} />
+          <ProblemBody body={body} figures={figures} />
         </PracticeProblem>
       </article>
     </StudentShell>

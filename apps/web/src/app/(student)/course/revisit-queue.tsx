@@ -30,7 +30,7 @@ export function RevisitQueue({
             {concept.variant ? (
               <Link
                 href={`/course/${concept.variant.case_study_id}`}
-                className="text-sm text-accent underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               >
                 {s.practise}: {concept.variant.case_study_title}
               </Link>

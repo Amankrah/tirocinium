@@ -42,7 +42,7 @@ function toRows(spec: Schemas["ParamSpec"] | null): Row[] {
 }
 
 const field =
-  "rounded-md border border-rule-line bg-paper px-3 py-2 text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
+  "rounded-md border border-field-border bg-paper px-3 py-2 text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
 export function ParamPanel({
   courseId,

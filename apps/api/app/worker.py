@@ -23,6 +23,7 @@ from typing import Any, ClassVar
 from arq.connections import RedisSettings
 
 from app.db.shards import ShardManager
+from app.e2e import e2e_assessor, e2e_embedder, e2e_transcriber
 from app.events import RedisEventBus
 from app.imports.decoder import (
     AnthropicFigureDetector,
@@ -85,15 +86,19 @@ async def startup(ctx: dict[str, Any]) -> None:
     await shards.__aenter__()
     ctx["shards"] = shards
     ctx["storage"] = get_object_storage()
-    ctx["transcriber"] = AnthropicTranscriber()
-    ctx["embedder"] = OpenAIEmbedder()
+    # The seeded browser journeys substitute recorded seams here, and only
+    # here, through one explicit environment variable (decision 0064). Unset,
+    # which is every deployment, each factory returns None and the live seam
+    # below stands.
+    ctx["transcriber"] = e2e_transcriber() or AnthropicTranscriber()
+    ctx["embedder"] = e2e_embedder() or OpenAIEmbedder()
     ctx["decoder"] = PdfiumDecoder()
     ctx["figure_extractor"] = PdfiumFigureExtractor()
     ctx["figure_detector"] = AnthropicFigureDetector()
     ctx["segmenter"] = AnthropicSegmenter()
     ctx["variant_generator"] = AnthropicVariantGenerator()
     ctx["variant_verifier"] = AnthropicVariantVerifier()
-    ctx["assessor"] = AnthropicWorkingAssessor()
+    ctx["assessor"] = e2e_assessor() or AnthropicWorkingAssessor()
     ctx["bus"] = RedisEventBus(_redis_url())
 
 

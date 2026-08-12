@@ -6,8 +6,9 @@ import { expect, test } from "@playwright/test";
 // case the professor just published. Both halves run through the real UI against
 // the real backend on both viewports.
 //
-// What still comes from the seed, not the UI: the professor account (no signup
-// screen yet, decision 0012), the course, and one active seat scoped to it. Seat
+// What still comes from the seed, not the UI: the professor account (so the
+// journey starts ready to sign in), the course, and one active seat scoped to
+// it. Seat
 // codes only ever exist as object-storage artifacts, so a seat cannot be minted
 // from a browser; the seed writes the shards directly and prints the plaintext
 // code (see the web README for the seed-and-run recipe). The case study itself

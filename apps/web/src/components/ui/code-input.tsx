@@ -53,7 +53,7 @@ export function CodeInput({ label, value, onChange }: CodeInputProps) {
         spellCheck={false}
         inputMode="text"
         className={
-          "rounded-md border border-rule-line bg-paper px-4 py-3 " +
+          "rounded-md border border-field-border bg-paper px-4 py-3 " +
           "font-mono text-lg tracking-widest text-ink " +
           "placeholder:text-ink/30 " +
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"

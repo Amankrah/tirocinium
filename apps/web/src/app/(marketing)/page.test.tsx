@@ -24,4 +24,18 @@ describe("landing", () => {
     render(<LandingPage />);
     expect(screen.getByText(strings.story)).toBeDefined();
   });
+
+  it("offers the two doors in a header", () => {
+    render(<LandingPage />);
+    const header = screen.getByRole("banner");
+    const enter = screen.getByRole("link", { name: strings.enterCourse });
+    const signIn = screen.getByRole("link", { name: strings.signIn });
+    expect(header.contains(enter)).toBe(true);
+    expect(header.contains(signIn)).toBe(true);
+    expect(header.className).toContain("justify-center");
+    expect(enter.getAttribute("href")).toBe("/enter");
+    expect(signIn.getAttribute("href")).toBe("/sign-in");
+    expect(enter.className).toContain("rounded-md");
+    expect(signIn.className).toContain("bg-accent");
+  });
 });

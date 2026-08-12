@@ -1,3 +1,6 @@
+import Link from "next/link";
+
+import { ParticleHero } from "@/components/particles/hero";
 import { listCaseStudies } from "@/lib/api/case-studies";
 import { getMastery, getRevisit } from "@/lib/api/mastery";
 import { requireSeat } from "@/lib/seat-session";
@@ -22,12 +25,25 @@ export default async function CourseHomePage() {
   return (
     <StudentShell seatNumber={seat.seat_number}>
       <main className="mx-auto flex w-full max-w-[var(--measure-reading)] flex-col gap-8 px-6 py-12">
-        <h1 className="font-display text-3xl">
-          {strings.course.greeting(seat.seat_number, seat.course_title)}
-        </h1>
+        {/* The field's second and last home (guide 3.3: the landing and course
+            home hero, and nowhere else). It sits behind the greeting only, so
+            the index and the mastery picture below stay plain. */}
+        <ParticleHero>
+          <h1 className="py-8 font-display text-3xl">
+            {strings.course.greeting(seat.seat_number, seat.course_title)}
+          </h1>
+        </ParticleHero>
         {revisit ? <RevisitQueue revisit={revisit} /> : null}
         <CaseStudyIndex items={items} />
         {mastery ? <MasteryPicture mastery={mastery} /> : null}
+        {/* The seat's own record, one quiet link rather than a nagging card
+            (guide 4.2b: calm is the feature). */}
+        <Link
+          href="/course/history"
+          className="self-start text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        >
+          {strings.history.link}
+        </Link>
       </main>
     </StudentShell>
   );

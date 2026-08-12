@@ -139,7 +139,7 @@ def create_app(
 
     app = FastAPI(title=API_TITLE, version=API_VERSION, lifespan=lifespan)
     app.state.jwt_secret = resolved_secret
-    app.state.rate_limiter = RateLimiter()
+    app.state.rate_limiter = RateLimiter.from_env()
     configure_observability()
     install_problem_details(app)
     install_request_telemetry(app)

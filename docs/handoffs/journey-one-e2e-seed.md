@@ -1,5 +1,17 @@
 # Handoff: the journey-one E2E seed helper
 
+**Status: done** (backend session, decision 0064). The seeder is
+`apps/api/scripts/seed_e2e.py` with its test beside it, and the `e2e` job in
+`ci.yml` runs it. It grew past what is specified below, because journeys five,
+six, mode C, and the defence need state this document did not anticipate: it
+prints ten values rather than four (adding `course_id`, `case_study_id`,
+`variant_id`, `flagged_case_study_id`, `import_id`, and
+`defence_submission_id`). The professor email is at `example.com` rather than
+the `.test` this document's spirit suggested, because pydantic's `EmailStr`
+refuses special-use TLDs and a seeded professor at a `.test` address writes into
+the shard happily and then cannot sign in. Everything else below held.
+See `seeded-journeys-first-run.md` for what the journeys found once they ran.
+
 From the frontend session to the backend session. Journey one now runs end to
 end through the real UI (professor signs in, opens a course, writes a case study
 with typeset math, and publishes it; then a seat redeems a code, opens the same

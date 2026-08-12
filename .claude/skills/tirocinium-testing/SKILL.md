@@ -6,7 +6,11 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at Phase 8 (decisions 0046 to 0050:
+passes; green never goes red. Last updated after milestone 3.5 part B (decision
+0064: the committed E2E seeder and the `e2e` CI job, which is where the seeded
+Playwright journeys stopped skipping and started enforcing the Phase 2, 3, 4,
+6.5, 7, and 8 gate items they carry; read that entry under Phase 3 before
+touching the journeys or the seed). Before that, Phase 8 (decisions 0046 to 0050:
 the PDF gate preconditions, the submission review read, course reporting, the
 understanding unfold, and observability; the backend of Phases 5, 6, 6.5, and 7
 is complete and the whole Phase 8 backend, 8.1 to 8.5, is done, leaving only
@@ -137,11 +141,17 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 473 tests (25 data layer + 9 backup verification (9.4), 4 load
-(9.1), 34 security (9.2), 16 case studies/concepts/courses,
-16 reports (8.3), 36 unfold (8.4: 18 stepper, 18 surface), and 22 telemetry
-(8.5), see the gate table,
-15 seats, 12 auth, 16 submissions (incl. 4 transcription-read),
+Python suite, 486 tests (25 data layer + 9 backup verification (9.4), 4 load
+(9.1), 37 security (9.2, incl. 3 on the raise-only redemption ceiling),
+16 case studies/concepts/courses,
+16 reports (8.3), 36 unfold (8.4: 18 stepper, 18 surface), 22 telemetry
+(8.5), 24 for the E2E seeder and its seams (3.5 part B, decision 0064:
+`scripts/test_seed_e2e.py` asserting the contract the journeys depend on, and
+`app/test_e2e_seams.py` asserting that nothing is substituted unless
+`TIRO_E2E_RECORDED_DIR` is set and that a missing directory is an error rather
+than a fall back to a live provider), see the gate table,
+15 seats, 12 auth, 17 submissions (incl. 4 transcription-read and the
+content-type-bound presign),
 12 submission review (8.1: the list with seat numbers, cursor pagination, the
 status and variant filters, the empty course; the detail with regions and both
 renditions, the unprocessed status, the unknown 404; the page-rendition refresh
@@ -198,13 +208,18 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (358 Vitest tests across 50 files: the token contract with its
+Web suite (454 Vitest tests across 56 files: the token contract with its
 computed-contrast assertion, the primitives, the API clients, the upload flow's
 pre-checks, orchestration controller, SSE processing model, and transcription
 preview, the PDF import upload and controller, the defence conversation's
 protocol, state reducer, PCM arithmetic, playback queue, and surface, and the
 Phase 8 surfaces: the review queue and its keyboard model, the submission review
-with its region geometry, the four reports, and the unfold). `vitest.setup.ts`
+with its region geometry, the four reports, and the unfold; the particle
+hero's shape, resolve timeline, and fallbacks; and the fig:// resolver's scan,
+its once-per-figure round trip and its honest gap when a figure does not
+resolve, the renderer's 2x srcSet and its never-through-`/_next/image`
+assertion, and each of the three j/k queues asserting that the element their
+keys are bound to can hold focus). `vitest.setup.ts`
 raises Testing Library's async budget to 5 s; read its comment before lowering
 it. Plus lint, typecheck, and
 build, from `apps/web` (typecheck needs a build first on a fresh checkout,
@@ -231,6 +246,25 @@ Dev services (MinIO on :9000/:9001, Redis on :6379). On this Windows host start
 Docker Desktop first if `docker info` fails:
 
     docker compose -f infra/docker-compose.yml up -d --wait
+
+The seeded browser journeys (milestone 3.5 part B, decision 0064). Needs MinIO
+and Redis above, and the wheel, because the seeder compresses through the codec
+and runs the real preprocess to key its recorded reading. From `apps/api`:
+
+    rm -rf /tmp/e2e-data
+    TIRO_DATA_DIR=/tmp/e2e-data .venv/bin/python scripts/seed_e2e.py --reset
+
+That prints one JSON line and nothing else; its keys map to `E2E_*` variables
+(`pro_email` to `E2E_PRO_EMAIL`, ten of them). Start the API and the worker with
+`TIRO_DATA_DIR`, `TIRO_JWT_SECRET`, `TIRO_REDIS_URL`,
+`TIRO_E2E_RECORDED_DIR=/tmp/e2e-data/e2e-recorded` (which is what makes the
+tutor and the handwriting reader answer from a script rather than a provider),
+and `TIRO_SEAT_REDEEM_MAX_ATTEMPTS=500`; then export the `E2E_*` values plus
+`API_BASE_URL=http://127.0.0.1:8000` and run `pnpm test:e2e` from `apps/web`.
+The `e2e` job in `ci.yml` is the exact recipe, including the three journeys it
+holds out by name. Reseeding under a running API pulls its shards away, so stop
+the processes first; a bare rerun of a destructive journey against an already
+consumed seed fails for reasons that look like product bugs and are not.
 
 The restore drill (Phase 1 gate; needs MinIO, starts it itself if docker is
 available; runs containerized on hosts without a native litestream binary):
@@ -389,9 +423,51 @@ Phase 3, in progress:
   warning by decision 0022, back to blocking when the particle hero ships).
   They are separate jobs because Playwright starts `next dev`, which replaces
   the production build Lighthouse needs, so sharing a job would mean building
-  twice. What is still open in 3.5 is part B, the backend's: without a committed
-  E2E seeder every seeded journey (one to four, mode C, and the defence) skips
-  in CI naming what it wants, so those paths are written but unenforced.
+  twice.
+- 3.5 part B (done, decision 0064): the seeded journeys now run instead of
+  skipping. `apps/api/scripts/seed_e2e.py` writes what a browser cannot mint
+  (professor, course, active seat, the published case study and its servable
+  variant, eight flagged variants, a processed submission with its reading, and
+  a ready import with twenty-four staged problems and their figures) and prints
+  one JSON line that becomes the ten `E2E_*` values; the `e2e` job in `ci.yml`
+  stands a real uvicorn and arq worker behind them with MinIO and Redis from the
+  compose file. **22 passing and 14 skipped became 70 passing.** Model calls stay
+  recorded through `TIRO_E2E_RECORDED_DIR` (see the conventions skill); no API
+  keys are configured in that job, so a regression in the seam wiring fails it
+  rather than reaching a provider.
+  The three journeys that first run held out are fixed and back in the job, so
+  `--grep-invert` is gone and the step is a bare `playwright test` (decisions
+  0066 and 0067; see `docs/handoffs/seeded-journeys-answered.md`). Journey four
+  needed the fig:// resolver actually built, journey six needed the queue to be
+  able to take focus, and the defence keyboard route needed the spec to await
+  the redirect that sets the seat cookie. Two harness traps were fixed on the
+  way and both are worth remembering. Axe now waits for `load` and
+  `document.fonts.ready` before analysing (`e2e/axe.ts`): WCAG 2.2 brought in
+  rules that measure geometry rather than markup, 2.5.8 target size above all,
+  and against `next dev` under parallel load axe was measuring unstyled buttons
+  and reporting violations that do not exist in the product. That, not a
+  hydration race, is what made journey five retry-dependent. And journeys two
+  and mode C asked for 30 s of processing inside Playwright's own 30 s test
+  budget, which the redeem, the navigation, and the axe pass were already
+  spending, so the wait they exist for was unreachable; both now set a 120 s
+  test timeout. When adding a journey that waits on the worker, set the test
+  timeout, not just the assertion's.
+  **Still open, and the seed's rather than the surface's**: journey two
+  intermittently reads back an empty transcription. Measured here: its two
+  viewports submitted in the same second, one keyed the recorded reading
+  (confidence 0.82) and the other missed and took the end-to-end fallback
+  (0.75, sha256 `380db2ce…`, logged by `app/e2e.py` as a drifted key), from a
+  fixture that is byte-deterministic and an upload path that PUTs the original
+  file rather than re-encoding it. The seed ships exactly one recorded
+  transcription. It passes alone in about 6 s and fails under the full parallel
+  run.
+  Two things the first run found and fixed here: the presigned upload URL was
+  signed without a content type, so every browser PUT to real MinIO 403'd (it is
+  signed over the declared type now, submissions and imports alike), and the
+  redemption ceiling is now configuration (`TIRO_SEAT_REDEEM_MAX_ATTEMPTS`,
+  raise-only) because every journey redeems from one address.
+  Note when editing the seed: journeys four and six are destructive and run once
+  per viewport with retries, so quantities carry headroom deliberately.
 
 Phase 4, in progress:
 
@@ -843,6 +919,25 @@ Phase 8, in progress:
   tests.
 - Still open from 8.4: frontend guide 4.2's (started, submitted) span has no
   `started_at`, so the history view cannot show engaged time yet.
+- 8.4 (web, completed in 9.6): the unfold typesets its steps (decision 0068)
+  instead of printing them as source, so a step's mathematics and its figures
+  render like every other surface. Steps already out are rendered by the Server
+  Component and handed to the island as nodes (no JavaScript needed to read the
+  solution, and the markdown engine stays out of the route); a revealed step goes
+  through the lazy client twin, and `revealAction` returns its figures with it.
+  Route 110 to 116 kB, the six being next/image's runtime. 12 Vitest tests, and a
+  new `e2e/unfold.spec.ts` that reveals a step, checks it is typeset, reloads,
+  and asserts the server-rendered copy of the same step reads identically.
+  Two things to know before editing that journey. It **consumes seeded state**:
+  one reveal per viewport out of three seeded steps, plus one per retry, and a
+  reveal never rewinds, so it skips with a stated reason on a seed already read
+  to the end and wants a reseed rather than a fix. And compare renders by what a
+  reader gets (text, math count, image count, href), never by `innerHTML`: a node
+  the browser parsed from server HTML keeps that HTML's own text while a node
+  React built client-side re-serialises inline styles, so KaTeX's
+  `height:0.6833em` comes back as `height: 0.6833em;` and a byte comparison fails
+  on a difference nobody can see. Same family as the `0ms` versus `0s` trap under
+  9.3.
 
 Phase 9, in progress:
 
@@ -941,7 +1036,67 @@ Phase 9, in progress:
   submission with no attempt has a null span, not zero. Migration course/0020
   adds `attempts` and `submissions.started_at`; `engaged_seconds` is derived in
   the history and review reads. 11 tests in `app/submissions/test_attempts.py`.
-- 9.3 and 9.5 are the frontend's. Carried forward: the redemption limiter is in-memory and
+- 9.6's attempt span, web half (done): a "Start working" button on the problem
+  view calls the seat action, holds the returned id, and carries it as
+  `?attempt=` into the upload, which cites it on create. Swapping to a fresh
+  variant clears it, so time on an abandoned problem is never credited to
+  another; a failed start costs the span and never the submission. Engaged time
+  renders in the two places the guide wants effort legible, the seat's history
+  and the professor's queue, absent rather than zero when no start was recorded.
+  No clock exists anywhere in the frontend, and a test asserts the start call
+  sends no body at all, because a client-supplied time would stop the span being
+  evidence.
+- 9.6 (web): self-serve professor signup and two quiet landing doors (decision
+  0065). `/sign-up` is the same httpOnly cookie path as sign-in; `/` carries
+  Enter course and Sign in as text links, not a pitch. Duplicate email is the
+  backend's 409, shown honestly. The seeded journeys still mint a professor,
+  because they need a course and a seat.
+- 9.3 (web, the automatable half done; the manual passes are open). The contrast
+  audit is `src/styles/tokens.test.ts`, every rendered pair in both themes at
+  the threshold its role demands, mutation-checked. **It found four real
+  failures** (decision 0062): the accent as link text at 3.28:1, verify-green at
+  3.51:1, and flag-amber at 4.35:1 on the dark ground, plus form-field
+  boundaries at 1.22:1 in both themes against WCAG 2.2 1.4.11's 3:1. Fixed with
+  `--color-accent-text` (the accent as text, lightened in dark, so guide 3.2's
+  "the accent stays" still holds for the fill), `--color-field-border`, and dark
+  values for rule-line, verify-green, and flag-amber. One deviation from the
+  guide is flagged rather than quiet: flag-amber's specified #B4690E reads
+  4.04:1 on paper and fails the AA floor in light mode too, so it is corrected
+  to #9C5A0B; guide 3.2 calls its palette "a starting point, to be refined in
+  design review" while guide 6 states the floor without qualification.
+  `e2e/accessibility.spec.ts` adds axe over the dark theme, reduced motion, and
+  keyboard operability. Two harness traps found there and worth remembering:
+  `test.use({ reducedMotion })` silently does not apply (matchMedia still
+  reports false), so build the context explicitly and assert the emulation
+  first, or every assertion under it is vacuous; and the reduced-motion token is
+  authored `0ms` but minified to `0s`, so assert a duration, not a spelling.
+  The dark axe run is real but bounded by what the three public surfaces render:
+  reverting the dark tokens does not fail it, which is why the token tests carry
+  those pairs. **Still open, and a human sign-off**: the VoiceOver and NVDA
+  passes, checklist and results in `docs/accessibility-manual-passes.md`.
+- 9.5 (web, done): the particle hero (decision 0063), on the landing and course
+  home heroes and nowhere else. Raw WebGL2, no library (`ogl` would have cost
+  what the whole module costs: ~3 kB gzipped in its own chunk). `shape.ts` is
+  pure and computes the resolved normal distribution once; the same functions
+  feed the GPU's static target buffer and the SVG still, so the reduced-motion
+  picture is provably the shape the field resolves into. `field.ts` holds the
+  shader and returns null on any failure, which the component answers with that
+  same still; `resolveAt` is the pure timeline (drift, resolve, hold, relax, and
+  then ambient for good). Per frame: two uniforms and one `drawArrays`, never a
+  loop over particles. 29 Vitest tests plus `e2e/particle-hero.spec.ts`, which
+  checks in a real browser that the canvas is behind the content with
+  pointer-events none, that `elementFromPoint` over the wordmark is not the
+  canvas, and that under reduced motion the still renders and fewer than 20
+  animation frames are ever requested.
+  **The release gate's line is green**: with the hero enabled, Lighthouse
+  reports the landing LCP element as the wordmark (not the canvas), LCP
+  unchanged from the pre-hero baseline at 2258 to 2555 ms, TBT 4 to 26 ms
+  against 200, script 110 kB against 174 kB, accessibility 1.0.
+  **Not verified, and stated as such**: the 3 ms GPU frame-time budget on a 2019
+  mid-range laptop cannot be measured headless in software; it sits with the
+  manual screen-reader passes in `docs/accessibility-manual-passes.md`. Guide 7
+  gives the shader an owner: do not edit it casually.
+- Carried forward: the redemption limiter is in-memory and
   per-process, so a multi-process deployment multiplies the allowance by the
   worker count.
 

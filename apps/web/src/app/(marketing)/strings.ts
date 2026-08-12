@@ -8,4 +8,9 @@ export const strings = {
   // (frontend guide 3.1).
   story:
     "In Rome, you learned law by working cases beside a jurist. This is that, for your course.",
+  // Two doors (decision 0065), in the landing header as the button primitive:
+  // the same jobs as /enter and /sign-in, named as the user does them.
+  doors: "Ways in",
+  enterCourse: "Enter course",
+  signIn: "Sign in",
 } as const;

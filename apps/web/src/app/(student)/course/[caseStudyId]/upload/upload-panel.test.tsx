@@ -84,6 +84,7 @@ function renderPanel(
   render(
     <UploadPanel
       variantId={9}
+      caseStudyId={3}
       create={create as unknown as CreateAction}
       complete={complete as unknown as CompleteAction}
       makeId={() => `id-${(n += 1)}`}
@@ -170,6 +171,8 @@ describe("UploadPanel", () => {
       9,
       [{ content_type: "image/jpeg", size_bytes: 4 }],
       expect.any(String),
+      // No attempt was carried in, so none is cited (decision 0058).
+      null,
     );
     expect(complete).toHaveBeenCalledWith(42);
     // The worker's stream is followed for the submission just completed.
@@ -197,6 +200,47 @@ describe("UploadPanel", () => {
     expect(screen.getByText("We have read all your pages.")).toBeDefined();
     expect(screen.getByText("Page 1 read")).toBeDefined();
     expect(screen.getByRole("button", { name: "Start a new upload" })).toBeDefined();
+  });
+
+  // The defence is offered once the work has been read and never gates the
+  // submission (guide 4.2): the scan stands on its own.
+  it("offers the defence only once the pages have been read", async () => {
+    const { emit } = renderPanel();
+    choose([jpeg("page-a.jpg")]);
+    await screen.findByText("Page 1");
+    fireEvent.click(screen.getByRole("button", { name: "Send 1 page" }));
+    await waitFor(() => expect(emit.current).not.toBeNull());
+
+    act(() => emit.current?.(processingState({ status: "processing" })));
+    expect(screen.queryByRole("link", { name: "Talk it through" })).toBeNull();
+
+    act(() =>
+      emit.current?.(
+        processingState({ status: "processed", done: true, terminalStatus: "processed" }),
+      ),
+    );
+    expect(
+      screen.getByRole("link", { name: "Talk it through" }).getAttribute("href"),
+    ).toBe("/course/3/defence/42");
+  });
+
+  it("does not offer the defence when pages need a retake", async () => {
+    const { emit } = renderPanel();
+    choose([jpeg("page-a.jpg")]);
+    await screen.findByText("Page 1");
+    fireEvent.click(screen.getByRole("button", { name: "Send 1 page" }));
+    await waitFor(() => expect(emit.current).not.toBeNull());
+
+    act(() =>
+      emit.current?.(
+        processingState({
+          status: "needs_retake",
+          done: true,
+          terminalStatus: "needs_retake",
+        }),
+      ),
+    );
+    expect(screen.queryByRole("link", { name: "Talk it through" })).toBeNull();
   });
 
   it("fetches the transcription on processed and renders the preview", async () => {
@@ -251,5 +295,40 @@ describe("UploadPanel", () => {
 
     await waitFor(() => expect(screen.queryByText("Page 2")).toBeNull());
     expect(screen.getByText("Page 1")).toBeDefined();
+  });
+
+  // The attempt span (decision 0058): the id arrives from the problem view's
+  // start moment through the URL, and is passed along untouched.
+  it("cites the attempt it was given when the submission is created", async () => {
+    const create = vi.fn(async () => created(1));
+    const emit: { current: ((s: ProcessingState) => void) | null } = { current: null };
+    render(
+      <UploadPanel
+        variantId={9}
+        caseStudyId={3}
+        attemptId={77}
+        create={create as unknown as CreateAction}
+        complete={(async () => true) as unknown as CompleteAction}
+        makeId={() => "id-1"}
+        subscribe={((_id: number, onState: (s: ProcessingState) => void) => {
+          emit.current = onState;
+          return { close: vi.fn() };
+        }) as unknown as SubscribeProcessing}
+        fetchTranscription={vi.fn(async () => transcription())}
+      />,
+    );
+
+    choose([jpeg("page-a.jpg")]);
+    await screen.findByText("Page 1");
+    fireEvent.click(screen.getByRole("button", { name: "Send 1 page" }));
+
+    await waitFor(() =>
+      expect(create).toHaveBeenCalledWith(
+        9,
+        [{ content_type: "image/jpeg", size_bytes: 4 }],
+        expect.any(String),
+        77,
+      ),
+    );
   });
 });

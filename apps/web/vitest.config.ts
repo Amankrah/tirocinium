@@ -14,5 +14,10 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     include: ["src/**/*.test.{ts,tsx}"],
+    // Raises Testing Library's async budget; the reasoning is in the setup file.
+    setupFiles: ["./vitest.setup.ts"],
+    // Kept above that budget so a slow-but-passing waitFor is never killed by
+    // the test timeout instead.
+    testTimeout: 15_000,
   },
 });

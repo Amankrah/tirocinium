@@ -23,7 +23,11 @@ from fastapi.testclient import TestClient
 
 from app.main import create_app
 from app.seats.codes import ALPHABET, CODE_LENGTH
-from app.seats.ratelimit import RateLimiter
+from app.seats.ratelimit import (
+    DEFAULT_MAX_ATTEMPTS,
+    MAX_ATTEMPTS_ENV,
+    RateLimiter,
+)
 from app.storage import get_object_storage
 from app.submissions.test_submissions import (
     FakeObjectStorage,
@@ -79,6 +83,48 @@ def test_the_eleventh_attempt_from_one_address_is_refused() -> None:
     refused = limiter.check("203.0.113.5", now=10.0)
 
     assert allowed == [None] * 10
+    assert refused is not None and refused > 0
+
+
+def test_the_shipped_ceiling_is_the_guides_ten(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The ceiling became configurable so the browser journeys can run from one
+    address (decision 0064). This is the test that keeps that from quietly
+    becoming a weaker default: with nothing set, which is every deployment, it
+    is still ten."""
+    monkeypatch.delenv(MAX_ATTEMPTS_ENV, raising=False)
+    assert RateLimiter.from_env().max_attempts == DEFAULT_MAX_ATTEMPTS == 10
+
+
+def test_the_ceiling_can_be_raised_but_never_lowered(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A configurable control is a control an operator can turn off. This one
+    only opens: a value below the guide's number is refused at startup rather
+    than accepted, so the variable cannot be used to weaken redemption."""
+    monkeypatch.setenv(MAX_ATTEMPTS_ENV, "400")
+    assert RateLimiter.from_env().max_attempts == 400
+
+    monkeypatch.setenv(MAX_ATTEMPTS_ENV, "3")
+    with pytest.raises(RuntimeError) as refused:
+        RateLimiter.from_env()
+    assert "never lower" in str(refused.value)
+
+    monkeypatch.setenv(MAX_ATTEMPTS_ENV, "lots")
+    with pytest.raises(RuntimeError):
+        RateLimiter.from_env()
+
+
+def test_a_raised_ceiling_still_refuses_past_itself(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Raised is not disabled: the limiter still counts and still refuses."""
+    monkeypatch.setenv(MAX_ATTEMPTS_ENV, "12")
+    limiter = RateLimiter.from_env()
+
+    allowed = [limiter.check("203.0.113.9", now=float(i)) for i in range(12)]
+    refused = limiter.check("203.0.113.9", now=12.0)
+
+    assert allowed == [None] * 12
     assert refused is not None and refused > 0
 
 

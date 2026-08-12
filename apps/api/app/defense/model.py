@@ -314,5 +314,14 @@ def transcript_fingerprint(turns: list[Turn]) -> str:
 
 
 def get_tutor() -> Tutor:
-    """The live tutor; tests inject a recorded one."""
+    """The live tutor; tests inject a recorded one. The seeded defence journey
+    cannot inject, so it substitutes through the one environment variable of
+    decision 0064: a fresh RecordedTutor per conversation, because this is a
+    request dependency and a shared one would run out of script on the second
+    session."""
+    from app.e2e import e2e_tutor_dir
+
+    directory = e2e_tutor_dir()
+    if directory is not None:
+        return RecordedTutor.from_dir(directory)
     return AnthropicTutor()

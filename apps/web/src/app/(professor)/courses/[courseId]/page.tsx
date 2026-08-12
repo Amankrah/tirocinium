@@ -41,21 +41,33 @@ export default async function CoursePage({
           <div className="flex flex-wrap gap-4">
             <Link
               href={`/courses/${id}/seats`}
-              className="text-sm text-accent underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               {strings.course.seatsLink}
             </Link>
             <Link
               href={`/courses/${id}/import`}
-              className="text-sm text-accent underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               {strings.course.importLink}
             </Link>
             <Link
               href={`/courses/${id}/mastery`}
-              className="text-sm text-accent underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               {strings.course.masteryLink}
+            </Link>
+            <Link
+              href={`/courses/${id}/submissions`}
+              className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            >
+              {strings.submissions.link}
+            </Link>
+            <Link
+              href={`/courses/${id}/reports`}
+              className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            >
+              {strings.reports.link}
             </Link>
           </div>
         </div>
@@ -115,7 +127,7 @@ export default async function CoursePage({
             <input
               name="title"
               required
-              className="rounded-md border border-rule-line bg-paper px-4 py-3 text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="rounded-md border border-field-border bg-paper px-4 py-3 text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             />
           </label>
           <label className="flex flex-col gap-2">
@@ -124,7 +136,7 @@ export default async function CoursePage({
               name="body"
               required
               rows={10}
-              className="rounded-md border border-rule-line bg-paper px-4 py-3 font-mono text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="rounded-md border border-field-border bg-paper px-4 py-3 font-mono text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             />
           </label>
           <div>

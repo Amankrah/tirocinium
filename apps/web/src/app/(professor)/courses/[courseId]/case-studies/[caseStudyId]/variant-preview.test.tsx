@@ -24,21 +24,25 @@ describe("VariantPreview", () => {
       ],
       next_cursor: null,
     }));
+    // The detail arrives with its figures already resolved (decision 0066).
     const get = vi.fn(async (_c: number, id: number) => ({
-      id,
-      body: `variant ${id}`,
-      solution: "",
-      verify_solution: null,
-      final_answers: [],
-      values: {},
-      verification: "verified",
-      flag_reason: null,
-      model_id: "m",
-      seed: 1,
-      created_at: 1,
-      verify_model_id: null,
-      generation_prompt_version: null,
-      verification_prompt_version: null,
+      detail: {
+        id,
+        body: `variant ${id}`,
+        solution: "",
+        verify_solution: null,
+        final_answers: [],
+        values: {},
+        verification: "verified",
+        flag_reason: null,
+        model_id: "m",
+        seed: 1,
+        created_at: 1,
+        verify_model_id: null,
+        generation_prompt_version: null,
+        verification_prompt_version: null,
+      },
+      figures: {},
     }));
     render(
       <VariantPreview

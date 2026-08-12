@@ -19,10 +19,14 @@ export async function createSubmissionAction(
   variantId: number,
   pages: Schemas["PageIn"][],
   idempotencyKey: string,
+  // The attempt whose start this submission cites (decision 0058). Checked
+  // server-side against this seat and this variant, so passing it is a claim
+  // the backend verifies rather than one it accepts.
+  attemptId: number | null = null,
 ): Promise<Schemas["SubmissionCreated"] | null> {
   const token = (await cookies()).get(SEAT_COOKIE)?.value;
   if (!token) return null;
-  return createSubmission(token, variantId, pages, idempotencyKey);
+  return createSubmission(token, variantId, pages, idempotencyKey, attemptId);
 }
 
 export async function completeSubmissionAction(

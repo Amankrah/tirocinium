@@ -17,6 +17,9 @@ test.describe("mode C: write on the pad and submit", () => {
   );
 
   test("a seat writes a page on the pad and it processes to read", async ({ page }) => {
+    // As journey two: the 30 s allowed for processing has to come out of a test
+    // budget that also pays for redeeming the seat and drawing on the pad.
+    test.setTimeout(120_000);
     await page.goto("/enter");
     await page.getByLabel("Course code").fill(seatCode!);
     await page.getByRole("button", { name: "Enter course" }).click();

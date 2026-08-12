@@ -21,9 +21,21 @@
   --color-ink-muted: #5B5E64;
   --color-paper: #FAFAF7;
   --color-accent: #2C5AE9; /* primary actions and live states only */
+  /* The accent set as text on the page ground rather than as a fill. Identical
+     to the accent in light mode; lightened in dark, where the accent itself
+     reaches only 3.28:1 and would fail the AA floor as body text. The accent
+     stays (guide 3.2): this is the same colour doing a different job, exactly
+     as --color-on-accent is (decision 0062). */
+  --color-accent-text: var(--color-accent);
   --color-rule-line: #E4E4DC; /* hairline structure */
+  /* A form field's boundary is a UI component boundary, so WCAG 2.2 1.4.11
+     wants 3:1 against what surrounds it, which the hairline rule-line (1.22:1)
+     cannot carry. Fields alone use this; separators keep the hairline. */
+  --color-field-border: #82858D;
   --color-verify-green: #1D7A5F; /* variant and recognition states only */
-  --color-flag-amber: #B4690E; /* variant and recognition states only */
+  /* Corrected from the guide's #B4690E, which reaches only 4.04:1 on paper and
+     is used at small text sizes throughout (decision 0062). */
+  --color-flag-amber: #9C5A0B; /* variant and recognition states only */
 
   /* Ground is what the page sits on; in light mode it is the paper itself. */
   --color-ground: var(--color-paper);
@@ -59,6 +71,22 @@
     /* The accent stays (guide 3.2). Paper maps to the dark ground so any
        surface still expressed as paper inverts with the theme. */
     --color-paper: var(--color-ground);
+
+    /* Everything below is the dark half of the contrast audit (milestone 9.3,
+       decision 0062). Each is the same hue at the luminance the AA floor needs
+       on this ground; none introduces a new colour to the palette.
+
+       The accent as text: 3.28:1 on the ground, so it lightens to 7.00:1. The
+       accent as a fill is unchanged, and on-accent still reads 5.36:1 on it. */
+    --color-accent-text: #7C9BFF;
+    /* The hairline did not invert at all, so structure rules were rendering at
+       14.40:1: near-white gashes on a near-black page. */
+    --color-rule-line: #2A2D35;
+    --color-field-border: #65686F;
+    /* 3.51:1 and 4.35:1 on the dark ground as specified, both used as small
+       text. */
+    --color-verify-green: #46AC8B;
+    --color-flag-amber: #DB9435;
   }
 }
 

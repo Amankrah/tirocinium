@@ -26,6 +26,9 @@ class FakeObjectStorage:
     def __init__(self) -> None:
         self.objects: dict[tuple[str, str], bytes] = {}
         self.presigned: list[tuple[str, str, int]] = []  # (method, key, expires)
+        # The full parameter set of each presign, because what a URL is signed
+        # over is the whole point of the content-type binding below.
+        self.presign_params: list[dict[str, str]] = []
 
     def create_bucket(self, *, Bucket: str) -> object:
         return {}
@@ -44,6 +47,7 @@ class FakeObjectStorage:
         self, ClientMethod: str, Params: dict[str, str], ExpiresIn: int
     ) -> str:
         self.presigned.append((ClientMethod, Params["Key"], ExpiresIn))
+        self.presign_params.append(dict(Params))
         return f"https://storage.test/{Params['Bucket']}/{Params['Key']}?m={ClientMethod}"
 
 
@@ -196,6 +200,36 @@ def test_request_creates_pending_submission_with_urls(
     puts = [(key, ttl) for method, key, ttl in storage.presigned if method == "put_object"]
     assert len(puts) == 2
     assert all(ttl <= 900 for _key, ttl in puts)
+
+
+def test_the_upload_url_is_signed_over_the_declared_content_type(
+    client: TestClient, storage: FakeObjectStorage, tmp_data: Path
+) -> None:
+    """A presigned PUT that does not bind Content-Type is not merely loose, it
+    is broken for the only client that matters: a browser sends the header on
+    every PUT, and a signature that did not cover it is rejected outright. The
+    upload path 403'd against real MinIO for exactly this reason, unseen until
+    journey two first ran (decision 0064). Binding it also stops a page
+    declared as a JPEG from being stored as something else."""
+    variant_id, _course_id, tokens = prepared(client, storage, tmp_data)
+    request_upload(
+        client,
+        tokens[0],
+        variant_id,
+        pages=[
+            {"content_type": "image/jpeg", "size_bytes": 2 * MB},
+            {"content_type": "image/png", "size_bytes": 3 * MB},
+        ],
+    )
+
+    puts = [
+        params
+        for (method, _key, _ttl), params in zip(
+            storage.presigned, storage.presign_params, strict=True
+        )
+        if method == "put_object"
+    ]
+    assert [p.get("ContentType") for p in puts] == ["image/jpeg", "image/png"]
 
 
 def test_upload_limits_are_enforced(

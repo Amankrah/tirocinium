@@ -41,7 +41,7 @@ export function SignInForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-6">
+    <form onSubmit={handleSubmit} className="flex w-full flex-col gap-6">
       <Field
         label={strings.signIn.emailLabel}
         type="email"
@@ -62,7 +62,7 @@ export function SignInForm() {
           setFailed(false);
         }}
       />
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending} className="py-3">
         {strings.signIn.action}
       </Button>
       <p role="status" className="min-h-6 text-sm text-ink">
@@ -94,7 +94,7 @@ function Field({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className={
-          "rounded-md border border-rule-line bg-paper px-4 py-3 " +
+          "rounded-md border border-field-border bg-paper px-4 py-3 " +
           "text-ink " +
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         }

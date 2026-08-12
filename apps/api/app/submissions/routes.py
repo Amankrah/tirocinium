@@ -346,30 +346,43 @@ async def create_submission(
 
     submission_id = await shards.course(course_id).run(create)
 
-    def read(conn: sqlite3.Connection) -> tuple[str, str, list[tuple[int, str]]]:
+    def read(conn: sqlite3.Connection) -> tuple[str, str, list[tuple[int, str, str]]]:
         row = conn.execute(
             "SELECT storage_prefix, status FROM submissions WHERE id = ?",
             (submission_id,),
         ).fetchone()
         pages = conn.execute(
-            "SELECT page_index, storage_key FROM submission_pages"
+            "SELECT page_index, storage_key, content_type FROM submission_pages"
             " WHERE submission_id = ? ORDER BY page_index",
             (submission_id,),
         ).fetchall()
-        return str(row[0]), str(row[1]), [(int(p[0]), str(p[1])) for p in pages]
+        return (
+            str(row[0]),
+            str(row[1]),
+            [(int(p[0]), str(p[1]), str(p[2])) for p in pages],
+        )
 
     storage_prefix, status, pages = await shards.course_reads(course_id).run(read)
+    # The URL is signed over the declared content type, because the browser
+    # sends Content-Type on the PUT and a signature that did not cover it is
+    # rejected by the store (a 403 that looks like a permissions problem and is
+    # not). It also pins the upload to the type the manifest declared, which the
+    # limits were checked against.
     uploads = [
         UploadTarget(
             page_index=index,
             storage_key=key,
             url=storage.generate_presigned_url(
                 "put_object",
-                Params={"Bucket": SCANS_BUCKET, "Key": key},
+                Params={
+                    "Bucket": SCANS_BUCKET,
+                    "Key": key,
+                    "ContentType": content_type,
+                },
                 ExpiresIn=PRESIGN_TTL_SECONDS,
             ),
         )
-        for index, key in pages
+        for index, key, content_type in pages
     ]
     return SubmissionCreated(
         submission_id=submission_id,

@@ -189,6 +189,22 @@ describe("ConfirmReview", () => {
     await waitFor(() => expect(merge).toHaveBeenCalledWith(1, 5, 8));
   });
 
+  // Decision 0067: the surface takes focus on mount, but a professor who tabs
+  // away has to be able to tab back rather than reaching for a card.
+  it("is reachable by keyboard and names itself when focus lands", () => {
+    const { view } = renderReview([item({ id: 5, title: "Sure", confidence: 0.95 })]);
+    const root = view.container.firstElementChild as HTMLElement;
+
+    expect(root.getAttribute("tabindex")).toBe("0");
+    root.focus();
+    expect(document.activeElement).toBe(root);
+    expect(root.getAttribute("aria-label")).toBe("Detected problems queue");
+    const describedBy = root.getAttribute("aria-describedby");
+    expect(view.container.querySelector(`#${describedBy}`)?.textContent).toContain(
+      "Move with j and k",
+    );
+  });
+
   it("moves the cursor with j/k and confirms with a", async () => {
     // Ordered low-confidence-first: Shaky (id 8) then Sure (id 5).
     const { confirm, view } = renderReview([

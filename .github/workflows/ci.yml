@@ -3,8 +3,10 @@
 # staleness (0.3), criterion benches against the absolute budgets in
 # crates/platform_core/bench-thresholds.json (decision 0004), and the web job
 # (eslint, vitest, tsc, next build) since the apps/web scaffold landed
-# (decision 0005). Lighthouse CI and axe join the web job at the Phase 2 gate,
-# when the routes they measure exist.
+# (decision 0005). The Playwright journeys with their axe checks, and the
+# Lighthouse budgets, are the `web-e2e` and `web-lighthouse` jobs. The seeded
+# journeys are the `e2e` job, which stands a real backend up behind them
+# (part B of docs/handoffs/e2e-and-lighthouse-ci.md, decision 0064).
 #
 # The jobs that carry the Phase 4 PDF gates check out with lfs: true and
 # provision the pinned pdfium binary, because both are preconditions of those
@@ -147,8 +149,7 @@ jobs:
   web:
     # The web half of Phase 0.5: eslint, the Vitest suite, a production build,
     # and typecheck. tsc runs after next build because next-env.d.ts references
-    # generated files under .next/types (Next 15.5); build also proves the
-    # scaffold compiles, ahead of Lighthouse arriving at the Phase 2 gate.
+    # generated files under .next/types (Next 15.5).
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -168,3 +169,190 @@ jobs:
       - run: pnpm test
       - run: pnpm build
       - run: pnpm typecheck
+
+  e2e:
+    # Part B: the seeded journeys, against a real backend (decision 0064).
+    # Journeys one to six, mode C, and the defence all need state a browser
+    # cannot mint, so scripts/seed_e2e.py writes it and prints one JSON line
+    # that becomes the E2E_* values the specs read. Until this job existed those
+    # specs skipped in CI, which meant the Phase 2, 3, 4, 6.5, 7, and 8 gate
+    # items they carry were never actually enforced anywhere.
+    #
+    # Model calls stay recorded: TIRO_E2E_RECORDED_DIR points the live API and
+    # worker at the responses the seeder wrote, and app/e2e.py refuses to start
+    # if that directory is absent rather than falling through to a provider.
+    # No API keys are configured here, so a regression in that wiring fails the
+    # job instead of spending money.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: astral-sh/setup-uv@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+
+      - name: Install the API environment
+        working-directory: apps/api
+        run: uv sync --locked
+      # The seeder compresses bodies through the codec and runs the real
+      # preprocess to key its recorded reading, so this job needs the wheel.
+      - name: Build the platform_core extension into the venv
+        working-directory: apps/api
+        run: VIRTUAL_ENV="$PWD/.venv" .venv/bin/maturin develop --release
+          --manifest-path ../../crates/platform_core/python/Cargo.toml
+      - name: Install the web environment and Chromium
+        working-directory: apps/web
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+
+      # MinIO and Redis from the same compose file the developers run, rather
+      # than service containers: MinIO needs its own command line, which the
+      # services: block cannot give it, and the restore drill already
+      # establishes compose-on-the-runner as the pattern here.
+      - name: Start MinIO and Redis
+        run: docker compose -f infra/docker-compose.yml up -d --wait
+
+      - name: Seed the journeys' world
+        working-directory: apps/api
+        env:
+          TIRO_DATA_DIR: ${{ runner.temp }}/e2e-data
+          TIRO_TESTING: "1"
+        run: |
+          set -euo pipefail
+          seed=$(.venv/bin/python scripts/seed_e2e.py --reset)
+          echo "$seed" | .venv/bin/python -c '
+          import json, os, sys
+          for key, value in json.load(sys.stdin).items():
+              print(f"E2E_{key.upper()}={value}")
+          ' >> "$GITHUB_ENV"
+
+      # 127.0.0.1 and not localhost: on some runners Node resolves localhost to
+      # ::1 while uvicorn binds IPv4 only, and the server-side fetch then fails
+      # with a connection refused.
+      - name: Start the API and the worker
+        working-directory: apps/api
+        env:
+          TIRO_DATA_DIR: ${{ runner.temp }}/e2e-data
+          TIRO_JWT_SECRET: e2e-ci-secret-0123456789abcdef
+          TIRO_E2E_RECORDED_DIR: ${{ runner.temp }}/e2e-data/e2e-recorded
+          TIRO_REDIS_URL: redis://127.0.0.1:6379
+          # Every seeded journey redeems a seat code, both viewports run every
+          # journey, and all of it arrives from 127.0.0.1, which is well past
+          # the shipped ten-per-hour ceiling. Raised, not disabled, and the
+          # variable can only ever raise it (app/seats/ratelimit.py).
+          TIRO_SEAT_REDEEM_MAX_ATTEMPTS: "500"
+        run: |
+          set -euo pipefail
+          nohup .venv/bin/python -m uvicorn app.main:create_app --factory \
+            --host 127.0.0.1 --port 8000 > "$RUNNER_TEMP/api.log" 2>&1 &
+          nohup .venv/bin/arq app.worker.WorkerSettings \
+            > "$RUNNER_TEMP/worker.log" 2>&1 &
+          for _ in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8000/api/v1/health > /dev/null; then
+              echo "api up"; exit 0
+            fi
+            sleep 1
+          done
+          echo "the API never came up"; cat "$RUNNER_TEMP/api.log"; exit 1
+
+      # The three journeys this job once held out by name are back in it. Each
+      # failed the first time these specs were ever executed, each for a real
+      # defect in the surface it drove, and the list was carried here as a debt
+      # with a name on it rather than deleted or quietly skipped. It is now
+      # empty: the figures resolve (decision 0066), the queue can take focus
+      # (decision 0067), and the defence spec waits for the seat cookie.
+      - name: Run the seeded journeys
+        working-directory: apps/web
+        env:
+          API_BASE_URL: http://127.0.0.1:8000
+        # Nothing is held out any more: the three defects the first seeded run
+        # found are fixed (decisions 0066 and 0067) and their journeys are back
+        # in the job.
+        run: pnpm exec playwright test
+
+      - name: Keep the logs and report of a failed run
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-diagnostics
+          path: |
+            apps/web/playwright-report/
+            ${{ runner.temp }}/api.log
+            ${{ runner.temp }}/worker.log
+          retention-days: 7
+
+  web-e2e:
+    # The Playwright journeys and their axe checks (frontend guide 6 and 7),
+    # part A of docs/handoffs/e2e-and-lighthouse-ci.md. The entry surfaces
+    # (landing, seat entry, professor sign-in, session guards) run against the
+    # dev server with no backend and through their honest failure paths, so the
+    # WCAG 2.2 AA floor and those flows are enforced from here on, on desktop and
+    # mobile viewports. The seeded journeys skip here and are enforced in the
+    # `e2e` job above, which stands a backend up for them.
+    #
+    # Its own job rather than a step in `web`: Playwright starts `next dev`,
+    # which overwrites the production build in .next, so sharing a job with the
+    # build and Lighthouse steps would mean building twice.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - name: Keep the report of a failed run
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 7
+
+  web-lighthouse:
+    # The performance and accessibility budgets of frontend guide 5, against a
+    # production build; part C of the same handoff. Accessibility (a perfect
+    # score), total blocking time, and initial script size are blocking.
+    # Largest contentful paint is a warning by decision 0022, which records why
+    # and keeps the follow-up open: it goes back to blocking when the particle
+    # hero ships, since that gate needs every budget genuinely green.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm lighthouse
+      - name: Keep the reports of a failed run
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: apps/web/.lighthouseci/
+          retention-days: 7

@@ -8,7 +8,8 @@ section 8 through the phases document's gates.
 
 Commands (pnpm, from this directory): `dev`, `build`, `lint` (eslint),
 `typecheck` (tsc, after a build on fresh checkouts, see decision 0005), and
-`test` (Vitest with Testing Library). CI runs all of them in the `web` job.
+`test` (Vitest with Testing Library). CI runs those in the `web` job, and the
+browser gates in `web-e2e` and `web-lighthouse` (see below).
 
 The contract seam is live: `pnpm generate:client` regenerates
 `src/lib/api/schema.ts` from `../api/openapi.json`, and CI fails if either
@@ -24,8 +25,8 @@ authenticated landings) call the backend server-side, never from the browser:
 the token is set as an httpOnly cookie (decisions 0011, 0012) and read by Server
 Components. Those calls use `API_BASE_URL` (server-only env, default
 `http://localhost:8000`); it is never a `NEXT_PUBLIC_` var, so it never ships to
-the client. There is no professor signup screen yet; create accounts via
-`POST /api/v1/auth/signup` until that product question is decided (0012).
+the client. Professors self-register at `/sign-up` (decision 0065); the same
+httpOnly cookie path as sign-in (decision 0012) carries the session forward.
 
 ## End-to-end and Lighthouse harness (Phase 2 gate)
 
@@ -44,9 +45,9 @@ the client. There is no professor signup screen yet; create accounts via
   writes a case study with typeset math, and publishes it, then a seat redeems a
   code, opens the same course, and reads that case. It skips unless
   `E2E_PRO_EMAIL`, `E2E_PRO_PASSWORD`, `E2E_COURSE_TITLE`, and `E2E_SEAT_CODE`
-  are set. What the seed still provides, because none of it has a UI: the
-  professor account (no signup screen yet, decision 0012), the course owned by
-  that professor, and one active seat scoped to it. The API only ever exposes
+  are set. What the seed still provides, because the journey needs a course and
+  a seat already in place: the professor account, the course owned by that
+  professor, and one active seat scoped to it. The API only ever exposes
   seat codes through object-storage artifacts, so seeding for a browser test
   writes the shards directly (one professor, one course, one active seat) and
   prints the plaintext code; a committed, CI-ready seed helper belongs with the
@@ -68,11 +69,25 @@ the client. There is no professor signup screen yet; create accounts via
   (guide 4.1, step 4) waits on a backend read endpoint for the recognized
   markdown and per-region spans, which `GET /submissions/{id}` does not yet
   return.
+- Journey four (`e2e/journey-four.spec.ts`) covers the PDF confirmation surface,
+  the mode-C journey (`e2e/journey-mode-c.spec.ts`) the pen pad, and
+  `e2e/defence.spec.ts` the voice defence down its typed and keyboard-only paths
+  (milestone 7.4). The defence journey skips unless `E2E_SEAT_CODE`,
+  `E2E_CASE_STUDY_ID`, and `E2E_DEFENCE_SUBMISSION_ID` are set, the last being
+  one of that seat's own submissions already at `processed`, since the
+  conversation opens only once the handwriting has been read. CI has no
+  microphone, which is why the typed path is what runs: it has to be a
+  first-class route through the conversation anyway.
 - Deferred until the course-home and problem-view surfaces have production
   content to measure: the Lighthouse runs on those two routes.
-- Not yet wired into CI: the `web` job additions (a `test:e2e` step and an
-  `lhci` step) are left to add together with the backend session to avoid
-  concurrent edits to the shared workflow. Note that on very throttled runners
-  the LCP budget (1.8 s mobile) can be exceeded by the display-font render on
-  otherwise-trivial text pages even with an idle main thread; confirm on the
-  real CI runner before making the LCP assertion blocking.
+- Wired into CI as two jobs. `web-e2e` installs Chromium and runs `pnpm
+  test:e2e`, so the entry journeys and the axe WCAG 2.2 AA checks gate every
+  build while the seeded journeys skip naming what they need; `web-lighthouse`
+  builds and runs `pnpm lighthouse`. They are separate jobs because Playwright
+  starts `next dev`, which replaces the production build in `.next`. The seeded
+  journeys join CI with the backend's E2E seeder (part B of
+  `docs/handoffs/e2e-and-lighthouse-ci.md`). On the budgets: accessibility,
+  total blocking time, and script size are blocking and pass; LCP is a warning
+  by decision 0022, because on throttled runners the 1.8 s mobile budget is
+  exceeded by the framework baseline on otherwise-trivial text pages even with
+  an idle main thread. That goes back to blocking when the particle hero ships.

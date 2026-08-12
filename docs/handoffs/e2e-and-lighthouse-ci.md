@@ -1,5 +1,27 @@
 # Handoff: wiring the e2e, axe, and Lighthouse gate into CI
 
+**Status: all three parts landed.** Parts A and C are the `web-e2e` and
+`web-lighthouse` jobs (frontend session, after milestone 7.4), rather than steps
+inside `web`, because Playwright starts `next dev` and would replace the
+production build Lighthouse needs. Both were run locally exactly as CI runs them
+(`CI=true pnpm test:e2e`: 22 passed, 14 skipped; `pnpm build && pnpm lighthouse`:
+green, with LCP warning only).
+
+**Part B landed with decision 0064** (backend session) as the `e2e` job: the
+committed seeder is `apps/api/scripts/seed_e2e.py`, and the job stands a real
+API and worker behind the journeys with MinIO and Redis from the compose file.
+The journeys now run rather than skip, 22 passing and 14 skipped becoming 70
+passing. Three fail on defects in the surfaces they drive and are held out of
+the job by name until fixed; they are written up with their evidence in
+`seeded-journeys-first-run.md`, and they are the frontend's.
+
+The determinism problem part B describes below turned out not to exist: the
+recorded transcriber keys on the grayscale rendition, which is a function of the
+decoded pixels rather than of the PNG encoding, so both sides derive from the
+browser fixture's pixel specification and no committed binary or frontend change
+was needed. The seeder computes the key by running the real preprocess crate and
+writes the recording beside the shards.
+
 From the frontend session, for the joint `ci.yml` edit. The Phase 2 and 3
 Playwright/axe/Lighthouse harness exists and passes locally, but the `web` job
 still runs only `lint`, `test`, `build`, `typecheck`, so none of it has ever

@@ -136,9 +136,16 @@ async def create_import(
         return str(row[0]), str(row[1])
 
     storage_key, status = await shards.course_reads(course_id).run(read)
+    # Signed over the content type for the same reason the submission upload is
+    # (app/submissions/routes.py): a browser PUTs with the header, and a URL
+    # signed without it is refused by the store.
     upload_url = storage.generate_presigned_url(
         "put_object",
-        Params={"Bucket": IMPORTS_BUCKET, "Key": storage_key},
+        Params={
+            "Bucket": IMPORTS_BUCKET,
+            "Key": storage_key,
+            "ContentType": "application/pdf",
+        },
         ExpiresIn=PRESIGN_TTL_SECONDS,
     )
     return ImportCreated(

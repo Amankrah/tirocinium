@@ -26,4 +26,10 @@ test.describe("professor sign-in", () => {
     await page.goto("/sign-in");
     await expectNoA11yViolations(page);
   });
+
+  test("create an account reaches sign-up", async ({ page }) => {
+    await page.goto("/sign-in");
+    await page.getByRole("link", { name: "Create an account" }).click();
+    await expect(page).toHaveURL(/\/sign-up$/);
+  });
 });

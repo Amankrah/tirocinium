@@ -48,7 +48,7 @@ export default async function DashboardPage() {
             <input
               name="title"
               required
-              className="rounded-md border border-rule-line bg-paper px-4 py-3 text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="rounded-md border border-field-border bg-paper px-4 py-3 text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             />
           </label>
           <div>

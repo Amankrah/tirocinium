@@ -8,8 +8,9 @@
 // is the source of truth, so every verb refetches (a promoted, edited, or
 // discarded variant leaves the list).
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import type { FigureMap } from "@/components/reading/problem-body";
 import { Button } from "@/components/ui/button";
 import type { Schemas } from "@/lib/api/client";
 import { strings } from "../../../../../strings";
@@ -19,8 +20,14 @@ const ClientProblemBody = dynamic(() =>
 );
 
 const s = strings.variants;
+// Ties the queue's focus stop to the line that already lists its keys, so
+// arriving there by keyboard is announced with what the keys do.
+const KEYS_ID = "flagged-queue-keys";
 
-type GetAction = (courseId: number, variantId: number) => Promise<Schemas["VariantDetail"] | null>;
+// The detail arrives with the figures its two solutions reference already
+// resolved, since the resolve carries the professor's token (decision 0066).
+type LoadedVariant = { detail: Schemas["VariantDetail"]; figures: FigureMap };
+type GetAction = (courseId: number, variantId: number) => Promise<LoadedVariant | null>;
 type PromoteAction = (courseId: number, variantId: number) => Promise<Schemas["VariantSummary"] | null>;
 type EditAction = (courseId: number, variantId: number, edit: Schemas["VariantEdit"]) => Promise<Schemas["VariantSummary"] | null>;
 type DeleteAction = (courseId: number, variantId: number) => Promise<boolean>;
@@ -50,17 +57,73 @@ export function ReviewQueue({
   refetch: ListAction;
 }) {
   const [items, setItems] = useState(initial.items);
-  const [details, setDetails] = useState<Record<number, Schemas["VariantDetail"]>>({});
+  const [details, setDetails] = useState<Record<number, LoadedVariant>>({});
   const [open, setOpen] = useState<number | null>(null);
   const [editing, setEditing] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [busy, setBusy] = useState<number | null>(null);
   const [error, setError] = useState(false);
   const [blocked, setBlocked] = useState<number | null>(null);
+  const [cursor, setCursor] = useState(0);
+
+  // The j/k model of guide 4.4, a launch requirement here rather than a later
+  // refinement: triage is the whole job of this surface and a professor working
+  // a queue of flagged variants should never have to reach for the mouse.
+  const rowRefs = useRef<(HTMLLIElement | null)[]>([]);
+  useEffect(() => {
+    // Guard the method itself: jsdom (tests) does not implement it.
+    rowRefs.current[cursor]?.scrollIntoView?.({ block: "nearest" });
+  }, [cursor]);
+
+  function onKeyDown(event: React.KeyboardEvent) {
+    const tag = (event.target as HTMLElement).tagName;
+    // Never hijack the keys while the professor is editing a solution.
+    if (tag === "TEXTAREA" || tag === "INPUT") return;
+    const current = items[cursor];
+    if (event.key === "j" || event.key === "ArrowDown") {
+      event.preventDefault();
+      setCursor((c) => Math.min(items.length - 1, c + 1));
+    } else if (event.key === "k" || event.key === "ArrowUp") {
+      event.preventDefault();
+      setCursor((c) => Math.max(0, c - 1));
+    } else if (event.key === "Enter") {
+      if (current) {
+        event.preventDefault();
+        void onToggle(current.id);
+      }
+    } else if (event.key === "a") {
+      if (current) void run(current.id, () => promote(courseId, current.id));
+    } else if (event.key === "e") {
+      // Editing needs the detail loaded, since the solution is what it edits.
+      if (current) {
+        void openDetail(current.id).then((loaded) => {
+          if (loaded) {
+            setEditText(loaded.detail.solution);
+            setEditing(current.id);
+          }
+        });
+      }
+    }
+  }
 
   async function reload() {
     const page = await refetch(courseId, caseStudyId, { state: "flagged" });
     if (page) setItems(page.items);
+  }
+
+  // Open one comparison, loading its detail once. Separate from the toggle
+  // because editing must open a card that is already closed and must never
+  // close the one it is about to edit.
+  async function openDetail(id: number): Promise<LoadedVariant | null> {
+    const known = details[id];
+    if (known) {
+      setOpen(id);
+      return known;
+    }
+    const loaded = await get(courseId, id);
+    if (loaded) setDetails((prev) => ({ ...prev, [id]: loaded }));
+    setOpen(id);
+    return loaded;
   }
 
   async function onToggle(id: number) {
@@ -68,11 +131,7 @@ export function ReviewQueue({
       setOpen(null);
       return;
     }
-    if (!details[id]) {
-      const detail = await get(courseId, id);
-      if (detail) setDetails((prev) => ({ ...prev, [id]: detail }));
-    }
-    setOpen(id);
+    await openDetail(id);
   }
 
   async function run(id: number, verb: () => Promise<unknown>) {
@@ -96,7 +155,7 @@ export function ReviewQueue({
   }
 
   function startEdit(id: number) {
-    setEditText(details[id]?.solution ?? "");
+    setEditText(details[id]?.detail.solution ?? "");
     setEditing(id);
   }
 
@@ -107,18 +166,42 @@ export function ReviewQueue({
   return (
     <div className="flex flex-col gap-4">
       <p className="max-w-prose text-sm text-ink-muted">{s.reviewIntro}</p>
+      <p id={KEYS_ID} className="text-xs text-ink-muted">
+        {s.reviewKeys}
+      </p>
       {error ? (
         <p role="alert" className="text-sm text-flag-amber">
           {s.reviewError}
         </p>
       ) : null}
-      <ol className="flex flex-col gap-4">
-        {items.map((item) => {
-          const detail = details[item.id];
+      {/* The keys live on the list itself, and the list is a tab stop
+          (decision 0067): every control on this surface sits inside it, so a
+          professor can Tab straight to the queue and start pressing j and k
+          rather than having to click a card first. */}
+      <ol
+        tabIndex={0}
+        onKeyDown={onKeyDown}
+        aria-label={s.reviewQueueLabel}
+        aria-describedby={KEYS_ID}
+        className="flex flex-col gap-4 rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+      >
+        {items.map((item, index) => {
+          const loaded = details[item.id];
+          const detail = loaded?.detail;
           const isOpen = open === item.id;
           const isBusy = busy === item.id;
+          const isCurrent = index === cursor;
           return (
-            <li key={item.id} className="flex flex-col gap-3 rounded-md border border-rule-line p-4">
+            <li
+              key={item.id}
+              ref={(node) => {
+                rowRefs.current[index] = node;
+              }}
+              aria-current={isCurrent ? "true" : undefined}
+              className={`flex flex-col gap-3 rounded-md border p-4 ${
+                isCurrent ? "border-accent" : "border-rule-line"
+              }`}
+            >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-col gap-0.5">
                   {item.seed != null ? (
@@ -145,10 +228,13 @@ export function ReviewQueue({
                           value={editText}
                           onChange={(e) => setEditText(e.target.value)}
                           rows={10}
-                          className="rounded-md border border-rule-line bg-paper px-3 py-2 font-mono text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                          className="rounded-md border border-field-border bg-paper px-3 py-2 font-mono text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                         />
                       ) : (
-                        <ClientProblemBody body={detail.solution} />
+                        <ClientProblemBody
+                          body={detail.solution}
+                          figures={loaded.figures}
+                        />
                       )}
                     </div>
                     <div className="flex flex-col gap-1">
@@ -156,7 +242,10 @@ export function ReviewQueue({
                         {s.reSolve}
                       </h3>
                       {detail.verify_solution ? (
-                        <ClientProblemBody body={detail.verify_solution} />
+                        <ClientProblemBody
+                          body={detail.verify_solution}
+                          figures={loaded.figures}
+                        />
                       ) : (
                         <p className="text-sm text-ink-muted">{s.noReSolve}</p>
                       )}
