@@ -54,6 +54,8 @@ class SubmissionSummary(BaseModel):
     status: str
     page_count: int
     submitted_at: int
+    started_at: int | None
+    engaged_seconds: int | None
     recognition_conf: float | None
     grade: float | None
     graded_at: int | None
@@ -171,7 +173,7 @@ async def list_submissions(
         rows = conn.execute(
             "SELECT s.id, s.seat_id, s.variant_id, s.page_count, s.status,"
             " s.submitted_at, s.recognition_conf, s.grade, s.graded_at,"
-            " v.case_study_id, cs.title"
+            " v.case_study_id, cs.title, s.started_at"
             " FROM submissions s"
             " JOIN variants v ON v.id = s.variant_id"
             " JOIN case_studies cs ON cs.id = v.case_study_id"
@@ -195,6 +197,10 @@ async def list_submissions(
                 status=str(r[4]),
                 page_count=int(str(r[3])),
                 submitted_at=int(str(r[5])),
+                started_at=None if r[11] is None else int(str(r[11])),
+                engaged_seconds=(
+                    None if r[11] is None else max(0, int(str(r[5])) - int(str(r[11])))
+                ),
                 recognition_conf=None if r[6] is None else float(str(r[6])),
                 grade=None if r[7] is None else float(str(r[7])),
                 graded_at=None if r[8] is None else int(str(r[8])),

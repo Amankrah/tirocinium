@@ -137,7 +137,7 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 462 tests (25 data layer + 9 backup verification (9.4), 4 load
+Python suite, 473 tests (25 data layer + 9 backup verification (9.4), 4 load
 (9.1), 34 security (9.2), 16 case studies/concepts/courses,
 16 reports (8.3), 36 unfold (8.4: 18 stepper, 18 surface), and 22 telemetry
 (8.5), see the gate table,
@@ -801,7 +801,7 @@ Phase 8, in progress:
   wheel after any dependency change (the command is above). (An earlier note
   here blamed faulthandler dumps on piping pytest to `tail`. That was wrong; see
   the segfault entry under 9.2.)
-- 8.1 (web, done): the review queue and the submission detail (decision 0056).
+- 8.1 (web, done): the review queue and the submission detail (decision 0059).
   The queue is a Server Component around a client island carrying the j/k model,
   the status filter, and cursor paging; rows are ordinary links, so it works by
   pointer, keyboard, or neither, and the order is the backend's (newest first,
@@ -825,14 +825,14 @@ Phase 8, in progress:
   launch requirement (j/k move, Enter opens the comparison, a promotes, e opens
   a closed card into its editor, and the keys are inert inside a textarea). 5
   new tests; `e2e/journey-six.spec.ts` triages the queue without a mouse.
-- 8.3 (web, done): the four reports (decision 0057), Server Components start to
+- 8.3 (web, done): the four reports (decision 0060), Server Components start to
   finish, so the route ships no client JavaScript. Every null renders as "Not
   enough yet" through one helper, and unpriced usage shows real counts beside
   "Not priced": a test asserts the words appear and that no zero does, which is
   the whole point of decision 0048's null rule. The confidence distribution is
   ten hairline bars from the token layer, deliberately not a charting
   dependency. 15 tests.
-- 8.4 (web, done): the unfold and the personal history (decision 0058). A 403
+- 8.4 (web, done): the unfold and the personal history (decision 0061). A 403
   from the solution read is a state, not a failure, so the surface names both
   ways in and offers giving up as a real button through a plain server-action
   form; reveals carry an absolute `through_step` so a retry cannot rewind. A
@@ -932,8 +932,16 @@ Phase 9, in progress:
   in git as non-executable while `ci.yml` invokes them as `./infra/...`, so
   those jobs would have failed on a permission error. If you add a script under
   `infra/`, check `git ls-files -s` shows 100755.
-- Phase 9's remaining backend item is 9.6's discretionary list; 9.3 and 9.5 are
-  the frontend's. Carried forward: the redemption limiter is in-memory and
+- 9.6 (in progress): the discretionary list. First item taken is the attempt
+  span (decision 0058), which closes the guide 4.2 gap flagged in 0049:
+  `POST /variants/{id}/attempts` (seat-only) records a server-stamped start, and
+  `POST /variants/{id}/submissions` optionally cites an `attempt_id` whose
+  ownership and variant are checked inside the creating transaction. Never
+  accept a client-supplied start: the span is professor-visible evidence. A
+  submission with no attempt has a null span, not zero. Migration course/0020
+  adds `attempts` and `submissions.started_at`; `engaged_seconds` is derived in
+  the history and review reads. 11 tests in `app/submissions/test_attempts.py`.
+- 9.3 and 9.5 are the frontend's. Carried forward: the redemption limiter is in-memory and
   per-process, so a multi-process deployment multiplies the allowance by the
   worker count.
 

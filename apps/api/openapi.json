@@ -67,6 +67,30 @@
         "title": "AddBoxIn",
         "type": "object"
       },
+      "AttemptOut": {
+        "description": "A started attempt. The timestamp is the server's, deliberately: a span\nthe client can name is a span the client can invent, and the professor is\nshown this one (frontend guide 4.2).",
+        "properties": {
+          "attempt_id": {
+            "title": "Attempt Id",
+            "type": "integer"
+          },
+          "started_at": {
+            "title": "Started At",
+            "type": "integer"
+          },
+          "variant_id": {
+            "title": "Variant Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "variant_id",
+          "started_at"
+        ],
+        "title": "AttemptOut",
+        "type": "object"
+      },
       "AuthOut": {
         "properties": {
           "professor": {
@@ -999,6 +1023,17 @@
             "title": "Defended",
             "type": "boolean"
           },
+          "engaged_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Engaged Seconds"
+          },
           "grade": {
             "anyOf": [
               {
@@ -1025,6 +1060,17 @@
             "title": "Solution Unfolded",
             "type": "boolean"
           },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
           "status": {
             "title": "Status",
             "type": "string"
@@ -1049,6 +1095,8 @@
           "case_study_title",
           "status",
           "submitted_at",
+          "started_at",
+          "engaged_seconds",
           "recognition_conf",
           "grade",
           "defended",
@@ -2909,6 +2957,17 @@
       },
       "SubmissionIn": {
         "properties": {
+          "attempt_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempt Id"
+          },
           "pages": {
             "items": {
               "$ref": "#/components/schemas/PageIn"
@@ -2981,6 +3040,17 @@
             ],
             "title": "Recognition Conf"
           },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
           "status": {
             "title": "Status",
             "type": "string"
@@ -3000,6 +3070,7 @@
           "status",
           "page_count",
           "submitted_at",
+          "started_at",
           "recognition_conf",
           "pages"
         ],
@@ -3116,6 +3187,17 @@
             "title": "Case Study Title",
             "type": "string"
           },
+          "engaged_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Engaged Seconds"
+          },
           "grade": {
             "anyOf": [
               {
@@ -3161,6 +3243,17 @@
             "title": "Seat Number",
             "type": "string"
           },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
           "status": {
             "title": "Status",
             "type": "string"
@@ -3183,6 +3276,8 @@
           "status",
           "page_count",
           "submitted_at",
+          "started_at",
+          "engaged_seconds",
           "recognition_conf",
           "grade",
           "graded_at"
@@ -9300,6 +9395,74 @@
           }
         ],
         "summary": "Get Submission Transcription",
+        "tags": [
+          "submissions"
+        ]
+      }
+    },
+    "/api/v1/variants/{variant_id}/attempts": {
+      "post": {
+        "description": "The \"start attempt\" moment (frontend guide 4.2): the student is opening\nthe problem to work it on paper, and the server stamps when. The submission\nthat follows may cite this attempt, and the pair becomes the honest record\nof engaged time.\n\nStarting twice is not an error. A student may open a problem, put it down,\nand come back; each start is its own row and only the one the submission\ncites becomes a span.",
+        "operationId": "start_attempt_api_v1_variants__variant_id__attempts_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "variant_id",
+            "required": true,
+            "schema": {
+              "title": "Variant Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttemptOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Start Attempt",
         "tags": [
           "submissions"
         ]

@@ -1146,6 +1146,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/variants/{variant_id}/attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Attempt
+         * @description The "start attempt" moment (frontend guide 4.2): the student is opening
+         *     the problem to work it on paper, and the server stamps when. The submission
+         *     that follows may cite this attempt, and the pair becomes the honest record
+         *     of engaged time.
+         *
+         *     Starting twice is not an error. A student may open a problem, put it down,
+         *     and come back; each start is its own row and only the one the submission
+         *     cites becomes a span.
+         */
+        post: operations["start_attempt_api_v1_variants__variant_id__attempts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/variants/{variant_id}/submissions": {
         parameters: {
             query?: never;
@@ -1189,6 +1216,20 @@ export interface components {
             ];
             /** Page Index */
             page_index: number;
+        };
+        /**
+         * AttemptOut
+         * @description A started attempt. The timestamp is the server's, deliberately: a span
+         *     the client can name is a span the client can invent, and the professor is
+         *     shown this one (frontend guide 4.2).
+         */
+        AttemptOut: {
+            /** Attempt Id */
+            attempt_id: number;
+            /** Started At */
+            started_at: number;
+            /** Variant Id */
+            variant_id: number;
         };
         /** AuthOut */
         AuthOut: {
@@ -1538,12 +1579,16 @@ export interface components {
             concept_to_revisit: number | null;
             /** Defended */
             defended: boolean;
+            /** Engaged Seconds */
+            engaged_seconds: number | null;
             /** Grade */
             grade: number | null;
             /** Recognition Conf */
             recognition_conf: number | null;
             /** Solution Unfolded */
             solution_unfolded: boolean;
+            /** Started At */
+            started_at: number | null;
             /** Status */
             status: string;
             /** Submission Id */
@@ -2209,6 +2254,8 @@ export interface components {
         };
         /** SubmissionIn */
         SubmissionIn: {
+            /** Attempt Id */
+            attempt_id?: number | null;
             /** Pages */
             pages: components["schemas"]["PageIn"][];
         };
@@ -2229,6 +2276,8 @@ export interface components {
             pages: components["schemas"]["PageOut"][];
             /** Recognition Conf */
             recognition_conf: number | null;
+            /** Started At */
+            started_at: number | null;
             /** Status */
             status: string;
             /** Submitted At */
@@ -2273,6 +2322,8 @@ export interface components {
             case_study_id: number;
             /** Case Study Title */
             case_study_title: string;
+            /** Engaged Seconds */
+            engaged_seconds: number | null;
             /** Grade */
             grade: number | null;
             /** Graded At */
@@ -2285,6 +2336,8 @@ export interface components {
             recognition_conf: number | null;
             /** Seat Number */
             seat_number: string;
+            /** Started At */
+            started_at: number | null;
             /** Status */
             status: string;
             /** Submitted At */
@@ -6176,6 +6229,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TranscriptionOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_attempt_api_v1_variants__variant_id__attempts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                variant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptOut"];
                 };
             };
             /** @description Forbidden */

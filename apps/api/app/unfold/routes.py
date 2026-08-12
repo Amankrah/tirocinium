@@ -76,6 +76,8 @@ class HistoryEntry(BaseModel):
     case_study_title: str
     status: str
     submitted_at: int
+    started_at: int | None
+    engaged_seconds: int | None
     recognition_conf: float | None
     grade: float | None
     defended: bool
@@ -269,7 +271,7 @@ async def personal_history(
             params.append(before)
         rows = conn.execute(
             "SELECT s.id, s.variant_id, v.case_study_id, cs.title, s.status,"
-            " s.submitted_at, s.recognition_conf, s.grade,"
+            " s.submitted_at, s.started_at, s.recognition_conf, s.grade,"
             " (SELECT COUNT(*) FROM conversations c"
             "  WHERE c.submission_id = s.id AND c.rubric_json IS NOT NULL),"
             " (SELECT c.concept_to_revisit FROM conversations c"
@@ -293,11 +295,15 @@ async def personal_history(
                 case_study_title=str(r[3]),
                 status=str(r[4]),
                 submitted_at=int(r[5]),
-                recognition_conf=None if r[6] is None else float(r[6]),
-                grade=None if r[7] is None else float(r[7]),
-                defended=int(r[8]) > 0,
-                concept_to_revisit=None if r[9] is None else int(r[9]),
-                solution_unfolded=r[10] is not None and int(r[10]) > 0,
+                started_at=None if r[6] is None else int(r[6]),
+                engaged_seconds=(
+                    None if r[6] is None else max(0, int(r[5]) - int(r[6]))
+                ),
+                recognition_conf=None if r[7] is None else float(r[7]),
+                grade=None if r[8] is None else float(r[8]),
+                defended=int(r[9]) > 0,
+                concept_to_revisit=None if r[10] is None else int(r[10]),
+                solution_unfolded=r[11] is not None and int(r[11]) > 0,
             )
             for r in page
         ]

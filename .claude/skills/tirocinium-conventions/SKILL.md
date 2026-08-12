@@ -47,7 +47,12 @@ the whole Phase 8 backend is complete and only the frontend's journeys five and
 six remain on its gate. Phase 9 has begun: 9.1 (load testing, decision 0051) and
 9.2 (the security pass, decision 0052) and 9.4 (the scheduled backup drill with
 alerting, decision 0053) are done; 9.3 and 9.5 are the frontend's and 9.6 is the
-discretionary list. Two standing cautions from decision 0054: the Python suite
+discretionary list, whose first item is built: the attempt span (decision 0058),
+where `POST /variants/{id}/attempts` records a server-stamped start and a
+submission may cite it. A client-supplied start is never accepted, because the
+span is shown to the professor as evidence of engaged work; a submission with no
+attempt carries a null span rather than a fabricated zero. Two standing cautions
+from decision 0054: the Python suite
 segfaults on roughly one full run in ten (a GC crash on an anyio worker thread,
 independent of pytest and pyo3 versions), so never call a gate green or red from
 a single run; and the pyo3 pin stays at 0.23 despite two open RUSTSEC advisories,
@@ -591,6 +596,42 @@ on every surface, seats stay pseudonymous with the seat number quietly in the
 shell, and there are no streaks, guilt notifications, leaderboards, or
 infinite scroll, ever. WCAG 2.2 AA is the floor; reduced motion renders
 stills; keyboard operability includes the upload flow and j/k review surfaces.
+
+The defence conversation (milestone 7.4, decision 0055) is the frontend's one
+place where a credential reaches client JavaScript, and it is a flagged
+exception rather than a precedent. Every other authed call goes through a
+Server Component, a server action, or the same-origin SSE proxy (decision 0019),
+because the seat token is an httpOnly cookie (decision 0011) and `API_BASE_URL`
+is server-only; a WebSocket can carry neither a header nor a proxy through the
+App Router, so decision 0045's query-parameter token is minted server-side and
+held by one module for one conversation. Never widen that: nothing else builds a
+client-side URL against the API, and a stream ticket is the fix on the table
+(`docs/handoffs/defence-surface-gaps.md`). The conversation's own rules: the
+session opens on the student's click, never on page load, because it consumes a
+capped slot; the typed path is present from the first frame rather than offered
+after failure, since `speech_down` and `audio_down` can arrive at any moment; a
+refused microphone lands in the identical state as a dead recognizer; barge-in
+is the server's call, so the client reacts to `interrupted` by flushing
+playback and never decides locally that the tutor should stop; and an
+interrupted reply keeps the fragment already spoken, because it was said and
+the next turn is reasoned from it. Conversation logic stays pure and
+injected-seam tested in `lib/defence/`, with the React layer only binding it,
+which is the upload controller's pattern.
+
+The Phase 8 surfaces add three rules worth carrying forward. Region boxes are
+drawn on the grayscale rendition the model read, never on the original scan
+(decision 0059), because preprocessing deskews and downscales first; and a
+region's bbox is `[x0, y0, x1, y1]` while a figure's is `[x, y, w, h]`
+(decision 0032), so the two overlays never share a helper. A statistic that
+arrives null renders as words, never as a number: an empty denominator is "we
+cannot say", and a report printing 0% or a correlation from one pair would read
+as a finding (decisions 0048 and 0060). And nothing on a professor surface
+ranks students: activity is rendered in the backend's seat-number order and the
+copy says so, because the only thing stopping a reader from re-sorting by volume
+is knowing the product does not do that. Charts, when one is unavoidable, are
+built from the token layer rather than a dependency: the design language spends
+its one visual flourish on the particle field, and a library would ship a
+palette that is not ours.
 
 ## Model-call rules
 

@@ -52,6 +52,11 @@ class PageIn(BaseModel):
 
 class SubmissionIn(BaseModel):
     pages: list[PageIn] = Field(min_length=1, max_length=MAX_PAGES)
+    # The attempt this work came from, if the student opened one. Optional
+    # because a submission without an attempt is legitimate (an older client, a
+    # student who started before the feature, a retake); it simply carries no
+    # span rather than a made-up one.
+    attempt_id: int | None = None
 
 
 class UploadTarget(BaseModel):
@@ -75,12 +80,23 @@ class PageOut(BaseModel):
     content_hash: str | None
 
 
+class AttemptOut(BaseModel):
+    """A started attempt. The timestamp is the server's, deliberately: a span
+    the client can name is a span the client can invent, and the professor is
+    shown this one (frontend guide 4.2)."""
+
+    attempt_id: int
+    variant_id: int
+    started_at: int
+
+
 class SubmissionOut(BaseModel):
     id: int
     variant_id: int
     status: str
     page_count: int
     submitted_at: int
+    started_at: int | None
     recognition_conf: float | None
     pages: list[PageOut]
 
@@ -128,7 +144,7 @@ async def _load_submission(
     def read(conn: sqlite3.Connection) -> SubmissionOut:
         row = conn.execute(
             "SELECT id, variant_id, seat_id, page_count, status, submitted_at,"
-            " recognition_conf FROM submissions WHERE id = ?",
+            " recognition_conf, started_at FROM submissions WHERE id = ?",
             (submission_id,),
         ).fetchone()
         # A submission that is not this seat's is indistinguishable from one
@@ -147,6 +163,7 @@ async def _load_submission(
             page_count=int(row[3]),
             submitted_at=int(row[5]),
             recognition_conf=None if row[6] is None else float(row[6]),
+            started_at=None if row[7] is None else int(row[7]),
             pages=[
                 PageOut(
                     page_index=int(p[0]),
@@ -212,6 +229,42 @@ async def _load_transcription(
 
 
 @router.post(
+    "/variants/{variant_id}/attempts",
+    status_code=201,
+    response_model=AttemptOut,
+    responses={403: {"model": Problem}, 404: {"model": Problem}},
+)
+async def start_attempt(
+    variant_id: int,
+    identity: Annotated[Identity, Depends(require_seat)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+) -> AttemptOut:
+    """The "start attempt" moment (frontend guide 4.2): the student is opening
+    the problem to work it on paper, and the server stamps when. The submission
+    that follows may cite this attempt, and the pair becomes the honest record
+    of engaged time.
+
+    Starting twice is not an error. A student may open a problem, put it down,
+    and come back; each start is its own row and only the one the submission
+    cites becomes a span."""
+    course_id, seat_id = _seat_context(identity)
+    now = int(time.time())
+
+    def create(conn: sqlite3.Connection) -> int:
+        if conn.execute("SELECT 1 FROM variants WHERE id = ?", (variant_id,)).fetchone() is None:
+            raise HTTPException(status_code=404, detail="Variant not found.")
+        cursor = conn.execute(
+            "INSERT INTO attempts (variant_id, seat_id, started_at) VALUES (?, ?, ?)",
+            (variant_id, seat_id, now),
+        )
+        assert cursor.lastrowid is not None
+        return int(cursor.lastrowid)
+
+    attempt_id = await shards.course(course_id).run(create)
+    return AttemptOut(attempt_id=attempt_id, variant_id=variant_id, started_at=now)
+
+
+@router.post(
     "/variants/{variant_id}/submissions",
     status_code=201,
     response_model=SubmissionCreated,
@@ -245,11 +298,24 @@ async def create_submission(
             is None
         ):
             raise HTTPException(status_code=404, detail="Variant not found.")
+        # The span comes from the attempt row, never from the request: an
+        # attempt that is not this seat's, or not this variant's, contributes
+        # nothing rather than being trusted.
+        started_at: int | None = None
+        if body.attempt_id is not None:
+            attempt = conn.execute(
+                "SELECT started_at FROM attempts"
+                " WHERE id = ? AND seat_id = ? AND variant_id = ?",
+                (body.attempt_id, seat_id, variant_id),
+            ).fetchone()
+            if attempt is not None:
+                started_at = int(attempt[0])
         cursor = conn.execute(
             "INSERT INTO submissions"
-            " (variant_id, seat_id, page_count, storage_prefix, status, submitted_at)"
-            " VALUES (?, ?, ?, ?, 'pending', ?)",
-            (variant_id, seat_id, len(body.pages), prefix, now),
+            " (variant_id, seat_id, page_count, storage_prefix, status,"
+            "  submitted_at, started_at)"
+            " VALUES (?, ?, ?, ?, 'pending', ?, ?)",
+            (variant_id, seat_id, len(body.pages), prefix, now, started_at),
         )
         submission_id = cursor.lastrowid
         assert submission_id is not None
