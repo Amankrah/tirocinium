@@ -14,10 +14,11 @@ from typing import Any, Protocol
 
 from pydantic import BaseModel, Field
 
+from app.model_text import text_of
 from app.prompt_safety import document_key, new_fence
 
 DEFAULT_ASSESSMENT_MODEL = os.environ.get(
-    "TIRO_ASSESSMENT_MODEL_ID", "claude-3-5-sonnet-latest"
+    "TIRO_ASSESSMENT_MODEL_ID", "claude-sonnet-5"
 )
 
 
@@ -111,10 +112,7 @@ class AnthropicWorkingAssessor:
             max_tokens=4096,
             messages=[{"role": "user", "content": blocks}],
         )
-        block = message.content[0]
-        text = getattr(block, "text", None)
-        if text is None:
-            raise ValueError("assessment model returned no text block")
+        text = text_of(message, "assessment model")
         return parse_assessment(text)
 
 

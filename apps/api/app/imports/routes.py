@@ -27,6 +27,7 @@ from app.courses.routes import ensure_course_owner, ensure_course_reader
 from app.db.shards import ShardManager
 from app.imports.figures import normalized_bbox
 from app.imports.metrics import edit_distance
+from app.imports.progress import ImportStage, import_stage
 from app.problems import Problem
 from app.storage import (
     IMPORTS_BUCKET,
@@ -60,6 +61,8 @@ class ImportOut(BaseModel):
     id: int
     status: str
     page_count: int | None
+    pages_done: int = 0
+    stage: ImportStage | None = None
     created_at: int
 
 
@@ -73,10 +76,18 @@ async def _load_import(shards: ShardManager, course_id: int, import_id: int) -> 
         # simply is not here, so a 404 needs no extra ownership check.
         if row is None:
             raise HTTPException(status_code=404, detail="Import not found.")
+        counted = conn.execute(
+            "SELECT COUNT(*) FROM import_pages WHERE job_id = ?", (import_id,)
+        ).fetchone()
+        pages_done = 0 if counted is None else int(counted[0])
+        page_count = None if row[2] is None else int(row[2])
+        status = str(row[1])
         return ImportOut(
             id=int(row[0]),
-            status=str(row[1]),
-            page_count=None if row[2] is None else int(row[2]),
+            status=status,
+            page_count=page_count,
+            pages_done=pages_done,
+            stage=import_stage(status, page_count, pages_done),
             created_at=int(row[3]),
         )
 

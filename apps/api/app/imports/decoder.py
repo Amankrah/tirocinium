@@ -16,6 +16,8 @@ from typing import Literal, Protocol, cast
 
 from pydantic import BaseModel
 
+from app.model_text import text_of
+
 # The pdfium build the real decoder binds, recorded as decode provenance on
 # born-digital pages. Deployment configuration.
 DEFAULT_PDF_DECODER = os.environ.get("TIRO_PDF_DECODER_ID", "pdfium")
@@ -209,7 +211,7 @@ def get_figure_extractor() -> FigureExtractor:
 # proposes positions; it never describes or redraws a figure (figures are
 # pixels). Same family as the handwriting reader.
 DEFAULT_FIGURE_DETECTION_MODEL = os.environ.get(
-    "TIRO_VISION_MODEL_ID", "claude-3-5-sonnet-latest"
+    "TIRO_VISION_MODEL_ID", "claude-sonnet-5"
 )
 
 
@@ -272,10 +274,7 @@ class AnthropicFigureDetector:
                 }
             ],
         )
-        block = message.content[0]
-        text = getattr(block, "text", None)
-        if text is None:
-            raise ValueError("figure detector returned no text block")
+        text = text_of(message, "figure detector")
         return parse_boxes(text)
 
 

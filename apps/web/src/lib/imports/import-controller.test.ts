@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   ImportController,
@@ -37,8 +37,19 @@ function created(importId = 3) {
   };
 }
 
-function job(status: string, pageCount: number | null = null) {
-  return { id: 3, status, page_count: pageCount, created_at: 1 };
+function job(
+  status: string,
+  pageCount: number | null = null,
+  extra: { pages_done?: number; stage?: "opening" | "reading" | "segmenting" | null } = {},
+) {
+  return {
+    id: 3,
+    status,
+    page_count: pageCount,
+    pages_done: extra.pages_done ?? (pageCount ?? 0),
+    stage: extra.stage ?? null,
+    created_at: 1,
+  };
 }
 
 function deps(over: Partial<ImportDeps> = {}): ImportDeps {
@@ -61,6 +72,10 @@ function track() {
 const pdf = new Blob(["%PDF-1.4"], { type: "application/pdf" });
 
 describe("ImportController", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("creates, uploads, completes, then polls to ready", async () => {
     const d = deps();
     const c = new ImportController(d, track().onChange);
@@ -70,6 +85,21 @@ describe("ImportController", () => {
     expect(d.put).toHaveBeenCalledOnce();
     expect(d.complete).toHaveBeenCalledWith(3);
     expect(c.getState()).toMatchObject({ phase: "ready", importId: 3, pageCount: 42 });
+  });
+
+  it("records whole-run elapsed seconds on ready", async () => {
+    let now = 1_000_000;
+    vi.spyOn(Date, "now").mockImplementation(() => now);
+    const poll = vi.fn().mockImplementation(async () => {
+      now += 105_000;
+      return job("ready", 12);
+    });
+    const c = new ImportController(deps({ poll }), track().onChange);
+    await c.run(pdf);
+    expect(c.getState()).toMatchObject({
+      phase: "ready",
+      elapsedSeconds: 105,
+    });
   });
 
   it("keeps polling through processing until ready", async () => {
@@ -87,6 +117,22 @@ describe("ImportController", () => {
     expect(d.delay).toHaveBeenCalledTimes(2); // between the three polls
     expect(c.getState().phase).toBe("ready");
     expect(states.some((s) => s.phase === "processing")).toBe(true);
+  });
+
+  it("carries the server stage while processing", async () => {
+    const poll = vi
+      .fn()
+      .mockResolvedValueOnce(
+        job("processing", 9, { pages_done: 3, stage: "reading" }),
+      )
+      .mockResolvedValueOnce(job("ready", 9, { pages_done: 9, stage: null }));
+    const { states, onChange } = track();
+    const c = new ImportController(deps({ poll }), onChange);
+    await c.run(pdf);
+    expect(states.some((s) => s.stage === "reading" && s.pagesDone === 3)).toBe(
+      true,
+    );
+    expect(c.getState()).toMatchObject({ phase: "ready", pagesDone: 9, stage: null });
   });
 
   it("errors when create is refused, without uploading", async () => {

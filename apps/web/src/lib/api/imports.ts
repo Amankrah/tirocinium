@@ -62,9 +62,9 @@ export async function completeImport(
   return (await response.json()) as Schemas["ImportOut"];
 }
 
-// Read one import's current state (status, page_count once decoded). A course
-// the professor does not own, or an id from another course, is a 404 and
-// collapses to null.
+// Read one import's current state (status, page_count once decoded, pages_done
+// and the derived stage while the worker is running). A course the professor
+// does not own, or an id from another course, is a 404 and collapses to null.
 export async function getImport(
   token: string,
   courseId: number,

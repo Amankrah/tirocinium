@@ -141,7 +141,7 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 486 tests (25 data layer + 9 backup verification (9.4), 4 load
+Python suite, 493 tests (25 data layer + 9 backup verification (9.4), 4 load
 (9.1), 37 security (9.2, incl. 3 on the raise-only redemption ceiling),
 16 case studies/concepts/courses,
 16 reports (8.3), 36 unfold (8.4: 18 stepper, 18 surface), 22 telemetry
@@ -177,9 +177,9 @@ edit, discard, auth; 10 pool: fill-to-target with token accounting,
 idempotent top-up, the flagging attempt ceiling, the exhausted budget,
 publish enqueues (and not without a spec), the seat read without a solution,
 exclude, flagged never practised, draft invisibility, and the 50-request
-empty-budget pool-invariant gate), 63 imports
-(4 decode pipeline + 2 figure pipeline (born-digital + scanned detector),
-9 endpoint, 8 confirm/list/metrics, 8 figure verbs (incl. the items read carrying
+empty-budget pool-invariant gate), 70 imports
+(4 stage derivation, 5 decode pipeline of which 1 is page-count-during-segmentation, 2 figure pipeline (born-digital + scanned detector),
+11 endpoint (incl. GET reading and segmenting progress), 8 confirm/list/metrics, 8 figure verbs (incl. the items read carrying
 figures+pages), 5 figure resolve (owner any, seat published-only, 404 hides
 existence), 13 item verbs (merge + discard), 1 edit-distance, 5 figure
 storage/placement, 4 segmentation, 1 purge, 3 pdfium decoder/extractor that skip
@@ -208,10 +208,11 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (454 Vitest tests across 56 files: the token contract with its
+Web suite (465 Vitest tests across 57 files: the token contract with its
 computed-contrast assertion, the primitives, the API clients, the upload flow's
 pre-checks, orchestration controller, SSE processing model, and transcription
-preview, the PDF import upload and controller, the defence conversation's
+preview, the PDF import upload, controller, and processing checklist (decision
+0071), the defence conversation's
 protocol, state reducer, PCM arithmetic, playback queue, and surface, and the
 Phase 8 surfaces: the review queue and its keyboard model, the submission review
 with its region geometry, the four reports, and the unfold; the particle
@@ -978,35 +979,47 @@ Phase 9, in progress:
   RUSTSEC-2026-0177 (both pyo3 0.23.5) ignored by id so a new advisory still
   fails; upgrading pyo3 fixes both and was rejected on measurement, see below.
 
-  **The suite segfaults about one full run in ten.** Read this before trusting a
-  green run or diagnosing a crash. It is mid garbage collection on an anyio
-  worker thread inside Starlette request handling, it predates Phase 9, and it
-  is independent of pytest version (8 and 9) and pyo3 version (0.23 and 0.29).
-  Measured rates on the full suite: pyo3 0.23 five crashes in fifty runs, pyo3
-  0.29 five in twelve, which is why the pyo3 upgrade (and with it the pytest
-  one, whose earlier failure was this same crash) is not landed. It does not
-  reproduce running the newer suites alone, only across the whole suite.
-  Chased to a native backtrace (decision 0056): the faulting frame is CPython's
-  own `gc_collect_main`, with no third-party native frame on the stack, on a
-  python-build-standalone Clang PGO + thin-LTO interpreter. Also ruled out:
-  `PYTHONMALLOC=debug` reports no corrupted block; 3.12.11 (3 in 15) and 3.13.12
-  (1 in 14) crash too, so a newer Python is not a remedy; `gc.freeze()` does not
-  help; and two standalone harnesses, one with no project code and one
-  exercising every native module including ours, fail to reproduce in 12 and 14
-  runs, so the trigger needs the real suite's scale. Two hypotheses are now
-  refuted (decision 0057). It is **not** the PGO/LTO interpreter build: a
-  CPython 3.12.13 built here with `--disable-optimizations --without-lto` still
-  crashes. And **disabling the GC does not fix it**, despite every backtrace
-  landing in the collector.
+  **The suite segfaults on about one full run in thirteen.** Read this before
+  trusting a green run or diagnosing a crash. Measured properly on exit status
+  (decision 0065): 3 SIGSEGV in 40 runs, 7.5%. It predates Phase 9 and is
+  independent of pytest version (8 and 9), pyo3 version (0.23 and 0.29), and
+  CPython version and build (3.12.11, 3.12.13, 3.13.12, and a self-built
+  unoptimised 3.12.13 all crash, so a newer interpreter is not a remedy).
+  **Where it actually is** (decision 0065, correcting 0054 and 0056): at pytest
+  session teardown, in `_pytest/unraisableexception.py`'s `gc_collect_harder`
+  reached from `_ensure_unconfigure`, with **one thread alive**. It is *not* on
+  an anyio worker thread inside Starlette request handling; that description
+  came from misreading the 0056 gdb frames and three decisions reasoned from it.
+  **The amplifier is the tool to use.** `scripts/gc_amplifier.py` raises
+  pytest's `gc_collect_iterations` from 5 to 50 and takes the rate to 6 in 20,
+  30%: `.venv/bin/python -m pytest -q -p scripts.gc_amplifier`. Use it for every
+  experiment on this bug, because separating 7.5% from zero needs sixty runs and
+  30% needs ten. Amplified, most crashes move mid-suite and their stacks name
+  the neighbourhood: FastAPI route and dependency construction
+  (`get_flat_dependant`, `_populate_api_route_state`), OpenAPI generation, and
+  pydantic `TypeAdapter` schema building, with `pydantic_core` the one
+  third-party native extension living there.
+  **Ruled out, and one refutation withdrawn.** `PYTHONMALLOC=debug` reports no
+  corrupted block; `gc.freeze()` does not help; it is not the PGO/LTO build
+  (0057); and no `sqlite3.Connection` is alive at teardown, so connections
+  finalised by the collector are not it despite `check_same_thread=False`.
+  But 0057's "disabling the GC does not fix it" **does not hold**: `gc.disable()`
+  suppresses only automatic collection and the crashing collection is an
+  explicit `gc.collect()`, so that hypothesis was never tested and is open.
+  Also doubtful is 0056's "the trigger needs the real suite's scale": an 88-test
+  subset (`app/test_contract.py app/reports app/variants app/params`) reproduces
+  under the amplifier.
   Count crashes by exit status (139), never by grepping for `Fatal Python
-  error`: a process can take SIGSEGV without faulthandler printing, so the
-  rates quoted in 0054 and 0056 are lower bounds, and the pyo3 0.23-vs-0.29
-  comparison behind rejecting that upgrade needs re-measuring before it is
-  treated as settled. To get a backtrace, loop
-  `gdb -batch -ex run -ex "bt 40" --args .venv/bin/python -m pytest -q`; apport
-  intercepts cores on this host, so gdb is the route, not core files. Next step
-  is bisection by native extension (hiredis, websockets.speedups, Pillow), each
-  measured over ~30 runs on exit status.
+  error`: a process can take SIGSEGV without faulthandler printing, so the rates
+  in 0054 and 0056 are lower bounds and the pyo3 0.23-vs-0.29 comparison behind
+  rejecting that upgrade still needs re-measuring. Keep pytest flags identical
+  between arms you compare: a gdb run that varied the flags and disabled ASLR at
+  once produced 40 clean runs and had to be discarded as uninterpretable. apport
+  intercepts cores on this host, so gdb is the route, not core files.
+  Next step is a standalone reproducer that builds this app's FastAPI instance
+  in a loop with forced collection and no pytest; if it crashes it is an upstream
+  report, and if it does not, pytest's `unraisablehook` (which calls `repr()` on
+  an object whose finaliser just raised) is the next thing to look at.
   Never conclude a gate is green, or red, from one run, and treat a signal-11
   exit as a distinct outcome from a test failure.
 - 9.4 (done): the scheduled backup drill with alerting (decision 0053).

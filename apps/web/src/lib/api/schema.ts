@@ -1684,6 +1684,13 @@ export interface components {
             id: number;
             /** Page Count */
             page_count: number | null;
+            /**
+             * Pages Done
+             * @default 0
+             */
+            pages_done: number;
+            /** Stage */
+            stage?: ("opening" | "reading" | "segmenting") | null;
             /** Status */
             status: string;
         };

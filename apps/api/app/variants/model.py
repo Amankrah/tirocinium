@@ -18,6 +18,7 @@ from typing import Protocol
 
 from pydantic import BaseModel, Field
 
+from app.model_text import text_of
 from app.prompt_safety import document_key
 
 # Claude via the Anthropic API for both passes. Concrete model ids are
@@ -25,10 +26,10 @@ from app.prompt_safety import document_key
 # verification can run a different model than generation (independence is the
 # point of the second pass).
 DEFAULT_GENERATION_MODEL = os.environ.get(
-    "TIRO_GENERATION_MODEL_ID", "claude-3-5-sonnet-latest"
+    "TIRO_GENERATION_MODEL_ID", "claude-sonnet-5"
 )
 DEFAULT_VERIFICATION_MODEL = os.environ.get(
-    "TIRO_VERIFICATION_MODEL_ID", "claude-3-5-sonnet-latest"
+    "TIRO_VERIFICATION_MODEL_ID", "claude-sonnet-5"
 )
 
 
@@ -76,12 +77,7 @@ class VariantVerifier(Protocol):
 
 
 def _text_of(message: object) -> str:
-    content = getattr(message, "content", [])
-    block = content[0] if content else None
-    text = getattr(block, "text", None)
-    if text is None:
-        raise ValueError("model returned no text block")
-    return str(text)
+    return text_of(message, "model")
 
 
 class AnthropicVariantGenerator:

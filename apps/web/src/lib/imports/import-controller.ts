@@ -37,8 +37,14 @@ export interface ImportState {
   importId: number | null;
   // Upload progress, 0..1, meaningful while uploading.
   progress: number;
-  // Set once decode reports it.
+  // Set once decode reports it; stays set through ready.
   pageCount: number | null;
+  pagesDone: number;
+  // Derived server stage while the worker is running; null otherwise.
+  stage: "opening" | "reading" | "segmenting" | null;
+  // Whole-run elapsed, set on the terminal ready/error emit so the surface
+  // can say how long the professor waited. Null while the run is in flight.
+  elapsedSeconds: number | null;
 }
 
 export interface ImportDeps {
@@ -68,8 +74,12 @@ export class ImportController {
     importId: null,
     progress: 0,
     pageCount: null,
+    pagesDone: 0,
+    stage: null,
+    elapsedSeconds: null,
   };
   private idempotencyKey: string | null = null;
+  private startedAt = 0;
 
   constructor(
     private readonly deps: ImportDeps,
@@ -88,13 +98,21 @@ export class ImportController {
   // Run the whole sequence. Safe to call again after an error: the idempotency
   // key is reused, so a re-created import is the same job.
   async run(file: Blob): Promise<void> {
-    this.emit({ phase: "creating", progress: 0, pageCount: null });
+    this.startedAt = Date.now();
+    this.emit({
+      phase: "creating",
+      progress: 0,
+      pageCount: null,
+      pagesDone: 0,
+      stage: null,
+      elapsedSeconds: null,
+    });
     if (this.idempotencyKey === null) {
       this.idempotencyKey = this.deps.newIdempotencyKey();
     }
     const created = await this.deps.create(file.size, this.idempotencyKey);
     if (created === null) {
-      this.emit({ phase: "error" });
+      this.emit({ phase: "error", elapsedSeconds: this.elapsed() });
       return;
     }
     this.emit({ phase: "uploading", importId: created.import_id });
@@ -103,13 +121,13 @@ export class ImportController {
       this.emit({ progress: Math.max(0, Math.min(1, fraction)) }),
     );
     if (!uploaded) {
-      this.emit({ phase: "error" });
+      this.emit({ phase: "error", elapsedSeconds: this.elapsed() });
       return;
     }
 
     this.emit({ phase: "processing", progress: 1 });
     if (!(await this.deps.complete(created.import_id))) {
-      this.emit({ phase: "error" });
+      this.emit({ phase: "error", elapsedSeconds: this.elapsed() });
       return;
     }
     await this.pollUntilDone(created.import_id);
@@ -119,21 +137,42 @@ export class ImportController {
     for (let i = 0; i < MAX_POLLS; i += 1) {
       const job = await this.deps.poll(importId);
       if (job === null) {
-        this.emit({ phase: "error" });
+        this.emit({ phase: "error", elapsedSeconds: this.elapsed() });
         return;
       }
       if (job.status === "ready") {
-        this.emit({ phase: "ready", pageCount: job.page_count });
+        this.emit({
+          phase: "ready",
+          pageCount: job.page_count,
+          pagesDone: job.pages_done,
+          stage: null,
+          elapsedSeconds: this.elapsed(),
+        });
         return;
       }
       if (job.status === "failed") {
-        this.emit({ phase: "error", pageCount: job.page_count });
+        this.emit({
+          phase: "error",
+          pageCount: job.page_count,
+          pagesDone: job.pages_done,
+          stage: null,
+          elapsedSeconds: this.elapsed(),
+        });
         return;
       }
-      this.emit({ phase: "processing", pageCount: job.page_count });
+      this.emit({
+        phase: "processing",
+        pageCount: job.page_count,
+        pagesDone: job.pages_done,
+        stage: job.stage ?? null,
+      });
       await this.deps.delay(POLL_INTERVAL_MS);
     }
     // Exhausted the ceiling without a terminal status.
-    this.emit({ phase: "error" });
+    this.emit({ phase: "error", elapsedSeconds: this.elapsed() });
+  }
+
+  private elapsed(): number {
+    return Math.max(0, Math.floor((Date.now() - this.startedAt) / 1000));
   }
 }

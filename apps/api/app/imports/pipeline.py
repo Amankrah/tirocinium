@@ -87,6 +87,10 @@ async def run_import_pipeline(
             raise ValueError(
                 f"PDF has {len(pages)} pages, over the {MAX_PDF_PAGES} page limit"
             )
+        # Known as soon as pdfium opens the file, so the professor's poll can
+        # say "Reading pages 1 to N" during the page loop rather than only
+        # once the job is ready (frontend guide 4.3).
+        await writer.run(_set_page_count(import_id, len(pages)))
 
         for page in pages:
             image_key = f"{prefix}/pages/{page.page_index}.png"
@@ -193,6 +197,18 @@ def _set_status(import_id: int, status: str) -> Callable[[sqlite3.Connection], N
     def apply(conn: sqlite3.Connection) -> None:
         conn.execute(
             "UPDATE import_jobs SET status = ? WHERE id = ?", (status, import_id)
+        )
+
+    return apply
+
+
+def _set_page_count(
+    import_id: int, page_count: int
+) -> Callable[[sqlite3.Connection], None]:
+    def apply(conn: sqlite3.Connection) -> None:
+        conn.execute(
+            "UPDATE import_jobs SET page_count = ? WHERE id = ?",
+            (page_count, import_id),
         )
 
     return apply

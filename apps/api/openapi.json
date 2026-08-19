@@ -1385,6 +1385,27 @@
             ],
             "title": "Page Count"
           },
+          "pages_done": {
+            "default": 0,
+            "title": "Pages Done",
+            "type": "integer"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "enum": [
+                  "opening",
+                  "reading",
+                  "segmenting"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
           "status": {
             "title": "Status",
             "type": "string"

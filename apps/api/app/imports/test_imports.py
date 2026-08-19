@@ -11,6 +11,7 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
+from app.db.connection import connect
 from app.main import create_app
 from app.storage import IMPORTS_BUCKET, get_object_storage
 from app.tasks import get_task_queue
@@ -194,8 +195,70 @@ def test_get_reports_status(client: TestClient) -> None:
         "id": import_id,
         "status": "pending",
         "page_count": None,
+        "pages_done": 0,
+        "stage": None,
         "created_at": r.json()["created_at"],
     }
+
+
+def _processing_job(
+    tmp_path: Path, course_id: int, import_id: int, *, page_count: int, pages_done: int
+) -> None:
+    conn = connect(tmp_path / "courses" / f"{course_id}.db")
+    try:
+        conn.execute(
+            "UPDATE import_jobs SET status = 'processing', page_count = ? WHERE id = ?",
+            (page_count, import_id),
+        )
+        for index in range(pages_done):
+            conn.execute(
+                "INSERT INTO import_pages (job_id, page_index, kind, image_key,"
+                " content_hash) VALUES (?, ?, 'born_digital', ?, ?)",
+                (import_id, index, f"img/{index}.png", f"hash-{index}"),
+            )
+    finally:
+        conn.close()
+
+
+def test_get_reports_reading_progress(
+    client: TestClient, tmp_path: Path
+) -> None:
+    headers = professor(client)
+    course_id = make_course(client, headers)
+    import_id = client.post(
+        f"/api/v1/courses/{course_id}/imports",
+        json={"content_type": "application/pdf", "size_bytes": MB},
+        headers=headers,
+    ).json()["import_id"]
+    _processing_job(tmp_path, course_id, import_id, page_count=9, pages_done=3)
+
+    r = client.get(f"/api/v1/courses/{course_id}/imports/{import_id}", headers=headers)
+
+    assert r.status_code == 200
+    body = r.json()
+    assert body["status"] == "processing"
+    assert body["page_count"] == 9
+    assert body["pages_done"] == 3
+    assert body["stage"] == "reading"
+
+
+def test_get_reports_segmenting_when_every_page_is_in(
+    client: TestClient, tmp_path: Path
+) -> None:
+    headers = professor(client)
+    course_id = make_course(client, headers)
+    import_id = client.post(
+        f"/api/v1/courses/{course_id}/imports",
+        json={"content_type": "application/pdf", "size_bytes": MB},
+        headers=headers,
+    ).json()["import_id"]
+    _processing_job(tmp_path, course_id, import_id, page_count=9, pages_done=9)
+
+    r = client.get(f"/api/v1/courses/{course_id}/imports/{import_id}", headers=headers)
+
+    assert r.status_code == 200
+    assert r.json()["stage"] == "segmenting"
+    assert r.json()["pages_done"] == 9
 
 
 def test_import_requires_authentication(client: TestClient) -> None:

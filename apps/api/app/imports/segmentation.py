@@ -18,13 +18,21 @@ from typing import Protocol
 
 from pydantic import BaseModel, Field
 
+from app.model_text import text_of
 from app.prompt_safety import document_key
 
 # Claude via the Anthropic API (a text pass). The concrete model id is
 # deployment configuration; provenance records whatever was used.
 DEFAULT_SEGMENTATION_MODEL = os.environ.get(
-    "TIRO_SEGMENTATION_MODEL_ID", "claude-3-5-sonnet-latest"
+    "TIRO_SEGMENTATION_MODEL_ID", "claude-sonnet-5"
 )
+
+# A segmentation reply reproduces the professor's wording verbatim, so it is as
+# long as the problem set it reads: a nine-page import truncated mid-item at
+# 8192. Thinking tokens are spent from the same budget on the current models,
+# which is the other half of why the old ceiling was too low. A reply this size
+# is streamed, because a non-streaming call for it outlives the client timeout.
+MAX_OUTPUT_TOKENS = 64000
 
 
 class SegmentedItem(BaseModel, frozen=True):
@@ -70,9 +78,9 @@ class AnthropicSegmenter:
         from anthropic import AsyncAnthropic
 
         client = AsyncAnthropic(api_key=self._api_key)
-        message = await client.messages.create(
+        async with client.messages.stream(
             model=model_id,
-            max_tokens=8192,
+            max_tokens=MAX_OUTPUT_TOKENS,
             messages=[
                 {
                     "role": "user",
@@ -82,11 +90,14 @@ class AnthropicSegmenter:
                     ],
                 }
             ],
-        )
-        block = message.content[0]
-        text = getattr(block, "text", None)
-        if text is None:
-            raise ValueError("segmentation model returned no text block")
+        ) as stream:
+            message = await stream.get_final_message()
+        if message.stop_reason == "max_tokens":
+            raise ValueError(
+                "segmentation model hit its output ceiling: the reply is cut "
+                "off mid-item and nothing may be staged from a partial reading"
+            )
+        text = text_of(message, "segmentation model")
         return parse_items(text)
 
 

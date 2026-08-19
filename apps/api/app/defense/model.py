@@ -28,17 +28,20 @@ from typing import Any, Protocol
 
 from pydantic import BaseModel, Field
 
+from app.model_text import text_of
+
 # The conversational turns run on the fastest suitable model, not the platform's
 # default authoring model: the latency harness closes the 800 ms budget at p95
 # only with a first token near 200 ms (decision 0044), and a defence turn is a
 # short spoken question, not the kind of judgement the rubric makes.
-DEFAULT_TUTOR_MODEL = os.environ.get("TIRO_TUTOR_MODEL_ID", "claude-3-5-haiku-latest")
+DEFAULT_TUTOR_MODEL = os.environ.get("TIRO_TUTOR_MODEL_ID", "claude-haiku-4-5")
 # The rubric is off the latency path and is an evidence source, so it runs on
-# the stronger model, pinned: a dated snapshot id, deliberately not a -latest
+# the stronger model, pinned: a snapshot id, deliberately not a -latest
 # alias, because a silent provider update must not shift its calibration
-# (mastery spec section 11).
+# (mastery spec section 11). From Claude 4.6 onward Anthropic's dateless ids
+# (claude-sonnet-5) are themselves pinned snapshots, not evergreen pointers.
 DEFAULT_RUBRIC_MODEL = os.environ.get(
-    "TIRO_RUBRIC_MODEL_ID", "claude-3-5-sonnet-20241022"
+    "TIRO_RUBRIC_MODEL_ID", "claude-sonnet-5"
 )
 
 CACHE_CONTROL = {"type": "ephemeral"}
@@ -224,10 +227,7 @@ class AnthropicTutor:
             messages=messages,
         )
         self._count(message.usage)
-        block = message.content[0]
-        text = getattr(block, "text", None)
-        if text is None:
-            raise ValueError("rubric model returned no text block")
+        text = text_of(message, "rubric model")
         return str(text)
 
 

@@ -7,7 +7,10 @@ description: Tirocinium coding standards, API conventions, data-layer rules, and
 
 The four documents in `docs/` are the specification and outrank this skill; this
 skill is the operational digest that survives context windows. Last updated
-after milestone 3.5 part B (decision 0064: the committed E2E seeder, the `e2e`
+after decision 0070 (the live-seam defaults moved off retired Claude 3.5 ids
+onto `claude-sonnet-5` for authoring and the rubric, and `claude-haiku-4-5`
+for tutor turns; a local `.env` can still pin any seam, including to Opus).
+Before that, after milestone 3.5 part B (decision 0064: the committed E2E seeder, the `e2e`
 CI job, and the browser-tier seam substitution behind `TIRO_E2E_RECORDED_DIR`;
 the seeded Playwright journeys run now instead of skipping, which is how the
 content-type-unbound presign and the redemption-ceiling collision were found.
@@ -59,10 +62,16 @@ submission may cite it. A client-supplied start is never accepted, because the
 span is shown to the professor as evidence of engaged work; a submission with no
 attempt carries a null span rather than a fabricated zero. Two standing cautions
 from decision 0054: the Python suite
-segfaults on roughly one full run in ten (a GC crash on an anyio worker thread,
-independent of pytest and pyo3 versions), so never call a gate green or red from
-a single run; and the pyo3 pin stays at 0.23 despite two open RUSTSEC advisories,
-because 0.29 quadrupled that crash rate when measured. Backups are verified as
+segfaults on roughly one full run in thirteen (7.5% on exit status), so never
+call a gate green or red from a single run. It is a crash inside the collector
+at pytest teardown, single-threaded, walking a graph built by FastAPI route and
+pydantic schema construction, and *not* the anyio-worker-thread crash three
+earlier decisions described (decision 0065 corrects them, and reopens the GC
+hypothesis 0057 wrongly refuted). `scripts/gc_amplifier.py` raises the rate to
+30% and is the tool for any experiment on it. And the pyo3 pin stays at 0.23
+despite two open RUSTSEC advisories, because 0.29 quadrupled that crash rate
+when measured, a comparison that itself predates the exit-status correction and
+is not settled. Backups are verified as
 well as drilled: `verify_snapshots`
 in `app/db/backup.py` fails a shard whose newest snapshot is missing, older than
 36 h, or zero bytes, and shard discovery comes from the data directory so a new
@@ -757,11 +766,15 @@ The tutor is the same shape again (`app/defense/model.py`): `Tutor` with
 `stream_reply` and `close_rubric`, `AnthropicTutor` live and `RecordedTutor`
 replaying scripted replies and verdicts in order. Two models, deliberately:
 conversational turns run on the fastest suitable Claude
-(`TIRO_TUTOR_MODEL_ID`), because a defence turn is a short spoken question and
+(`TIRO_TUTOR_MODEL_ID`, default `claude-haiku-4-5`), because a defence turn is a short spoken question and
 the 800 ms budget only closes with a first token near 200 ms, while the closing
-rubric runs on the stronger model pinned to a dated snapshot id rather than a
-`-latest` alias (`TIRO_RUBRIC_MODEL_ID`), because its judgement is evidence and
-a silent provider update must not shift its calibration. The session context is
+rubric runs on the stronger model pinned to a snapshot id rather than a
+`-latest` alias (`TIRO_RUBRIC_MODEL_ID`, default `claude-sonnet-5`), because its judgement is evidence and
+a silent provider update must not shift its calibration. From Claude 4.6 onward
+Anthropic's dateless ids are themselves pinned snapshots. Authoring seams
+(vision, segmentation, proposal, generation, verification, assessment) default
+to `claude-sonnet-5`; a local `.env` may pin any of them. Decision 0070 replaced
+the retired Claude 3.5 defaults that 404 on a live call. The session context is
 large and identical on every turn, so it carries Anthropic cache breakpoints on
 the last system block and on the figures attached to the first student turn.
 Speech providers are not model seams in this sense and are never recorded:

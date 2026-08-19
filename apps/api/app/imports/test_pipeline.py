@@ -28,6 +28,7 @@ from app.imports.pipeline import (
     STATUS_READY,
     run_import_pipeline,
 )
+from app.imports.segmentation import SegmentedItem
 from app.storage import IMPORTS_BUCKET
 from app.transcription.model import PageTranscription, RecordedTranscriber
 
@@ -337,6 +338,65 @@ async def test_over_page_limit_fails_the_job(tmp_path: Path) -> None:
 
     assert status == STATUS_FAILED
     assert pages_stored == []  # the ceiling trips before any page is written
+
+
+async def test_page_count_is_visible_during_segmentation(tmp_path: Path) -> None:
+    """Decode writes page_count before the segmenter runs, so a poll during
+    that long call can say how many pages are in rather than waiting for
+    ready."""
+    storage = FakeStorage()
+    pages = [
+        DecodedPage(
+            page_index=0,
+            kind="born_digital",
+            text_markdown="Problem 1.",
+            image_png=b"img-0",
+        ),
+        DecodedPage(
+            page_index=1,
+            kind="born_digital",
+            text_markdown="Problem 2.",
+            image_png=b"img-1",
+        ),
+    ]
+    seen: dict[str, object] = {}
+
+    class PeekSegmenter:
+        async def segment(
+            self, document: str, prompt: str, *, model_id: str
+        ) -> list[SegmentedItem]:
+            def read(conn: sqlite3.Connection) -> tuple[int | None, str, int]:
+                job = conn.execute(
+                    "SELECT page_count, status FROM import_jobs WHERE id = ?",
+                    (import_id,),
+                ).fetchone()
+                recorded = conn.execute(
+                    "SELECT COUNT(*) FROM import_pages WHERE job_id = ?",
+                    (import_id,),
+                ).fetchone()
+                recorded_n = 0 if recorded is None else int(recorded[0])
+                assert job is not None
+                page_count = None if job[0] is None else int(job[0])
+                return page_count, str(job[1]), recorded_n
+
+            seen["row"] = await shards.course_reads(1).run(read)
+            return []
+
+    async with ShardManager(tmp_path) as shards:
+        import_id = await _seed_job(shards, storage, "imports/1/peek/source.pdf")
+        status = await run_import_pipeline(
+            shards=shards,
+            storage=storage,
+            decoder=FakePdfDecoder(pages),
+            transcriber=RecordedTranscriber({}),
+            segmenter=PeekSegmenter(),
+            course_id=1,
+            import_id=import_id,
+            preprocess=fake_preprocess_ok,
+        )
+
+    assert status == STATUS_READY
+    assert seen["row"] == (2, "processing", 2)
 
 
 async def test_missing_job_returns_failed(tmp_path: Path) -> None:

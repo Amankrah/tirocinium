@@ -8,7 +8,7 @@
 // it links into the confirmation surface where the detected problems are
 // reviewed and confirmed.
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { Schemas } from "@/lib/api/client";
@@ -21,6 +21,7 @@ import {
 } from "@/lib/imports/import-controller";
 import { putPage } from "@/lib/upload/put-page";
 import { strings } from "../../../strings";
+import { ImportProgress } from "./import-progress";
 
 type CreateImport = (
   courseId: number,
@@ -47,19 +48,34 @@ export function ImportPanel({
   complete,
   poll,
   makeId = () => crypto.randomUUID(),
+  delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 }: {
   courseId: number;
   create: CreateImport;
   complete: CompleteImport;
   poll: PollImport;
   makeId?: () => string;
+  delay?: (ms: number) => Promise<void>;
 }) {
   const [file, setFile] = useState<File | null>(null);
   const [rejection, setRejection] = useState<ImportFileRejection | null>(null);
   const [state, setState] = useState<ImportState | null>(null);
+  const [now, setNow] = useState(0);
   const controllerRef = useRef<ImportController | null>(null);
+  const startedAtRef = useRef<number | null>(null);
 
   const running = state !== null && state.phase !== "error" && state.phase !== "ready";
+
+  useEffect(() => {
+    if (!running) return;
+    if (startedAtRef.current === null) startedAtRef.current = Date.now();
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [running]);
+
+  useEffect(() => {
+    if (state === null) startedAtRef.current = null;
+  }, [state]);
 
   const pick = (chosen: File | undefined) => {
     if (!chosen) return;
@@ -80,12 +96,14 @@ export function ImportPanel({
 
   const start = async () => {
     if (!file) return;
+    startedAtRef.current = Date.now();
+    setNow(Date.now());
     const deps: ImportDeps = {
       create: (size, key) => create(courseId, size, key),
       put: putPage,
       complete: (id) => complete(courseId, id),
       poll: (id) => poll(courseId, id),
-      delay: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+      delay,
       newIdempotencyKey: makeId,
     };
     const controller = new ImportController(deps, setState);
@@ -143,28 +161,31 @@ export function ImportPanel({
           ) : null}
         </>
       ) : (
-        <div aria-live="polite" className="flex flex-col gap-4">
-          {running ? (
-            <div className="flex flex-col gap-2">
-              <p className="text-sm text-ink">
-                {state.phase === "uploading" ? s.uploading : s.reading}
-              </p>
-              {state.phase === "uploading" ? (
-                <progress
-                  value={state.progress}
-                  max={1}
-                  className="h-1 w-full"
-                  aria-label={s.uploading}
-                />
-              ) : null}
-            </div>
+        <div className="flex flex-col gap-4">
+          {running && state !== null ? (
+            <ImportProgress
+              state={state}
+              elapsedSeconds={
+                startedAtRef.current === null
+                  ? 0
+                  : Math.max(
+                      0,
+                      Math.floor(((now || Date.now()) - startedAtRef.current) / 1000),
+                    )
+              }
+            />
           ) : null}
 
           {state.phase === "ready" ? (
-            <div className="flex flex-col gap-3">
+            <div aria-live="polite" className="flex flex-col gap-3">
               <p className="text-sm text-ink">
                 {s.ready(state.pageCount ?? 0)}
               </p>
+              {state.elapsedSeconds !== null && state.elapsedSeconds >= 1 ? (
+                <p className="text-sm text-ink-muted">
+                  {s.elapsed(state.elapsedSeconds)}
+                </p>
+              ) : null}
               <div className="flex flex-wrap items-center gap-4">
                 {state.importId !== null ? (
                   <Link
@@ -182,7 +203,7 @@ export function ImportPanel({
           ) : null}
 
           {state.phase === "error" ? (
-            <div className="flex flex-col gap-3">
+            <div aria-live="polite" className="flex flex-col gap-3">
               <p className="text-sm text-flag-amber">{s.error}</p>
               <div>
                 <Button variant="quiet" onClick={reset}>

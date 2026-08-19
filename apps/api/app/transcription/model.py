@@ -13,13 +13,15 @@ from typing import Protocol
 
 from pydantic import BaseModel, Field
 
+from app.model_text import text_of
+
 # The placeholder a transcription uses for a span it cannot read; the prompt
 # instructs the model to emit exactly this rather than guess.
 ILLEGIBLE_TOKEN = "[[illegible]]"
 
 # Claude via the Anthropic API (backend guide section 4 Stage 3). The concrete
 # model id is deployment configuration; provenance records whatever was used.
-DEFAULT_VISION_MODEL = os.environ.get("TIRO_VISION_MODEL_ID", "claude-3-5-sonnet-latest")
+DEFAULT_VISION_MODEL = os.environ.get("TIRO_VISION_MODEL_ID", "claude-sonnet-5")
 
 
 class Region(BaseModel, frozen=True):
@@ -92,10 +94,7 @@ class AnthropicTranscriber:
                 }
             ],
         )
-        block = message.content[0]
-        text = getattr(block, "text", None)
-        if text is None:
-            raise ValueError("vision model returned no text block")
+        text = text_of(message, "vision model")
         return parse_transcription(text)
 
 

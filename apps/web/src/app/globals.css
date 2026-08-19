@@ -77,3 +77,51 @@ body {
   overflow-y: hidden;
   padding-block: 0.25rem;
 }
+
+/* Subtle progress shimmer (guide 3.3): a hairline of accent sweeping the
+   live processing row. Functional, not ambient; reduced motion removes it. */
+@keyframes progress-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.progress-shimmer::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-accent) 22%, transparent),
+    transparent
+  );
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .progress-shimmer::after {
+    animation: progress-shimmer 1.8s var(--motion-ease) infinite;
+  }
+}
+
+/* Determinate bars (upload fraction, pages recorded) use the same accent as
+   the live step. Native appearance is replaced so both themes stay on-token. */
+progress {
+  appearance: none;
+  background: var(--color-rule-line);
+  border: none;
+  color: var(--color-accent);
+}
+progress::-webkit-progress-bar {
+  background: var(--color-rule-line);
+}
+progress::-webkit-progress-value {
+  background: var(--color-accent);
+}
+progress::-moz-progress-bar {
+  background: var(--color-accent);
+}

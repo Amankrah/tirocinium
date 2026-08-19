@@ -1,6 +1,14 @@
 // Professor route group strings (guide 3.4: sentence case, one job per string).
 // The sign-in failure is the backend's one generic line, which never says
 // whether the email or the password was the problem (backend 7.1).
+
+function durationPhrase(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const rest = seconds % 60;
+  if (minutes === 0) return `${rest} s`;
+  return `${minutes} min ${rest} s`;
+}
+
 export const strings = {
   shell: {
     wordmark: "Tirocinium",
@@ -92,10 +100,18 @@ export const strings = {
     rejectedTooLarge: "That PDF is over 60 MB.",
     rejectedEmpty: "That file is empty.",
     start: "Import this PDF",
-    uploading: "Uploading your PDF…",
-    reading: "Reading your PDF…",
+    uploading: "Uploading your PDF",
+    reading: "Reading pages…",
+    readingPages: (count: number) =>
+      count === 1 ? "Reading 1 page" : `Reading pages 1 to ${count}`,
+    readingPageOf: (done: number, count: number) =>
+      `Reading page ${done} of ${count}`,
+    figures: "Extracting figures",
+    segmenting: "Finding questions and solutions",
     ready: (count: number) =>
       count === 1 ? "Read 1 page." : `Read ${count} pages.`,
+    elapsed: (seconds: number) => `That took ${durationPhrase(seconds)}.`,
+    elapsedLive: (seconds: number) => `${durationPhrase(seconds)} so far`,
     error: "That did not work. Check your connection and try again.",
     another: "Import another PDF",
     review: "Review the extracted problems",

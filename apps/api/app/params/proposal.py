@@ -20,6 +20,7 @@ from typing import Annotated, Protocol
 from pydantic import BaseModel, Field
 
 from app.imports.metrics import edit_distance
+from app.model_text import text_of
 from app.params.figure_check import BlockedParameter
 from app.params.schema import (
     NAME_PATTERN,
@@ -34,7 +35,7 @@ from app.prompt_safety import document_key, new_fence
 # Claude via the Anthropic API (a text pass). The concrete model id is
 # deployment configuration; provenance records whatever was used.
 DEFAULT_PROPOSAL_MODEL = os.environ.get(
-    "TIRO_PROPOSAL_MODEL_ID", "claude-3-5-sonnet-latest"
+    "TIRO_PROPOSAL_MODEL_ID", "claude-sonnet-5"
 )
 
 
@@ -234,10 +235,7 @@ class AnthropicSpecProposer:
                 }
             ],
         )
-        block = message.content[0]
-        text = getattr(block, "text", None)
-        if text is None:
-            raise ValueError("proposal model returned no text block")
+        text = text_of(message, "proposal model")
         return parse_proposal(text)
 
 

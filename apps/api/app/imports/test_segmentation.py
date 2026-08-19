@@ -9,7 +9,11 @@ from pathlib import Path
 
 from app.compression import compress_text, decompress_text
 from app.db.shards import ShardManager
-from app.imports.segmentation import RecordedSegmenter, SegmentedItem
+from app.imports.segmentation import (
+    DEFAULT_SEGMENTATION_MODEL,
+    RecordedSegmenter,
+    SegmentedItem,
+)
 from app.imports.staging import assemble_document_for, segment_and_stage
 
 
@@ -138,7 +142,7 @@ async def test_segment_and_stage_stores_items_links_and_provenance(tmp_path: Pat
     assert items[0][1] == "Problem 1"
     assert f"fig://{f0}" in first_question  # the token is preserved verbatim
     assert items[0][9] == "pending"
-    assert items[0][7] == "claude-3-5-sonnet-latest"  # model_id provenance
+    assert items[0][7] == DEFAULT_SEGMENTATION_MODEL  # model_id provenance
     assert items[0][8] == "v1"  # prompt_version provenance
     assert items[1][3] is None  # no solution for item 2
     assert items[1][6] == "No solution found in the document."
