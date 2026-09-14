@@ -2,7 +2,7 @@
 
 // Client component: controlled fields, submit state, and the live-region
 // failure line require interactivity. Signup itself runs in a server action
-// that sets the httpOnly session cookie (decision 0065). The API still takes
+// that sets the httpOnly session cookie (decision 0072). The API still takes
 // only email and password (SignupIn); confirm is checked here and never sent.
 
 import { useId, useState, type FormEvent } from "react";

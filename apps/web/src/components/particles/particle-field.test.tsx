@@ -33,7 +33,6 @@ function stubObserver() {
       root = null;
       rootMargin = "";
       thresholds = [];
-      constructor(_cb: unknown) {}
     },
   );
   return { observe, disconnect };

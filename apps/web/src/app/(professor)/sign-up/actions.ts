@@ -2,7 +2,7 @@
 
 // Signup runs as a server action for the same reason sign-in does: success
 // must set an httpOnly session cookie the browser can never read (decisions
-// 0012 and 0065).
+// 0012 and 0072).
 import { cookies } from "next/headers";
 
 import { professorSignup, type SignupResult } from "@/lib/api/auth";

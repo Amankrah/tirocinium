@@ -3,7 +3,7 @@ import Link from "next/link";
 import { strings } from "../strings";
 import { SignUpForm } from "./sign-up-form";
 
-// Professor self-serve signup (decision 0065, backend guide 7.1). The API
+// Professor self-serve signup (decision 0072, backend guide 7.1). The API
 // accepts email and password only; the page says who the account is for, asks
 // for the password twice, and points students at /enter.
 export default function SignUpPage() {

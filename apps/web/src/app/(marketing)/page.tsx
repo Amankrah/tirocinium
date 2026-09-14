@@ -3,7 +3,7 @@ import { ParticleHero } from "@/components/particles/hero";
 import { strings } from "./strings";
 
 // Landing: wordmark, tagline, and the single Roman-story line (frontend guide
-// 3.1). The two doors sit in a header over the hero (decision 0065), so the
+// 3.1). The two doors sit in a header over the hero (decision 0072), so the
 // brand moment stays centred and quiet. The text is server-rendered and is the
 // LCP element; the particle field mounts behind it.
 export default function LandingPage() {

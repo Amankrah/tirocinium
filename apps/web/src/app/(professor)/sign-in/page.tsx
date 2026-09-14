@@ -6,7 +6,7 @@ import { SignInForm } from "./sign-in-form";
 // Professor sign-in (guide build order 1). Unlike the student seat entry this
 // is an ordinary credential login: professors have real accounts. The screen
 // stays as quiet as the seat entry, plus the door to self-serve signup
-// (decision 0065).
+// (decision 0072).
 export default function SignInPage() {
   return (
     <main className="flex min-h-svh flex-col items-center justify-center px-6 py-16">

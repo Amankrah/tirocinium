@@ -37,7 +37,7 @@ export async function professorLogin(
   return { ok: true, auth };
 }
 
-// Self-serve signup (decision 0065, backend guide 7.1). A 201 is a session, a
+// Self-serve signup (decision 0072, backend guide 7.1). A 201 is a session, a
 // 409 is an email that already has an account (shown honestly, unlike login),
 // and anything else, including an outage, is the same recovery line.
 export async function professorSignup(

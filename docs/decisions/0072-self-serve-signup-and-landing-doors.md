@@ -1,4 +1,4 @@
-# 0065: Self-serve professor signup, and two quiet doors on the landing
+# 0072: Self-serve professor signup, and two quiet doors on the landing
 
 Date: 2026-08-12. Milestone 9.6 (web). Author: frontend engineer.
 

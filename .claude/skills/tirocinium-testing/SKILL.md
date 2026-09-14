@@ -1060,7 +1060,7 @@ Phase 9, in progress:
   sends no body at all, because a client-supplied time would stop the span being
   evidence.
 - 9.6 (web): self-serve professor signup and two quiet landing doors (decision
-  0065). `/sign-up` is the same httpOnly cookie path as sign-in; `/` carries
+  0072). `/sign-up` is the same httpOnly cookie path as sign-in; `/` carries
   Enter course and Sign in as text links, not a pitch. Duplicate email is the
   backend's 409, shown honestly. The seeded journeys still mint a professor,
   because they need a course and a seat.
