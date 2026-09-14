@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { ProblemBody } from "@/components/reading/problem-body";
 import { getCaseStudy } from "@/lib/api/case-studies";
+import { listCatalogues } from "@/lib/api/marketplace-authoring";
 import { getParamSpec } from "@/lib/api/params";
 import { requireProfessor } from "@/lib/professor-session";
 import { ProfessorShell } from "../../../../professor-shell";
@@ -39,6 +40,10 @@ export default async function CaseStudyPreviewPage({
   if (!caseStudy) notFound();
   const published = caseStudy.status === "published";
   const spec = await getParamSpec(token, cid, csid);
+  // The shortlist link only appears for a course that prices materials, since
+  // for every other course it would lead to a decision they have not made.
+  const catalogues = await listCatalogues(token, cid);
+  const pricesMaterials = catalogues.ok && catalogues.data.pinned !== null;
 
   return (
     <ProfessorShell email={email} signOut={signOut}>
@@ -58,6 +63,14 @@ export default async function CaseStudyPreviewPage({
             {published ? strings.course.published : strings.course.draft}
           </span>
           <h1 className="font-display text-4xl">{caseStudy.title}</h1>
+          {pricesMaterials ? (
+            <Link
+              href={`/courses/${cid}/case-studies/${csid}/shortlist`}
+              className="text-sm text-accent underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            >
+              {strings.course.shortlistLink}
+            </Link>
+          ) : null}
         </header>
         <ProblemBody body={caseStudy.body} />
         <ParamPanel

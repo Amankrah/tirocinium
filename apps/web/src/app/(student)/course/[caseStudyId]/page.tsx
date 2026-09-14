@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { ProblemBody } from "@/components/reading/problem-body";
 import { getCaseStudy } from "@/lib/api/case-studies";
+import { getMarketplace } from "@/lib/api/marketplace";
 import { getPracticeVariant } from "@/lib/api/practice";
 import { requireSeat } from "@/lib/seat-session";
 import { StudentShell } from "../../student-shell";
@@ -33,6 +34,12 @@ export default async function ProblemViewPage({
   const practice = await getPracticeVariant(token, seat.course_id, id, null);
   const body = practice?.body ?? caseStudy.body;
   const variantId = practice?.variant_id ?? null;
+
+  // Whether to offer the marketplace at all (Phase 10). Asking the front door
+  // is the only honest test: the course may not price materials, which answers
+  // 409, and that is an ordinary way to run a course rather than a failure.
+  const pricesMaterials =
+    variantId === null ? false : (await getMarketplace(token, variantId)).ok;
 
   return (
     <StudentShell seatNumber={seat.seat_number}>
@@ -66,6 +73,7 @@ export default async function ProblemViewPage({
         <PracticeProblem
           caseStudyId={id}
           initialVariantId={variantId}
+          pricesMaterials={pricesMaterials}
           swap={getPracticeVariantAction}
         >
           <ProblemBody body={body} />

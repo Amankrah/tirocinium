@@ -12,10 +12,13 @@ from app.db.shards import ShardManager
 from app.defense.conftest import (
     FIGURE_BYTES,
     FIGURE_KEY,
+    QUOTE_NUMBER,
+    QUOTED_LINE,
     REFERENCE_SOLUTION,
     TRANSCRIPTION,
     VARIANT_BODY,
     FakeStorage,
+    build_context,
     open_conversation_row,
     seed_defensible_submission,
 )
@@ -62,7 +65,45 @@ async def test_context_carries_the_three_sources_and_figures_as_pixels(
     assert "[step 1]" in context.system
     assert "unfolded none of the 1 steps" in context.system
     # Provenance: the versioned prompt id, stored with the session.
-    assert context.prompt_version.startswith("defense-tutor/v2")
+    assert context.prompt_version.startswith("defense-tutor/v3")
+    # A submission that cites no quotation carries no quotation section. Silence
+    # rather than an empty heading, which would invite a question about nothing
+    # (Phase 10, decision 0062).
+    assert "## The quotation the student issued" not in context.system
+
+
+async def test_a_cited_quotation_reaches_the_tutor_as_delimited_student_work(
+    tmp_path: Path,
+) -> None:
+    """Phase 10, decision 0062. The quotation is a fourth source so that a
+    material choice can be defended like any other step, and it is fenced like
+    the transcription: it carries the student's own free text."""
+    storage = FakeStorage()
+    async with ShardManager(tmp_path) as shards:
+        context = await build_context(shards, storage, with_quotation=True)
+
+    assert "## The quotation the student issued" in context.system
+    assert QUOTE_NUMBER in context.system
+    assert QUOTED_LINE in context.system
+    # The frozen figures, read back as money rather than as cents.
+    assert "$4.80 each" in context.system
+    assert "4 % volume break" in context.system
+    assert "total $701.35 for 100 kg" in context.system
+    assert context.system.count("<<<content") == 4
+
+
+async def test_the_tutor_is_told_not_to_name_the_right_material(
+    tmp_path: Path,
+) -> None:
+    """The persona carries the constraint, not the code: there is no correct
+    answer in the catalogue, and a tutor that supplied one would be doing the
+    selection exercise for the student."""
+    storage = FakeStorage()
+    async with ShardManager(tmp_path) as shards:
+        context = await build_context(shards, storage, with_quotation=True)
+
+    assert "Never tell the student which material they should have chosen" in context.system
+    assert "never compare them" in context.system.replace("\n", " ")
 
 
 async def test_the_prompt_carries_no_student_identity(tmp_path: Path) -> None:

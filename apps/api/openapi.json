@@ -67,6 +67,25 @@
         "title": "AddBoxIn",
         "type": "object"
       },
+      "AdviceNote": {
+        "description": "One note, and the rule that produced it. The `rule` id is what makes\nthis reviewable: a professor who disagrees with a note can name it.",
+        "properties": {
+          "rule": {
+            "title": "Rule",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule",
+          "text"
+        ],
+        "title": "AdviceNote",
+        "type": "object"
+      },
       "AttemptOut": {
         "description": "A started attempt. The timestamp is the server's, deliberately: a span\nthe client can name is a span the client can invent, and the professor is\nshown this one (frontend guide 4.2).",
         "properties": {
@@ -108,6 +127,143 @@
         "title": "AuthOut",
         "type": "object"
       },
+      "AuthoringCatalogueOut": {
+        "properties": {
+          "briefs": {
+            "items": {
+              "$ref": "#/components/schemas/Brief"
+            },
+            "title": "Briefs",
+            "type": "array"
+          },
+          "categories": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/AuthoringLine"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "suppliers": {
+            "items": {
+              "$ref": "#/components/schemas/Supplier"
+            },
+            "title": "Suppliers",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "title",
+          "suppliers",
+          "categories",
+          "briefs",
+          "lines"
+        ],
+        "title": "AuthoringCatalogueOut",
+        "type": "object"
+      },
+      "AuthoringLine": {
+        "description": "A catalogue line as the professor picking a shortlist sees it: list\nprice, and the band a student's struck price will fall in.",
+        "properties": {
+          "band_high_cents": {
+            "title": "Band High Cents",
+            "type": "integer"
+          },
+          "band_low_cents": {
+            "title": "Band Low Cents",
+            "type": "integer"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "list_price_cents": {
+            "title": "List Price Cents",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "service": {
+            "title": "Service",
+            "type": "boolean"
+          },
+          "shortlisted": {
+            "title": "Shortlisted",
+            "type": "boolean"
+          },
+          "sku": {
+            "title": "Sku",
+            "type": "string"
+          },
+          "spec": {
+            "title": "Spec",
+            "type": "string"
+          },
+          "supplier_id": {
+            "title": "Supplier Id",
+            "type": "string"
+          },
+          "supplier_name": {
+            "title": "Supplier Name",
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "unit_label": {
+            "title": "Unit Label",
+            "type": "string"
+          },
+          "volatility": {
+            "title": "Volatility",
+            "type": "number"
+          }
+        },
+        "required": [
+          "sku",
+          "supplier_id",
+          "supplier_name",
+          "category",
+          "name",
+          "spec",
+          "unit_label",
+          "list_price_cents",
+          "band_low_cents",
+          "band_high_cents",
+          "volatility",
+          "tags",
+          "service",
+          "shortlisted"
+        ],
+        "title": "AuthoringLine",
+        "type": "object"
+      },
       "BlockedParameter": {
         "description": "One parameter the check refuses, with the professor-facing reason.",
         "properties": {
@@ -135,6 +291,46 @@
           "reason"
         ],
         "title": "BlockedParameter",
+        "type": "object"
+      },
+      "Brief": {
+        "description": "A project brief: the selection factors, the families in contention, and\nthe lines worth quoting first.",
+        "properties": {
+          "candidate_families": {
+            "title": "Candidate Families",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "selection_factors": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Selection Factors",
+            "type": "array"
+          },
+          "shortlist": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Shortlist",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "selection_factors",
+          "candidate_families",
+          "shortlist"
+        ],
+        "title": "Brief",
         "type": "object"
       },
       "CaseStudyDetail": {
@@ -304,6 +500,78 @@
         "title": "CaseStudyUpdate",
         "type": "object"
       },
+      "CatalogueChoice": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "line_count": {
+            "title": "Line Count",
+            "type": "integer"
+          },
+          "supplier_count": {
+            "title": "Supplier Count",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "title",
+          "line_count",
+          "supplier_count"
+        ],
+        "title": "CatalogueChoice",
+        "type": "object"
+      },
+      "CataloguesOut": {
+        "description": "What this deployment ships, and what the course is currently pinned to.\n`pinned` is null for a course that does not quote for materials, which is\nthe default and stays a perfectly good way to run a course.",
+        "properties": {
+          "available": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogueChoice"
+            },
+            "title": "Available",
+            "type": "array"
+          },
+          "pinned": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CatalogueChoice"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "available",
+          "pinned"
+        ],
+        "title": "CataloguesOut",
+        "type": "object"
+      },
+      "Certification": {
+        "enum": [
+          "none",
+          "mill_test_report",
+          "sanitary_3a",
+          "pressure_code",
+          "structural"
+        ],
+        "title": "Certification",
+        "type": "string"
+      },
       "ChoiceParameter": {
         "properties": {
           "base": {
@@ -330,6 +598,234 @@
           "options"
         ],
         "title": "ChoiceParameter",
+        "type": "object"
+      },
+      "CompareCell": {
+        "properties": {
+          "best": {
+            "title": "Best",
+            "type": "boolean"
+          },
+          "display": {
+            "title": "Display",
+            "type": "string"
+          },
+          "sku": {
+            "title": "Sku",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "sku",
+          "value",
+          "display",
+          "best"
+        ],
+        "title": "CompareCell",
+        "type": "object"
+      },
+      "CompareIn": {
+        "properties": {
+          "skus": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5,
+            "minItems": 1,
+            "title": "Skus",
+            "type": "array"
+          }
+        },
+        "required": [
+          "skus"
+        ],
+        "title": "CompareIn",
+        "type": "object"
+      },
+      "CompareOut": {
+        "properties": {
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/CompareRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "skus": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Skus",
+            "type": "array"
+          }
+        },
+        "required": [
+          "skus",
+          "rows"
+        ],
+        "title": "CompareOut",
+        "type": "object"
+      },
+      "CompareRow": {
+        "properties": {
+          "better": {
+            "anyOf": [
+              {
+                "enum": [
+                  "lower",
+                  "higher"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Better"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/CompareCell"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "section": {
+            "title": "Section",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "section",
+          "better",
+          "cells"
+        ],
+        "title": "CompareRow",
+        "type": "object"
+      },
+      "ComputedLine": {
+        "description": "One priced line. Every field here is snapshotted on issue, because a\nquotation has to read back identically after the catalogue moves.",
+        "properties": {
+          "break_percent": {
+            "title": "Break Percent",
+            "type": "integer"
+          },
+          "cut_count": {
+            "title": "Cut Count",
+            "type": "integer"
+          },
+          "cut_fee_cents": {
+            "title": "Cut Fee Cents",
+            "type": "integer"
+          },
+          "cut_to_length": {
+            "title": "Cut To Length",
+            "type": "boolean"
+          },
+          "extended_cents": {
+            "title": "Extended Cents",
+            "type": "integer"
+          },
+          "lead_days": {
+            "title": "Lead Days",
+            "type": "integer"
+          },
+          "list_price_cents": {
+            "title": "List Price Cents",
+            "type": "integer"
+          },
+          "mass_grams": {
+            "title": "Mass Grams",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "quantity": {
+            "title": "Quantity",
+            "type": "number"
+          },
+          "requested_quantity": {
+            "title": "Requested Quantity",
+            "type": "number"
+          },
+          "sku": {
+            "title": "Sku",
+            "type": "string"
+          },
+          "spec": {
+            "title": "Spec",
+            "type": "string"
+          },
+          "supplier_id": {
+            "title": "Supplier Id",
+            "type": "string"
+          },
+          "supplier_name": {
+            "title": "Supplier Name",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          },
+          "unit_label": {
+            "title": "Unit Label",
+            "type": "string"
+          },
+          "unit_price_cents": {
+            "title": "Unit Price Cents",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "position",
+          "sku",
+          "supplier_id",
+          "supplier_name",
+          "name",
+          "spec",
+          "unit",
+          "unit_label",
+          "requested_quantity",
+          "quantity",
+          "list_price_cents",
+          "unit_price_cents",
+          "break_percent",
+          "extended_cents",
+          "cut_to_length",
+          "cut_count",
+          "cut_fee_cents",
+          "mass_grams",
+          "lead_days"
+        ],
+        "title": "ComputedLine",
         "type": "object"
       },
       "ConceptDistribution": {
@@ -824,6 +1320,18 @@
         "title": "EntityParameter",
         "type": "object"
       },
+      "Environment": {
+        "enum": [
+          "indoor",
+          "outdoor",
+          "washdown",
+          "chemical",
+          "elevated_temperature",
+          "buried"
+        ],
+        "title": "Environment",
+        "type": "string"
+      },
       "FigureCreatedOut": {
         "properties": {
           "figure_id": {
@@ -910,6 +1418,30 @@
           }
         },
         "title": "FigureRoleIn",
+        "type": "object"
+      },
+      "Freight": {
+        "description": "The consolidated-shipment estimate: a flat despatch charge, a rate on\ntotal mass, and a surcharge when anything on the order is a long load.",
+        "properties": {
+          "base_cents": {
+            "title": "Base Cents",
+            "type": "integer"
+          },
+          "long_item_cents": {
+            "title": "Long Item Cents",
+            "type": "integer"
+          },
+          "per_kg_cents": {
+            "title": "Per Kg Cents",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "base_cents",
+          "per_kg_cents",
+          "long_item_cents"
+        ],
+        "title": "Freight",
         "type": "object"
       },
       "GenerateIn": {
@@ -1559,6 +2091,307 @@
         "title": "ItemFigureOut",
         "type": "object"
       },
+      "LineDetail": {
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "cut_fee_cents": {
+            "title": "Cut Fee Cents",
+            "type": "integer"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "fabrication": {
+            "title": "Fabrication",
+            "type": "string"
+          },
+          "lead_days": {
+            "title": "Lead Days",
+            "type": "integer"
+          },
+          "moq": {
+            "title": "Moq",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "oversize": {
+            "title": "Oversize",
+            "type": "boolean"
+          },
+          "price_breaks": {
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Price Breaks",
+            "type": "array"
+          },
+          "price_cents": {
+            "title": "Price Cents",
+            "type": "integer"
+          },
+          "price_per_kg_cents": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Per Kg Cents"
+          },
+          "properties": {
+            "$ref": "#/components/schemas/MaterialProperties"
+          },
+          "service": {
+            "title": "Service",
+            "type": "boolean"
+          },
+          "shortlisted": {
+            "title": "Shortlisted",
+            "type": "boolean"
+          },
+          "sku": {
+            "title": "Sku",
+            "type": "string"
+          },
+          "spec": {
+            "title": "Spec",
+            "type": "string"
+          },
+          "stock": {
+            "title": "Stock",
+            "type": "string"
+          },
+          "stock_label": {
+            "title": "Stock Label",
+            "type": "string"
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/Supplier"
+          },
+          "supplier_id": {
+            "title": "Supplier Id",
+            "type": "string"
+          },
+          "supplier_name": {
+            "title": "Supplier Name",
+            "type": "string"
+          },
+          "swatch": {
+            "title": "Swatch",
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          },
+          "unit_label": {
+            "title": "Unit Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sku",
+          "supplier_id",
+          "supplier_name",
+          "category",
+          "name",
+          "spec",
+          "unit",
+          "unit_label",
+          "price_cents",
+          "price_per_kg_cents",
+          "moq",
+          "lead_days",
+          "stock",
+          "stock_label",
+          "cut_fee_cents",
+          "swatch",
+          "tags",
+          "service",
+          "shortlisted",
+          "description",
+          "fabrication",
+          "oversize",
+          "properties",
+          "price_breaks",
+          "supplier"
+        ],
+        "title": "LineDetail",
+        "type": "object"
+      },
+      "LineListOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/LineSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "total"
+        ],
+        "title": "LineListOut",
+        "type": "object"
+      },
+      "LineSummary": {
+        "description": "A catalogue line as a card: enough to compare on, not enough to\nspecify from.",
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "cut_fee_cents": {
+            "title": "Cut Fee Cents",
+            "type": "integer"
+          },
+          "lead_days": {
+            "title": "Lead Days",
+            "type": "integer"
+          },
+          "moq": {
+            "title": "Moq",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "price_cents": {
+            "title": "Price Cents",
+            "type": "integer"
+          },
+          "price_per_kg_cents": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Per Kg Cents"
+          },
+          "service": {
+            "title": "Service",
+            "type": "boolean"
+          },
+          "shortlisted": {
+            "title": "Shortlisted",
+            "type": "boolean"
+          },
+          "sku": {
+            "title": "Sku",
+            "type": "string"
+          },
+          "spec": {
+            "title": "Spec",
+            "type": "string"
+          },
+          "stock": {
+            "title": "Stock",
+            "type": "string"
+          },
+          "stock_label": {
+            "title": "Stock Label",
+            "type": "string"
+          },
+          "supplier_id": {
+            "title": "Supplier Id",
+            "type": "string"
+          },
+          "supplier_name": {
+            "title": "Supplier Name",
+            "type": "string"
+          },
+          "swatch": {
+            "title": "Swatch",
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          },
+          "unit_label": {
+            "title": "Unit Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sku",
+          "supplier_id",
+          "supplier_name",
+          "category",
+          "name",
+          "spec",
+          "unit",
+          "unit_label",
+          "price_cents",
+          "price_per_kg_cents",
+          "moq",
+          "lead_days",
+          "stock",
+          "stock_label",
+          "cut_fee_cents",
+          "swatch",
+          "tags",
+          "service",
+          "shortlisted"
+        ],
+        "title": "LineSummary",
+        "type": "object"
+      },
       "LoginIn": {
         "properties": {
           "email": {
@@ -1615,6 +2448,107 @@
         "title": "MappingsIn",
         "type": "object"
       },
+      "MarketplaceOut": {
+        "description": "The front door: who trades here, what this case study points at, and the\nterms every quotation is struck on.",
+        "properties": {
+          "brief": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Brief"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "case_study_id": {
+            "title": "Case Study Id",
+            "type": "integer"
+          },
+          "case_study_title": {
+            "title": "Case Study Title",
+            "type": "string"
+          },
+          "catalogue_id": {
+            "title": "Catalogue Id",
+            "type": "string"
+          },
+          "catalogue_version": {
+            "title": "Catalogue Version",
+            "type": "integer"
+          },
+          "categories": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "course_note": {
+            "title": "Course Note",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "freight": {
+            "$ref": "#/components/schemas/Freight"
+          },
+          "quote_validity_days": {
+            "title": "Quote Validity Days",
+            "type": "integer"
+          },
+          "shortlist": {
+            "items": {
+              "$ref": "#/components/schemas/LineSummary"
+            },
+            "title": "Shortlist",
+            "type": "array"
+          },
+          "suppliers": {
+            "items": {
+              "$ref": "#/components/schemas/SupplierSummary"
+            },
+            "title": "Suppliers",
+            "type": "array"
+          },
+          "taxes": {
+            "items": {
+              "$ref": "#/components/schemas/Tax"
+            },
+            "title": "Taxes",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "variant_id": {
+            "title": "Variant Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "variant_id",
+          "case_study_id",
+          "case_study_title",
+          "catalogue_id",
+          "catalogue_version",
+          "title",
+          "course_note",
+          "currency",
+          "quote_validity_days",
+          "taxes",
+          "freight",
+          "suppliers",
+          "categories",
+          "shortlist",
+          "brief"
+        ],
+        "title": "MarketplaceOut",
+        "type": "object"
+      },
       "MasteryOut": {
         "properties": {
           "concepts": {
@@ -1629,6 +2563,178 @@
           "concepts"
         ],
         "title": "MasteryOut",
+        "type": "object"
+      },
+      "MaterialProperties": {
+        "description": "The fifteen figures a selection decision is argued from.",
+        "properties": {
+          "corrosion_resistance": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corrosion Resistance"
+          },
+          "density_kg_m3": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Density Kg M3"
+          },
+          "elongation_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elongation Percent"
+          },
+          "embodied_energy_mj_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embodied Energy Mj Kg"
+          },
+          "food_contact": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Food Contact"
+          },
+          "fracture_toughness_mpa_m05": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fracture Toughness Mpa M05"
+          },
+          "hardness": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hardness"
+          },
+          "max_service_temp_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Service Temp C"
+          },
+          "recyclability_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recyclability Percent"
+          },
+          "tensile_strength_mpa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tensile Strength Mpa"
+          },
+          "thermal_conductivity_w_mk": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thermal Conductivity W Mk"
+          },
+          "thermal_expansion_um_mk": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thermal Expansion Um Mk"
+          },
+          "uv_resistance": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uv Resistance"
+          },
+          "yield_strength_mpa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Yield Strength Mpa"
+          },
+          "youngs_modulus_gpa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Youngs Modulus Gpa"
+          }
+        },
+        "title": "MaterialProperties",
         "type": "object"
       },
       "MergeIn": {
@@ -2040,6 +3146,36 @@
         "title": "ParameterAnnotation",
         "type": "object"
       },
+      "PinIn": {
+        "properties": {
+          "catalogue_id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Catalogue Id"
+          },
+          "catalogue_version": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Catalogue Version"
+          }
+        },
+        "title": "PinIn",
+        "type": "object"
+      },
       "PracticeVariantOut": {
         "description": "What the practice loop swaps in: a servable variant's body, or the\nbase case study itself (variant_id null) when the pool has nothing yet.\nNever a solution, never a flagged variant, never a wait.",
         "properties": {
@@ -2192,6 +3328,395 @@
           "prompt_version"
         ],
         "title": "ProposalProvenance",
+        "type": "object"
+      },
+      "QuoteIn": {
+        "properties": {
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/QuoteLineIn"
+            },
+            "maxItems": 60,
+            "title": "Lines",
+            "type": "array"
+          }
+        },
+        "title": "QuoteIn",
+        "type": "object"
+      },
+      "QuoteLineIn": {
+        "description": "One basket line as the student asked for it.",
+        "properties": {
+          "cut_count": {
+            "default": 1,
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Cut Count",
+            "type": "integer"
+          },
+          "cut_to_length": {
+            "default": false,
+            "title": "Cut To Length",
+            "type": "boolean"
+          },
+          "quantity": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1000000.0,
+            "title": "Quantity",
+            "type": "number"
+          },
+          "sku": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Sku",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sku",
+          "quantity"
+        ],
+        "title": "QuoteLineIn",
+        "type": "object"
+      },
+      "QuoteListOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/QuoteSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "QuoteListOut",
+        "type": "object"
+      },
+      "QuoteOut": {
+        "properties": {
+          "catalogue_id": {
+            "title": "Catalogue Id",
+            "type": "string"
+          },
+          "catalogue_version": {
+            "title": "Catalogue Version",
+            "type": "integer"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/ComputedLine"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "notices": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notices",
+            "type": "array"
+          },
+          "quote_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote Number"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/QuoteTotals"
+          },
+          "valid_until": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid Until"
+          },
+          "variant_id": {
+            "title": "Variant Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "variant_id",
+          "status",
+          "quote_number",
+          "catalogue_id",
+          "catalogue_version",
+          "created_at",
+          "issued_at",
+          "valid_until",
+          "lines",
+          "totals",
+          "notices"
+        ],
+        "title": "QuoteOut",
+        "type": "object"
+      },
+      "QuoteReviewEntry": {
+        "description": "One issued quotation, by seat. A seat number, never a name: this surface\nis for noticing that half the cohort bought stainless, not for finding who\ndid.",
+        "properties": {
+          "case_study_id": {
+            "title": "Case Study Id",
+            "type": "integer"
+          },
+          "cited": {
+            "title": "Cited",
+            "type": "boolean"
+          },
+          "issued_at": {
+            "title": "Issued At",
+            "type": "integer"
+          },
+          "line_count": {
+            "title": "Line Count",
+            "type": "integer"
+          },
+          "quote_id": {
+            "title": "Quote Id",
+            "type": "integer"
+          },
+          "quote_number": {
+            "title": "Quote Number",
+            "type": "string"
+          },
+          "seat_number": {
+            "title": "Seat Number",
+            "type": "string"
+          },
+          "total_cents": {
+            "title": "Total Cents",
+            "type": "integer"
+          },
+          "total_mass_grams": {
+            "title": "Total Mass Grams",
+            "type": "integer"
+          },
+          "variant_id": {
+            "title": "Variant Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "quote_id",
+          "quote_number",
+          "seat_number",
+          "variant_id",
+          "case_study_id",
+          "line_count",
+          "total_cents",
+          "total_mass_grams",
+          "issued_at",
+          "cited"
+        ],
+        "title": "QuoteReviewEntry",
+        "type": "object"
+      },
+      "QuoteReviewOut": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/QuoteReviewEntry"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "tallies": {
+            "items": {
+              "$ref": "#/components/schemas/SkuTally"
+            },
+            "title": "Tallies",
+            "type": "array"
+          }
+        },
+        "required": [
+          "entries",
+          "next_cursor",
+          "tallies"
+        ],
+        "title": "QuoteReviewOut",
+        "type": "object"
+      },
+      "QuoteSummary": {
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At"
+          },
+          "line_count": {
+            "title": "Line Count",
+            "type": "integer"
+          },
+          "quote_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote Number"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "total_cents": {
+            "title": "Total Cents",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "quote_number",
+          "line_count",
+          "total_cents",
+          "created_at",
+          "issued_at"
+        ],
+        "title": "QuoteSummary",
+        "type": "object"
+      },
+      "QuoteTotals": {
+        "properties": {
+          "cost_per_kg_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Per Kg Cents"
+          },
+          "cut_fee_cents": {
+            "title": "Cut Fee Cents",
+            "type": "integer"
+          },
+          "discount_cents": {
+            "title": "Discount Cents",
+            "type": "integer"
+          },
+          "freight_cents": {
+            "title": "Freight Cents",
+            "type": "integer"
+          },
+          "goods_cents": {
+            "title": "Goods Cents",
+            "type": "integer"
+          },
+          "line_count": {
+            "title": "Line Count",
+            "type": "integer"
+          },
+          "longest_lead_days": {
+            "title": "Longest Lead Days",
+            "type": "integer"
+          },
+          "supplier_count": {
+            "title": "Supplier Count",
+            "type": "integer"
+          },
+          "tax_cents": {
+            "title": "Tax Cents",
+            "type": "integer"
+          },
+          "taxes": {
+            "items": {
+              "$ref": "#/components/schemas/TaxLine"
+            },
+            "title": "Taxes",
+            "type": "array"
+          },
+          "total_cents": {
+            "title": "Total Cents",
+            "type": "integer"
+          },
+          "total_mass_grams": {
+            "title": "Total Mass Grams",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "line_count",
+          "supplier_count",
+          "goods_cents",
+          "discount_cents",
+          "cut_fee_cents",
+          "freight_cents",
+          "taxes",
+          "tax_cents",
+          "total_cents",
+          "total_mass_grams",
+          "longest_lead_days",
+          "cost_per_kg_cents"
+        ],
+        "title": "QuoteTotals",
         "type": "object"
       },
       "RecognitionHealth": {
@@ -2517,6 +4042,116 @@
         "title": "RevokeOut",
         "type": "object"
       },
+      "RfqAdvice": {
+        "properties": {
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing",
+            "type": "array"
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/AdviceNote"
+            },
+            "title": "Notes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "notes",
+          "missing"
+        ],
+        "title": "RfqAdvice",
+        "type": "object"
+      },
+      "RfqIn": {
+        "description": "What a supplier would need answered before putting a number on paper.\n\nThere is no name field and there never will be: a seat is anonymous, and a\nform that asks a student to identify themselves would be the one place on\nthe platform that collects a person.",
+        "properties": {
+          "certification": {
+            "$ref": "#/components/schemas/Certification",
+            "default": "none"
+          },
+          "component": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Component",
+            "type": "string"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/Environment",
+            "default": "indoor"
+          },
+          "notes": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Notes",
+            "type": "string"
+          },
+          "quantity": {
+            "default": "",
+            "maxLength": 80,
+            "title": "Quantity",
+            "type": "string"
+          },
+          "sku": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sku"
+          },
+          "tolerance": {
+            "default": "",
+            "maxLength": 300,
+            "title": "Tolerance",
+            "type": "string"
+          },
+          "volume": {
+            "$ref": "#/components/schemas/Volume",
+            "default": "prototype"
+          }
+        },
+        "title": "RfqIn",
+        "type": "object"
+      },
+      "RfqOut": {
+        "properties": {
+          "advice": {
+            "$ref": "#/components/schemas/RfqAdvice"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "request": {
+            "$ref": "#/components/schemas/RfqIn"
+          }
+        },
+        "required": [
+          "id",
+          "reference",
+          "created_at",
+          "request",
+          "advice"
+        ],
+        "title": "RfqOut",
+        "type": "object"
+      },
       "Role": {
         "enum": [
           "professor",
@@ -2840,6 +4475,49 @@
         "title": "SeatOut",
         "type": "object"
       },
+      "ShortlistIn": {
+        "properties": {
+          "skus": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 40,
+            "title": "Skus",
+            "type": "array"
+          }
+        },
+        "title": "ShortlistIn",
+        "type": "object"
+      },
+      "ShortlistOut": {
+        "properties": {
+          "case_study_id": {
+            "title": "Case Study Id",
+            "type": "integer"
+          },
+          "dropped": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Dropped",
+            "type": "array"
+          },
+          "skus": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Skus",
+            "type": "array"
+          }
+        },
+        "required": [
+          "case_study_id",
+          "skus",
+          "dropped"
+        ],
+        "title": "ShortlistOut",
+        "type": "object"
+      },
       "SignupIn": {
         "properties": {
           "email": {
@@ -2859,6 +4537,39 @@
           "password"
         ],
         "title": "SignupIn",
+        "type": "object"
+      },
+      "SkuTally": {
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "quote_count": {
+            "title": "Quote Count",
+            "type": "integer"
+          },
+          "sku": {
+            "title": "Sku",
+            "type": "string"
+          },
+          "total_quantity": {
+            "title": "Total Quantity",
+            "type": "number"
+          }
+        },
+        "required": [
+          "sku",
+          "name",
+          "category",
+          "quote_count",
+          "total_quantity"
+        ],
+        "title": "SkuTally",
         "type": "object"
       },
       "SolutionStep": {
@@ -2976,6 +4687,17 @@
             "minItems": 1,
             "title": "Pages",
             "type": "array"
+          },
+          "quote_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote Id"
           }
         },
         "required": [
@@ -3029,6 +4751,28 @@
             "title": "Pages",
             "type": "array"
           },
+          "quote_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote Id"
+          },
+          "quote_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote Number"
+          },
           "recognition_conf": {
             "anyOf": [
               {
@@ -3072,6 +4816,8 @@
           "submitted_at",
           "started_at",
           "recognition_conf",
+          "quote_id",
+          "quote_number",
           "pages"
         ],
         "title": "SubmissionOut",
@@ -3283,6 +5029,154 @@
           "graded_at"
         ],
         "title": "SubmissionSummary",
+        "type": "object"
+      },
+      "Supplier": {
+        "description": "One fictional supplier and the terms it trades on.",
+        "properties": {
+          "blurb": {
+            "title": "Blurb",
+            "type": "string"
+          },
+          "categories": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "city": {
+            "title": "City",
+            "type": "string"
+          },
+          "established": {
+            "title": "Established",
+            "type": "integer"
+          },
+          "glyph": {
+            "title": "Glyph",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "minimum_order_note": {
+            "title": "Minimum Order Note",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "policy": {
+            "title": "Policy",
+            "type": "string"
+          },
+          "rating": {
+            "title": "Rating",
+            "type": "number"
+          },
+          "review_count": {
+            "title": "Review Count",
+            "type": "integer"
+          },
+          "shipping": {
+            "title": "Shipping",
+            "type": "string"
+          },
+          "tagline": {
+            "title": "Tagline",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "tagline",
+          "glyph",
+          "city",
+          "established",
+          "rating",
+          "review_count",
+          "shipping",
+          "categories",
+          "blurb",
+          "policy",
+          "minimum_order_note"
+        ],
+        "title": "Supplier",
+        "type": "object"
+      },
+      "SupplierSummary": {
+        "properties": {
+          "categories": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "from_price_cents": {
+            "title": "From Price Cents",
+            "type": "integer"
+          },
+          "line_count": {
+            "title": "Line Count",
+            "type": "integer"
+          },
+          "supplier": {
+            "$ref": "#/components/schemas/Supplier"
+          }
+        },
+        "required": [
+          "supplier",
+          "line_count",
+          "categories",
+          "from_price_cents"
+        ],
+        "title": "SupplierSummary",
+        "type": "object"
+      },
+      "Tax": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "rate": {
+            "title": "Rate",
+            "type": "number"
+          }
+        },
+        "required": [
+          "code",
+          "rate"
+        ],
+        "title": "Tax",
+        "type": "object"
+      },
+      "TaxLine": {
+        "properties": {
+          "amount_cents": {
+            "title": "Amount Cents",
+            "type": "integer"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "rate": {
+            "title": "Rate",
+            "type": "number"
+          }
+        },
+        "required": [
+          "code",
+          "rate",
+          "amount_cents"
+        ],
+        "title": "TaxLine",
         "type": "object"
       },
       "TokenUsageRow": {
@@ -3848,6 +5742,16 @@
         ],
         "title": "VerificationHealth",
         "type": "object"
+      },
+      "Volume": {
+        "enum": [
+          "prototype",
+          "small_batch",
+          "production",
+          "high_volume"
+        ],
+        "title": "Volume",
+        "type": "string"
       },
       "app__main__HealthOut": {
         "description": "Liveness of the API process itself; no dependencies are probed.",
@@ -5345,6 +7249,177 @@
         ]
       }
     },
+    "/api/v1/courses/{course_id}/case-studies/{case_study_id}/shortlist": {
+      "get": {
+        "operationId": "get_shortlist_api_v1_courses__course_id__case_studies__case_study_id__shortlist_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "case_study_id",
+            "required": true,
+            "schema": {
+              "title": "Case Study Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortlistOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Shortlist",
+        "tags": [
+          "marketplace-authoring"
+        ]
+      },
+      "put": {
+        "description": "Replace the shortlist. Order is meaning: the first line is the one the\nstudent sees first, and a shortlist ordered by what the professor wants\nconsidered is doing work that alphabetical order is not.",
+        "operationId": "set_shortlist_api_v1_courses__course_id__case_studies__case_study_id__shortlist_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "case_study_id",
+            "required": true,
+            "schema": {
+              "title": "Case Study Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShortlistIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShortlistOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Shortlist",
+        "tags": [
+          "marketplace-authoring"
+        ]
+      }
+    },
     "/api/v1/courses/{course_id}/case-studies/{case_study_id}/unpublish": {
       "post": {
         "operationId": "unpublish_case_study_api_v1_courses__course_id__case_studies__case_study_id__unpublish_post",
@@ -5648,6 +7723,243 @@
         "summary": "Request Variants",
         "tags": [
           "variants"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/catalogue": {
+      "get": {
+        "description": "The whole catalogue at list prices, with each line's price band, for\nbuilding a shortlist. Pass a case study to have the current shortlist\nflagged.",
+        "operationId": "get_authoring_catalogue_api_v1_courses__course_id__catalogue_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "case_study_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Case Study Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringCatalogueOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Authoring Catalogue",
+        "tags": [
+          "marketplace-authoring"
+        ]
+      },
+      "put": {
+        "description": "Pin the course to one catalogue version, or unpin it entirely.\n\nA pin rather than \"latest\" because a price list that moves under a term is\na price list students cannot be asked to defend. Moving the pin forward is\na deliberate act, and it leaves every issued quotation alone.",
+        "operationId": "pin_catalogue_api_v1_courses__course_id__catalogue_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CataloguesOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Pin Catalogue",
+        "tags": [
+          "marketplace-authoring"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/catalogues": {
+      "get": {
+        "operationId": "list_catalogues_api_v1_courses__course_id__catalogues_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CataloguesOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Catalogues",
+        "tags": [
+          "marketplace-authoring"
         ]
       }
     },
@@ -7237,6 +9549,119 @@
         ]
       }
     },
+    "/api/v1/courses/{course_id}/quotes": {
+      "get": {
+        "description": "Issued quotations across the cohort, newest first, with a tally of what\nwas bought. Drafts are not here: a basket someone is still filling is not a\ndecision they have made.",
+        "operationId": "review_quotes_api_v1_courses__course_id__quotes_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "case_study_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Case Study Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteReviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Review Quotes",
+        "tags": [
+          "marketplace-authoring"
+        ]
+      }
+    },
     "/api/v1/courses/{course_id}/reports/activity": {
       "get": {
         "description": "Activity by seat number. Every seat appears, ordered by number: the\norder is the roster's, not a leaderboard's.",
@@ -8812,6 +11237,307 @@
         ]
       }
     },
+    "/api/v1/quotes/{quote_id}": {
+      "delete": {
+        "description": "Throw away a draft. An issued quotation is refused: it may already have\nbeen cited on a submission, and a citation that can vanish is not one.",
+        "operationId": "discard_quote_api_v1_quotes__quote_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "quote_id",
+            "required": true,
+            "schema": {
+              "title": "Quote Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Discard Quote",
+        "tags": [
+          "marketplace"
+        ]
+      },
+      "get": {
+        "description": "Read one quotation. A draft is priced live; an issued one reads back from\nits own snapshot, which is what lets it outlive a catalogue revision.",
+        "operationId": "get_quote_api_v1_quotes__quote_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "quote_id",
+            "required": true,
+            "schema": {
+              "title": "Quote Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Quote",
+        "tags": [
+          "marketplace"
+        ]
+      },
+      "put": {
+        "description": "Replace the whole basket. A whole-basket PUT rather than per-line verbs\nbecause the client holds the basket anyway and a partial update would make\nthe totals a negotiation.",
+        "operationId": "replace_quote_lines_api_v1_quotes__quote_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "quote_id",
+            "required": true,
+            "schema": {
+              "title": "Quote Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Replace Quote Lines",
+        "tags": [
+          "marketplace"
+        ]
+      }
+    },
+    "/api/v1/quotes/{quote_id}/issue": {
+      "post": {
+        "description": "Freeze the basket into a numbered quotation.\n\nIssuing is the artifact-making act: it stamps the number and the validity,\nand from here the lines never move. Re-issuing an issued quotation returns\nit unchanged rather than erroring, because a retried request must not cost\na student their quotation number.",
+        "operationId": "issue_quote_api_v1_quotes__quote_id__issue_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "quote_id",
+            "required": true,
+            "schema": {
+              "title": "Quote Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Issue Quote",
+        "tags": [
+          "marketplace"
+        ]
+      }
+    },
     "/api/v1/seats/me": {
       "get": {
         "operationId": "seat_me_api_v1_seats_me_get",
@@ -9465,6 +12191,755 @@
         "summary": "Start Attempt",
         "tags": [
           "submissions"
+        ]
+      }
+    },
+    "/api/v1/variants/{variant_id}/marketplace": {
+      "get": {
+        "description": "The supplier directory and this case study's shortlist, at this\nvariant's prices.",
+        "operationId": "get_marketplace_api_v1_variants__variant_id__marketplace_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "variant_id",
+            "required": true,
+            "schema": {
+              "title": "Variant Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketplaceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Marketplace",
+        "tags": [
+          "marketplace"
+        ]
+      }
+    },
+    "/api/v1/variants/{variant_id}/marketplace/compare": {
+      "post": {
+        "description": "Compare up to five lines side by side with the derived selection\nindices. A POST because the candidate list is the request, not a\nlocation.",
+        "operationId": "compare_lines_api_v1_variants__variant_id__marketplace_compare_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "variant_id",
+            "required": true,
+            "schema": {
+              "title": "Variant Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompareIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompareOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Compare Lines",
+        "tags": [
+          "marketplace"
+        ]
+      }
+    },
+    "/api/v1/variants/{variant_id}/marketplace/lines": {
+      "get": {
+        "description": "Browse the catalogue. Filtering narrows and never restricts: every line\nstays reachable, because deciding that a material is wrong is the\nexercise.",
+        "operationId": "list_lines_api_v1_variants__variant_id__marketplace_lines_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "variant_id",
+            "required": true,
+            "schema": {
+              "title": "Variant Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "supplier",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Supplier"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tag",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "relevance",
+              "pattern": "^(relevance|price_asc|price_desc|lead|name)$",
+              "title": "Sort",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Cursor",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 24,
+              "maximum": 96,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LineListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Lines",
+        "tags": [
+          "marketplace"
+        ]
+      }
+    },
+    "/api/v1/variants/{variant_id}/marketplace/lines/{sku}": {
+      "get": {
+        "operationId": "get_line_api_v1_variants__variant_id__marketplace_lines__sku__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "variant_id",
+            "required": true,
+            "schema": {
+              "title": "Variant Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "sku",
+            "required": true,
+            "schema": {
+              "title": "Sku",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LineDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Line",
+        "tags": [
+          "marketplace"
+        ]
+      }
+    },
+    "/api/v1/variants/{variant_id}/marketplace/rfqs": {
+      "get": {
+        "operationId": "list_rfqs_api_v1_variants__variant_id__marketplace_rfqs_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "variant_id",
+            "required": true,
+            "schema": {
+              "title": "Variant Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RfqOut"
+                  },
+                  "title": "Response List Rfqs Api V1 Variants  Variant Id  Marketplace Rfqs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Rfqs",
+        "tags": [
+          "marketplace"
+        ]
+      },
+      "post": {
+        "description": "Send a request for quotation and get the application-engineering notes\nback. Deterministic rules, never a model call (decision 0062).",
+        "operationId": "submit_rfq_api_v1_variants__variant_id__marketplace_rfqs_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "variant_id",
+            "required": true,
+            "schema": {
+              "title": "Variant Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RfqIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RfqOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Submit Rfq",
+        "tags": [
+          "marketplace"
+        ]
+      }
+    },
+    "/api/v1/variants/{variant_id}/quotes": {
+      "get": {
+        "operationId": "list_quotes_api_v1_variants__variant_id__quotes_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "variant_id",
+            "required": true,
+            "schema": {
+              "title": "Variant Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Quotes",
+        "tags": [
+          "marketplace"
+        ]
+      },
+      "post": {
+        "description": "Open a basket against this variant. A seat may hold several: quoting two\nroutes and comparing them is the exercise working as intended.\n\nNo idempotency key, unlike creating a submission. A retry here costs an\nempty draft the student can discard, whereas the act that makes an artifact\nis issuing, and that one is idempotent by construction.",
+        "operationId": "create_quote_api_v1_variants__variant_id__quotes_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "variant_id",
+            "required": true,
+            "schema": {
+              "title": "Variant Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Quote",
+        "tags": [
+          "marketplace"
         ]
       }
     },

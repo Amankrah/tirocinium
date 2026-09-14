@@ -224,6 +224,30 @@ Numbered 6.5, an inserted slice, so Phases 7 to 9 keep the numbers the decision 
 
 ---
 
+## Phase 10: The materials marketplace
+
+**Goal.** A student finishes a case study holding a numbered quotation they built themselves, and defends the material choice and its cost basis in the same conversation that defends the solution. Decision 0062 records the design; this phase is the sequence. It sits after the release gate because nothing in it is required to ship, and every milestone here must leave all nine prior gates green.
+
+**Milestones.**
+
+10.1 The catalogue as a versioned asset. Six suppliers, 146 stocked lines with their material properties and commercial terms, the fabrication service rates, and the sixteen project briefs, extracted from the BREE 216 teaching artifact into `apps/api/catalogue/{name}/vN.json` with a changelog, loaded the way `app/prompts.py` loads prompts. The schema knows nothing about bioresource engineering; the data is entirely about it. Seeded into the directory beside `mastery_params`, because a catalogue is cross-course platform content.
+
+10.2 Seeded price synthesis. A pure function of (line, variant seed) in integer cents, alongside `app/variants/sampling.py`, with a per-line volatility band authored in the catalogue. The same variant always yields the same prices; two variants of one case study yield different ones; the orderings the briefs teach survive every seed.
+
+10.3 The quoting surfaces. Catalogue reads at a variant's prices, the server-side comparison with its derived selection indices (specific strength, specific stiffness, strength per dollar, cost per litre), the quote basket with minimum-order enforcement, volume price breaks, cut fees, freight by consolidated mass and tax, and the issue verb that freezes a numbered quotation with a fourteen-day validity and a full line snapshot. Seat-scoped throughout; the professor's shortlist editor and quote review are course-scoped through `ensure_course_owner`.
+
+10.4 The request for quotation. The form a real supplier would need answered, and the application-engineering notes that come back, as deterministic rules over data rather than a model call (decision 0062).
+
+10.5 Evidence. A submission cites an issued quotation on the terms decision 0058 set for the attempt span, and the defence context carries it as a fourth delimited source under `defense-tutor/v3`, which may press on the cost basis and may never name the material it would have chosen.
+
+10.6 The student surfaces and the professor's. Supplier directory, store with filters, line detail, comparison tray, quote basket and the printable quotation, built on the token layer rather than the prototype's own palette, Server Components by default, within the 170 kB route budget and WCAG 2.2 AA.
+
+**Status.** 10.1 to 10.5 are done, and 10.6 is done on both sides: the student's browse, compare, basket and quotation, and the professor's course materials page (choosing the catalogue version and reading the cohort's issued quotations) and per-case-study shortlist editor. What remains on the gate is Playwright journey seven.
+
+**Testing gate.** Seed determinism: the same variant yields identical prices across processes, and a corpus of the briefs' shortlists keeps its pedagogical orderings across a thousand seeds. Quote arithmetic: minimum-order rounding, every price-break tier, cut fees, freight and both taxes, asserted against hand-worked figures. Issue freezes, so a catalogue revision leaves an issued quotation byte-identical. The authorization surface: a seat reads and quotes only its own course and variant, a professor never quotes, and the no-PII assertion extends to the quotation. The rules engine is total, so every combination of form answers returns notes and none throws. Playwright journey seven: browse, compare, quote, issue, cite it on a submission, and defend it, with axe. And no prior gate goes red.
+
+---
+
 ## Standing practices for every phase
 
 Golden fixtures are project assets: the scan corpus, the PDF corpus, and recorded model responses for deterministic CI live in the repo (LFS) and grow deliberately. Model calls in tests are always recorded-response mocks; live-model smoke tests run in a separate non-blocking CI lane. Every prompt shipped to a model is versioned in `apps/api/prompts/` with a changelog, because prompts are code. And each phase ends with the two Claude skills updated to reflect what is now true, so the next session starts smarter than the last one did.

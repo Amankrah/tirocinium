@@ -60,6 +60,104 @@ export const strings = {
     upload: "Upload solution",
     uploadNeedsVariant:
       "Uploading opens once your professor publishes a variant of this problem.",
+    // The marketplace entry (Phase 10). Shown only when the course prices
+    // materials, because most courses do not, and an always-present link to a
+    // surface that answers "not here" would be a worse answer than silence.
+    price: "Price your materials",
+  },
+  // The materials marketplace (decision 0062). Prices are struck for this
+  // student's own problem, which the copy says plainly in one place rather than
+  // hedging everywhere: a student who thinks the figures are shared will draw
+  // the wrong conclusion from them.
+  marketplace: {
+    title: "Materials",
+    back: "Back to the problem",
+    yourPrices:
+      "These prices are quoted for your problem. Another student's numbers will differ, so the reasoning is what travels, not the figure.",
+    offline: "We could not reach the suppliers. Try again in a moment.",
+    suppliers: "Suppliers",
+    supplierLines: (count: number) =>
+      count === 1 ? "1 line" : `${count} lines`,
+    fromPrice: (price: string) => `From ${price}`,
+    shortlist: "Suggested for this problem",
+    shortlistHint:
+      "Your professor put these first. You can quote anything in the catalogue.",
+    briefFactors: "What the choice has to survive",
+    search: "Search materials",
+    searchPlaceholder: "Grade, form, or SKU",
+    allSuppliers: "All suppliers",
+    allCategories: "All categories",
+    sort: "Sort by",
+    sortRelevance: "Suggested first",
+    sortPriceAsc: "Price, low to high",
+    sortPriceDesc: "Price, high to low",
+    sortLead: "Lead time",
+    sortName: "Name",
+    resultCount: (count: number) =>
+      count === 1 ? "1 material" : `${count} materials`,
+    noResults: "Nothing matched that. Try a broader search.",
+    more: "Show more",
+    perUnit: (price: string, unit: string) => `${price} per ${unit}`,
+    perKilo: (price: string) => `${price} per kg`,
+    minimumOrder: (quantity: string, unit: string) =>
+      `Minimum ${quantity} ${unit}`,
+    add: "Add to quote",
+    added: "In your quote",
+    compare: "Compare",
+    comparing: (count: number) => `Comparing ${count}`,
+    compareFull: "You can compare five at a time.",
+    clearComparison: "Clear",
+    // The basket. Called a quote throughout, never a cart: the artifact the
+    // student leaves with is a quotation, and naming it early teaches the word.
+    quote: {
+      heading: "Your quote",
+      empty: "Nothing quoted yet. Add a material to start.",
+      quantity: (unit: string) => `Quantity in ${unit}`,
+      cutToLength: "Cut to length",
+      cuts: "Cuts",
+      remove: (name: string) => `Remove ${name}`,
+      goods: "Materials",
+      discount: "Volume discount",
+      cutting: "Cutting",
+      freight: "Freight",
+      total: "Total",
+      totalMass: "Mass",
+      longestLead: "Ready in",
+      costPerKilo: "Cost per kilogram",
+      costPerKiloUnknown: "Not applicable to shop time",
+      issue: "Issue this quote",
+      issuing: "Issuing…",
+      issued: (number: string) => `Quotation ${number}`,
+      validUntil: (date: string) => `Valid until ${date}`,
+      frozen:
+        "This quotation is issued, so its prices are fixed. Start another to price a different route.",
+      startAnother: "Start another quote",
+      discard: "Discard",
+      // Notices are the server's own words about what it did to the basket,
+      // shown rather than swallowed: a quantity silently raised is a number the
+      // student cannot account for in their defence.
+      notices: "About your quote",
+    },
+    // The request for quotation. The answer is authored rules, not a model, and
+    // the copy says so, because a student who thinks a machine wrote it will
+    // weigh it wrongly in both directions.
+    rfq: {
+      heading: "Ask the supplier",
+      hint: "Answer what a supplier would need before they could price your part.",
+      component: "What are you making?",
+      quantityLabel: "How many, and in what unit?",
+      volume: "Production volume",
+      environment: "Where will it live?",
+      certification: "Certification needed",
+      tolerance: "Tolerance or finish",
+      notes: "Anything else",
+      send: "Send request",
+      sending: "Sending…",
+      answer: "Their reply",
+      missing: "They could not price this without:",
+      authored:
+        "These notes come from the catalogue's own application-engineering rules, not from a model.",
+    },
   },
   // The upload flow (guide 4.1): the most engineered student surface. Copy is
   // plain and honest; the client checks catch the obvious, and the server stays

@@ -27,11 +27,16 @@ type SwapAction = (
 export function PracticeProblem({
   caseStudyId,
   initialVariantId,
+  pricesMaterials,
   swap,
   children,
 }: {
   caseStudyId: number;
   initialVariantId: number | null;
+  // Whether this course quotes for materials (Phase 10). Most do not, and the
+  // link is absent rather than disabled for them: a dead control is a worse
+  // answer than no control.
+  pricesMaterials: boolean;
   swap: SwapAction;
   children: ReactNode;
 }) {
@@ -69,6 +74,14 @@ export function PracticeProblem({
             {s.upload}
           </Button>
         )}
+        {pricesMaterials && variantId !== null ? (
+          <Link
+            href={`/course/${caseStudyId}/marketplace?variant=${variantId}`}
+            className="inline-flex items-center justify-center rounded-md px-4 py-2 font-medium text-ink hover:bg-rule-line/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
+            {s.price}
+          </Link>
+        ) : null}
       </div>
     </>
   );

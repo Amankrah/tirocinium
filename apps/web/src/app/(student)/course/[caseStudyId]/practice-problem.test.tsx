@@ -9,10 +9,15 @@ vi.mock("@/components/reading/client-problem-body", () => ({
   ClientProblemBody: (props: { body: string }) => <div>{props.body}</div>,
 }));
 
-function renderProblem(initialVariantId: number | null) {
+function renderProblem(initialVariantId: number | null, pricesMaterials = false) {
   const swap = vi.fn(async () => ({ variant_id: 20, body: "a fresh variant" }));
   render(
-    <PracticeProblem caseStudyId={2} initialVariantId={initialVariantId} swap={swap as never}>
+    <PracticeProblem
+      caseStudyId={2}
+      initialVariantId={initialVariantId}
+      pricesMaterials={pricesMaterials}
+      swap={swap as never}
+    >
       <div>the first variant</div>
     </PracticeProblem>,
   );
@@ -48,5 +53,19 @@ describe("PracticeProblem", () => {
     expect(
       screen.getByRole("button", { name: "Upload solution" }).hasAttribute("disabled"),
     ).toBe(true);
+  });
+
+  // Phase 10: most courses do not price materials, and for those the link is
+  // absent rather than disabled. A dead control is a worse answer than none.
+  it("offers the marketplace only when the course prices materials", () => {
+    renderProblem(12, false);
+    expect(screen.queryByRole("link", { name: "Price your materials" })).toBeNull();
+  });
+
+  it("carries the current variant into the marketplace when it is on", () => {
+    renderProblem(12, true);
+    expect(
+      screen.getByRole("link", { name: "Price your materials" }).getAttribute("href"),
+    ).toBe("/course/2/marketplace?variant=12");
   });
 });

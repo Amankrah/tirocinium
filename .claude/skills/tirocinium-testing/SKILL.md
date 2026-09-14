@@ -6,7 +6,17 @@ description: How to run every Tirocinium test suite, what each phase gate requir
 # Tirocinium testing
 
 A milestone is done only when its gate is green and every earlier gate still
-passes; green never goes red. Last updated at Phase 8 (decisions 0046 to 0050:
+passes; green never goes red. Last updated at Phase 10, the materials
+marketplace (decision 0062), whose gate entry is near the end of the table.
+
+One caution about this document before you trust it. Parts of the Phase 8 web
+narrative below describe surfaces that have no files under `apps/web/src/app`
+(the four reports, the submission review, the unfold, the personal history, and
+the defence route), and the test counts written alongside them were counted
+against that description rather than against the tree. The counts above the gate
+table were re-measured at Phase 10 and are current; a per-milestone claim is
+worth checking against the repository before you rely on it. Everything from
+here to the Phase 10 entry was last revised at Phase 8 (decisions 0046 to 0050:
 the PDF gate preconditions, the submission review read, course reporting, the
 understanding unfold, and observability; the backend of Phases 5, 6, 6.5, and 7
 is complete and the whole Phase 8 backend, 8.1 to 8.5, is done, leaving only
@@ -137,7 +147,8 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 473 tests (25 data layer + 9 backup verification (9.4), 4 load
+Python suite, 533 tests (54 marketplace (Phase 10: pricing and quote arithmetic,
+the surfaces end to end), 25 data layer + 9 backup verification (9.4), 4 load
 (9.1), 34 security (9.2), 16 case studies/concepts/courses,
 16 reports (8.3), 36 unfold (8.4: 18 stepper, 18 surface), and 22 telemetry
 (8.5), see the gate table,
@@ -198,15 +209,17 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (358 Vitest tests across 50 files: the token contract with its
+Web suite (265 Vitest tests across 41 files: the token contract with its
 computed-contrast assertion, the primitives, the API clients, the upload flow's
 pre-checks, orchestration controller, SSE processing model, and transcription
 preview, the PDF import upload and controller, the defence conversation's
 protocol, state reducer, PCM arithmetic, playback queue, and surface, and the
-Phase 8 surfaces: the review queue and its keyboard model, the submission review
-with its region geometry, the four reports, and the unfold). `vitest.setup.ts`
+marketplace on both sides: the student's browser and quote sheet, and the
+professor's shortlist editor). `vitest.setup.ts`
 raises Testing Library's async budget to 5 s; read its comment before lowering
-it. Plus lint, typecheck, and
+it, and note that the budget is per test rather than per run: on a loaded
+machine the full run can time out a test that passes on its own, so re-run the
+file before believing a failure. Plus lint, typecheck, and
 build, from `apps/web` (typecheck needs a build first on a fresh checkout,
 decision 0005). The Playwright journeys run separately (`pnpm test:e2e`, needs
 `playwright install chromium` once, and a run of it overwrites `.next` with a
@@ -945,6 +958,40 @@ Phase 9, in progress:
   per-process, so a multi-process deployment multiplies the allowance by the
   worker count.
 
+Phase 10 (the materials marketplace, decision 0062), in progress:
+
+- 10.1 to 10.5 (done): the catalogue as a versioned asset (six suppliers, 146
+  lines, sixteen briefs under `apps/api/catalogue/bree-216/v1.json` with a
+  changelog), seeded price synthesis, the quoting surfaces, the rules-based RFQ,
+  and the quotation reaching the defence. 54 tests in `app/marketplace/`
+  (`test_pricing.py` for the arithmetic, `test_marketplace.py` for the
+  surfaces), plus the defence context tests moving to `defense-tutor/v3`.
+  Most of the phase gate is green. Seed determinism is asserted against golden
+  values so it holds across processes rather than only within one, and the
+  briefs' shortlists keep their cheapest line across a thousand seeds. Issue
+  freezes: a quotation survives a catalogue revision and survives the professor
+  turning the marketplace off, which is the harder half and is asserted
+  separately. The authorization surface (a seat quotes only its own variant, a
+  professor never quotes) and the no-PII assertion both extend here. The rules
+  engine is total: every combination of form answers returns notes and none
+  throws. Two notes for whoever edits this. `test_a_zero_volatility_line_is_
+  the_list_price` builds its own zero-volatility line with `model_copy` because
+  the shipped catalogue has none, so do not "fix" it by reaching into the
+  fixture. And a reviewed quotation carries `seat_number`, joined in Python from
+  the directory like the submission review; an internal seat id on a professor
+  surface is a second identifier nobody asked for.
+- 10.6 (web, done): the student surfaces (supplier directory, browse, compare,
+  basket, quotation, RFQ) and the professor's (the course materials page and the
+  case-study shortlist editor). The materials page is a Server Component start to
+  finish and builds at the shared baseline, which is the assertion worth keeping:
+  if that route ever reports kilobytes of its own, a verb has become a client
+  island. The shortlist editor's tests hold three things to account: the order
+  the professor sets is the order that is saved, filtering the catalogue never
+  edits the shortlist, and no student's struck price appears on a professor
+  surface.
+- Still open on the gate: Playwright journey seven (browse, compare, quote,
+  issue, cite it on a submission, defend it, with axe).
+
 Recorded working-assessment responses live at
 `apps/api/tests/recorded/working-assessment/`, one JSON per document sha256
 (`WorkingAssessment` shape: per-concept rubric 0..3 plus one stated
@@ -1040,6 +1087,17 @@ the directory is where the sessions the live-model smoke lane replays land.
 Speech is never recorded: audio is not retained anywhere, and the speech seams
 are driven by scripted timings in `app/defense/conftest.py`. Versioned prompts
 live at `apps/api/prompts/defense-tutor/` and `apps/api/prompts/defense-rubric/`.
+
+The marketplace catalogue is a versioned asset rather than a fixture, and the
+distinction matters: it ships to production. It lives at
+`apps/api/catalogue/bree-216/v1.json` with a `CHANGELOG.md`, is loaded the way
+prompts are, and is regenerated from the teaching artifact by
+`infra/extract-marketplace-catalogue.mjs`. Editing it is a version bump, never
+an edit in place, because a course is pinned to an exact version and issued
+quotations name the version they were struck against. The marketplace tests
+build their own baskets and need no committed recorded response, since nothing
+in the marketplace calls a model: pricing is arithmetic and the RFQ advice is
+authored rules.
 
 The five-PDF ingestion corpus lives at `crates/platform_core/pdf/corpus/` (PDFs
 under `pdfs/`, the spec in `README.md`, baselines in `expectations.json`). The

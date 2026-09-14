@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BREE Marketplace &mdash; Bioresource Engineering Materials Exchange</title>
+<style>
+:root{
+  --ink:#12161c; --ink2:#2c3440; --mut:#5d6874; --mut2:#8b949e;
+  --line:#dfe3e8; --line2:#eef1f4; --bg:#f5f6f8; --card:#ffffff;
+  --navy:#152238; --navy2:#1e3050;
+  --acc:#0b6b5b; --warn:#9a5b12; --bad:#98261f; --good:#1a6b34;
+  --r:6px; --sh:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08);
+  --sh2:0 4px 12px rgba(16,24,40,.10),0 2px 4px rgba(16,24,40,.06);
+  --s1:#0b6b5b; --s2:#2f5d8c; --s3:#8a5a1f; --s4:#3f6b2a; --s5:#6b3550; --s6:#414a55;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;font-size:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:inherit}
+.wrap{max-width:1220px;margin:0 auto;padding:0 20px}
+.mono{font-family:var(--mono)}
+
+/* ---------- top utility bar ---------- */
+.util{background:#0a1120;color:#9fb0c8;font-size:11.5px;letter-spacing:.02em}
+.util .wrap{display:flex;gap:18px;align-items:center;height:32px;flex-wrap:wrap}
+.util b{color:#dbe6f5;font-weight:600}
+.util .sp{margin-left:auto}
+
+/* ---------- header ---------- */
+header.hdr{background:var(--navy);color:#fff;position:sticky;top:0;z-index:60;box-shadow:0 1px 0 rgba(255,255,255,.06)}
+.hdr .wrap{display:flex;align-items:center;gap:22px;height:62px}
+.logo{display:flex;align-items:center;gap:10px;cursor:pointer;flex-shrink:0}
+.logo .mk{width:32px;height:32px;border-radius:5px;background:linear-gradient(135deg,#2fa88f,#0b6b5b);display:grid;place-items:center;font-weight:800;font-size:13px;letter-spacing:-.04em;color:#fff}
+.logo .tx{line-height:1.1}
+.logo .tx b{display:block;font-size:16px;letter-spacing:-.02em}
+.logo .tx span{display:block;font-size:10px;color:#8fa3bd;letter-spacing:.09em;text-transform:uppercase}
+.search{flex:1;position:relative;max-width:520px}
+.search input{width:100%;height:36px;border-radius:var(--r);border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.09);color:#fff;padding:0 12px 0 34px;outline:none}
+.search input::placeholder{color:#8fa3bd}
+.search input:focus{background:#fff;color:var(--ink);border-color:#2fa88f}
+.search input:focus::placeholder{color:var(--mut2)}
+.search .ico{position:absolute;left:11px;top:9px;opacity:.6;pointer-events:none}
+.search:focus-within .ico{opacity:.5;filter:invert(1)}
+.hnav{display:flex;gap:4px;align-items:center;margin-left:auto}
+.hnav button{padding:7px 11px;border-radius:var(--r);font-size:13px;color:#c8d6e8;white-space:nowrap}
+.hnav button:hover{background:rgba(255,255,255,.1);color:#fff}
+.hnav .pill{background:#2fa88f;color:#04261f;font-weight:600}
+.hnav .pill:hover{background:#3dbfa4;color:#04261f}
+.badge{display:inline-block;min-width:17px;height:17px;line-height:17px;text-align:center;border-radius:9px;background:#e8503a;color:#fff;font-size:10.5px;font-weight:700;margin-left:5px;padding:0 4px}
+
+/* ---------- store nav strip ---------- */
+.strip{background:var(--navy2);border-bottom:1px solid rgba(255,255,255,.08)}
+.strip .wrap{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.strip .wrap::-webkit-scrollbar{display:none}
+.strip button{color:#b9c9dd;font-size:12.5px;padding:9px 12px;white-space:nowrap;border-bottom:2px solid transparent}
+.strip button:hover{color:#fff}
+.strip button.on{color:#fff;border-bottom-color:#2fa88f;font-weight:600}
+
+/* ---------- generic ---------- */
+.crumb{font-size:12px;color:var(--mut);padding:14px 0 0}
+.crumb a{color:var(--acc);cursor:pointer}
+.crumb a:hover{text-decoration:underline}
+h1{font-size:26px;letter-spacing:-.02em;margin:10px 0 6px;font-weight:700}
+h2{font-size:18px;letter-spacing:-.01em;margin:0 0 12px;font-weight:650}
+h3{font-size:14px;margin:0 0 8px;font-weight:650}
+.lede{color:var(--mut);max-width:78ch;margin:0 0 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;box-shadow:var(--sh)}
+.pad{padding:18px}
+.sec{margin:26px 0}
+.tag{display:inline-block;font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:2.5px 7px;border-radius:3px;background:var(--line2);color:var(--mut)}
+.tag.g{background:#e6f4ea;color:var(--good)}
+.tag.y{background:#fdf1de;color:var(--warn)}
+.tag.r{background:#fdeceb;color:var(--bad)}
+.tag.b{background:#e8f0fb;color:#2f5d8c}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:36px;padding:0 15px;border-radius:var(--r);background:var(--navy);color:#fff;font-weight:600;font-size:13px;transition:.12s}
+.btn:hover{background:var(--navy2)}
+.btn.acc{background:var(--acc)}.btn.acc:hover{background:#0d8271}
+.btn.gh{background:#fff;border:1px solid var(--line);color:var(--ink2)}
+.btn.gh:hover{border-color:var(--mut2);background:#fafbfc}
+.btn.sm{height:29px;padding:0 11px;font-size:12px}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.fld{display:block;margin-bottom:12px}
+.fld label{display:block;font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:4px}
+.fld input,.fld select,.fld textarea{width:100%;height:34px;border:1px solid var(--line);border-radius:var(--r);padding:0 10px;background:#fff;outline:none}
+.fld textarea{height:auto;padding:8px 10px;resize:vertical;line-height:1.45}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(11,107,91,.1)}
+.fld .hint{font-size:11px;color:var(--mut2);margin-top:3px}
+.grid{display:grid;gap:14px}
+.hr{height:1px;background:var(--line);margin:16px 0;border:0}
+.muted{color:var(--mut)}
+.tiny{font-size:11.5px}
+.right{text-align:right}
+.nowrap{white-space:nowrap}
+
+/* ---------- product grid ---------- */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:14px}
+.pcard{background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;transition:.14s;position:relative}
+.pcard:hover{box-shadow:var(--sh2);border-color:#c9d0d8;transform:translateY(-1px)}
+.pcard .swatch{height:104px;position:relative;overflow:hidden;border-bottom:1px solid var(--line2);cursor:pointer}
+.pcard .swatch .lbl{position:absolute;left:9px;bottom:8px;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.92);background:rgba(0,0,0,.42);padding:2px 6px;border-radius:3px;letter-spacing:.03em}
+.pcard .bod{padding:11px 12px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.pcard .nm{font-weight:640;font-size:13.5px;line-height:1.3;cursor:pointer}
+.pcard .nm:hover{color:var(--acc)}
+.pcard .sku{font-family:var(--mono);font-size:10.5px;color:var(--mut2);letter-spacing:.02em}
+.pcard .spx{display:flex;flex-wrap:wrap;gap:4px;margin-top:1px}
+.pcard .spx span{font-size:10.5px;background:var(--line2);color:var(--mut);padding:1.5px 5px;border-radius:3px;font-family:var(--mono)}
+.pcard .pr{margin-top:auto;padding-top:7px;display:flex;align-items:baseline;gap:5px;border-top:1px solid var(--line2)}
+.pcard .pr b{font-size:18px;letter-spacing:-.02em}
+.pcard .pr i{font-style:normal;font-size:11.5px;color:var(--mut)}
+.pcard .act{display:flex;gap:6px;margin-top:8px}
+.pcard .act .btn{flex:1}
+.cmpbox{position:absolute;top:8px;right:8px;z-index:2}
+.cmpbox input{width:17px;height:17px;accent-color:var(--acc);cursor:pointer}
+.stk{font-size:11px;font-weight:600}
+.stk.i{color:var(--good)}.stk.l{color:var(--warn)}.stk.o{color:var(--bad)}
+
+/* ---------- tables ---------- */
+table.dt{width:100%;border-collapse:collapse;font-size:12.5px}
+table.dt th{text-align:left;font-weight:650;color:var(--mut);font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:7px 10px;border-bottom:1px solid var(--line);background:#fafbfc}
+table.dt td{padding:8px 10px;border-bottom:1px solid var(--line2);vertical-align:top}
+table.dt tr:last-child td{border-bottom:0}
+table.dt td.n{font-family:var(--mono);text-align:right;white-space:nowrap}
+table.dt tbody tr:hover{background:#fcfdfe}
+
+/* ---------- filters ---------- */
+.layout{display:grid;grid-template-columns:224px 1fr;gap:22px;align-items:start}
+.side{position:sticky;top:78px}
+.fbox{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:12px}
+.fbox h4{margin:0 0 9px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.fbox label{display:flex;align-items:center;gap:7px;font-size:12.5px;padding:3px 0;cursor:pointer;color:var(--ink2)}
+.fbox label:hover{color:var(--ink)}
+.fbox input[type=checkbox],.fbox input[type=radio]{accent-color:var(--acc);width:14px;height:14px}
+.fbox .ct{margin-left:auto;font-size:11px;color:var(--mut2);font-family:var(--mono)}
+
+/* ---------- modal ---------- */
+.ovl{position:fixed;inset:0;background:rgba(12,18,28,.55);z-index:220;display:none;overflow-y:auto;padding:28px 16px;backdrop-filter:blur(2px)}
+.ovl.on{display:block}
+.mdl{background:#fff;border-radius:10px;max-width:940px;margin:0 auto;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
+.mdl.sm{max-width:560px}
+.mdl .mh{display:flex;align-items:flex-start;gap:14px;padding:16px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;z-index:3}
+.mdl .mh h2{margin:0;flex:1}
+.mdl .mb{padding:18px}
+.x{width:30px;height:30px;border-radius:var(--r);display:grid;place-items:center;color:var(--mut);font-size:19px;line-height:1}
+.x:hover{background:var(--line2);color:var(--ink)}
+
+/* ---------- drawer (cart) ---------- */
+.drw{position:fixed;top:0;right:0;bottom:0;width:min(440px,100%);background:#fff;z-index:210;transform:translateX(102%);transition:transform .22s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:-8px 0 30px rgba(0,0,0,.16)}
+.drw.on{transform:none}
+.drwbk{position:fixed;inset:0;background:rgba(12,18,28,.42);z-index:205;opacity:0;pointer-events:none;transition:.22s}
+.drwbk.on{opacity:1;pointer-events:auto}
+.drw .dh{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.drw .db{flex:1;overflow-y:auto;padding:14px 18px}
+.drw .df{border-top:1px solid var(--line);padding:14px 18px;background:#fafbfc}
+.ci{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--line2)}
+.ci .sw{width:44px;height:44px;border-radius:5px;flex-shrink:0}
+.ci .in{flex:1;min-width:0}
+.ci .in .n{font-size:12.5px;font-weight:600;line-height:1.3}
+.ci .in .s{font-family:var(--mono);font-size:10.5px;color:var(--mut2)}
+.qty{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:5px;overflow:hidden;width:fit-content;margin-top:5px}
+.qty button{width:24px;height:25px;background:#fafbfc;color:var(--mut);font-size:14px;line-height:1}
+.qty button:hover{background:var(--line2);color:var(--ink)}
+.qty input{width:52px;height:25px;border:0;border-left:1px solid var(--line);border-right:1px solid var(--line);text-align:center;font-family:var(--mono);font-size:12px;outline:none}
+.tot{display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0;color:var(--mut)}
+.tot.big{font-size:16px;font-weight:700;color:var(--ink);border-top:1px solid var(--line);margin-top:7px;padding-top:9px}
+.tot b{font-family:var(--mono)}
+
+/* ---------- quote sheet ---------- */
+.qs{background:#fff;padding:34px 38px;font-size:12.5px;color:#1a1f26}
+.qs .qh{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--navy);padding-bottom:14px;margin-bottom:16px}
+.qs .qh .co{font-size:19px;font-weight:800;letter-spacing:-.02em}
+.qs .qh .rt{text-align:right;font-size:11.5px;color:var(--mut)}
+.qs .qh .rt .big{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:.02em}
+.qs table{width:100%;border-collapse:collapse;margin:12px 0;font-size:11.5px}
+.qs th{background:#f1f3f6;text-align:left;padding:6px 8px;border:1px solid #d8dde3;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase}
+.qs td{padding:6px 8px;border:1px solid #e4e8ec;vertical-align:top}
+.qs td.n{text-align:right;font-family:var(--mono);white-space:nowrap}
+.qs .terms{margin-top:16px;font-size:10.5px;color:var(--mut);line-height:1.6;border-top:1px solid var(--line);padding-top:11px}
+
+/* ---------- compare ---------- */
+.cmpbar{position:fixed;left:0;right:0;bottom:0;background:var(--navy);color:#fff;z-index:150;transform:translateY(102%);transition:transform .2s;box-shadow:0 -4px 20px rgba(0,0,0,.2)}
+.cmpbar.on{transform:none}
+.cmpbar .wrap{display:flex;align-items:center;gap:12px;height:58px}
+.cmpbar .chips{display:flex;gap:7px;flex:1;overflow-x:auto;scrollbar-width:none}
+.cmpbar .chips::-webkit-scrollbar{display:none}
+.chip{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border-radius:5px;padding:5px 8px;font-size:11.5px;white-space:nowrap}
+.chip .sw{width:16px;height:16px;border-radius:3px}
+.chip button{color:#9fb4cc;font-size:14px;line-height:1}
+.chip button:hover{color:#fff}
+table.cmp{width:100%;border-collapse:collapse;font-size:12.5px}
+table.cmp th,table.cmp td{padding:8px 11px;border:1px solid var(--line2);text-align:left}
+table.cmp thead th{background:#fafbfc;border-color:var(--line);vertical-align:bottom}
+table.cmp tbody th{background:#fafbfc;font-weight:600;color:var(--mut);font-size:11.5px;width:180px}
+table.cmp td{font-family:var(--mono);font-size:12px}
+table.cmp td.best{background:#e9f6ee;font-weight:700;color:#12562b}
+table.cmp .sec td,table.cmp .sec th{background:var(--navy);color:#fff;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:650;border-color:var(--navy)}
+
+/* ---------- hero / stores ---------- */
+.hero{background:linear-gradient(140deg,#152238 0%,#1e3050 55%,#22405f 100%);color:#fff;padding:38px 0 42px;position:relative;overflow:hidden}
+.hero:before{content:"";position:absolute;inset:0;opacity:.16;background-image:linear-gradient(rgba(255,255,255,.28) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.28) 1px,transparent 1px);background-size:34px 34px}
+.hero .wrap{position:relative}
+.hero h1{font-size:31px;margin:0 0 10px;max-width:22ch}
+.hero p{color:#b9cbe2;max-width:62ch;margin:0 0 20px;font-size:14.5px}
+.hero .kpis{display:flex;gap:28px;flex-wrap:wrap;margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.14)}
+.hero .kpi b{display:block;font-size:22px;font-family:var(--mono);letter-spacing:-.02em}
+.hero .kpi span{font-size:11px;color:#93aac6;letter-spacing:.05em;text-transform:uppercase}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.scard{background:#fff;border:1px solid var(--line);border-radius:9px;overflow:hidden;cursor:pointer;transition:.15s;display:flex;flex-direction:column}
+.scard:hover{box-shadow:var(--sh2);transform:translateY(-2px);border-color:#c9d0d8}
+.scard .bnr{height:76px;position:relative;display:flex;align-items:center;padding:0 18px;gap:13px}
+.scard .bnr .em{width:44px;height:44px;border-radius:8px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);display:grid;place-items:center;font-size:21px;flex-shrink:0}
+.scard .bnr .tt{color:#fff;line-height:1.25;min-width:0}
+.scard .bnr .tt b{display:block;font-size:15.5px;letter-spacing:-.01em}
+.scard .bnr .tt span{font-size:11px;opacity:.85}
+.scard .bd{padding:14px 18px 16px;flex:1;display:flex;flex-direction:column;gap:9px}
+.scard .bd p{margin:0;font-size:12.5px;color:var(--mut);line-height:1.55}
+.scard .cats{display:flex;flex-wrap:wrap;gap:5px}
+.scard .mt{display:flex;gap:14px;margin-top:auto;padding-top:10px;border-top:1px solid var(--line2);font-size:11.5px;color:var(--mut)}
+.scard .mt b{color:var(--ink);font-family:var(--mono)}
+.stars{color:#e0952a;letter-spacing:1px;font-size:12px}
+
+/* ---------- store header ---------- */
+.shdr{padding:22px 0;color:#fff;position:relative;overflow:hidden}
+.shdr:before{content:"";position:absolute;inset:0;opacity:.1;background-image:repeating-linear-gradient(45deg,#fff 0 2px,transparent 2px 12px)}
+.shdr .wrap{position:relative;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.shdr .em{width:58px;height:58px;border-radius:10px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);display:grid;place-items:center;font-size:28px}
+.shdr h1{margin:0;font-size:23px}
+.shdr .sub{font-size:12.5px;opacity:.88;margin-top:2px}
+.shdr .bits{display:flex;gap:16px;margin-left:auto;font-size:11.5px;text-align:right;flex-wrap:wrap}
+.shdr .bits b{display:block;font-family:var(--mono);font-size:14px}
+.shdr .bits span{opacity:.8}
+
+/* ---------- product detail ---------- */
+.pd{display:grid;grid-template-columns:280px 1fr;gap:22px}
+.pd .vis{border-radius:8px;height:190px;position:relative;overflow:hidden;border:1px solid var(--line)}
+.pd .vis .cap{position:absolute;left:10px;bottom:9px;font-family:var(--mono);font-size:10.5px;color:#fff;background:rgba(0,0,0,.45);padding:3px 7px;border-radius:3px}
+.pd .buy{border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:13px;background:#fafbfc}
+.pd .price{font-size:27px;font-weight:750;letter-spacing:-.025em;font-family:var(--mono)}
+.pd .price small{font-size:13px;color:var(--mut);font-weight:400;font-family:var(--sans)}
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:0 22px}
+.specrow{display:flex;justify-content:space-between;gap:10px;padding:5.5px 0;border-bottom:1px dotted var(--line);font-size:12.5px}
+.specrow span{color:var(--mut)}
+.specrow b{font-family:var(--mono);font-weight:600;text-align:right}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:18px 0 14px}
+.tabs button{padding:8px 13px;font-size:13px;color:var(--mut);border-bottom:2px solid transparent;font-weight:550}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--acc);font-weight:650}
+.notice{background:#fff8e8;border:1px solid #f0dcb0;border-left:3px solid #d99a2b;border-radius:5px;padding:10px 12px;font-size:12.5px;color:#6b4a10;margin:12px 0}
+.notice.b{background:#eef4fc;border-color:#c8daf2;border-left-color:#2f5d8c;color:#1f3f63}
+.notice.g{background:#edf7f0;border-color:#c3e4cf;border-left-color:#1a6b34;color:#155229}
+.rev{border-bottom:1px solid var(--line2);padding:11px 0}
+.rev .rh{display:flex;gap:8px;align-items:center;font-size:12px;margin-bottom:4px}
+.rev .rh b{font-size:12.5px}
+.rev p{margin:0;font-size:12.5px;color:var(--ink2);line-height:1.55}
+
+/* ---------- misc ---------- */
+footer{background:#0a1120;color:#8fa3bd;margin-top:44px;padding:30px 0 22px;font-size:12px}
+footer .cols{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:26px;margin-bottom:22px}
+footer h5{color:#fff;font-size:12px;margin:0 0 9px;letter-spacing:.04em;text-transform:uppercase}
+footer a{display:block;padding:2.5px 0;color:#8fa3bd}
+footer a:hover{color:#fff}
+footer .bot{border-top:1px solid rgba(255,255,255,.1);padding-top:14px;font-size:11px;color:#6e829c;display:flex;gap:14px;flex-wrap:wrap}
+.empty{text-align:center;padding:50px 20px;color:var(--mut)}
+.empty .ic{font-size:34px;opacity:.4;margin-bottom:8px}
+.toast{position:fixed;bottom:74px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--ink);color:#fff;padding:10px 17px;border-radius:7px;font-size:13px;z-index:300;opacity:0;pointer-events:none;transition:.2s;box-shadow:var(--sh2)}
+.toast.on{opacity:1;transform:translateX(-50%)}
+@media print{
+  .util,.hdr,.strip,footer,.cmpbar,.noprint,.mdl .mh{display:none!important}
+  body,.ovl{background:#fff!important;padding:0!important}
+  .ovl{position:static!important;display:block!important}
+  .mdl{box-shadow:none!important;max-width:none!important;border-radius:0!important}
+  .qs{padding:0!important}
+}
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}.side{position:static}
+  .pd{grid-template-columns:1fr}.specs{grid-template-columns:1fr}
+  footer .cols{grid-template-columns:1fr 1fr}
+  .search{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="drwbk" id="drwbk" onclick="closeCart()"></div>
+<div class="drw" id="drw"></div>
+<div class="ovl" id="ovl" onclick="if(event.target===this)closeModal()"><div id="mdl"></div></div>
+<div class="cmpbar" id="cmpbar"></div>
+<div class="toast" id="toast"></div>
+<script>
+/* ============================================================
+   BREE MARKETPLACE — teaching catalogue
+   Prices are in CAD and were anchored to real supplier and
+   commodity data retrieved in August 2026 (see /sources page).
+   ============================================================ */
+const FX = 1.37;           // USD -> CAD, Aug 2026
+const GST = 0.05, QST = 0.09975;
+
+/* ---- swatch presets: CSS backgrounds that read as the material ---- */
+const SW = {
+ hrsteel:"linear-gradient(135deg,#6f7276 0%,#8c8f93 22%,#5c5f63 48%,#83868a 72%,#63666a 100%)",
+ cdsteel:"linear-gradient(120deg,#9a9da1 0%,#c2c5c9 28%,#8d9094 55%,#b4b7bb 78%,#94979b 100%)",
+ arplate:"linear-gradient(135deg,#4a4d52 0%,#63666b 30%,#3d4045 60%,#585b60 100%)",
+ alloy:"linear-gradient(135deg,#5f6266 0%,#7d8084 25%,#4e5155 55%,#75787c 85%,#5a5d61 100%)",
+ spring:"linear-gradient(100deg,#4d4f54 0%,#75777c 20%,#3f4146 45%,#6b6d72 70%,#494b50 100%)",
+ galv:"linear-gradient(135deg,#b9bec4 0%,#dde2e7 18%,#a7acb3 34%,#ced3d9 52%,#9ea3aa 68%,#d6dbe1 86%,#b2b7be 100%)",
+ stain:"linear-gradient(90deg,#c6cace 0%,#e3e7ea 12%,#b9bdc2 24%,#dfe3e6 36%,#c1c5c9 48%,#e6eaed 60%,#bcc0c5 72%,#dde1e4 84%,#c4c8cc 100%)",
+ stainbr:"repeating-linear-gradient(90deg,#c9cdd1 0 2px,#dee2e5 2px 3px,#bcc0c4 3px 5px)",
+ duplex:"linear-gradient(115deg,#aeb6bb 0%,#cdd4d8 25%,#9ba3a9 50%,#c3cad0 75%,#a6aeb4 100%)",
+ nickel:"linear-gradient(135deg,#b0aa9a 0%,#d2ccbb 25%,#9d9787 50%,#c6c0af 75%,#a9a393 100%)",
+ tita:"linear-gradient(135deg,#8f9296 0%,#adb0b4 30%,#7c7f83 60%,#a2a5a9 100%)",
+ alum:"linear-gradient(120deg,#c4c8cd 0%,#e6eaee 22%,#b5b9be 46%,#dadee2 70%,#c0c4c9 100%)",
+ alumext:"repeating-linear-gradient(115deg,#c9cdd2 0 6px,#dfe3e7 6px 9px,#bec2c7 9px 14px)",
+ castiron:"linear-gradient(135deg,#4c4a48 0%,#615f5c 28%,#3e3c3a 55%,#575552 80%,#454341 100%)",
+ corten:"linear-gradient(135deg,#7a4a2d 0%,#9c6440 25%,#6a3d24 50%,#8d5836 75%,#734427 100%)",
+ rebar:"repeating-linear-gradient(60deg,#6b5f52 0 7px,#89796a 7px 10px,#5d5247 10px 16px)",
+ hdpe:"linear-gradient(135deg,#26292d 0%,#3a3e43 30%,#1d2024 60%,#33373b 100%)",
+ pvcw:"linear-gradient(135deg,#e9ecef 0%,#fbfcfd 25%,#dde1e5 55%,#f2f4f6 80%,#e4e7ea 100%)",
+ pvcg:"linear-gradient(135deg,#5f6f6a 0%,#7d8d87 28%,#4f5f5a 58%,#71817b 100%)",
+ cpvc:"linear-gradient(135deg,#d8cfa8 0%,#eee6c4 28%,#cbc199 58%,#e4dcb8 100%)",
+ pex:"linear-gradient(135deg,#a83c3c 0%,#c85656 30%,#8f2f2f 60%,#bb4c4c 100%)",
+ pp:"linear-gradient(135deg,#dfe3e0 0%,#f4f7f5 28%,#d2d6d3 58%,#eaeeeb 100%)",
+ uhmw:"linear-gradient(135deg,#e4e7e4 0%,#f7faf8 22%,#d7dad7 50%,#eff2f0 78%,#e0e3e0 100%)",
+ pc:"linear-gradient(135deg,rgba(154,196,206,.85) 0%,rgba(214,238,243,.9) 25%,rgba(133,178,190,.85) 55%,rgba(196,226,233,.9) 100%),repeating-linear-gradient(90deg,#7fa6b0 0 1px,transparent 1px 13px)",
+ pcsolid:"linear-gradient(135deg,rgba(180,214,222,.75) 0%,rgba(226,243,247,.85) 30%,rgba(163,199,208,.75) 65%,rgba(212,235,240,.85) 100%)",
+ acryl:"linear-gradient(135deg,rgba(226,236,240,.9) 0%,rgba(248,252,253,.95) 30%,rgba(210,224,229,.9) 65%,rgba(240,247,249,.95) 100%)",
+ film:"linear-gradient(135deg,rgba(232,240,236,.8) 0%,rgba(250,253,251,.9) 30%,rgba(219,229,224,.8) 70%,rgba(243,248,245,.9) 100%)",
+ epdm:"linear-gradient(135deg,#1f2225 0%,#303438 32%,#17191c 62%,#2a2d31 100%)",
+ ptfe:"linear-gradient(135deg,#f0f2f0 0%,#ffffff 25%,#e3e6e3 55%,#f7f9f7 100%)",
+ nylon:"linear-gradient(135deg,#d9d2bd 0%,#efe9d8 28%,#cbc4ad 58%,#e5dfcd 100%)",
+ glassf:"repeating-linear-gradient(45deg,#eceee9 0 4px,#dfe2db 4px 8px),repeating-linear-gradient(-45deg,rgba(255,255,255,.5) 0 4px,transparent 4px 8px)",
+ csm:"radial-gradient(circle at 30% 30%,#f2f3ef,#dcdfd7),repeating-linear-gradient(22deg,rgba(190,195,182,.35) 0 2px,transparent 2px 9px)",
+ flax:"repeating-linear-gradient(45deg,#c7ab74 0 5px,#b39760 5px 10px),repeating-linear-gradient(-45deg,rgba(255,248,230,.45) 0 5px,transparent 5px 10px)",
+ hemp:"repeating-linear-gradient(30deg,#b3a071 0 4px,#9d8a5d 4px 8px)",
+ jute:"repeating-linear-gradient(0deg,#b99a63 0 3px,#a68851 3px 6px),repeating-linear-gradient(90deg,rgba(255,246,222,.4) 0 3px,transparent 3px 6px)",
+ carbonf:"repeating-linear-gradient(45deg,#1d2023 0 5px,#2e3236 5px 10px),repeating-linear-gradient(-45deg,rgba(255,255,255,.06) 0 5px,transparent 5px 10px)",
+ basalt:"repeating-linear-gradient(45deg,#4e4a52 0 4px,#3d3a41 4px 8px)",
+ resin:"linear-gradient(135deg,#c9a96b 0%,#e6cb92 25%,#b59657 55%,#dcc086 100%)",
+ bioresin:"linear-gradient(135deg,#8d9a5b 0%,#adba77 28%,#7a8750 58%,#a2af6e 100%)",
+ frp:"linear-gradient(135deg,#3f5f4a 0%,#547a60 28%,#35513f 58%,#4c6f57 100%)",
+ frpgrate:"repeating-linear-gradient(0deg,#3f5f4a 0 8px,#e8ece7 8px 11px),repeating-linear-gradient(90deg,#3f5f4a 0 8px,rgba(232,236,231,.9) 8px 11px)",
+ foam:"linear-gradient(135deg,#e5c98f 0%,#f2ddad 30%,#d8ba7c 65%,#ecd5a2 100%)",
+ balsa:"repeating-linear-gradient(90deg,#d9c095 0 6px,#c9ad7e 6px 7px)",
+ strawb:"repeating-linear-gradient(28deg,#c2a86f 0 3px,#d5bd85 3px 6px,#b39a5f 6px 10px)",
+ hempcr:"linear-gradient(135deg,#cfc7b0 0%,#e2dcc9 28%,#bdb49c 58%,#d7d0bd 100%)",
+ carbide:"linear-gradient(135deg,#3a3d42 0%,#54585e 22%,#2d3035 50%,#4a4e54 78%,#35383d 100%)",
+ toolst:"linear-gradient(135deg,#55585d 0%,#71747a 25%,#45484d 55%,#666970 85%,#4e5156 100%)",
+ hss:"linear-gradient(135deg,#6a6d73 0%,#8a8d93 25%,#585b61 55%,#7d8086 100%)",
+ stellite:"linear-gradient(135deg,#9aa2a8 0%,#bcc4ca 25%,#878f95 55%,#adb5bb 100%)",
+ alumina:"linear-gradient(135deg,#f0ece4 0%,#fdfbf7 25%,#e3ded4 55%,#f7f4ee 100%)",
+ sic:"linear-gradient(135deg,#2b2f33 0%,#42474c 25%,#212528 55%,#383c41 100%)",
+ zirc:"linear-gradient(135deg,#ede9e3 0%,#fbf8f4 25%,#ded9d1 55%,#f4f1eb 100%)",
+ si3n4:"linear-gradient(135deg,#8c8778 0%,#a8a394 25%,#787365 55%,#9b9687 100%)",
+ tin:"linear-gradient(135deg,#a8862a 0%,#d4ad45 25%,#8e701f 55%,#c39c38 100%)",
+ dlc:"linear-gradient(135deg,#15181b 0%,#262a2e 25%,#0e1113 55%,#1f2225 100%)",
+ chrome:"linear-gradient(105deg,#cfd6dc 0%,#f2f6f9 15%,#b8bfc6 32%,#e7ecf0 50%,#c2c9d0 68%,#eff3f6 85%,#ccd3d9 100%)",
+ svc:"linear-gradient(135deg,#3b4450 0%,#525c6a 30%,#2f3843 60%,#48525f 100%)",
+ svcw:"linear-gradient(135deg,#5a4030 0%,#7d5a42 28%,#4a3327 58%,#6c4d38 100%)",
+ svcht:"linear-gradient(135deg,#8c3418 0%,#c25a2b 26%,#e08a3c 48%,#a8451f 72%,#7a2c13 100%)",
+ svcqa:"linear-gradient(135deg,#2f4858 0%,#436073 28%,#253946 58%,#3a5364 100%)"
+};
+
+/* ---- store directory ---- */
+const STORES = [
+ {id:"LMS", name:"Laurentian Metal Supply", tag:"Carbon, alloy & structural metals",
+  em:"⚙", c:"#3d5a7a", c2:"#54749a",
+  city:"Lachine, QC", est:1974, rating:4.6, revs:412, ship:"Next-day GTA/Montréal · 2–4 day rest of QC/ON",
+  cats:["Plate & sheet","Bar stock","Structural tube","Wear plate","Aluminium"],
+  blurb:"Service centre stocking hot-rolled, cold-drawn, alloy and abrasion-resistant steels plus 6000-series aluminium. Everything is cut to size and priced by mass, so you can compare grades on a true $/kg basis.",
+  policy:"Prices are per kilogram of finished cut mass unless noted. Saw-cut charge applies to every cut piece. Mill test reports available on request (see Macdonald Fab Works, MFW-CERT-CMTR).",
+  moqnote:"25 kg minimum on plate; 1 length minimum on structural sections."},
+ {id:"BSA", name:"Boréal Stainless & Alloy", tag:"Stainless, duplex & corrosion alloys",
+  em:"◈", c:"#157a6e", c2:"#1e9c8d",
+  city:"Saint-Laurent, QC", est:1988, rating:4.8, revs:287,
+  ship:"2–3 day QC/ON · sanitary items ship in sealed bags",
+  cats:["Austenitic 300-series","Duplex","Sanitary tube & fittings","Nickel & titanium","Fasteners"],
+  blurb:"Corrosion-resistant alloys for food, dairy and chemical service. Sanitary tube and fittings carry 3-A / FDA documentation; every heat is traceable to a mill certificate.",
+  policy:"316L carries a nickel-and-molybdenum surcharge that moves weekly — quotes are firm for 14 days only. Surface finish is priced separately from base metal.",
+  moqnote:"10 kg minimum on sheet and plate; single-piece minimum on fittings."},
+ {id:"CPP", name:"Cascades Polymer & Pipe Co.", tag:"Thermoplastics, piping & glazing",
+  em:"⬣", c:"#a8641a", c2:"#c87f2b",
+  city:"Boucherville, QC", est:1996, rating:4.4, revs:531,
+  ship:"Coils and sheets ship LTL freight · straight lengths max 6 m",
+  cats:["HDPE pipe","PVC & CPVC","Sheet stock","Glazing","Geomembrane & film"],
+  blurb:"Pipe, sheet and glazing in the full commodity-polymer range. Straight lengths are sold by the metre and cut to order; anything under 3 m carries a cutting fee, exactly as in the trade.",
+  policy:"Pipe is priced per metre of nominal size. Cutting fee applies to lengths under 3 m. Polymer pressure ratings are stated at 23 °C — de-rate for service temperature using the chart on each product page.",
+  moqnote:"3 m minimum on pipe; full-sheet minimum on rigid sheet stock."},
+ {id:"TFC", name:"Terrafibre Composites", tag:"Reinforcements, resins & bio-composites",
+  em:"▦", c:"#4a7a2b", c2:"#5f9b38",
+  city:"Saint-Hyacinthe, QC", est:2011, rating:4.7, revs:198,
+  ship:"Fabric on rolls · resin is regulated dangerous goods (ground only)",
+  cats:["Glass reinforcement","Natural fibre","Resins","Core materials","Pultruded & panel"],
+  blurb:"Reinforcement fabrics from E-glass to Québec-grown flax and hemp, matched with petroleum and bio-based resin systems. Fibre-volume-fraction calculators on every fabric page.",
+  policy:"Fabric is priced per square metre of as-woven area. Finished laminate cost must include resin uptake — use the resin-ratio calculator, do not quote fabric price alone.",
+  moqnote:"2 m² minimum on fabric; 4 L minimum on resin systems."},
+ {id:"VHM", name:"Vulcan Hard Materials", tag:"Tool steels, carbides, ceramics & coatings",
+  em:"◆", c:"#6d3550", c2:"#8c4468",
+  city:"Dorval, QC", est:2003, rating:4.9, revs:143,
+  ship:"Blanks 3–5 days · coating services 7–10 working days",
+  cats:["Tool steel","Cemented carbide","Technical ceramics","Hardfacing","Surface coatings"],
+  blurb:"Wear-critical materials and the surface engineering to go with them. If your component is failing by abrasion, erosion or edge rounding, the answer is on this page.",
+  policy:"Carbide is priced by finished mass — density is 14.5–15.0 g/cm³, roughly twice steel, so a carbide part costs far more than the $/kg figure alone suggests. Coating services are priced per square decimetre of coated surface.",
+  moqnote:"Single-piece minimum on blanks; 5 dm² minimum on coating services."},
+ {id:"MFW", name:"Macdonald Fab Works", tag:"Machining, welding, heat treatment & finishing",
+  em:"⚒", c:"#414a55", c2:"#5a6572",
+  city:"Sainte-Anne-de-Bellevue, QC", est:1969, rating:4.5, revs:376,
+  ship:"Customer-supplied material accepted · drop-off or courier",
+  cats:["Machining","Cutting","Welding","Heat treatment","Finishing & coating","Tooling","Inspection"],
+  blurb:"The process side of the cost equation. A material is only as cheap as it is to make into a part — price your fabrication route here before you defend a material choice.",
+  policy:"Shop time is billed in 0.25 h increments with a 1 h minimum. Heat treatment and galvanizing are priced per kilogram of load. Tooling is a one-time non-recurring charge that must be amortised over your production volume.",
+  moqnote:"1 hour minimum on all shop time; 25 kg minimum load on heat treatment."}
+];
+
+/* ---- SKU rows ----------------------------------------------------------
+   [0]sku [1]category [2]name [3]spec [4]price [5]unit [6]kg-per-unit
+   [7]MOQ [8]lead-days [9]stock [10]cut-fee [11]swatch [12]properties
+   [13]tags [14]description [15]typical fabrication route
+   properties: rho kg/m3 · sy/su MPa · E GPa · hb hardness · K W/mK
+               a CTE um/mK · tmax degC · corr 1-5 · food 0/1 · uv 1-5
+               recy % · ee MJ/kg embodied energy · kic MPa*m^0.5 · el %
+   -------------------------------------------------------------------- */
+const ROWS = {
+LMS:[
+["LMS-A36-PL06","Plate & sheet","ASTM A36 / CSA 44W hot-rolled plate","6 mm · 1220 × 2440 mm",5.20,"kg",1,25,2,"in",0,"hrsteel",{rho:7850,sy:250,su:420,E:200,hb:"120 HB",K:52,a:12.0,tmax:400,corr:1,food:0,uv:3,recy:98,ee:24,kic:140,el:23},["weldable","structural","paintable"],"The default structural mild steel. Cheap, tough, weldable with any process, and available everywhere — which is exactly why it is the baseline every alternative must beat.","Oxy-fuel or plasma cut, press-brake formed, GMAW welded. Must be painted or galvanised for outdoor service."],
+["LMS-A36-PL12","Plate & sheet","ASTM A36 / CSA 44W hot-rolled plate","12 mm · 1220 × 2440 mm",4.95,"kg",1,25,2,"in",0,"hrsteel",{rho:7850,sy:250,su:420,E:200,hb:"120 HB",K:52,a:12.0,tmax:400,corr:1,food:0,uv:3,recy:98,ee:24,kic:140,el:23},["weldable","structural"],"Heavier gauge A36 for base plates, hopper walls and bolted connections. Price per kilogram drops slightly with thickness because rolling cost is spread over more mass.","Plasma or waterjet cut, GMAW/SMAW welded, hot-dip galvanised for outdoor structures."],
+["LMS-A36-PL25","Plate & sheet","ASTM A36 / CSA 44W hot-rolled plate","25 mm · 1220 × 2440 mm",4.80,"kg",1,50,3,"in",0,"hrsteel",{rho:7850,sy:250,su:420,E:200,hb:"120 HB",K:52,a:12.0,tmax:400,corr:1,food:0,uv:3,recy:98,ee:24,kic:140,el:23},["weldable","heavy section"],"Heavy plate for machine frames, digester foundations and bearing blocks. Note the through-thickness properties are not guaranteed — specify Z-quality if you are loading it in the short-transverse direction.","Waterjet or plasma cut, multi-pass welding with preheat above 20 mm."],
+["LMS-1018-CD","Bar stock","AISI 1018 cold-drawn round bar","Ø25 mm · 3.66 m length",6.90,"kg",1,1,2,"in",4.50,"cdsteel",{rho:7870,sy:370,su:440,E:205,hb:"126 HB",K:51.9,a:11.5,tmax:400,corr:1,food:0,uv:3,recy:98,ee:25,kic:120,el:15},["machinable","case-hardenable"],"Low-carbon bar with a bright cold-drawn finish, good dimensional tolerance and excellent machinability. Case-harden it if you need a wear surface on a tough core.","Turned and milled as supplied; carburise (MFW-HT-CASE) for a hard case over a ductile core."],
+["LMS-1045-HR","Bar stock","AISI 1045 medium-carbon round bar","Ø40 mm · 3.66 m length",7.40,"kg",1,1,2,"in",4.50,"cdsteel",{rho:7850,sy:450,su:625,E:205,hb:"179 HB",K:49.8,a:11.7,tmax:425,corr:1,food:0,uv:3,recy:98,ee:25,kic:80,el:12},["heat-treatable","shafting"],"The workhorse shafting steel. Quench-and-temper takes it to roughly 300 HB, and it flame- or induction-hardens locally for journals and wear pads.","Turn, mill, then induction- or through-harden (MFW-HT-QT). Weldability drops sharply above 0.4 %C — preheat required."],
+["LMS-1080-SPR","Bar stock","AISI 1080 high-carbon flat bar","6 × 50 mm · 3.0 m length",9.80,"kg",1,3,3,"in",5.50,"spring",{rho:7840,sy:585,su:965,E:205,hb:"293 HB",K:47.7,a:11.4,tmax:250,corr:1,food:0,uv:3,recy:98,ee:26,kic:35,el:9},["high hardness","edge retention"],"High-carbon steel that hardens to 58–62 HRC. It takes and keeps a keen edge, which is what makes it the traditional plough-share and chipper-knife material — at the cost of brittleness and poor weldability.","Profile cut soft, grind the edge, then austenitise, oil-quench and temper (MFW-HT-QT). Never weld in the hardened condition."],
+["LMS-4140-AN","Bar stock","AISI 4140 alloy steel round bar, annealed","Ø50 mm · 3.66 m length",11.20,"kg",1,3,3,"in",5.50,"alloy",{rho:7850,sy:415,su:655,E:205,hb:"197 HB",K:42.6,a:12.3,tmax:500,corr:1,food:0,uv:3,recy:97,ee:29,kic:80,el:26},["heat-treatable","high strength"],"Chromium-molybdenum steel supplied soft for machining. It is the standard choice when 1045 is not strong enough and tool steel is overkill.","Rough machine annealed, quench and temper to 28–34 HRC, finish machine. Nitride (MFW-HT-NITRIDE) for a wear surface without distortion."],
+["LMS-4140-QT","Bar stock","AISI 4140 alloy steel round bar, Q&T 28–32 HRC","Ø50 mm · 3.66 m length",14.60,"kg",1,3,4,"in",6.50,"alloy",{rho:7850,sy:965,su:1075,E:205,hb:"302 HB",K:42.6,a:12.3,tmax:500,corr:1,food:0,uv:3,recy:97,ee:33,kic:70,el:16},["pre-hardened","high strength"],"Pre-hardened 4140 saves you a heat-treatment cycle and the distortion that comes with it. Yield strength is nearly four times A36 for under three times the price per kilogram.","Machine in the hardened condition with carbide tooling. Weld only with preheat and post-weld temper."],
+["LMS-5160-SPR","Bar stock","AISI 5160 spring steel flat bar","8 × 75 mm · 3.0 m length",10.90,"kg",1,3,4,"in",5.50,"spring",{rho:7850,sy:1450,su:1585,E:205,hb:"477 HB",K:46.6,a:11.2,tmax:250,corr:1,food:0,uv:3,recy:97,ee:29,kic:60,el:9},["impact tough","fatigue resistant"],"Chromium spring steel — the leaf-spring alloy. It combines very high yield strength with the ability to absorb repeated impact without cracking, which is why chipper knives and cultivator shanks are made from it.","Hot-form or profile cut soft, austenitise 830 °C, oil quench, temper 400–500 °C to 45–50 HRC."],
+["LMS-AR400","Wear plate","AR400 abrasion-resistant plate","10 mm · 1220 × 2440 mm",9.75,"kg",1,25,4,"in",0,"arplate",{rho:7850,sy:1100,su:1250,E:205,hb:"400 HB",K:43,a:12.0,tmax:250,corr:1,food:0,uv:3,recy:96,ee:31,kic:75,el:12},["abrasion resistant","weldable"],"Through-hardened quenched-and-tempered plate at 360–440 HB. Roughly three times the abrasive wear life of A36 for about twice the price — usually the cheapest way to buy wear resistance in a large area.","Plasma or laser cut (do not oxy-fuel — the HAZ softens). Weld with low-hydrogen consumables and controlled interpass temperature."],
+["LMS-AR500","Wear plate","AR500 abrasion-resistant plate","10 mm · 1220 × 2440 mm",11.40,"kg",1,25,5,"in",0,"arplate",{rho:7850,sy:1350,su:1550,E:205,hb:"500 HB",K:42,a:12.0,tmax:250,corr:1,food:0,uv:3,recy:96,ee:33,kic:55,el:9},["very high hardness","impact"],"Harder grade for severe sliding abrasion — chute liners, hopper throats, pellet-mill wear rings. The extra 100 HB buys wear life but costs you toughness and formability.","Laser or waterjet cut only. Bend radii must be at least 4× thickness. Weld with strict preheat."],
+["LMS-HARDOX450","Wear plate","Hardox 450 equivalent wear plate","8 mm · 1220 × 2440 mm",12.80,"kg",1,25,6,"lo",0,"arplate",{rho:7850,sy:1250,su:1400,E:205,hb:"450 HB",K:43,a:12.0,tmax:250,corr:1,food:0,uv:3,recy:96,ee:32,kic:90,el:10},["abrasion resistant","tough","formable"],"Premium wear plate with guaranteed impact toughness at −40 °C — the distinguishing feature versus generic AR400/AR500. Worth the premium when the part is both abraded and impacted, as in a chipper anvil.","Laser cut, cold formable to 3× thickness, weldable without preheat under 10 mm."],
+["LMS-GALV-SH10","Plate & sheet","G90 hot-dip galvanised sheet, ASTM A653","1.0 mm · 1220 × 2440 mm",6.40,"kg",1,10,2,"in",0,"galv",{rho:7850,sy:230,su:330,E:200,hb:"95 HB",K:52,a:12.0,tmax:200,corr:3,food:0,uv:4,recy:95,ee:28,kic:130,el:30},["corrosion resistant","formable"],"Mild steel with a 275 g/m² zinc coating on both faces — roughly 20 µm per side. In rural atmosphere the zinc gives 40+ years of sacrificial protection; in a fertiliser hopper it is consumed in a season.","Shear or laser cut, roll-form or brake. Every cut edge exposes bare steel — zinc-rich paint the edges or accept sacrificial edge creep."],
+["LMS-HSS-5032","Structural tube","Galvanised HSS square tube, ASTM A500B","50 × 50 × 3.2 mm · 6.1 m",17.90,"m",4.94,1,3,"in",7.50,"galv",{rho:7850,sy:317,su:400,E:200,hb:"120 HB",K:52,a:12.0,tmax:200,corr:3,food:0,uv:4,recy:95,ee:28,kic:130,el:23},["structural","galvanised","bolt-together"],"The greenhouse and equipment-frame standard. Closed section gives high torsional stiffness for its mass, and the G90 galvanising survives humid growing environments far better than painted steel.","Cold-saw cut, GMAW weld (grind galvanising back 25 mm from the joint and re-coat), or bolt with self-drilling fasteners to avoid burning the zinc."],
+["LMS-HSS-5048","Structural tube","Galvanised HSS square tube, ASTM A500B","50 × 50 × 4.8 mm · 6.1 m",24.60,"m",8.62,1,3,"in",7.50,"galv",{rho:7850,sy:317,su:400,E:200,hb:"120 HB",K:52,a:12.0,tmax:200,corr:3,food:0,uv:4,recy:95,ee:28,kic:130,el:23},["structural","galvanised"],"Heavier wall for columns and highly loaded rafters. Note that going from 3.2 to 4.8 mm wall raises mass 74 % but second moment of area only about 40 % — a bigger, thinner tube is usually the more efficient answer.","Same as 3.2 mm wall; the heavier section is more forgiving of weld heat input."],
+["LMS-HSS-7648","Structural tube","Galvanised HSS square tube, ASTM A500B","76 × 76 × 4.8 mm · 6.1 m",37.80,"m",14.17,1,4,"in",9.00,"galv",{rho:7850,sy:317,su:400,E:200,hb:"120 HB",K:52,a:12.0,tmax:200,corr:3,food:0,uv:4,recy:95,ee:28,kic:130,el:23},["structural","high stiffness"],"Main-column section for wide-span greenhouse and silo structures. Section modulus is roughly 2.4× the 50 mm tube for 1.6× the mass — a good illustration of why depth beats mass in bending.","Cold-saw cut, welded base-plate connections, hot-dip re-galvanise the assembly (MFW-GALV-HD)."],
+["LMS-PIPE-S40-50","Structural tube","Galvanised steel pipe, Schedule 40","50 mm NPS · 6.4 m",21.40,"m",5.43,1,3,"in",7.50,"galv",{rho:7850,sy:240,su:400,E:200,hb:"115 HB",K:52,a:12.0,tmax:200,corr:3,food:0,uv:4,recy:95,ee:28,kic:130,el:25},["structural","hoop"],"Round galvanised pipe — the traditional hoop-house arch. Round sections shed snow and wind loads well and can be roll-bent to a radius, which square tube resists.","Roll-bend cold, swage or slip-fit joints, or weld with zinc removed and re-coated."],
+["LMS-6061-PL06","Aluminium","6061-T6 aluminium plate","6 mm · 1220 × 2440 mm",9.85,"kg",1,10,3,"in",0,"alum",{rho:2700,sy:276,su:310,E:69,hb:"95 HB",K:167,a:23.6,tmax:200,corr:4,food:0,uv:5,recy:95,ee:155,kic:29,el:12},["light","corrosion resistant","weldable"],"The general-purpose structural aluminium. Specific strength is roughly triple A36, it forms a self-healing oxide film, and it needs no coating outdoors — but it costs about twice as much per kilogram and only a third the stiffness.","Router or waterjet cut, GMAW/GTAW weld with 4043 or 5356 filler. Note that welding anneals the T6 temper in the heat-affected zone, dropping local strength by about 40 %."],
+["LMS-6061-BAR","Aluminium","6061-T6 aluminium round bar","Ø50 mm · 3.66 m",10.40,"kg",1,3,3,"in",4.50,"alum",{rho:2700,sy:276,su:310,E:69,hb:"95 HB",K:167,a:23.6,tmax:200,corr:4,food:0,uv:5,recy:95,ee:155,kic:29,el:12},["machinable","light"],"Free-machining structural bar. Cuts three to four times faster than steel, which often makes the finished-part cost lower than steel despite the higher material price.","Turn and mill at high surface speed with polished-flute tooling; anodise for extra surface hardness."],
+["LMS-6063-ANG","Aluminium","6063-T5 extruded angle","40 × 40 × 3 mm · 4.9 m",8.40,"m",0.62,2,4,"in",4.00,"alumext",{rho:2700,sy:145,su:186,E:69,hb:"60 HB",K:201,a:23.4,tmax:200,corr:4,food:0,uv:5,recy:95,ee:155,kic:29,el:12},["extruded","light","assembly"],"Architectural extrusion alloy — lower strength than 6061 but far better extrudability, so complex glazing-bar and channel profiles are economical. This is what most greenhouse glazing frames are made from.","Mitre cut, bolt or rivet assembly. Custom die profiles are available (MFW-EXTRUDE-DIE) — worth it above roughly 300 m of production."],
+["LMS-6061-TUBE","Aluminium","6061-T6 square tube","50 × 50 × 3.2 mm · 4.9 m",19.80,"m",1.62,1,4,"in",5.00,"alumext",{rho:2700,sy:276,su:310,E:69,hb:"95 HB",K:167,a:23.6,tmax:200,corr:4,food:0,uv:5,recy:95,ee:155,kic:29,el:12},["light","corrosion resistant"],"Direct like-for-like alternative to the galvanised steel HSS above: same outside dimensions, one third the mass per metre, no coating needed — and a little more expensive per metre. Compare the two on the compare tool.","Mitre cut, GMAW weld or use bolted corner castings for demountable frames."],
+["LMS-5052-SH","Aluminium","5052-H32 marine-grade aluminium sheet","2 mm · 1220 × 2440 mm",10.90,"kg",1,10,3,"in",0,"alum",{rho:2680,sy:193,su:228,E:70,hb:"60 HB",K:138,a:23.8,tmax:150,corr:5,food:0,uv:5,recy:95,ee:155,kic:32,el:12},["formable","marine corrosion"],"Magnesium-alloyed sheet with the best corrosion resistance of the common aluminiums, including resistance to salt and fertiliser splash. It also forms far better than 6061, so it is the sheet-metal choice for hopper and tank skins.","Shear or laser cut, press-brake to tight radii, GTAW weld with 5356 filler."],
+["LMS-7075-PL","Aluminium","7075-T651 aluminium plate","12 mm · 1220 × 2440 mm",19.60,"kg",1,10,6,"lo",0,"alum",{rho:2810,sy:503,su:572,E:72,hb:"150 HB",K:130,a:23.6,tmax:120,corr:2,food:0,uv:4,recy:92,ee:170,kic:24,el:11},["very high strength","aerospace"],"Zinc-alloyed aluminium with steel-level yield strength at a third the density. It is also essentially unweldable, susceptible to stress-corrosion cracking, and double the price of 6061 — specify it only when specific strength genuinely governs.","Machined from solid and mechanically fastened. Anodise or alclad for corrosion protection."],
+["LMS-CI-G30","Cast & specialty","Grey cast iron bar, class 30","Ø75 mm · 1.0 m",6.10,"kg",1,3,7,"in",6.00,"castiron",{rho:7150,sy:0,su:214,E:100,hb:"200 HB",K:46,a:10.8,tmax:400,corr:2,food:0,uv:3,recy:90,ee:20,kic:15,el:0},["damping","wear","brittle"],"Graphite flakes make grey iron self-lubricating and give it exceptional vibration damping — roughly ten times mild steel. It has essentially no ductility, so never use it where an impact or tensile overload is credible.","Machined from continuous-cast bar or sand cast to shape. Not weldable by conventional means."],
+["LMS-DI-6545","Cast & specialty","Ductile iron bar, ASTM A536 65-45-12","Ø75 mm · 1.0 m",7.30,"kg",1,3,7,"in",6.00,"castiron",{rho:7100,sy:310,su:448,E:169,hb:"170 HB",K:33,a:11.0,tmax:450,corr:2,food:0,uv:3,recy:90,ee:22,kic:35,el:12},["castable","tough","wear"],"Spheroidal graphite gives iron real ductility — 12 % elongation versus zero for grey iron — while keeping castability and machinability. This is what modern tractor wheel hubs and gearbox housings are made of.","Sand or shell cast near net shape, then machined. Austemper (ADI) for a further doubling of strength."],
+["LMS-REBAR-15M","Cast & specialty","Deformed reinforcing bar, CSA G30.18 400W","15M (Ø16 mm) · 6 m",1.62,"kg",1,50,2,"in",0,"rebar",{rho:7850,sy:400,su:600,E:200,hb:"140 HB",K:52,a:12.0,tmax:400,corr:1,food:0,uv:2,recy:99,ee:22,kic:120,el:14},["cheapest steel","concrete"],"The cheapest structural steel you can buy per kilogram — under a third the price of plate, because the surface finish and dimensional tolerance are irrelevant inside concrete. A useful lower bound for any $/kg comparison.","Shear cut and bent cold on a rebar bender; lap-spliced, not welded, unless grade W is specified."],
+["LMS-CORTEN","Cast & specialty","Weathering steel plate, ASTM A588 / COR-TEN A","6 mm · 1220 × 2440 mm",8.20,"kg",1,25,5,"in",0,"corten",{rho:7850,sy:345,su:485,E:200,hb:"150 HB",K:48,a:12.5,tmax:400,corr:3,food:0,uv:4,recy:97,ee:26,kic:120,el:21},["self-protecting","no paint"],"Copper- and chromium-bearing steel that forms a tight adherent rust layer which then stops further corrosion. It needs alternating wet and dry cycles to work — do not bury it, immerse it, or use it where runoff will stain concrete.","Cut and weld as for A36 but with matching weathering-grade consumables, otherwise the weld corrodes preferentially."]
+],
+BSA:[
+["BSA-304-2B","Austenitic 300-series","AISI 304 stainless sheet, 2B mill finish","1.5 mm · 1220 × 2440 mm",11.20,"kg",1,10,3,"in",0,"stain",{rho:8000,sy:215,su:505,E:193,hb:"70 HRB",K:16.2,a:17.3,tmax:870,corr:4,food:1,uv:5,recy:90,ee:57,kic:200,el:40},["food grade","weldable","formable"],"The default food-contact stainless: 18 % chromium, 8 % nickel, fully austenitic and non-magnetic. It resists most organic acids and cleaning chemicals but is attacked by chlorides — which is why dairy sanitisers push designers to 316.","Laser or waterjet cut, press-brake formed, GTAW welded with 308L filler, then passivated (MFW-PASSIVATE)."],
+["BSA-304L-PL","Austenitic 300-series","AISI 304L stainless plate, low carbon","3 mm · 1220 × 2440 mm",12.10,"kg",1,10,3,"in",0,"stain",{rho:8000,sy:200,su:485,E:193,hb:"70 HRB",K:16.2,a:17.3,tmax:870,corr:4,food:1,uv:5,recy:90,ee:57,kic:200,el:40},["weldable","no sensitisation"],"The L means carbon below 0.03 %, which prevents chromium-carbide precipitation at grain boundaries during welding. Without it a welded 304 part corrodes in a band either side of every weld — the classic weld-decay failure.","Same fabrication as 304, but no post-weld solution anneal is required, which is why every welded vessel uses the L grade."],
+["BSA-316-2B","Austenitic 300-series","AISI 316 stainless sheet, 2B mill finish","1.5 mm · 1220 × 2440 mm",15.40,"kg",1,10,3,"in",0,"stain",{rho:8000,sy:240,su:550,E:193,hb:"79 HRB",K:16.3,a:16.0,tmax:870,corr:5,food:1,uv:5,recy:90,ee:62,kic:190,el:40},["food grade","chloride resistant"],"Two to three percent molybdenum is the entire difference from 304, and it roughly triples resistance to chloride pitting. That is worth about 38 % more money — the single most common material-selection trade-off in food equipment.","Identical to 304 but weld with 316L filler. Never mix 304 and 316 in the same wetted circuit without checking galvanic compatibility."],
+["BSA-316L-2B","Austenitic 300-series","AISI 316L stainless sheet, 2B mill finish","1.5 mm · 1220 × 2440 mm",16.20,"kg",1,10,3,"in",0,"stain",{rho:8000,sy:220,su:530,E:193,hb:"79 HRB",K:16.3,a:16.0,tmax:870,corr:5,food:1,uv:5,recy:90,ee:62,kic:190,el:40},["food grade","weldable","3-A"],"The workhorse of dairy, brewing and pharmaceutical equipment: chloride-resistant and immune to weld sensitisation. If you are specifying a milk-contact surface and cannot justify anything else, this is the safe answer.","Laser cut, formed, GTAW or orbital welded (MFW-ORBITAL-W), passivated and documented for 3-A compliance."],
+["BSA-316L-N4","Austenitic 300-series","AISI 316L sheet, No.4 brushed finish Ra ≤ 0.8 µm","1.5 mm · 1220 × 2440 mm",18.90,"kg",1,10,4,"in",0,"stainbr",{rho:8000,sy:220,su:530,E:193,hb:"79 HRB",K:16.3,a:16.0,tmax:870,corr:5,food:1,uv:5,recy:90,ee:64,kic:190,el:40},["food grade","cleanable","3-A"],"Same alloy as the sheet above with a directional brushed finish. The 3-A sanitary standard requires product-contact surfaces at Ra ≤ 0.8 µm; rougher surfaces harbour biofilm in the grinding grooves and cannot be reliably cleaned in place.","Handle with protective film on. Always orient the brush lines to drain, so cleaning solution runs along the grain rather than across it."],
+["BSA-316L-EP","Austenitic 300-series","AISI 316L sheet, electropolished Ra ≤ 0.4 µm","1.5 mm · 1220 × 2440 mm",26.40,"kg",1,10,8,"lo",0,"stain",{rho:8000,sy:220,su:530,E:193,hb:"79 HRB",K:16.3,a:16.0,tmax:870,corr:5,food:1,uv:5,recy:88,ee:70,kic:190,el:40},["ultra-clean","pharma"],"Electropolishing removes the deformed surface layer and leaves a chromium-enriched passive film. It roughly doubles pitting resistance and halves protein adhesion — but it costs 63 % more than plain 2B, so reserve it for genuinely aseptic surfaces.","Fabricate and weld first, electropolish last (MFW-ELECTROPOL). Welds must be fully penetrated and ground flush or the process will etch the crevice."],
+["BSA-316L-TUBE","Sanitary tube & fittings","316L sanitary tube, 3-A certified","Ø38.1 × 1.65 mm · 6.1 m",58.40,"m",1.51,1,4,"in",12.00,"stain",{rho:8000,sy:220,su:530,E:193,hb:"79 HRB",K:16.3,a:16.0,tmax:870,corr:5,food:1,uv:5,recy:90,ee:66,kic:190,el:40},["3-A","food grade","ID polished"],"Seamless-quality welded tube with the internal weld bead rolled flush and polished to Ra ≤ 0.8 µm. Ordinary industrial pipe has a proud internal bead that is a guaranteed bacterial harbour — never substitute it in a milk line.","Cut with a tube saw (never an abrasive wheel — embedded grit causes pitting), deburr, orbital weld with full argon purge inside and out."],
+["BSA-304-TUBE","Sanitary tube & fittings","304 welded tube, industrial finish","Ø38.1 × 1.65 mm · 6.1 m",41.20,"m",1.51,1,3,"in",12.00,"stain",{rho:8000,sy:215,su:505,E:193,hb:"70 HRB",K:16.2,a:17.3,tmax:870,corr:4,food:1,uv:5,recy:90,ee:60,kic:200,el:40},["industrial","structural"],"The same geometry as the sanitary tube above at 29 % less money — because the interior is as-welded, not polished. Excellent for frames, guards and non-product-contact service; unacceptable for anything the milk touches.","Cut, deburr, GTAW weld. Use for structural and utility circuits only."],
+["BSA-316L-HX","Sanitary tube & fittings","316L heat-exchanger plate stock, embossed-ready","0.6 mm · 600 × 1500 mm",21.80,"kg",1,5,7,"in",0,"stain",{rho:8000,sy:220,su:530,E:193,hb:"79 HRB",K:16.3,a:16.0,tmax:870,corr:5,food:1,uv:5,recy:90,ee:66,kic:190,el:45},["thin gauge","heat transfer"],"Thin-gauge annealed strip for press-formed plate heat exchangers. The thermal conductivity of stainless is poor — 16 W/m·K against 400 for copper — so plate exchangers compensate with very thin walls and turbulent corrugations.","Deep-drawn or hydroformed into a chevron pattern, then either gasketed or vacuum-brazed into a stack."],
+["BSA-2205-PL","Duplex","2205 duplex stainless plate","6 mm · 1220 × 2440 mm",24.60,"kg",1,10,7,"in",0,"duplex",{rho:7800,sy:450,su:655,E:200,hb:"260 HB",K:19,a:13.7,tmax:300,corr:5,food:1,uv:5,recy:88,ee:68,kic:150,el:25},["high strength","SCC resistant"],"A roughly 50/50 ferrite-austenite microstructure that doubles the yield strength of 316L while resisting chloride stress-corrosion cracking, which austenitics do not. You can often specify half the wall thickness — recovering much of the price premium.","Cut and weld with matched 2209 filler and controlled heat input; too fast a cool leaves excess ferrite and destroys toughness."],
+["BSA-904L","Duplex","904L super-austenitic plate","4 mm · 1000 × 2000 mm",41.50,"kg",1,5,14,"oo",0,"duplex",{rho:8000,sy:220,su:490,E:190,hb:"70 HRB",K:11.5,a:15.3,tmax:400,corr:5,food:1,uv:5,recy:85,ee:80,kic:180,el:35},["extreme corrosion","acid service"],"High nickel, high molybdenum and a copper addition give resistance to hot sulphuric and organic acids that defeats 316L. Reserve it for digester liquor, silage effluent and similar aggressive service — it is nearly three times the price of 316L.","Weld with matching or over-alloyed filler. Requires strict cleanliness — iron contamination from carbon-steel tooling will initiate pitting."],
+["BSA-430-SH","Austenitic 300-series","AISI 430 ferritic stainless sheet","1.2 mm · 1220 × 2440 mm",7.90,"kg",1,10,3,"in",0,"stain",{rho:7700,sy:275,su:450,E:200,hb:"82 HRB",K:23.9,a:10.4,tmax:815,corr:3,food:1,uv:4,recy:92,ee:42,kic:60,el:22},["low cost","magnetic","low CTE"],"Chromium-only ferritic stainless with no nickel — which is why it is 30 % cheaper than 304 and why its price is far more stable. It is magnetic, less corrosion resistant and much less formable, but for dry or mildly wet service it is excellent value.","Shear and brake form with generous radii. Weldable but grain growth in the HAZ embrittles thick sections."],
+["BSA-410-BAR","Austenitic 300-series","AISI 410 martensitic stainless round bar","Ø25 mm · 3.66 m",9.60,"kg",1,3,4,"in",5.50,"stain",{rho:7800,sy:275,su:515,E:200,hb:"95 HRB",K:24.9,a:9.9,tmax:650,corr:3,food:1,uv:4,recy:92,ee:45,kic:50,el:20},["hardenable","cutlery"],"The only stainless family that hardens by quenching — it reaches 45 HRC and holds an edge, which is why food-processing knives and pump shafts use it. Corrosion resistance is markedly lower than 304 and drops further as hardness rises.","Machine soft, harden and temper (MFW-HT-QT), then grind and passivate. Never temper in the 400–550 °C range — it embrittles."],
+["BSA-17-4PH","Duplex","17-4 PH precipitation-hardening stainless bar","Ø40 mm · 3.0 m",31.80,"kg",1,3,7,"in",6.50,"duplex",{rho:7800,sy:1170,su:1310,E:196,hb:"40 HRC",K:18.3,a:10.8,tmax:315,corr:4,food:1,uv:5,recy:85,ee:75,kic:60,el:10},["very high strength","corrosion resistant"],"Copper precipitates give this alloy the strength of hardened 4140 while keeping stainless-level corrosion resistance. The ageing treatment runs at only 480–620 °C, so distortion is minimal — machine to near-final size, then age.","Machine in condition A, age to H900–H1150 depending on the strength-toughness balance you need. Growth during ageing is under 0.1 %."],
+["BSA-BOLT-M10","Fasteners","A4-80 (316) stainless hex bolt","M10 × 50 mm, DIN 933",2.35,"ea",0.043,10,2,"in",0,"stain",{rho:8000,sy:600,su:800,E:193,hb:"250 HB",K:16.3,a:16.0,tmax:600,corr:5,food:1,uv:5,recy:90,ee:70,kic:150,el:20},["marine","food grade"],"A4 is the marine grade — 316 chemistry. Use it wherever a galvanised bolt would corrode, and never mix it with plain steel in a wet joint, or the steel becomes the anode and dissolves.","Torque to a reduced value versus steel and always use an anti-seize compound: austenitic stainless galls catastrophically under thread friction."],
+["BSA-NUT-M10","Fasteners","A4-70 stainless nyloc nut","M10, DIN 985",0.78,"ea",0.011,10,2,"in",0,"stain",{rho:8000,sy:450,su:700,E:193,hb:"210 HB",K:16.3,a:16.0,tmax:120,corr:5,food:0,uv:4,recy:88,ee:70,kic:150,el:20},["vibration","reusable"],"Nylon insert resists vibration loosening but caps the service temperature at 120 °C — it will not survive a hot clean-in-place cycle. Use an all-metal prevailing-torque nut on anything steam-cleaned.","Hand start, then torque. The nylon insert is good for roughly five re-uses before its locking prevailing torque falls below spec."],
+["BSA-GASK-38","Sanitary tube & fittings","EPDM sanitary gasket, FDA 21 CFR 177.2600","Tri-clamp 38 mm",3.90,"ea",0.010,5,2,"in",0,"epdm",{rho:1250,sy:0,su:14,E:0.01,hb:"70 Shore A",K:0.25,a:160,tmax:150,corr:4,food:1,uv:4,recy:10,ee:65,kic:0,el:400},["FDA","steam"],"EPDM handles hot water, steam and caustic CIP chemicals but swells badly in fats and oils. For high-fat dairy streams specify a fluoroelastomer or PTFE-envelope gasket instead — a classic elastomer-selection trap.","Install dry and centred in the clamp groove. Replace on a schedule, not on failure — a compressed-set gasket is a crevice and a contamination risk."],
+["BSA-CLAMP-38","Sanitary tube & fittings","Single-pin tri-clamp, 304 stainless","38 mm (1.5 in) ferrule",6.80,"ea",0.120,5,2,"in",0,"stain",{rho:8000,sy:215,su:505,E:193,hb:"70 HRB",K:16.2,a:17.3,tmax:600,corr:4,food:1,uv:5,recy:90,ee:60,kic:200,el:40},["tool-free","cleanable"],"Tool-free joints are what make a dairy circuit strippable for inspection. The clamp itself is not product contact, so 304 is acceptable even on a 316L line.","Hand tighten only. Over-torquing extrudes the gasket into the bore and creates the exact crevice the design is meant to eliminate."],
+["BSA-FILL-316L","Fasteners","316L GTAW filler rod","Ø2.4 mm · 4.5 kg tube",38.50,"kg",1,4.5,2,"in",0,"stain",{rho:8000,sy:350,su:550,E:193,hb:"85 HRB",K:16.3,a:16.0,tmax:870,corr:5,food:1,uv:5,recy:90,ee:70,kic:180,el:35},["consumable","matched"],"Matched-composition filler for 316L. Filler is always chosen to match or slightly over-alloy the base metal — under-alloyed weld metal becomes the anode and corrodes preferentially in service.","Store dry. Purge the joint root with argon: unpurged stainless weld roots form a chromium-depleted sugar layer that fails in months."],
+["BSA-2205-TUBE","Duplex","2205 duplex tube","Ø48.3 × 2.1 mm · 6.1 m",86.40,"m",1.77,1,10,"lo",14.00,"duplex",{rho:7800,sy:450,su:655,E:200,hb:"260 HB",K:19,a:13.7,tmax:300,corr:5,food:1,uv:5,recy:88,ee:70,kic:150,el:25},["high pressure","SCC resistant"],"Duplex tube for high-pressure chloride-bearing service — digester recirculation loops, brine lines, effluent handling. The higher yield strength lets you hold the same pressure with a thinner wall than 316L.","Orbital weldable with 2209 filler and strict heat-input control. Solution anneal after severe cold forming."],
+["BSA-NI200-SH","Nickel & titanium","Nickel 200 sheet, commercially pure","1.6 mm · 610 × 1220 mm",58.90,"kg",1,3,14,"oo",0,"nickel",{rho:8890,sy:150,su:462,E:207,hb:"110 HB",K:70.2,a:13.3,tmax:315,corr:5,food:1,uv:5,recy:80,ee:135,kic:150,el:47},["caustic","high conductivity"],"Commercially pure nickel is the standard for hot caustic service — sodium hydroxide CIP at concentration will attack even 316L over time. Also has four times the thermal conductivity of stainless.","GTAW weld with Ni-filler under strict cleanliness — sulphur from fingerprints or cutting fluid causes hot cracking."],
+["BSA-TI-GR2","Nickel & titanium","Titanium Grade 2 sheet, commercially pure","1.6 mm · 610 × 1220 mm",96.00,"kg",1,2,21,"oo",0,"tita",{rho:4510,sy:275,su:345,E:105,hb:"160 HB",K:16.4,a:8.6,tmax:425,corr:5,food:1,uv:5,recy:75,ee:590,kic:66,el:20},["seawater","biocompatible","light"],"Immune to chloride pitting and crevice corrosion at ambient temperature, at 56 % the density of stainless. The catch is embodied energy — roughly 590 MJ/kg, nearly ten times stainless — so life-cycle arguments cut both ways.","Must be welded in an inert chamber or with full trailing-shield argon coverage; titanium absorbs oxygen and nitrogen above 500 °C and embrittles."]
+],
+CPP:[
+["CPP-HDPE-25","HDPE pipe","PE4710 HDPE pipe, IPS SDR11","25 mm (1 in) NPS · 200 psi",4.59,"m",0.277,3,3,"in",0.70,"hdpe",{rho:955,sy:23,su:31,E:0.9,hb:"64 Shore D",K:0.45,a:200,tmax:60,corr:5,food:1,uv:3,recy:85,ee:80,kic:3.5,el:800},["fusible","flexible","potable"],"High-density polyethylene lateral. It is fusion-welded rather than glued, which gives a joint stronger than the pipe itself — the reason HDPE dominates buried irrigation where root intrusion and joint pull-out kill PVC systems.","Butt fusion or electrofusion (CPP-HDPE-FUSE). Never solvent cement — nothing bonds to polyethylene."],
+["CPP-HDPE-50","HDPE pipe","PE4710 HDPE pipe, IPS SDR11","50 mm (2 in) NPS · 200 psi",13.60,"m",0.900,3,3,"in",0.70,"hdpe",{rho:955,sy:23,su:31,E:0.9,hb:"64 Shore D",K:0.45,a:200,tmax:60,corr:5,food:1,uv:3,recy:85,ee:80,kic:3.5,el:800},["fusible","UV stabilised","potable"],"The standard sub-main size for field irrigation. Carbon-black loading at 2–2.5 % gives genuine long-term UV stability, unlike white PVC which chalks and embrittles in sunlight within a few seasons.","Butt-fused with a hydraulic fusion machine; the bead must be rolled back and continuous around the full circumference to pass inspection."],
+["CPP-HDPE-100","HDPE pipe","PE4710 HDPE pipe, IPS SDR11","100 mm (4 in) NPS · 200 psi",32.20,"m",3.240,3,4,"in",2.50,"hdpe",{rho:955,sy:23,su:31,E:0.9,hb:"64 Shore D",K:0.45,a:200,tmax:60,corr:5,food:1,uv:3,recy:85,ee:80,kic:3.5,el:800},["main line","fusible"],"Main-line size. Note that the price per metre rises faster than the diameter because wall thickness scales with diameter at constant SDR — doubling the bore roughly quadruples the material.","Butt fusion; requires a trench with a bedding layer of sand or screened material to prevent point loading."],
+["CPP-HDPE-200","HDPE pipe","PE4710 HDPE pipe, IPS SDR11","200 mm (8 in) NPS · 200 psi",108.00,"m",11.890,3,7,"lo",9.00,"hdpe",{rho:955,sy:23,su:31,E:0.9,hb:"64 Shore D",K:0.45,a:200,tmax:60,corr:5,food:1,uv:3,recy:85,ee:80,kic:3.5,el:800},["trunk main","heavy"],"Trunk-main size for farm distribution or digester gas headers. At nearly 12 kg per metre it needs mechanical handling and a proper thrust-restraint design.","Butt fusion with a large-diameter machine, or flanged with a stub end and backing ring where dismantling is required."],
+["CPP-HDPE-COIL","HDPE pipe","PE4710 HDPE coil, IPS SDR11","25 mm × 150 m coil",640.00,"ea",41.60,1,5,"in",0,"hdpe",{rho:955,sy:23,su:31,E:0.9,hb:"64 Shore D",K:0.45,a:200,tmax:60,corr:5,food:1,uv:3,recy:85,ee:80,kic:3.5,el:800},["coil","no joints"],"Buying in coil eliminates joints — the single biggest source of leaks and the main labour cost in a drip system. Compare the effective price per metre against straight lengths plus fittings before you decide.","Uncoil in warm weather and allow it to relax before backfilling, or thermal contraction will pull the fittings apart in the first cold night."],
+["CPP-PVC-S40-50","PVC & CPVC","PVC Schedule 40 pressure pipe","50 mm (2 in) · 280 psi @ 23 °C",5.80,"m",0.920,3,2,"in",0.60,"pvcw",{rho:1400,sy:45,su:52,E:3.0,hb:"80 Shore D",K:0.19,a:70,tmax:60,corr:4,food:1,uv:1,recy:35,ee:70,kic:2.5,el:60},["low cost","rigid","solvent weld"],"The cheapest pressure pipe on the market and easily the stiffest polymer option — over three times the modulus of HDPE. Its weaknesses are UV degradation and brittle fracture in cold weather, both fatal above ground in a Québec winter.","Solvent-cement socket joints. The joint is a chemical weld, not a glue — it needs primer, a full wet coat and a quarter-turn on assembly."],
+["CPP-PVC-S40-100","PVC & CPVC","PVC Schedule 40 pressure pipe","100 mm (4 in) · 220 psi @ 23 °C",16.10,"m",2.750,3,2,"in",1.50,"pvcw",{rho:1400,sy:45,su:52,E:3.0,hb:"80 Shore D",K:0.19,a:70,tmax:60,corr:4,food:1,uv:1,recy:35,ee:70,kic:2.5,el:60},["low cost","rigid"],"Main-line PVC at roughly half the price of the equivalent HDPE. That saving is real, but so is the higher failure rate at joints when the ground moves — weigh installed cost, not material cost.","Solvent-cement with thrust blocks at every change of direction; PVC joints carry no tensile load."],
+["CPP-PVC-S80-50","PVC & CPVC","PVC Schedule 80 pressure pipe","50 mm (2 in) · 400 psi @ 23 °C",9.40,"m",1.260,3,3,"in",0.60,"pvcg",{rho:1400,sy:45,su:52,E:3.0,hb:"80 Shore D",K:0.19,a:70,tmax:60,corr:4,food:1,uv:2,recy:35,ee:70,kic:2.5,el:60},["high pressure","threadable"],"Thicker wall for higher pressure and the only PVC schedule that may be threaded. Note the pressure rating is quoted at 23 °C — at 50 °C you must de-rate it to about 50 % of the printed value.","Solvent weld or thread. Threading removes half the wall, so a threaded Sch 80 joint has roughly the pressure rating of plain Sch 40."],
+["CPP-CPVC-50","PVC & CPVC","CPVC Schedule 80 pipe","50 mm (2 in) · 200 psi @ 82 °C",16.80,"m",1.550,3,5,"in",1.00,"cpvc",{rho:1550,sy:52,su:55,E:2.9,hb:"85 Shore D",K:0.14,a:62,tmax:93,corr:4,food:1,uv:2,recy:15,ee:75,kic:2.0,el:40},["hot water","chemical"],"Chlorinating the PVC backbone lifts the service temperature from 60 °C to 93 °C, which is what makes CPVC viable for hot cleaning circuits and solar-thermal loops. It costs roughly three times plain Sch 40.","Solvent cement with CPVC-specific one-step cement; PVC cement will not develop full strength on CPVC."],
+["CPP-PEX-25","PVC & CPVC","PEX-a cross-linked polyethylene tube","25 mm · 160 psi @ 23 °C",6.20,"m",0.220,3,3,"in",0,"pex",{rho:938,sy:19,su:26,E:0.6,hb:"60 Shore D",K:0.38,a:150,tmax:93,corr:5,food:1,uv:1,recy:5,ee:82,kic:3.0,el:400},["flexible","freeze tolerant"],"Cross-linking gives polyethylene a memory and a much higher service temperature. Its real advantage in cold climates is that it expands rather than bursts on freezing — the reason it dominates in-floor heating in greenhouses.","Expansion-ring or crimp fittings. Cross-linked material cannot be fusion welded or recycled by melting, which is its main sustainability liability."],
+["CPP-PP-SH12","Sheet stock","Polypropylene homopolymer sheet","12 mm · 1220 × 2440 mm",348.00,"ea",32.40,1,5,"in",0,"pp",{rho:905,sy:33,su:38,E:1.5,hb:"75 Shore D",K:0.22,a:100,tmax:100,corr:5,food:1,uv:1,recy:70,ee:78,kic:3.0,el:150},["chemical resistant","weldable","light"],"The lightest common engineering polymer at 0.905 g/cm³ — it floats. Outstanding resistance to acids, alkalis and most fertiliser salts, which makes it the natural liner for a corrosive hopper.","Hot-gas or extrusion welded with PP rod; CNC routed. Cannot be solvent cemented — no solvent attacks it, which is precisely the point."],
+["CPP-UHMW-SH12","Sheet stock","UHMW-PE sheet, virgin","12 mm · 1220 × 2440 mm",612.00,"ea",33.60,1,5,"in",0,"uhmw",{rho:940,sy:21,su:40,E:0.7,hb:"64 Shore D",K:0.42,a:200,tmax:80,corr:5,food:1,uv:2,recy:40,ee:90,kic:4.5,el:350},["low friction","abrasion resistant","food grade"],"Ultra-high molecular weight polyethylene has the lowest coefficient of friction of any commercial solid apart from PTFE, and it outwears carbon steel in sliding abrasion against grain and wood chips. That is why silo and hopper liners are made from it.","Routed or sawn; fastened with countersunk bolts and oversized holes to allow for its very large thermal movement — 200 µm/m·K, sixteen times steel."],
+["CPP-UHMW-BAR","Sheet stock","UHMW-PE round bar","Ø50 mm · 3.0 m",34.80,"m",1.850,1,5,"in",4.00,"uhmw",{rho:940,sy:21,su:40,E:0.7,hb:"64 Shore D",K:0.42,a:200,tmax:80,corr:5,food:1,uv:2,recy:40,ee:90,kic:4.5,el:350},["bearing","food grade"],"Bar stock for sprockets, guide rollers and dry-running bushings in wash-down environments where a greased bronze bearing would be a contamination risk.","Turn and mill with sharp positive-rake tooling and no coolant. Expect the part to grow slightly after machining as residual stress relaxes."],
+["CPP-PC-TW8","Glazing","Twin-wall polycarbonate glazing, UV-coated","8 mm · 1220 × 2440 mm",82.50,"ea",4.47,1,4,"in",0,"pc",{rho:1200,sy:62,su:66,E:2.4,hb:"M70",K:0.21,a:65,tmax:115,corr:4,food:0,uv:5,recy:30,ee:110,kic:3.0,el:110},["insulating","light transmitting","impact"],"The greenhouse glazing benchmark: about 80 % light transmission, a U-value near 3.3 W/m²·K thanks to the trapped air cell, and 200 times the impact resistance of glass. The co-extruded UV layer is the only thing standing between it and yellowing — it must face outward.","Cut with a fine-tooth blade, seal the top flute with solid tape and the bottom with vented tape so condensate drains. Allow 3 mm per metre of thermal expansion in the glazing bar."],
+["CPP-PC-TW16","Glazing","Triple-wall polycarbonate glazing, UV-coated","16 mm · 1220 × 2440 mm",146.00,"ea",7.90,1,5,"in",0,"pc",{rho:1200,sy:62,su:66,E:2.4,hb:"M70",K:0.21,a:65,tmax:115,corr:4,food:0,uv:5,recy:30,ee:110,kic:3.0,el:110},["high insulation","cold climate"],"Three walls and 16 mm of depth drop the U-value to about 2.3 W/m²·K — roughly a 30 % heating-energy saving over 8 mm twin-wall, at 77 % more cost and about 6 % less light. That trade sits at the heart of any cold-climate greenhouse brief.","As for twin-wall, but the greater depth needs a wider glazing bar and heavier purlin spacing."],
+["CPP-PC-SOL6","Glazing","Solid polycarbonate sheet, UV-coated both faces","6 mm · 1220 × 2440 mm",268.00,"ea",21.50,1,5,"in",0,"pcsolid",{rho:1200,sy:62,su:66,E:2.4,hb:"M70",K:0.21,a:65,tmax:115,corr:4,food:0,uv:5,recy:30,ee:110,kic:3.5,el:110},["highest clarity","vandal proof"],"Optically clear, essentially unbreakable, and a poor insulator — a single skin has a U-value near 5.4 W/m²·K. Use it for end walls, doors and anywhere clarity or impact matters more than heat loss.","Cold-formable to a generous radius, routed and drilled with oversized holes. Never clean with ammonia — it crazes."],
+["CPP-ACRYL-6","Glazing","Cast acrylic (PMMA) sheet","6 mm · 1220 × 2440 mm",196.00,"ea",21.30,1,4,"in",0,"acryl",{rho:1190,sy:70,su:72,E:3.2,hb:"M95",K:0.19,a:70,tmax:80,corr:4,food:0,uv:5,recy:40,ee:100,kic:1.3,el:5},["best clarity","weatherable","brittle"],"Higher light transmission than polycarbonate at 92 %, and it never yellows. The price is brittleness — fracture toughness is a quarter of polycarbonate, so a hailstone that bounces off PC will punch straight through acrylic.","Laser cut cleanly, flame polish edges, solvent cement with dichloromethane. Drill with a modified zero-rake bit or it will crack."],
+["CPP-PETG-3","Glazing","PETG sheet","3 mm · 1220 × 2440 mm",124.00,"ea",11.40,1,4,"in",0,"acryl",{rho:1270,sy:50,su:53,E:2.1,hb:"M70",K:0.20,a:68,tmax:70,corr:4,food:1,uv:2,recy:75,ee:84,kic:3.5,el:120},["food grade","thermoformable"],"The easiest of the clear polymers to thermoform and the only one on this page that is food-contact approved and widely recycled. Poor UV resistance without a coating limits it to indoor and short-term outdoor use.","Cold bend, thermoform at 120–140 °C, solvent cement. Needs no drying before forming, unlike polycarbonate."],
+["CPP-FILM-6","Geomembrane & film","UV-stabilised greenhouse polyethylene film","6 mil (150 µm) · 7.3 × 30 m roll",385.00,"ea",30.20,1,4,"in",0,"film",{rho:920,sy:12,su:22,E:0.25,hb:"50 Shore D",K:0.33,a:200,tmax:60,corr:5,food:0,uv:4,recy:50,ee:80,kic:2.0,el:600},["cheapest glazing","4-year"],"By far the cheapest way to enclose a square metre — about $1.75/m² against $28/m² for twin-wall polycarbonate. The catch is a four-year replacement cycle and much poorer insulation, so the life-cycle comparison is far closer than the sticker price suggests.","Stretched over hoops and held in extruded aluminium lock channels with a wiggle-wire spring. Double-layer with an inflation blower for a large jump in R-value."],
+["CPP-GEOM-15","Geomembrane & film","HDPE geomembrane liner, textured","1.5 mm · 7 m wide roll",9.80,"m2",1.430,20,7,"in",0,"hdpe",{rho:945,sy:17,su:27,E:0.7,hb:"60 Shore D",K:0.40,a:200,tmax:60,corr:5,food:0,uv:5,recy:60,ee:80,kic:3.0,el:700},["containment","chemical"],"Containment liner for lagoons, digester basins and leachate ponds. Chemically inert to the organic acids and ammonia found in manure and silage effluent, which corrode concrete and mild steel.","Wedge-welded with a dual-track hot wedge and air-channel tested for leaks; anchored in a perimeter trench."],
+["CPP-EPDM-114","Geomembrane & film","EPDM membrane liner","1.14 mm (45 mil) · 6 m wide",12.40,"m2",1.370,20,5,"in",0,"epdm",{rho:1200,sy:9,su:9,E:0.005,hb:"60 Shore A",K:0.25,a:160,tmax:120,corr:4,food:0,uv:5,recy:5,ee:65,kic:0,el:300},["elastic","conformable"],"Where HDPE geomembrane is stiff and must be welded, EPDM stretches 300 % and conforms to irregular substrates — useful for retrofitting an existing tank or covering a gas holder that changes volume.","Seamed with butyl splice tape or contact adhesive; no heat required, which makes field repair simple."],
+["CPP-PTFE-3","Sheet stock","PTFE sheet, virgin","3 mm · 300 × 300 mm",88.00,"ea",0.594,1,3,"in",0,"ptfe",{rho:2200,sy:12,su:25,E:0.5,hb:"55 Shore D",K:0.25,a:130,tmax:260,corr:5,food:1,uv:5,recy:0,ee:120,kic:3.0,el:300},["inert","non-stick","high temp"],"Chemically inert to essentially everything, food-contact approved, stable from −200 °C to 260 °C, and the lowest friction of any solid. It also creeps badly under sustained load and cannot be welded or bonded without surface etching.","Machined only. Always use a filled grade (glass or bronze) if the part carries sustained compressive load, or it will cold-flow out of the joint."],
+["CPP-NYL66-50","Sheet stock","Nylon 6/6 round bar, extruded","Ø50 mm · 1.0 m",58.40,"m",2.240,1,4,"in",4.00,"nylon",{rho:1140,sy:82,su:83,E:3.0,hb:"R120",K:0.25,a:90,tmax:105,corr:3,food:1,uv:2,recy:30,ee:120,kic:3.5,el:50},["tough","gears","bearing"],"The strongest and stiffest of the common machinable polymers, with good fatigue resistance — the standard material for polymer gears and cam followers. Its one serious weakness is moisture: it absorbs up to 2.5 % water, growing dimensionally and losing a third of its stiffness.","Machine dry, then condition in water to stabilise dimensions before final inspection. Specify nylon 12 or acetal if dimensional stability in a wet environment is critical."],
+["CPP-PVCFIT-T50","PVC & CPVC","PVC Schedule 40 socket tee","50 mm (2 in)",4.30,"ea",0.180,5,2,"in",0,"pvcw",{rho:1400,sy:45,su:52,E:3.0,hb:"80 Shore D",K:0.19,a:70,tmax:60,corr:4,food:1,uv:1,recy:35,ee:70,kic:2.5,el:60},["fitting","solvent weld"],"Fittings are where a piping cost estimate is won or lost. A drip system with a lateral every 1.5 m needs hundreds of these, and their combined cost can exceed the pipe itself.","Prime and solvent cement. Count every fitting in your bill of materials — students routinely price pipe and forget the fittings."],
+["CPP-HDPE-FUSE","HDPE pipe","HDPE electrofusion coupler","50 mm (2 in) IPS",22.50,"ea",0.210,5,4,"in",0,"hdpe",{rho:955,sy:23,su:31,E:0.9,hb:"64 Shore D",K:0.45,a:200,tmax:60,corr:5,food:1,uv:3,recy:80,ee:85,kic:3.5,el:800},["fusion","leak proof"],"Five times the price of the equivalent PVC fitting — and the direct reason HDPE systems cost more to install. What you buy is a joint stronger than the pipe wall, which is why municipal and long-life agricultural mains use it.","Scrape the pipe surface to remove the oxidised skin, clamp in an alignment jig, and run the fusion controller. Joint integrity depends entirely on that scraping step."]
+],
+TFC:[
+["TFC-CSM-450","Glass reinforcement","E-glass chopped strand mat, 450 g/m²","1.27 m wide roll",4.95,"m2",0.450,2,3,"in",0,"csm",{rho:2560,sy:0,su:100,E:7,hb:"n/a",K:1.0,a:5.0,tmax:550,corr:4,food:0,uv:4,recy:15,ee:48,kic:10,el:2},["low cost","isotropic","hand layup"],"Randomly oriented short fibres bound with a styrene-soluble binder. Properties are equal in all directions but low — a CSM laminate reaches only about 30 % fibre volume fraction. It is the cheapest way to build thickness and is what most FRP tanks are made of.","Hand layup with polyester or vinyl ester resin. Resin uptake is roughly 2.5 times the fabric mass, so budget 1.1 kg of resin per square metre of 450 g mat."],
+["TFC-WR-600","Glass reinforcement","E-glass woven roving, 600 g/m²","1.27 m wide roll",6.40,"m2",0.600,2,3,"in",0,"glassf",{rho:2560,sy:0,su:340,E:17,hb:"n/a",K:1.0,a:5.0,tmax:550,corr:4,food:0,uv:4,recy:15,ee:48,kic:15,el:2},["structural","bidirectional"],"Coarse bidirectional weave that builds structural laminate fast. Alternating woven roving with chopped strand mat is the classic tank-and-hull schedule — the mat prevents the roving layers from delaminating.","Hand layup or vacuum infusion. Achieves roughly 45 % fibre volume fraction under vacuum, against 30 % by hand."],
+["TFC-EG-200","Glass reinforcement","E-glass plain-weave cloth, 200 g/m²","1.27 m wide roll",8.80,"m2",0.200,2,3,"in",0,"glassf",{rho:2560,sy:0,su:340,E:17,hb:"n/a",K:1.0,a:5.0,tmax:550,corr:4,food:0,uv:4,recy:15,ee:48,kic:15,el:2},["fine finish","surface ply"],"Fine cloth for surface plies and detail work. Its main structural role is as a barrier ply behind the gelcoat, preventing print-through of the coarse reinforcement underneath.","Hand layup. Wet out fully — dry glass in a surface ply wicks water and blisters."],
+["TFC-FLAX-300","Natural fibre","Flax fibre 2×2 twill, 300 g/m²","1.0 m wide roll",28.50,"m2",0.300,2,7,"in",0,"flax",{rho:1450,sy:0,su:500,E:50,hb:"n/a",K:0.07,a:15,tmax:180,corr:2,food:0,uv:2,recy:90,ee:9.5,kic:8,el:2.5},["bio-based","damping","low energy"],"Québec-grown flax with specific stiffness comparable to E-glass at 57 % the density and a fifth of the embodied energy. It also damps vibration far better than glass. The trade-offs are moisture absorption, batch-to-batch variability and a 180 °C ceiling.","Vacuum infusion with a bio-epoxy. Dry the fabric at 80 °C for two hours immediately before layup — absorbed moisture turns to steam and creates voids."],
+["TFC-HEMP-400","Natural fibre","Hemp fibre non-woven mat, 400 g/m²","1.5 m wide roll",19.80,"m2",0.400,2,7,"in",0,"hemp",{rho:1480,sy:0,su:380,E:35,hb:"n/a",K:0.07,a:15,tmax:180,corr:2,food:0,uv:2,recy:90,ee:8.0,kic:7,el:2},["bio-based","agri-waste","insulating"],"Non-woven hemp from processing residue — the definition of an agricultural waste stream turned into a structural material. Lower properties than woven flax but a third of the price and even lower embodied energy.","Compression moulding or infusion. Best suited to semi-structural panels, insulation cores and non-critical enclosures."],
+["TFC-JUTE-350","Natural fibre","Jute woven fabric, 350 g/m²","1.0 m wide roll",11.40,"m2",0.350,2,5,"in",0,"jute",{rho:1460,sy:0,su:400,E:25,hb:"n/a",K:0.07,a:15,tmax:170,corr:2,food:0,uv:1,recy:95,ee:5.5,kic:6,el:1.8},["lowest cost bio","compostable"],"The cheapest natural reinforcement and the lowest embodied energy of anything in this catalogue at about 5.5 MJ/kg. Properties are modest and moisture sensitivity is high, but for a non-structural biocomposite panel core it is hard to beat on a life-cycle basis.","Compression mould with a bio-resin. Must be sealed against moisture or the panel swells and delaminates within a season."],
+["TFC-CF-200","Glass reinforcement","Carbon fibre 2×2 twill, 200 g/m²","1.27 m wide roll",54.00,"m2",0.200,2,5,"in",0,"carbonf",{rho:1760,sy:0,su:3500,E:230,hb:"n/a",K:10,a:-0.5,tmax:400,corr:5,food:0,uv:5,recy:5,ee:280,kic:20,el:1.5},["highest stiffness","expensive"],"Ten times the price of E-glass for roughly thirteen times the fibre modulus. Include it in your Pugh chart as the high-performance benchmark, then be honest about whether the application can justify the cost and the 280 MJ/kg embodied energy.","Vacuum infusion or prepreg autoclave cure. Never bolt carbon directly to aluminium or steel without an insulating layer — the galvanic couple is severe."],
+["TFC-BAS-300","Glass reinforcement","Basalt fibre fabric, 300 g/m²","1.0 m wide roll",22.60,"m2",0.300,2,7,"lo",0,"basalt",{rho:2700,sy:0,su:2900,E:89,hb:"n/a",K:0.9,a:8.0,tmax:700,corr:5,food:0,uv:5,recy:20,ee:20,kic:16,el:3.1},["high temp","natural mineral"],"Spun from melted volcanic rock with no additives. Stiffer and far more heat- and alkali-resistant than E-glass, with under half the embodied energy of carbon. A genuinely interesting middle option that most students never consider.","Same processing as E-glass. Its alkali resistance makes it the reinforcement of choice for concrete and lime-matrix composites."],
+["TFC-POLY-GP","Resins","General-purpose orthophthalic polyester resin","20 L pail, MEKP catalysed",12.80,"L",1.10,4,3,"in",0,"resin",{rho:1200,sy:55,su:65,E:3.5,hb:"M90",K:0.19,a:100,tmax:80,corr:3,food:0,uv:2,recy:0,ee:63,kic:0.6,el:2},["cheapest resin","fast cure"],"The cheapest laminating resin and the reason FRP is affordable. It shrinks 7–9 % on cure, is attacked by alkalis and hot water, and has poor fatigue resistance — but for a static, ambient-temperature panel it is entirely adequate.","Catalyse at 1–2 % MEKP by volume and use within the pot life. Post-cure at 60 °C to reach full properties; an uncured laminate has roughly half its design strength."],
+["TFC-VE-700","Resins","Vinyl ester resin, corrosion grade","20 L pail",28.40,"L",1.10,4,4,"in",0,"resin",{rho:1150,sy:80,su:85,E:3.4,hb:"M95",K:0.18,a:65,tmax:120,corr:5,food:0,uv:3,recy:0,ee:70,kic:1.2,el:5},["chemical resistant","tough"],"An epoxy backbone with polyester end groups — it processes like polyester but resists acids, alkalis and hot water like an epoxy. This is the standard matrix for chemical tanks and digester internals, at just over double the price of general-purpose polyester.","Same catalysis and processing as polyester. Requires a resin-rich corrosion barrier ply at any chemically exposed surface."],
+["TFC-EP-635","Resins","Laminating epoxy resin system, 2:1","15 L kit (10 L resin + 5 L hardener)",24.60,"L",1.10,4,4,"in",0,"resin",{rho:1150,sy:70,su:75,E:3.2,hb:"M85",K:0.20,a:60,tmax:100,corr:5,food:0,uv:2,recy:0,ee:110,kic:1.0,el:4},["best adhesion","low shrink"],"Cures with under 2 % shrinkage and bonds to almost anything, which is why it is the only sensible matrix for natural fibres — polyester shrinkage tears flax and hemp bundles apart during cure.","Mix strictly by weight, not volume, and control the exotherm in thick sections. Post-cure to reach the stated glass transition temperature."],
+["TFC-BIO-56","Resins","Bio-based epoxy, 56 % bio-carbon content","15 L kit",34.80,"L",1.10,4,7,"in",0,"bioresin",{rho:1140,sy:65,su:70,E:3.0,hb:"M80",K:0.20,a:65,tmax:90,corr:4,food:0,uv:2,recy:0,ee:52,kic:1.1,el:5},["bio-based","lower carbon"],"Partly derived from plant oils and lignin, cutting embodied energy from about 110 to 52 MJ/kg — a genuine halving. Mechanical properties are roughly 10 % below petroleum epoxy, and the price is 41 % higher, so the case rests on the life-cycle argument.","Identical processing to conventional epoxy but with a slightly longer cure. Pair it with flax or hemp for a fully bio-based laminate."],
+["TFC-FURAN","Resins","Furan bio-resin, agricultural-residue derived","20 L pail",29.20,"L",1.20,4,10,"lo",0,"bioresin",{rho:1250,sy:45,su:50,E:4.5,hb:"M100",K:0.22,a:50,tmax:180,corr:5,food:0,uv:3,recy:0,ee:35,kic:0.5,el:1},["highest bio content","fire resistant"],"Made from furfuryl alcohol derived from corn cobs and bagasse — a true agricultural-waste-derived thermoset. It is stiffer and far more fire- and chemical-resistant than epoxy, and also more brittle. Its natural char formation is a real asset in a fire-code argument.","Acid catalysed with a controlled exotherm. It cures dark brown and releases water during cure, so the layup must be vented."],
+["TFC-FRP-PAN3","Pultruded & panel","FRP flat panel, isophthalic polyester/CSM","3 mm · 1220 × 2440 mm",184.00,"ea",16.10,1,5,"in",0,"frp",{rho:1800,sy:0,su:110,E:8,hb:"Barcol 45",K:0.25,a:25,tmax:80,corr:5,food:1,uv:3,recy:5,ee:60,kic:12,el:1.5},["corrosion proof","non-conductive"],"Ready-made glass-reinforced panel — no layup required. Completely immune to the fertiliser salts and manure acids that destroy galvanised steel, and electrically non-conductive, which matters near electrical service.","Cut with a diamond or carbide blade under dust extraction. Seal every cut edge with resin — an unsealed edge wicks water into the laminate."],
+["TFC-FRP-GRT38","Pultruded & panel","Moulded FRP grating, vinyl ester","38 mm deep · 38 mm mesh",296.00,"m2",12.00,1,10,"in",0,"frpgrate",{rho:1800,sy:0,su:170,E:12,hb:"Barcol 50",K:0.25,a:25,tmax:100,corr:5,food:0,uv:4,recy:5,ee:65,kic:12,el:1.8},["non-slip","corrosion proof"],"Walkway and platform grating for chemically aggressive areas — digester decks, fertiliser plants, wash-down floors. Roughly triple the price of galvanised steel bar grating, and it will still be there when the steel has rusted through twice.","Cut with a diamond blade and coat cut ends with vinyl ester. Support spacing governs deflection — FRP is far less stiff than steel and deflects visibly."],
+["TFC-FRP-TUBE50","Pultruded & panel","Pultruded FRP square tube, vinyl ester","50 × 50 × 6 mm · 6 m",38.90,"m",1.900,1,7,"in",8.00,"frp",{rho:1800,sy:0,su:207,E:17,hb:"Barcol 50",K:0.25,a:8.0,tmax:100,corr:5,food:0,uv:4,recy:5,ee:65,kic:12,el:1.5},["corrosion proof","light","non-conductive"],"Set this against the galvanised HSS and the aluminium tube of the same nominal size. It is lighter than aluminium, will never corrode, and is only a quarter as stiff as steel — so the frame will be deflection-governed, not strength-governed.","Cut with a diamond blade; join with bonded or bolted brackets. Pultrusions are strongly anisotropic — nearly all fibres run lengthwise, so transverse and bearing strength are low."],
+["TFC-FRP-IB102","Pultruded & panel","Pultruded FRP wide-flange beam","102 × 51 mm · 6 m",64.50,"m",2.070,1,7,"lo",8.00,"frp",{rho:1800,sy:0,su:207,E:17,hb:"Barcol 50",K:0.25,a:8.0,tmax:100,corr:5,food:0,uv:4,recy:5,ee:65,kic:12,el:1.5},["structural","corrosion proof"],"Structural section for corrosive-environment framing. Design it to a deflection limit rather than a stress limit and check the flanges for local buckling — FRP sections buckle long before they yield.","Bolted connections with oversized washers to spread bearing load; never weld or hot-form."],
+["TFC-GELCOAT","Resins","Isophthalic NPG gelcoat, white","20 L pail",26.40,"L",1.25,4,4,"in",0,"resin",{rho:1250,sy:50,su:55,E:3.5,hb:"Barcol 40",K:0.20,a:80,tmax:90,corr:4,food:0,uv:4,recy:0,ee:68,kic:0.5,el:2},["UV barrier","surface"],"The pigmented surface layer that gives an FRP part its weather resistance and finish. Without it the laminate's surface glass fibres wick moisture and the part blisters — the failure mode behind most cheap fibreglass tanks.","Sprayed or brushed into the mould at 0.5–0.6 mm and allowed to gel before the first laminate ply goes on. Too thick and it cracks; too thin and it never fully cures."],
+["TFC-CORE-15","Core materials","Cross-linked PVC structural foam core","15 mm · 1220 × 2440 mm",46.80,"m2",1.200,2,7,"in",0,"foam",{rho:80,sy:1.2,su:2.2,E:0.09,hb:"n/a",K:0.031,a:40,tmax:70,corr:4,food:0,uv:1,recy:10,ee:100,kic:0.3,el:15},["sandwich core","insulating"],"A sandwich core does for a panel exactly what the web does for an I-beam: separating two thin skins by 15 mm raises bending stiffness by roughly two orders of magnitude for almost no mass. It also happens to insulate at 0.031 W/m·K.","Vacuum bagged between skins; score or perforate the core so resin can flow and lock the skins together."],
+["TFC-BALSA-12","Core materials","End-grain balsa core","12 mm · 1220 × 610 mm",58.20,"m2",1.800,2,7,"in",0,"balsa",{rho:150,sy:9,su:12,E:3.7,hb:"n/a",K:0.055,a:35,tmax:120,corr:2,food:0,uv:1,recy:95,ee:4.0,kic:0.5,el:2},["natural core","high compression"],"End-grain balsa carries roughly eight times the compressive stress of PVC foam at twice the density, and its embodied energy is 4 MJ/kg against 100 for the foam. Its weakness is rot if water ever reaches it — every fastener penetration must be sealed.","Vacuum bagged with an epoxy or vinyl ester. Bore out and fill every through-fastener location with thickened resin before drilling."],
+["TFC-STRAW-18","Pultruded & panel","Wheat-straw particle board, formaldehyde-free","18 mm · 1220 × 2440 mm",92.00,"ea",34.90,1,7,"in",0,"strawb",{rho:650,sy:0,su:16,E:2.8,hb:"n/a",K:0.09,a:8,tmax:100,corr:1,food:0,uv:1,recy:95,ee:6.5,kic:0.4,el:1},["agri-waste","carbon storing"],"Made from wheat straw that would otherwise be burnt or ploughed under, bonded with a formaldehyde-free MDI resin. It performs like a good particle board, stores biogenic carbon, and is directly relevant to any agricultural-waste panel brief.","Cut and machine like wood. Must be edge-sealed and kept out of standing water; it is not a structural sheathing on its own."],
+["TFC-HEMPBLK","Core materials","Hemp-lime (hempcrete) block","300 × 300 × 150 mm",14.60,"ea",5.40,10,10,"in",0,"hempcr",{rho:400,sy:0,su:0.8,E:0.05,hb:"n/a",K:0.07,a:8,tmax:200,corr:2,food:0,uv:2,recy:100,ee:2.5,kic:0.1,el:1},["carbon negative","breathable","fire resistant"],"Hemp shiv bound in a lime matrix. It is not structural — it infills a timber or steel frame — but it is carbon-negative over its life, regulates humidity passively, and is non-combustible. Embodied energy of 2.5 MJ/kg is the lowest in this catalogue.","Laid in a lime mortar or cast in situ around a frame. Needs a breathable lime render, never a cement one, or trapped moisture will rot the frame."],
+["TFC-SIP-50","Pultruded & panel","Flax/bio-epoxy structural insulated panel","50 mm core · 1220 × 2440 mm",118.00,"m2",7.00,2,14,"lo",0,"bioresin",{rho:140,sy:0,su:6,E:1.2,hb:"n/a",K:0.038,a:30,tmax:90,corr:3,food:0,uv:2,recy:60,ee:18,kic:0.6,el:2},["bio-composite","insulating","structural"],"A complete bio-composite building panel: flax/bio-epoxy skins over a bio-foam core, R-value around 3.5 per 25 mm. This is the closest product in the catalogue to what a sustainable-construction brief actually asks you to design.","Panels are splined and bonded at joints. Fire performance must be verified against the building code — bio-resins char rather than melt, which helps, but a tested assembly rating is still required."]
+],
+VHM:[
+["VHM-M2-HSS","Tool steel","AISI M2 high-speed steel flat ground stock","6 × 50 mm · 500 mm",46.80,"kg",1,0.5,5,"in",0,"hss",{rho:8160,sy:2200,su:2400,E:220,hb:"64 HRC",K:24,a:11.2,tmax:600,corr:1,food:0,uv:2,recy:70,ee:52,kic:17,el:0},["red hardness","cutting edge"],"Tungsten-molybdenum high-speed steel keeps its 64 HRC hardness to about 600 °C — that red hardness is the whole point, and it is why sawmill and planer knives are made from it rather than plain carbon steel.","Grind to shape in the hardened condition with copious coolant; burning the edge draws the temper locally and it will fail there first."],
+["VHM-D2-PL","Tool steel","AISI D2 cold-work tool steel plate","12 mm · 300 × 300 mm",22.40,"kg",1,3,5,"in",0,"toolst",{rho:7700,sy:1900,su:2100,E:210,hb:"60 HRC",K:20,a:10.4,tmax:425,corr:2,food:0,uv:2,recy:75,ee:44,kic:16,el:0},["abrasion resistant","dimensionally stable"],"Twelve percent chromium gives a huge volume of hard carbides — outstanding abrasion resistance and near-zero size change through heat treatment. That carbide volume also makes it brittle, so keep it away from impact.","Rough machine annealed, air harden (which is why it is dimensionally stable), then finish grind. Wire EDM is common for die profiles."],
+["VHM-A2-PL","Tool steel","AISI A2 air-hardening tool steel plate","12 mm · 300 × 300 mm",19.60,"kg",1,3,5,"in",0,"toolst",{rho:7860,sy:1700,su:1900,E:203,hb:"60 HRC",K:24,a:10.6,tmax:425,corr:1,food:0,uv:2,recy:75,ee:42,kic:22,el:0},["balanced","air hardening"],"The sensible middle of the tool-steel range: most of D2's wear resistance with noticeably better toughness. When a student's Pugh chart is deadlocked between D2 and S7, A2 is usually the honest answer.","Air hardens with minimal distortion, so it can be finish machined close to size before heat treatment."],
+["VHM-O1-FG","Tool steel","AISI O1 oil-hardening flat ground stock","6 × 50 mm · 500 mm",17.20,"kg",1,1,3,"in",0,"toolst",{rho:7850,sy:1600,su:1800,E:200,hb:"62 HRC",K:33,a:11.5,tmax:250,corr:1,food:0,uv:2,recy:78,ee:38,kic:20,el:0},["low cost tool steel","fine edge"],"The cheapest genuine tool steel and the easiest to heat treat in a small shop — it hardens from a simple oil quench at 800 °C. Excellent for knife edges and low-volume cutting tools where hot hardness is not required.","Harden in oil and temper immediately; O1 will crack if left untempered overnight. Expect about 0.1 % size change on quench."],
+["VHM-S7-PL","Tool steel","AISI S7 shock-resisting tool steel plate","12 mm · 300 × 300 mm",24.80,"kg",1,3,7,"in",0,"toolst",{rho:7830,sy:1550,su:1700,E:207,hb:"56 HRC",K:31,a:12.5,tmax:500,corr:1,food:0,uv:2,recy:75,ee:46,kic:45,el:0},["impact tough","chisel"],"Deliberately traded hardness for toughness — fracture toughness near 45 MPa·m^0.5 against 16 for D2, at the cost of four points of hardness. This is the material for chipper anvils, shear blades and anything that takes a hammering.","Air hardens; can be finish machined before treatment. Do not push hardness above 58 HRC or you lose the toughness you bought it for."],
+["VHM-H13-PL","Tool steel","AISI H13 hot-work tool steel plate","12 mm · 300 × 300 mm",26.90,"kg",1,3,7,"in",0,"toolst",{rho:7800,sy:1400,su:1550,E:210,hb:"50 HRC",K:28,a:11.5,tmax:600,corr:1,food:0,uv:2,recy:75,ee:48,kic:30,el:0},["thermal fatigue","hot work"],"Designed to resist thermal fatigue — the network of heat-checking cracks that destroys dies cycling between hot and cold. For a pellet-mill die running at 90 °C under continuous compression, this resistance matters more than raw hardness.","Machine annealed, vacuum harden and double temper. Nitride the working surface (MFW-HT-NITRIDE) for wear resistance without losing core toughness."],
+["VHM-WC10-BLK","Cemented carbide","WC-10Co cemented carbide blank, ground","50 × 50 × 6 mm",104.00,"ea",0.218,1,7,"in",0,"carbide",{rho:14500,sy:0,su:2000,E:580,hb:"87 HRA / 1400 HV",K:80,a:5.5,tmax:800,corr:3,food:0,uv:5,recy:95,ee:400,kic:11,el:0},["extreme hardness","wear"],"Tungsten carbide grains in a cobalt binder — about three times the stiffness of steel and ten times the abrasive wear life, with essentially zero ductility. The 10 % cobalt grade trades a little hardness for enough toughness to survive intermittent cutting.","Cannot be machined conventionally. Shape by diamond grinding, wire EDM or as-sintered near-net form; braze or clamp it onto a steel body."],
+["VHM-WC6-INS","Cemented carbide","WC-6Co brazable tip insert","20 × 12 × 4 mm",18.40,"ea",0.0143,4,5,"in",0,"carbide",{rho:14900,sy:0,su:1800,E:620,hb:"91 HRA / 1600 HV",K:85,a:5.0,tmax:900,corr:3,food:0,uv:5,recy:95,ee:400,kic:8,el:0},["hardest grade","brazable"],"The tip that gets brazed onto a steel blade body — the standard construction for carbide-tipped saw and plough blades. You buy carbide only where the wear happens and keep tough, cheap steel everywhere else. That is materials selection in one product.","Silver-brazed to a steel body with a stress-relieving shim to accommodate the four-fold mismatch in thermal expansion, then diamond ground."],
+["VHM-WC10-ROD","Cemented carbide","WC-10Co solid carbide rod, ground","Ø12 mm · 330 mm",742.00,"m",1.640,0.33,10,"lo",0,"carbide",{rho:14500,sy:0,su:2000,E:580,hb:"87 HRA / 1400 HV",K:80,a:5.5,tmax:800,corr:3,food:0,uv:5,recy:95,ee:400,kic:11,el:0},["solid carbide","tooling"],"Solid rod for end mills and wear pins. At $742 per metre it is the most expensive stock item in this catalogue — a useful reminder that carbide is bought by the cubic centimetre, not the kilogram.","Diamond ground or EDM only. Handle carefully; it chips if dropped on a hard floor."],
+["VHM-STEL-6","Hardfacing","Stellite 6 cobalt hardfacing rod","Ø3.2 mm · 5 kg",186.00,"kg",1,5,7,"in",0,"stellite",{rho:8460,sy:550,su:900,E:210,hb:"40 HRC",K:14.8,a:14.0,tmax:800,corr:5,food:1,uv:5,recy:60,ee:220,kic:25,el:1},["hot hardness","corrosion","food grade"],"A cobalt-chromium-tungsten alloy that keeps its hardness to 800 °C and resists corrosion at the same time — the combination is rare and expensive. Used to hard-face valve seats and food-processing knives where a steel weld overlay would corrode.","Deposited by GTAW or PTA over a buttered stainless layer; the substrate must be preheated to avoid cracking the deposit."],
+["VHM-WCROD-HF","Hardfacing","Tungsten carbide composite hardfacing rod","Ø5 mm · 5 kg tube",128.00,"kg",1,5,5,"in",0,"carbide",{rho:9500,sy:0,su:700,E:250,hb:"60 HRC matrix / 2000 HV particles",K:40,a:10,tmax:600,corr:2,food:0,uv:3,recy:50,ee:250,kic:6,el:0},["rebuild","abrasion"],"Crushed carbide granules in a nickel or iron matrix, deposited by torch or arc. The go-to repair for worn plough shares, auger flights and mixer paddles — often more economical than replacing the part, which is a legitimate line in a life-cycle cost analysis.","Applied by oxy-acetylene or GMAW in a stringer pattern. Not machinable afterwards; it must be ground."],
+["VHM-AL2O3-PL","Technical ceramics","99.5 % alumina ceramic plate","100 × 100 × 6 mm",86.00,"ea",0.234,1,10,"in",0,"alumina",{rho:3900,sy:0,su:350,E:375,hb:"1600 HV",K:30,a:8.2,tmax:1700,corr:5,food:1,uv:5,recy:20,ee:55,kic:4,el:0},["hardest oxide","inert","insulating"],"Harder than any steel, chemically inert, an electrical insulator, and usable to 1700 °C. It is also brittle with a fracture toughness of 4 MPa·m^0.5 — a hundredth of mild steel — so it must never see tensile or bending stress.","Supplied as-fired or ground. Bond into a compliant mount with a resilient adhesive; a rigid clamp will crack it on the first thermal cycle."],
+["VHM-SIC-TILE","Technical ceramics","Sintered silicon carbide wear tile","50 × 50 × 12 mm",48.00,"ea",0.093,10,10,"in",0,"sic",{rho:3100,sy:0,su:400,E:410,hb:"2500 HV",K:120,a:4.0,tmax:1600,corr:5,food:0,uv:5,recy:20,ee:110,kic:3.5,el:0},["extreme abrasion","thermal shock"],"Harder than alumina with four times the thermal conductivity, so it survives thermal shock far better. Tiles like these are epoxy-bonded into a mosaic to line chutes and cyclones handling abrasive biomass.","Bonded into a steel backing with a flexible epoxy that lets adjacent tiles move independently. Individual tiles are replaceable — an important maintainability argument."],
+["VHM-ZRO2-ROD","Technical ceramics","Yttria-stabilised zirconia (Y-TZP) rod","Ø10 mm · 300 mm",410.00,"m",0.475,0.3,14,"lo",0,"zirc",{rho:6050,sy:0,su:1000,E:210,hb:"1250 HV",K:2.0,a:10.3,tmax:1000,corr:5,food:1,uv:5,recy:10,ee:120,kic:10,el:0},["toughest ceramic","low conductivity"],"Transformation toughening gives zirconia a fracture toughness of about 10 MPa·m^0.5 — two and a half times alumina, and the reason it is the only ceramic used for knife blades. Its very low thermal conductivity also makes it a thermal barrier.","Diamond ground. Avoid prolonged exposure to 200–300 °C in humid air, which causes low-temperature degradation and surface spalling."],
+["VHM-SI3N4-BALL","Technical ceramics","Silicon nitride bearing ball, Grade 5","Ø12.7 mm",28.50,"ea",0.0034,10,10,"in",0,"si3n4",{rho:3200,sy:0,su:800,E:310,hb:"1600 HV",K:30,a:3.2,tmax:1200,corr:5,food:1,uv:5,recy:10,ee:180,kic:6,el:0},["hybrid bearing","corrosion proof"],"Hybrid bearings with ceramic balls in steel races run faster and cooler, need no lubricant, and are immune to the corrosion that kills steel bearings in wash-down and slurry service. At 40 % the density of steel, centrifugal loading drops sharply too.","Supplied finish-lapped. Handle with clean gloves — surface contamination initiates spalling."],
+["VHM-TIN-COAT","Surface coatings","TiN PVD coating service","Per dm² of coated surface",34.00,"m2",0,0.05,10,"in",0,"tin",{rho:5400,sy:0,su:0,E:600,hb:"2300 HV",K:19,a:9.4,tmax:600,corr:4,food:1,uv:5,recy:0,ee:0,kic:0,el:0},["service","hard coating","food safe"],"A 2–4 µm titanium nitride layer at 2300 HV — the familiar gold coating on drill bits. It roughly triples tool life for a few dollars per part and is food-contact approved, unlike most hard coatings.","Deposited at 450 °C, so the substrate must already be hardened and tempered above that temperature or it will soften in the chamber. Surfaces must be polished before coating — PVD replicates every scratch."],
+["VHM-WCCO-HVOF","Surface coatings","WC-Co HVOF thermal spray coating","Per dm² of coated surface",92.00,"m2",0,0.05,12,"in",0,"carbide",{rho:14000,sy:0,su:0,E:300,hb:"1200 HV",K:30,a:6.0,tmax:500,corr:3,food:0,uv:5,recy:0,ee:0,kic:0,el:0},["service","thick coating","rebuild"],"High-velocity oxy-fuel spraying puts a 100–300 µm carbide layer onto a steel part — thick enough to rebuild worn dimensions, unlike PVD. It is the standard repair for pellet-mill rollers and pump sleeves.","Grit blast, spray, then diamond grind to final size. The bond is mechanical, so surface preparation determines whether the coating stays on."],
+["VHM-DLC-COAT","Surface coatings","Diamond-like carbon (DLC) coating","Per dm² of coated surface",58.00,"m2",0,0.05,12,"in",0,"dlc",{rho:2200,sy:0,su:0,E:200,hb:"3000 HV",K:1.0,a:2.3,tmax:350,corr:5,food:1,uv:5,recy:0,ee:0,kic:0,el:0},["service","lowest friction"],"Hardest of the commercial coatings at up to 3000 HV with a friction coefficient near 0.1 — it is effectively a solid lubricant. Its 350 °C ceiling rules out hot-work applications.","Low-temperature PVD, so it will not temper a hardened substrate. Requires a very smooth, clean base surface."],
+["VHM-CR-PLATE","Surface coatings","Hard chrome electroplating","Per dm² of coated surface",26.00,"m2",0,0.10,10,"in",0,"chrome",{rho:7190,sy:0,su:0,E:250,hb:"900 HV",K:94,a:6.2,tmax:400,corr:4,food:1,uv:5,recy:0,ee:0,kic:0,el:0},["service","cheapest hard coating"],"The cheapest hard surface per square decimetre and the traditional choice for hydraulic rods. It is also the environmental problem child of this page — hexavalent chromium plating faces tightening regulation, which is a real supply-chain risk for a 20-year design.","Plated 20–50 µm and ground to size. The coating is micro-cracked by design, so a nickel underlayer is required for genuine corrosion protection."],
+["VHM-BIMET-34","Hardfacing","Bi-metal M42/carbon steel bandsaw blade stock","34 × 1.1 mm · per metre",28.40,"m",0.294,3,5,"in",0,"hss",{rho:7900,sy:1000,su:1300,E:210,hb:"67 HRC teeth / 45 HRC back",K:30,a:11.5,tmax:600,corr:1,food:0,uv:2,recy:70,ee:50,kic:30,el:2},["composite blade","best value"],"An electron-beam welded strip of M42 high-speed steel on a spring-steel back — hard teeth on a flexible body. It is the clearest everyday example of using two materials where one cannot do both jobs, and it is central to the sawmill-blade brief.","Supplied in coil and welded into a loop by the saw shop. Tooth pitch selection matters as much as the material: too fine and the gullet packs with sawdust and the blade overheats."]
+],
+MFW:[
+["MFW-CNC3-HR","Machining","3-axis CNC milling","Shop rate, 0.25 h increments",95.00,"hr",0,1,3,"in",0,"svc",{rho:0},["service","prismatic"],"The default cost basis for a machined prismatic part. When you compare aluminium against steel, remember that aluminium cuts three to four times faster — often reversing the material-price ranking at the finished-part level.","Includes programming for simple parts. Complex 3D surfacing is quoted separately."],
+["MFW-CNC5-HR","Machining","5-axis CNC milling","Shop rate, 0.25 h increments",215.00,"hr",0,1,7,"in",0,"svc",{rho:0},["service","complex geometry"],"Needed for impellers, turbine blade roots and any part with compound-angle features. At more than twice the 3-axis rate, a design change that keeps the part 3-axis machinable is often worth more than any material substitution.","Quote requires a 3D model. Fixture design is charged separately for first articles."],
+["MFW-LATHE-HR","Machining","CNC turning","Shop rate, 0.25 h increments",108.00,"hr",0,1,3,"in",0,"svc",{rho:0},["service","round parts"],"For shafts, rollers, bushings and anything with an axis of revolution. Bar-fed production drops the effective rate sharply above about 50 pieces.","Includes standard tolerance of ±0.05 mm. Tighter tolerances need a grinding operation."],
+["MFW-MANUAL-HR","Machining","Manual mill / lathe / fitting","Shop rate, 0.5 h increments",72.00,"hr",0,1,2,"in",0,"svc",{rho:0},["service","one-off"],"The cheapest route for a single prototype piece, because there is no programming or setup overhead to amortise. Above roughly five pieces CNC becomes cheaper — the classic break-even calculation.","Best for jigs, fixtures, modifications and repair work."],
+["MFW-LASER-HR","Cutting","Fibre laser cutting, 6 kW","Shop rate; steel to 20 mm, stainless to 15 mm",145.00,"hr",0,1,3,"in",0,"svc",{rho:0},["service","precise","thin sheet"],"Fast, narrow kerf, near-zero taper and a very small heat-affected zone. Cannot cut most reflective aluminium and copper reliably at thickness, and cannot cut any non-metal.","Nesting efficiency drives the price — parts nested tightly on a full sheet cost far less per piece than the same parts cut individually."],
+["MFW-WJET-HR","Cutting","Abrasive waterjet cutting","Shop rate; any material to 150 mm",168.00,"hr",0,1,4,"in",0,"svc",{rho:0},["service","no HAZ","any material"],"The only process here that cuts anything — hardened tool steel, titanium, glass, stone, FRP and composite laminate — with no heat-affected zone at all. It is slow, which is why it is the most expensive hourly rate on the cutting page.","Essential for AR500 and tool steel, where flame cutting would ruin the temper, and for composite panels, where a saw blade delaminates the edge."],
+["MFW-PLASMA-M","Cutting","CNC plasma cutting","Per metre of cut, steel to 25 mm",6.80,"m",0,5,2,"in",0,"svc",{rho:0},["service","cheapest cut"],"The cheapest way to cut thick mild steel by a wide margin. Kerf is wide and tapered and the heat-affected zone extends a millimetre or two, so allow machining stock on any surface that matters.","Not suitable for stainless in food service without removing the oxidised cut edge — the HAZ is chromium depleted and will corrode."],
+["MFW-GMAW-HR","Welding","GMAW (MIG) welding","Shop rate, certified welder",88.00,"hr",0,1,3,"in",0,"svcw",{rho:0},["service","fast","structural"],"The productivity workhorse for structural steel: high deposition rate, easily automated, and forgiving. Not suitable for out-of-position work on thin sheet or for sanitary joints.","Weld cost estimates should be built from deposited weld metal volume, not guesswork. A 6 mm fillet costs roughly four times a 3 mm fillet per metre."],
+["MFW-GTAW-HR","Welding","GTAW (TIG) welding","Shop rate, certified welder",124.00,"hr",0,1,4,"in",0,"svcw",{rho:0},["service","precise","stainless"],"Slow, clean and fully controllable — the only manual process acceptable for thin stainless, aluminium and any joint that must be crevice-free after grinding. Expect roughly a third the deposition rate of GMAW.","Requires argon back-purge on stainless and titanium. Budget for the purge gas and dam materials, not just the arc time."],
+["MFW-SMAW-HR","Welding","SMAW (stick) welding","Shop rate, field capable",78.00,"hr",0,1,2,"in",0,"svcw",{rho:0},["service","field repair"],"The field process: no shielding gas to blow away, works on rusty and painted material, and needs only a power source. Deposition rate and quality are the lowest of the three, and slag must be chipped between passes.","The realistic choice for on-farm repair, which is a legitimate maintainability argument in an agricultural design."],
+["MFW-ORBITAL-W","Welding","Orbital tube welding, sanitary certified","Per weld, tube to 50 mm",46.00,"ea",0,4,5,"in",0,"svcw",{rho:0},["service","3-A","documented"],"Automated, fully documented, repeatable full-penetration tube welds with a smooth internal profile. Required for 3-A compliance in a milk line — a hand-made joint cannot meet the internal surface specification.","Requires square-cut, deburred tube ends, full argon purge and a weld coupon record for every joint. That documentation is much of what you are paying for."],
+["MFW-HT-QT","Heat treatment","Quench and temper","Per kg of load, 25 kg minimum",7.40,"kg",0,25,7,"in",0,"svcht",{rho:0},["service","hardening"],"Turns an ordinary carbon or alloy steel into a high-strength one. On a $7.40/kg basis this is often cheaper than upgrading the alloy, which is exactly the sort of comparison a Pugh chart should surface.","Specify the target hardness range, not the process. Distortion is unavoidable — leave grinding stock on critical surfaces."],
+["MFW-HT-CASE","Heat treatment","Carburising / case hardening","Per kg of load, 25 kg minimum",11.80,"kg",0,25,10,"in",0,"svcht",{rho:0},["service","surface hardening"],"Diffuses carbon into the surface to give a 0.5–1.5 mm case at 60 HRC over a tough, ductile core. It is how gear teeth and cam lobes get a hard wear surface without becoming brittle throughout.","Mask any surface that must stay soft, or machine the case off afterwards. Case depth must be specified — it drives cost more than part mass."],
+["MFW-HT-NITRIDE","Heat treatment","Gas nitriding","Per kg of load, 25 kg minimum",16.40,"kg",0,25,14,"in",0,"svcht",{rho:0},["service","low distortion"],"Runs at 500–530 °C, below the tempering temperature, so the part barely moves — the deciding advantage for a finish-machined die or a long slender shaft. Case is thin (0.2–0.5 mm) but reaches 1000 HV.","Only works on nitriding steels containing aluminium, chromium or molybdenum — 4140 and H13 nitride well, plain 1018 does not."],
+["MFW-HT-ANNEAL","Heat treatment","Stress-relief anneal","Per kg of load, 25 kg minimum",4.20,"kg",0,25,5,"in",0,"svcht",{rho:0},["service","stabilising"],"Relieves the residual stress left by welding, machining and forming. Skip it on a welded frame and the part will move during final machining or in its first thermal cycle in service.","Specify for any welded assembly that will be finish machined, and for any part that must hold tolerance over a long service life."],
+["MFW-GALV-HD","Finishing & coating","Hot-dip galvanising to ASTM A123","Per kg of load, 50 kg minimum",2.35,"kg",0,50,7,"in",0,"svcht",{rho:0},["service","cheapest protection"],"The cheapest durable corrosion protection there is. An 85 µm coating on a rural structure gives 50 years or more to first maintenance, which is why it is the default for agricultural steelwork.","Assemblies must have vent and drain holes at every enclosed section, or the trapped air will explode in the 450 °C kettle. Design those holes in from the start."],
+["MFW-POWDER-C","Finishing & coating","Polyester powder coating","Per m² of coated area",58.00,"m2",0,1,5,"in",0,"svc",{rho:0},["service","colour","UV"],"A tough, colour-fast, solvent-free finish. On its own it is a barrier coating only — one scratch through to the steel and undercutting rust begins, which is why the best specification is galvanise first, then powder coat over it.","Requires blast cleaning and phosphate pretreatment. Cures at 200 °C, so it cannot be applied over most polymers or heat-sensitive assemblies."],
+["MFW-EPOXY-C","Finishing & coating","Fusion-bonded epoxy coating","Per m² of coated area",74.00,"m2",0,1,7,"in",0,"svc",{rho:0},["service","buried service","chemical"],"The pipeline coating: thick, chemically resistant, and formulated for buried and immersed service where powder coat would fail. Standard for buried tanks and epoxy-coated steel digesters.","Applied to a preheated blast-cleaned surface. Field joints and damage must be patched with a compatible liquid epoxy or the holiday becomes a corrosion cell."],
+["MFW-PASSIVATE","Finishing & coating","Citric acid passivation to ASTM A967","Per kg of load",5.60,"kg",0,10,4,"in",0,"svc",{rho:0},["service","stainless","mandatory"],"Dissolves free iron left on a stainless surface by cutting, forming and grinding, then lets the chromium oxide film reform fully. Skip it and a perfectly specified 316L part will show rust spots within weeks — a very common and entirely avoidable failure.","Citric acid has largely replaced nitric acid: it works as well, is not an oxidiser, and the spent bath is far easier to treat."],
+["MFW-ELECTROPOL","Finishing & coating","Electropolishing","Per dm² of surface",19.50,"m2",0,5,7,"in",0,"svc",{rho:0},["service","sanitary","Ra reduction"],"Removes 10–40 µm of the deformed surface layer electrochemically, typically halving Ra and enriching the surface in chromium. It is the standard finish for aseptic process equipment.","Weld beads must be ground flush first; electropolishing exaggerates any surface defect rather than hiding it."],
+["MFW-BRAKE-BEND","Cutting","Press-brake forming","Per bend, up to 3 m length",8.50,"ea",0,4,3,"in",0,"svc",{rho:0},["service","sheet metal"],"Each bend is a discrete cost, so a part with twelve bends costs $102 in forming before any material. Redesigning to eight bends is usually a bigger saving than any material substitution.","Minimum inside bend radius is roughly one material thickness for mild steel and three for 6061-T6 aluminium; too tight and the outer fibre cracks."],
+["MFW-INJMOLD-T","Tooling","Injection mould tooling, aluminium prototype","Single cavity, up to 150 × 150 mm",6800.00,"ea",0,1,28,"in",0,"svc",{rho:0},["service","NRE","amortise"],"A non-recurring engineering charge that must be divided across your production volume. Over 500 parts it adds $13.60 each; over 50,000 parts it adds $0.14. Getting this amortisation right is the whole point of a production-volume analysis.","Aluminium tooling is good for roughly 10,000 shots. Hardened steel tooling costs three to four times more and lasts a million."],
+["MFW-INJMOLD-P","Tooling","Injection moulding, per part","Commodity polymer, 1000+ pieces",1.35,"ea",0,1000,35,"in",0,"svc",{rho:0},["service","high volume"],"Once the tool exists, each part costs little more than its material and a few seconds of machine time. This is why a moulded polymer component beats a machined one above a few thousand pieces and loses badly below a few hundred.","Includes material for a part of roughly 50 g. Cycle time, not material, dominates the per-part cost on thick sections."],
+["MFW-ROTOMOLD","Tooling","Rotational moulding setup","Tank moulds to 2000 L",3400.00,"ea",0,1,21,"in",0,"svc",{rho:0},["service","hollow parts"],"The economical route to large hollow polyethylene parts — spray tanks, hopper liners, digester vessels. Tooling is a fraction of injection-mould cost because there is no injection pressure to contain.","Wall thickness is set by charge mass and is inherently variable; do not design a rotomoulded part with tight wall tolerance."],
+["MFW-EXTRUDE-DIE","Tooling","Aluminium extrusion die","Profile within a 150 mm circle",2900.00,"ea",0,1,21,"in",0,"svc",{rho:0},["service","NRE","custom profile"],"A custom extrusion profile lets you integrate glazing channel, drainage gutter and fastener slot into a single part, deleting several assembly operations. Worth it above roughly 300 m of production.","Symmetric profiles with uniform wall thickness extrude cleanly; thin fins and sharp internal corners drive up die cost and scrap."],
+["MFW-VACINF-HR","Machining","Vacuum infusion layup labour","Shop rate, composites",92.00,"hr",0,1,5,"in",0,"svc",{rho:0},["service","composites"],"Skilled labour is the dominant cost in any composite part — usually well over half. This is the single largest reason natural-fibre composites struggle to compete with stamped steel on a finished-part basis.","Includes consumables (bagging film, peel ply, flow media, tubing), which typically add 15–20 % to material cost on every part."],
+["MFW-CERT-CMTR","Inspection","Mill test report / CMTR retrieval","Per heat number",45.00,"ea",0,1,3,"in",0,"svcqa",{rho:0},["service","documentation"],"Material traceability documentation. Any food-contact, pressure-containing or code-governed component needs it, and unheard-of as it may seem, the paperwork is sometimes the difference between an acceptable and a rejected installation.","Order it with the material — retrieving a certificate after the fact is often impossible once the heat is consumed."],
+["MFW-NDT-DPI","Inspection","Dye penetrant inspection","Per part",38.00,"ea",0,5,3,"in",0,"svcqa",{rho:0},["service","surface cracks"],"Reveals surface-breaking cracks in welds and castings on any non-porous material. It is the cheapest weld inspection there is and finds the defects that matter most in fatigue-loaded parts.","Surface must be clean and free of paint. It finds only surface defects — subsurface porosity needs radiography or ultrasonics."],
+["MFW-NDT-UT","Inspection","Ultrasonic weld inspection","Shop rate, certified Level II",155.00,"hr",0,1,5,"in",0,"svcqa",{rho:0},["service","volumetric"],"Detects internal lack of fusion and porosity in full-penetration welds. Required by code on pressure-containing welds — a digester tank shell, for example — and a legitimate line item in any safety-critical cost estimate.","Requires a smooth scanning surface and a calibration block of the same material and thickness."]
+]
+};
+
+/* ============================================================
+   Normalise rows -> product objects
+   ============================================================ */
+const UNITL={kg:"kg",m:"m",ea:"ea",m2:"m²",L:"L",hr:"h"};
+const PRODUCTS=[];
+Object.keys(ROWS).forEach(sid=>{
+  ROWS[sid].forEach(r=>{
+    PRODUCTS.push({sku:r[0],store:sid,cat:r[1],name:r[2],spec:r[3],price:r[4],unit:r[5],
+      kgu:r[6],moq:r[7],lead:r[8],stock:r[9],cut:r[10],sw:r[11],p:r[12]||{},tags:r[13]||[],
+      desc:r[14]||"",fab:r[15]||"",
+      svc:r[5]==="hr"||sid==="MFW"});
+  });
+});
+const BYSKU={}; PRODUCTS.forEach(p=>BYSKU[p.sku]=p);
+const STORE={}; STORES.forEach(s=>STORE[s.id]=s);
+
+/* volume breaks: generic ladder applied to stock materials */
+function breaks(p){
+  if(p.svc) return [];
+  if(p.unit==="kg") return [[100,4],[500,9],[2000,14]];
+  if(p.unit==="m")  return [[50,3],[200,7],[600,11]];
+  if(p.unit==="m2") return [[25,4],[100,8]];
+  if(p.unit==="L")  return [[40,5],[160,10]];
+  return [[25,3],[100,7],[500,12]];
+}
+function breakPct(p,q){let d=0;breaks(p).forEach(b=>{if(q>=b[0])d=b[1];});return d;}
+
+/* ============================================================
+   Project briefs (BREE 216 · Lab 5 material-selection project)
+   ============================================================ */
+const BRIEFS=[
+ {t:"Agricultural Tractor Plough Blade",fn:"Wear resistance · cutting efficiency · edge retention · impact toughness",
+  ch:"High-carbon steel vs. alloy steel vs. carbide-tipped steel",
+  sk:["LMS-1080-SPR","LMS-5160-SPR","LMS-AR400","LMS-AR500","VHM-WC6-INS","VHM-WCROD-HF","MFW-HT-QT","VHM-D2-PL"]},
+ {t:"Biomass Pellet Mill Die Components",fn:"Wear resistance · thermal stability · dimensional stability · fatigue resistance",
+  ch:"Tool steel vs. tungsten carbide vs. ceramic-coated steel",
+  sk:["VHM-H13-PL","VHM-D2-PL","VHM-WC10-BLK","VHM-WCCO-HVOF","VHM-SIC-TILE","MFW-HT-NITRIDE","BSA-410-BAR"]},
+ {t:"Greenhouse Structural Frame",fn:"Structural strength · corrosion resistance · thermal expansion · ease of assembly",
+  ch:"Galvanised steel vs. aluminium alloy vs. stainless steel",
+  sk:["LMS-HSS-5032","LMS-HSS-5048","LMS-6061-TUBE","LMS-6063-ANG","BSA-304-TUBE","TFC-FRP-TUBE50","MFW-GALV-HD","BSA-BOLT-M10"]},
+ {t:"Wood Chipper Blade Assembly",fn:"Impact toughness · wear resistance · fatigue resistance · sharpenability",
+  ch:"Spring steel vs. tool steel vs. hardened alloy steel",
+  sk:["LMS-5160-SPR","VHM-S7-PL","VHM-D2-PL","LMS-4140-QT","LMS-HARDOX450","VHM-WC6-INS","MFW-HT-QT"]},
+ {t:"Irrigation Pipe Material Selection",fn:"Pressure resistance · UV stability · chemical compatibility · soil stress resistance",
+  ch:"PVC vs. HDPE vs. polyethylene",
+  sk:["CPP-PVC-S40-50","CPP-PVC-S80-50","CPP-HDPE-50","CPP-HDPE-100","CPP-HDPE-COIL","CPP-PEX-25","CPP-HDPE-FUSE","CPP-PVCFIT-T50"]},
+ {t:"Biocomposite Building Panel Core",fn:"Structural strength · moisture resistance · thermal stability · fire resistance",
+  ch:"Natural fibre/epoxy vs. natural fibre/bio-resin vs. recycled polymer matrix",
+  sk:["TFC-FLAX-300","TFC-HEMP-400","TFC-JUTE-350","TFC-BIO-56","TFC-FURAN","TFC-SIP-50","TFC-STRAW-18","TFC-HEMPBLK","TFC-CORE-15"]},
+ {t:"Fertiliser Spreader Hopper",fn:"Chemical resistance · structural integrity · surface smoothness · weatherability",
+  ch:"Stainless steel vs. polymer-lined steel vs. fibreglass-reinforced plastic",
+  sk:["BSA-304-2B","BSA-316L-2B","LMS-GALV-SH10","CPP-UHMW-SH12","CPP-PP-SH12","TFC-FRP-PAN3","MFW-GALV-HD","LMS-5052-SH"]},
+ {t:"Dairy Milking System Components",fn:"Chemical resistance · bacterial resistance · cleanability · thermal shock resistance",
+  ch:"Stainless steel grades — 304 vs. 316 vs. 316L",
+  sk:["BSA-304-2B","BSA-316-2B","BSA-316L-2B","BSA-316L-N4","BSA-316L-EP","BSA-316L-TUBE","BSA-GASK-38","BSA-CLAMP-38","MFW-ORBITAL-W","MFW-PASSIVATE"]},
+ {t:"Solar Panel Mounting Hardware",fn:"Corrosion resistance · structural strength · thermal expansion · electrical conductivity",
+  ch:"Aluminium alloy vs. galvanised steel vs. stainless steel",
+  sk:["LMS-6063-ANG","LMS-6061-PL06","LMS-HSS-5032","BSA-BOLT-M10","BSA-NUT-M10","LMS-5052-SH","MFW-GALV-HD","BSA-304-2B"]},
+ {t:"Biogas Digester Tank",fn:"Chemical resistance · gas impermeability · structural integrity · soil load resistance",
+  ch:"Fibreglass vs. epoxy-coated steel vs. HDPE",
+  sk:["TFC-WR-600","TFC-VE-700","TFC-GELCOAT","LMS-A36-PL06","MFW-EPOXY-C","CPP-GEOM-15","CPP-EPDM-114","BSA-904L","BSA-2205-PL","MFW-NDT-UT"]},
+ {t:"Grain Storage Silo Components",fn:"Corrosion resistance · structural strength · thermal cycling · moisture barrier",
+  ch:"Galvanised steel vs. aluminium alloy vs. polymer-coated steel",
+  sk:["LMS-GALV-SH10","LMS-HSS-7648","LMS-5052-SH","CPP-UHMW-SH12","MFW-GALV-HD","MFW-POWDER-C","LMS-A36-PL06"]},
+ {t:"Sawmill Cutting Blade Material",fn:"Edge retention · thermal resistance · shock resistance · fatigue resistance",
+  ch:"Carbon steel vs. bi-metal blades vs. carbide-tipped steel",
+  sk:["LMS-1080-SPR","VHM-M2-HSS","VHM-BIMET-34","VHM-WC6-INS","VHM-O1-FG","VHM-TIN-COAT","LMS-5160-SPR"]},
+ {t:"Greenhouse Panels for Cold Climates",fn:"Thermal insulation · light transmission · impact durability · service life",
+  ch:"Twin-wall PC vs. triple-wall PC vs. acrylic vs. polyethylene film",
+  sk:["CPP-PC-TW8","CPP-PC-TW16","CPP-PC-SOL6","CPP-ACRYL-6","CPP-FILM-6","LMS-6063-ANG","TFC-CORE-15"]},
+ {t:"Wind Turbine Components (Macdonald Campus)",fn:"Fatigue resistance · ice/low-temperature toughness · specific stiffness · erosion resistance",
+  ch:"Glass/epoxy vs. carbon/epoxy vs. steel vs. aluminium",
+  sk:["TFC-WR-600","TFC-CF-200","TFC-EP-635","TFC-BAS-300","LMS-4140-QT","LMS-6061-PL06","VHM-DLC-COAT","MFW-NDT-UT"]},
+ {t:"Tractor Wheels for Canadian Farming",fn:"Impact toughness at −40 °C · fatigue · corrosion · wear",
+  ch:"Ductile iron vs. steel weldment vs. cast aluminium",
+  sk:["LMS-DI-6545","LMS-CI-G30","LMS-A36-PL12","LMS-6061-PL06","MFW-HT-QT","MFW-GALV-HD","LMS-5160-SPR"]},
+ {t:"Food-Grade Heat Exchanger for Milk",fn:"Thermal conductivity · food safety · CIP chemical resistance · thermal shock",
+  ch:"304 vs. 316L vs. titanium vs. nickel",
+  sk:["BSA-316L-HX","BSA-316L-2B","BSA-TI-GR2","BSA-NI200-SH","BSA-GASK-38","BSA-316L-TUBE","MFW-ORBITAL-W","MFW-ELECTROPOL"]},
+ {t:"Hydroponic Greenhouse Growing Tubes",fn:"Food safety · light exclusion · chemical leaching · UV stability · cleanability",
+  ch:"PVC vs. HDPE vs. PP vs. food-grade stainless",
+  sk:["CPP-PVC-S40-100","CPP-HDPE-100","CPP-PP-SH12","CPP-PETG-3","BSA-304-TUBE","CPP-PVCFIT-T50","CPP-UHMW-SH12"]}
+];
+
+/* ============================================================
+   State
+   ============================================================ */
+let CART = [];
+let CMP  = [];
+let VIEW = {v:"home"};
+let FILT = {cat:new Set(),tag:new Set(),sort:"rel",q:""};
+
+const $=id=>document.getElementById(id);
+const money=n=>"$"+n.toLocaleString("en-CA",{minimumFractionDigits:2,maximumFractionDigits:2});
+const money0=n=>"$"+n.toLocaleString("en-CA",{maximumFractionDigits:0});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("on"),2100);}
+function perKg(p){return p.kgu>0?p.price/p.kgu:null;}
+function stockTxt(s){return s==="in"?["In stock","i"]:s==="lo"?["Low stock","l"]:["Backorder","o"];}
+
+/* ============================================================
+   Router
+   ============================================================ */
+function go(h){location.hash=h;}
+function parseHash(){
+  const h=location.hash.replace(/^#\/?/,"");
+  const [path,qs]=h.split("?");
+  const seg=path.split("/").filter(Boolean);
+  const q=new URLSearchParams(qs||"");
+  if(!seg.length) return {v:"home"};
+  if(seg[0]==="store") return {v:"store",id:seg[1]};
+  if(seg[0]==="p")     return {v:"product",sku:decodeURIComponent(seg[1]||"")};
+  if(seg[0]==="search")return {v:"search",q:q.get("q")||""};
+  if(seg[0]==="briefs")return {v:"briefs"};
+  if(seg[0]==="brief") return {v:"brief",i:+seg[1]};
+  if(seg[0]==="sources")return{v:"sources"};
+  if(seg[0]==="how")   return {v:"how"};
+  return {v:"home"};
+}
+window.addEventListener("hashchange",()=>{VIEW=parseHash();FILT.cat.clear();FILT.tag.clear();render();window.scrollTo(0,0);});
+
+/* ============================================================
+   Chrome
+   ============================================================ */
+function chrome(inner){
+  const n=CART.reduce((a,c)=>a+1,0);
+  return `
+<div class="util"><div class="wrap">
+  <span><b>BREE&nbsp;216</b> · Bioresource Engineering Materials · Teaching marketplace</span>
+  <span class="sp"></span>
+  <span>Prices in <b>CAD</b> · GST 5 % + QST 9.975 %</span>
+  <span>Québec &amp; Ontario delivery</span>
+  <span><b>Quotes valid 14 days</b></span>
+</div></div>
+<header class="hdr"><div class="wrap">
+  <div class="logo" onclick="go('/')">
+    <div class="mk">BM</div>
+    <div class="tx"><b>BREE Marketplace</b><span>Materials Exchange</span></div>
+  </div>
+  <div class="search">
+    <span class="ico">🔍</span>
+    <input id="q" placeholder="Search 130+ materials, grades, services…" value="${esc(VIEW.v==="search"?VIEW.q:"")}"
+      onkeydown="if(event.key==='Enter')go('/search?q='+encodeURIComponent(this.value))">
+  </div>
+  <nav class="hnav">
+    <button onclick="go('/briefs')">Project&nbsp;briefs</button>
+    <button onclick="go('/how')">How&nbsp;to&nbsp;quote</button>
+    <button onclick="openRFQ()">Request&nbsp;a&nbsp;quote</button>
+    <button class="pill" onclick="openCart()">Cart${n?`<span class="badge">${n}</span>`:""}</button>
+  </nav>
+</div></header>
+<div class="strip"><div class="wrap">
+  <button class="${VIEW.v==="home"?"on":""}" onclick="go('/')">All stores</button>
+  ${STORES.map(s=>`<button class="${VIEW.v==="store"&&VIEW.id===s.id?"on":""}" onclick="go('/store/${s.id}')">${s.em} ${esc(s.name)}</button>`).join("")}
+  <button class="${VIEW.v==="briefs"?"on":""}" onclick="go('/briefs')">Project briefs</button>
+  <button class="${VIEW.v==="sources"?"on":""}" onclick="go('/sources')">Price sources</button>
+</div></div>
+${inner}
+<footer><div class="wrap">
+  <div class="cols">
+    <div>
+      <h5>BREE Marketplace</h5>
+      <p style="margin:0 0 10px;line-height:1.6">A simulated supplier network built for BREE&nbsp;216 at McGill University. Every price is anchored to real published supplier and commodity data from August&nbsp;2026 so that student cost analyses are defensible — but the vendors themselves are fictional teaching constructs.</p>
+      <p style="margin:0;color:#6e829c">Department of Bioresource Engineering<br>Macdonald Campus, Sainte-Anne-de-Bellevue, QC</p>
+    </div>
+    <div><h5>Stores</h5>${STORES.map(s=>`<a onclick="go('/store/${s.id}')">${esc(s.name)}</a>`).join("")}</div>
+    <div><h5>Using the site</h5>
+      <a onclick="go('/how')">How to build a quote</a>
+      <a onclick="go('/briefs')">Project briefs</a>
+      <a onclick="openCmp()">Compare materials</a>
+      <a onclick="openRFQ()">Request a quote (RFQ)</a>
+      <a onclick="go('/sources')">Where prices come from</a>
+    </div>
+    <div><h5>Commercial terms</h5>
+      <a onclick="go('/how')">Cutting &amp; handling fees</a>
+      <a onclick="go('/how')">Volume price breaks</a>
+      <a onclick="go('/how')">Freight &amp; taxes</a>
+      <a onclick="go('/how')">Lead times &amp; MOQ</a>
+    </div>
+  </div>
+  <div class="bot">
+    <span>© 2026 BREE Marketplace — a teaching simulation. Not a real vendor. Do not attempt to place a real order.</span>
+    <span>Catalogue build 2026.08.19</span>
+  </div>
+</div></footer>`;
+}
+
+/* ============================================================
+   Product card
+   ============================================================ */
+function pcard(p){
+  const s=STORE[p.store], st=stockTxt(p.stock), on=CMP.includes(p.sku);
+  const pk=perKg(p);
+  return `<div class="pcard">
+    <div class="cmpbox" title="Add to comparison"><input type="checkbox" ${on?"checked":""} onclick="event.stopPropagation();toggleCmp('${p.sku}')"></div>
+    <div class="swatch" style="background:${SW[p.sw]||SW.hrsteel}" onclick="go('/p/${encodeURIComponent(p.sku)}')">
+      <span class="lbl">${esc(p.spec)}</span>
+    </div>
+    <div class="bod">
+      <div class="sku">${esc(p.sku)} · <span style="color:${s.c}">${esc(s.id)}</span></div>
+      <div class="nm" onclick="go('/p/${encodeURIComponent(p.sku)}')">${esc(p.name)}</div>
+      <div class="spx">${p.tags.slice(0,3).map(t=>`<span>${esc(t)}</span>`).join("")}</div>
+      <div class="tiny"><span class="stk ${st[1]}">● ${st[0]}</span> <span class="muted">· ${p.lead} day lead</span></div>
+      <div class="pr"><b>${money(p.price)}</b><i>/ ${UNITL[p.unit]}</i>
+        ${pk&&p.unit!=="kg"?`<i style="margin-left:auto">≈ ${money(pk)}/kg</i>`:""}</div>
+      <div class="act">
+        <button class="btn sm acc" onclick="addCart('${p.sku}')">Add</button>
+        <button class="btn sm gh" onclick="go('/p/${encodeURIComponent(p.sku)}')">Details</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   HOME
+   ============================================================ */
+function vHome(){
+  const feat=["LMS-HSS-5032","BSA-316L-2B","CPP-PC-TW8","TFC-FLAX-300","VHM-WC6-INS","CPP-HDPE-50","LMS-AR400","MFW-GALV-HD"].map(k=>BYSKU[k]).filter(Boolean);
+  return `
+<div class="hero"><div class="wrap">
+  <h1>Every material your design brief needs — with a real price on it.</h1>
+  <p>Six supplier catalogues built for BREE 216. Compare grades side by side, watch the cost move as you change form and finish, then generate a formatted quotation you can drop straight into your material-selection report.</p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn acc" onclick="go('/briefs')">Start from your project brief →</button>
+    <button class="btn gh" onclick="go('/how')">How to build a defensible quote</button>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><b>${PRODUCTS.length}</b><span>Priced line items</span></div>
+    <div class="kpi"><b>6</b><span>Supplier catalogues</span></div>
+    <div class="kpi"><b>17</b><span>Project briefs mapped</span></div>
+    <div class="kpi"><b>14</b><span>Properties per material</span></div>
+  </div>
+</div></div>
+
+<div class="wrap">
+  <div class="sec">
+    <h2>Supplier directory</h2>
+    <p class="lede">Each store carries a different slice of the materials space, and several carry the <em>same</em> component in a different material or form — a 50 mm square tube, for example, is stocked in galvanised steel, aluminium and pultruded FRP. Those overlaps are deliberate: they are where the interesting selection arguments live.</p>
+    <div class="sgrid">${STORES.map(s=>{
+      const n=PRODUCTS.filter(p=>p.store===s.id).length;
+      const lo=Math.min(...PRODUCTS.filter(p=>p.store===s.id).map(p=>p.price));
+      return `<div class="scard" onclick="go('/store/${s.id}')">
+        <div class="bnr" style="background:linear-gradient(120deg,${s.c},${s.c2})">
+          <div class="em">${s.em}</div>
+          <div class="tt"><b>${esc(s.name)}</b><span>${esc(s.tag)}</span></div>
+        </div>
+        <div class="bd">
+          <p>${esc(s.blurb)}</p>
+          <div class="cats">${s.cats.map(c=>`<span class="tag">${esc(c)}</span>`).join("")}</div>
+          <div class="mt">
+            <span><b>${n}</b> line items</span>
+            <span>from <b>${money(lo)}</b></span>
+            <span class="stars">${"★".repeat(Math.round(s.rating))}</span><span>${s.rating} (${s.revs})</span>
+          </div>
+        </div>
+      </div>`;}).join("")}</div>
+  </div>
+
+  <div class="sec">
+    <h2>Frequently specified</h2>
+    <div class="pgrid">${feat.map(pcard).join("")}</div>
+  </div>
+
+  <div class="sec">
+    <div class="card pad">
+      <h2>Three comparisons worth making before you commit</h2>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(270px,1fr))">
+        <div>
+          <h3>Same section, three materials</h3>
+          <p class="tiny muted" style="margin:0 0 8px">50 × 50 mm square tube — identical geometry, three very different answers.</p>
+          <button class="btn sm gh" onclick="setCmp(['LMS-HSS-5032','LMS-6061-TUBE','TFC-FRP-TUBE50'])">Compare the three →</button>
+        </div>
+        <div>
+          <h3>304 vs. 316 vs. 316L</h3>
+          <p class="tiny muted" style="margin:0 0 8px">The single most common trade-off in food-contact equipment, and it turns on 2 % molybdenum.</p>
+          <button class="btn sm gh" onclick="setCmp(['BSA-304-2B','BSA-316-2B','BSA-316L-2B','BSA-316L-EP'])">Compare the grades →</button>
+        </div>
+        <div>
+          <h3>Glass vs. flax vs. carbon</h3>
+          <p class="tiny muted" style="margin:0 0 8px">Price, specific stiffness and embodied energy pull in three different directions.</p>
+          <button class="btn sm gh" onclick="setCmp(['TFC-WR-600','TFC-FLAX-300','TFC-BAS-300','TFC-CF-200'])">Compare the fibres →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>`;
+}
+
+/* ============================================================
+   STORE
+   ============================================================ */
+function vStore(){
+  const s=STORE[VIEW.id]; if(!s) return vHome();
+  let items=PRODUCTS.filter(p=>p.store===s.id);
+  const cats=[...new Set(items.map(p=>p.cat))];
+  const tags=[...new Set(items.flatMap(p=>p.tags))].sort();
+  if(FILT.cat.size) items=items.filter(p=>FILT.cat.has(p.cat));
+  if(FILT.tag.size) items=items.filter(p=>p.tags.some(t=>FILT.tag.has(t)));
+  items=sortItems(items);
+  return `
+<div class="shdr" style="background:linear-gradient(120deg,${s.c},${s.c2})"><div class="wrap">
+  <div class="em">${s.em}</div>
+  <div><h1>${esc(s.name)}</h1><div class="sub">${esc(s.tag)} · ${esc(s.city)} · established ${s.est}</div></div>
+  <div class="bits">
+    <div><b>${s.rating}</b><span>${s.revs} ratings</span></div>
+    <div><b>${PRODUCTS.filter(p=>p.store===s.id).length}</b><span>line items</span></div>
+    <div style="max-width:230px;text-align:left"><span>${esc(s.ship)}</span></div>
+  </div>
+</div></div>
+<div class="wrap">
+  <div class="crumb"><a onclick="go('/')">All stores</a> › ${esc(s.name)}</div>
+  <p class="lede" style="margin-top:12px">${esc(s.blurb)}</p>
+  <div class="notice b"><b>Trading terms — read before quoting.</b> ${esc(s.policy)} <em>${esc(s.moqnote)}</em></div>
+  <div class="layout" style="margin-top:18px">
+    <div class="side">
+      <div class="fbox"><h4>Category</h4>
+        ${cats.map(c=>`<label><input type="checkbox" ${FILT.cat.has(c)?"checked":""} onchange="tgl('cat','${esc(c)}')">${esc(c)}<span class="ct">${PRODUCTS.filter(p=>p.store===s.id&&p.cat===c).length}</span></label>`).join("")}
+      </div>
+      <div class="fbox"><h4>Attribute</h4>
+        ${tags.slice(0,16).map(t=>`<label><input type="checkbox" ${FILT.tag.has(t)?"checked":""} onchange="tgl('tag','${esc(t)}')">${esc(t)}</label>`).join("")}
+      </div>
+      <div class="fbox"><h4>Sort by</h4>
+        ${[["rel","Catalogue order"],["plo","Price, low to high"],["phi","Price, high to low"],["klo","$ per kg, low to high"],["den","Density, low to high"],["str","Yield strength, high to low"]].map(o=>`<label><input type="radio" name="srt" ${FILT.sort===o[0]?"checked":""} onchange="FILT.sort='${o[0]}';render()">${o[1]}</label>`).join("")}
+      </div>
+      ${(FILT.cat.size||FILT.tag.size)?`<button class="btn gh sm wide" onclick="FILT.cat.clear();FILT.tag.clear();render()">Clear filters</button>`:""}
+    </div>
+    <div>
+      <div style="display:flex;align-items:center;margin-bottom:12px">
+        <b>${items.length}</b><span class="muted" style="margin-left:5px">line item${items.length===1?"":"s"}</span>
+        <span class="tiny muted" style="margin-left:auto">Tick the box on any card to add it to the comparison tray</span>
+      </div>
+      ${items.length?`<div class="pgrid">${items.map(pcard).join("")}</div>`:`<div class="empty"><div class="ic">⌀</div>Nothing matches those filters.</div>`}
+    </div>
+  </div>
+</div>`;
+}
+function sortItems(a){
+  const f=FILT.sort;const c=[...a];
+  if(f==="plo")c.sort((x,y)=>x.price-y.price);
+  if(f==="phi")c.sort((x,y)=>y.price-x.price);
+  if(f==="klo")c.sort((x,y)=>(perKg(x)??9e9)-(perKg(y)??9e9));
+  if(f==="den")c.sort((x,y)=>(x.p.rho||9e9)-(y.p.rho||9e9));
+  if(f==="str")c.sort((x,y)=>(y.p.sy||-1)-(x.p.sy||-1));
+  return c;
+}
+function tgl(k,v){const S=FILT[k];S.has(v)?S.delete(v):S.add(v);render();}
+
+/* ============================================================
+   PRODUCT
+   ============================================================ */
+const PROPDEF=[
+ ["rho","Density","kg/m³"],["sy","Yield strength","MPa"],["su","Tensile strength","MPa"],
+ ["E","Young's modulus","GPa"],["el","Elongation at break","%"],["kic","Fracture toughness","MPa·m½"],
+ ["hb","Hardness",""],["K","Thermal conductivity","W/m·K"],["a","Thermal expansion","µm/m·K"],
+ ["tmax","Max service temp.","°C"],["corr","Corrosion resistance","/5"],["uv","UV resistance","/5"],
+ ["recy","Recycled content potential","%"],["ee","Embodied energy","MJ/kg"]
+];
+function vProduct(){
+  const p=BYSKU[VIEW.sku]; if(!p) return vHome();
+  const s=STORE[p.store],st=stockTxt(p.stock),pk=perKg(p);
+  const rel=PRODUCTS.filter(x=>x.sku!==p.sku&&(x.cat===p.cat||x.tags.some(t=>p.tags.includes(t)))).slice(0,4);
+  const sp=p.p;
+  const rows=PROPDEF.filter(d=>sp[d[0]]!==undefined&&sp[d[0]]!==0||d[0]==="sy"&&sp.sy===0)
+    .map(d=>{let v=sp[d[0]];
+      if(d[0]==="sy"&&v===0)v="— (brittle: no yield)";
+      else if(d[0]==="corr"||d[0]==="uv")v="★".repeat(v)+"☆".repeat(5-v);
+      else v=typeof v==="number"?v.toLocaleString("en-CA"):v;
+      return `<div class="specrow"><span>${d[1]}</span><b>${v}${d[2]&&typeof sp[d[0]]==="number"&&d[0]!=="corr"&&d[0]!=="uv"?" "+d[2]:""}</b></div>`;}).join("");
+  const bl=breaks(p);
+  const REV=[
+   ["Marie-Ève T.","Verified purchase",5,"Cut exactly to the lengths on our drawing and the mill cert came through the same day. We used this on the Lab 3 tensile coupons."],
+   ["D. Nkemelu","Verified purchase",4,"Good material. Watch the minimum order — we needed 8 kg and had to buy 25."],
+   ["Farm Systems Group","Verified purchase",5,"Third order this season. Consistent, and the lead time quoted has been accurate every time."]];
+  return `
+<div class="wrap">
+  <div class="crumb"><a onclick="go('/')">All stores</a> › <a onclick="go('/store/${s.id}')">${esc(s.name)}</a> › ${esc(p.cat)} › ${esc(p.sku)}</div>
+  <div class="sec"><div class="card pad">
+  <div class="pd">
+    <div>
+      <div class="vis" style="background:${SW[p.sw]||SW.hrsteel}"><span class="cap">${esc(p.spec)}</span></div>
+      <div class="buy">
+        <div class="price">${money(p.price)}<small> / ${UNITL[p.unit]}</small></div>
+        ${pk&&p.unit!=="kg"?`<div class="tiny muted">≈ ${money(pk)} per kg · ${p.kgu} kg per ${UNITL[p.unit]}</div>`:""}
+        ${pk&&p.unit==="kg"&&sp.rho?`<div class="tiny muted">≈ ${money(p.price*sp.rho/1000)} per litre of material</div>`:""}
+        <hr class="hr" style="margin:11px 0">
+        <div class="tiny"><span class="stk ${st[1]}">● ${st[0]}</span> · ships in ${p.lead} working day${p.lead===1?"":"s"}</div>
+        <div class="tiny muted">Minimum order ${p.moq} ${UNITL[p.unit]}${p.cut?` · cut-to-length fee ${money(p.cut)} per cut`:""}</div>
+        ${bl.length?`<table class="dt" style="margin-top:10px"><tr><th>Order ≥</th><th class="right">Unit price</th></tr>
+          ${bl.map(b=>`<tr><td class="mono">${b[0]} ${UNITL[p.unit]}</td><td class="n">${money(p.price*(1-b[1]/100))} <span class="muted">−${b[1]} %</span></td></tr>`).join("")}</table>`:""}
+        <div style="display:flex;gap:7px;margin-top:12px">
+          <button class="btn acc" style="flex:1" onclick="addCart('${p.sku}')">Add to quote</button>
+          <button class="btn gh" onclick="toggleCmp('${p.sku}')">${CMP.includes(p.sku)?"In tray":"Compare"}</button>
+        </div>
+        <button class="btn gh sm wide" style="margin-top:7px" onclick="openRFQ('${p.sku}')">Request formal quotation</button>
+      </div>
+    </div>
+    <div>
+      <div class="tag b">${esc(s.name)}</div>
+      <h1 style="margin:8px 0 4px">${esc(p.name)}</h1>
+      <div class="mono muted" style="font-size:12.5px">${esc(p.sku)} · ${esc(p.spec)}</div>
+      <div style="margin:10px 0">${p.tags.map(t=>`<span class="tag" style="margin-right:4px">${esc(t)}</span>`).join("")}</div>
+      <p style="font-size:13.5px;line-height:1.62;color:var(--ink2)">${esc(p.desc)}</p>
+      ${p.fab?`<div class="notice"><b>Fabrication route.</b> ${esc(p.fab)}</div>`:""}
+      ${rows?`<h3 style="margin-top:18px">Material data sheet</h3><div class="specs">${rows}</div>
+      ${sp.rho&&sp.sy?`<div class="notice g" style="margin-top:14px"><b>Derived indices.</b>
+        Specific strength σ<sub>y</sub>/ρ = <b>${(sp.sy/sp.rho*1000).toFixed(1)} kN·m/kg</b> ·
+        Specific stiffness E/ρ = <b>${(sp.E/sp.rho*1e6).toFixed(1)} kN·m/kg</b> ·
+        ${pk?`Strength per dollar σ<sub>y</sub>/(ρ·$/kg) = <b>${(sp.sy/(sp.rho*pk)*1e3).toFixed(2)}</b>`:""}
+        <br><span class="tiny">These are the axes of an Ashby chart. Use them, not raw strength, when mass or cost is part of the objective.</span></div>`:""}`:
+      `<div class="notice b"><b>This is a process, not a material.</b> Price it into your cost model alongside the stock you intend to buy — a material is only as economical as it is to turn into a finished part.</div>`}
+      <div class="tabs">
+        <button class="on">Buyer notes</button>
+      </div>
+      ${REV.slice(0,2).map(r=>`<div class="rev"><div class="rh"><b>${esc(r[0])}</b><span class="stars">${"★".repeat(r[2])}</span><span class="tag g">${esc(r[1])}</span></div><p>${esc(r[3])}</p></div>`).join("")}
+    </div>
+  </div>
+  </div></div>
+  ${rel.length?`<div class="sec"><h2>Also considered for this application</h2><div class="pgrid">${rel.map(pcard).join("")}</div></div>`:""}
+</div>`;
+}
+
+/* ============================================================
+   SEARCH
+   ============================================================ */
+function vSearch(){
+  const q=(VIEW.q||"").toLowerCase().trim();
+  let items=q?PRODUCTS.filter(p=>(p.name+" "+p.sku+" "+p.cat+" "+p.spec+" "+p.tags.join(" ")+" "+p.desc+" "+STORE[p.store].name).toLowerCase().includes(q)):[];
+  items=sortItems(items);
+  return `<div class="wrap">
+    <div class="crumb"><a onclick="go('/')">All stores</a> › Search</div>
+    <h1>${items.length} result${items.length===1?"":"s"} for “${esc(VIEW.q)}”</h1>
+    ${items.length?`<div class="pgrid" style="margin-top:16px">${items.map(pcard).join("")}</div>`:
+      `<div class="empty"><div class="ic">⌀</div>No line item matches that. Try a grade designation (316L, 6061, PE4710), a form (tube, sheet, plate) or a property (abrasion, food grade, insulating).</div>`}
+  </div>`;
+}
+
+/* ============================================================
+   BRIEFS
+   ============================================================ */
+function vBriefs(){
+  return `<div class="wrap">
+    <div class="crumb"><a onclick="go('/')">All stores</a> › Project briefs</div>
+    <h1>Project briefs</h1>
+    <p class="lede">Every brief issued for the BREE 216 material-selection project, each mapped to the line items in this marketplace that a credible shortlist would draw on. Open a brief to load its candidate materials straight into the comparison tool.</p>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(330px,1fr))">
+      ${BRIEFS.map((b,i)=>`<div class="card pad" style="cursor:pointer" onclick="go('/brief/${i}')">
+        <div class="tag b">Brief ${String(i+1).padStart(2,"0")}</div>
+        <h3 style="margin:8px 0 6px;font-size:15px">${esc(b.t)}</h3>
+        <p class="tiny muted" style="margin:0 0 8px"><b>Key functions:</b> ${esc(b.fn)}</p>
+        <p class="tiny" style="margin:0 0 10px"><b>Material challenge:</b> ${esc(b.ch)}</p>
+        <div class="tiny muted"><b>${b.sk.length}</b> candidate line items across ${new Set(b.sk.map(k=>BYSKU[k]&&BYSKU[k].store).filter(Boolean)).size} stores →</div>
+      </div>`).join("")}
+    </div>
+  </div>`;
+}
+function vBrief(){
+  const b=BRIEFS[VIEW.i]; if(!b) return vBriefs();
+  const items=b.sk.map(k=>BYSKU[k]).filter(Boolean);
+  const mats=items.filter(p=>!p.svc), svcs=items.filter(p=>p.svc);
+  return `<div class="wrap">
+    <div class="crumb"><a onclick="go('/')">All stores</a> › <a onclick="go('/briefs')">Project briefs</a> › Brief ${String(VIEW.i+1).padStart(2,"0")}</div>
+    <h1>${esc(b.t)}</h1>
+    <p class="lede"><b>Key functions:</b> ${esc(b.fn)}<br><b>Stated material challenge:</b> ${esc(b.ch)}</p>
+    <div class="notice"><b>These are candidates, not answers.</b> The shortlist below is what a competent engineer would put on the table. Which one wins depends on how you weight the criteria in your Pugh chart — and your report is marked on that justification, not on the choice itself.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:14px 0">
+      <button class="btn acc" onclick="setCmp(${JSON.stringify(mats.slice(0,6).map(p=>p.sku))})">Load first 6 into the comparison tool →</button>
+      <button class="btn gh" onclick="addMany(${JSON.stringify(b.sk)})">Add every candidate to the quote</button>
+    </div>
+    <div class="sec"><h2>Candidate materials</h2><div class="pgrid">${mats.map(pcard).join("")}</div></div>
+    ${svcs.length?`<div class="sec"><h2>Processing and finishing you must also cost</h2>
+      <p class="lede">A material choice you cannot afford to fabricate is not a material choice. These are the process line items your cost model needs.</p>
+      <div class="pgrid">${svcs.map(pcard).join("")}</div></div>`:""}
+  </div>`;
+}
+
+/* ============================================================
+   HOW TO QUOTE
+   ============================================================ */
+function vHow(){
+  return `<div class="wrap">
+  <div class="crumb"><a onclick="go('/')">All stores</a> › How to build a quote</div>
+  <h1>How to build a quote your marker will believe</h1>
+  <p class="lede">Most material-selection reports lose marks in the same place: the cost column. A single number pulled from a website with no basis, no quantity and no date is not a cost estimate. Here is what a defensible one contains, and how this marketplace produces it.</p>
+
+  <div class="sec"><div class="card pad">
+    <h2>1 · Price the function, not the kilogram</h2>
+    <p>A price per kilogram tells you almost nothing on its own. What your design consumes is a <em>function</em> — a beam that resists a bending moment, a panel that stops a heat flux, a pipe that contains a pressure. Convert every candidate to the cost of delivering that function before you compare.</p>
+    <table class="dt" style="margin-top:10px">
+      <tr><th>If the design is limited by…</th><th>Minimise…</th><th>Worked example from this catalogue</th></tr>
+      <tr><td>Strength at minimum mass</td><td class="mono">ρ·C<sub>m</sub>/σ<sub>y</sub></td><td>A36 plate at $5.20/kg beats 6061-T6 at $9.85/kg on cost, but 6061 has 2.9× the specific strength — so for a mass-limited part the aluminium can still win.</td></tr>
+      <tr><td>Stiffness at minimum mass</td><td class="mono">ρ·C<sub>m</sub>/E<sup>1/2</sup></td><td>FRP tube looks light until you notice E = 17 GPa against 200 for steel. Deflection, not stress, will govern your frame.</td></tr>
+      <tr><td>Heat loss through an envelope</td><td class="mono">C<sub>area</sub>·U</td><td>Polyethylene film is $1.75/m² against $27.70/m² for twin-wall PC — but the film is replaced every four years and insulates far worse.</td></tr>
+      <tr><td>Abrasive wear life</td><td class="mono">C<sub>part</sub>/(wear life)</td><td>AR400 at $9.75/kg lasts roughly 3× A36 at $5.20/kg. On a per-hour-of-service basis it is the cheaper plate.</td></tr>
+    </table>
+  </div></div>
+
+  <div class="sec"><div class="card pad">
+    <h2>2 · Include everything a real invoice includes</h2>
+    <p>Material price is rarely more than half of what lands on the invoice. The quote generator on this site applies each of the following automatically, so read the line items rather than just the total.</p>
+    <table class="dt">
+      <tr><th>Line</th><th>How it works here</th><th>Why it matters to your argument</th></tr>
+      <tr><td><b>Minimum order quantity</b></td><td>Quantities below the MOQ are rounded up and flagged.</td><td>Needing 8 kg and buying 25 kg makes the effective cost of your prototype three times the catalogue price.</td></tr>
+      <tr><td><b>Volume price break</b></td><td>Tiered discounts of 3–14 % applied by quantity.</td><td>The material ranking can invert between prototype and production volume. Say which one you are costing.</td></tr>
+      <tr><td><b>Cut-to-length fee</b></td><td>A flat charge per cut on bar, tube and pipe.</td><td>Twenty short pieces cost twenty cutting fees. Designing to stock lengths is a real saving.</td></tr>
+      <tr><td><b>Processing</b></td><td>Machining, welding, heat treatment and coating are priced at Macdonald Fab Works.</td><td>Aluminium cuts 3–4× faster than steel. Finished-part cost often reverses the material-price ranking.</td></tr>
+      <tr><td><b>Freight</b></td><td>Estimated at $45 base + $0.85/kg, with a $22 surcharge on any item over 4 m.</td><td>Mass-heavy choices carry a freight penalty that never appears on a $/kg comparison.</td></tr>
+      <tr><td><b>GST + QST</b></td><td>5 % + 9.975 %, compounded as in Québec.</td><td>Taxes are 14.975 % of the subtotal. Quote your figures ex-tax and say so, or include them and say so — but be explicit.</td></tr>
+    </table>
+  </div></div>
+
+  <div class="sec"><div class="card pad">
+    <h2>3 · Date it, bound it, and cite it</h2>
+    <p>Commodity-linked prices move. Every quotation this site generates carries a quote number, an issue date and a fourteen-day validity — copy all three into your report. A price without a date is not a price.</p>
+    <div class="notice b">In your report, write it like this:<br>
+    <span class="mono" style="display:block;margin-top:6px;font-size:12px">316L stainless sheet, 1.5 mm, 2B finish — $16.20/kg (Boréal Stainless &amp; Alloy, quote BREE-20260819-0142, 19 Aug 2026, 10 kg MOQ, ex-tax, ex-works Saint-Laurent QC).</span></div>
+  </div></div>
+
+  <div class="sec"><div class="card pad">
+    <h2>4 · Then argue the trade-off</h2>
+    <p>The marketplace gives you the numbers. It does not give you the decision. Your Pugh chart still has to weight cost against the properties that matter for the brief, and your report has to defend those weights. A shortlist where the cheapest option wins every criterion means you have not chosen a hard enough shortlist.</p>
+    <button class="btn acc" onclick="go('/briefs')">Go to the project briefs →</button>
+  </div></div>
+</div>`;
+}
+
+/* ============================================================
+   SOURCES
+   ============================================================ */
+function vSources(){
+  const S=[
+   ["Carbon steel plate, sheet &amp; bar","Retail cut-piece pricing for 44W hot-rolled sheet, cold-finished 1018, 4140 and T400 abrasion plate, July 2026","Metals ’R’ Us (Canada) — steel plate &amp; bar price guide","metalsrus.ca"],
+   ["Commodity metal spot prices","Aluminium CA$2.02/lb, copper CA$8.97/lb, nickel CA$10.56/lb, zinc CA$2.33/lb, steel rebar CA$623.48/t — 18 Aug 2026","Daily Metal Price (CAD table)","dailymetalprice.com"],
+   ["Stainless steel by grade and form","304 sheet US$1.55–1.85/lb, 316L sheet US$2.05–2.55/lb, 2205 duplex US$3.10–3.90/lb, 17-4 PH US$3.60–5.00/lb, May 2026","MW Alloys — stainless prices per pound","mwalloys.com"],
+   ["6061 aluminium","Mill-direct US$2.40/lb average, retail small-quantity US$3.50–6.00/lb; form multipliers for plate, extrusion and temper","Hugh Aluminum — 6061 cost per pound 2026","hugh-aluminum.com"],
+   ["HDPE pipe","2 in IPS SDR11 PE4710 at US$2.94/ft, with the 1 in to 12 in ladder and the real US$0.50–10.00 cutting-fee schedule this site reproduces","HDPE Supply — PE4710 straight length per foot","hdpesupply.com"],
+   ["PVC pressure pipe","Schedule 40 at US$0.50–2.50/ft for ½–2 in and US$2.00–6.00/ft for 3–6 in, 2026","LatestCost — PVC pipe cost per foot","latestcost.com"],
+   ["Polycarbonate glazing","8 mm clear twin-wall, 48 in × 8 ft, US$275 per 5-panel bundle (US$55/panel ≈ CA$25/m²)","Greenhouse Megastore — 8 mm twinwall panel","greenhousemegastore.com"],
+   ["Composite reinforcement &amp; resin","CSM 1½ oz US$4.00/yd, woven roving 18 oz US$5.25/yd, carbon 2×2 twill US$44.50/yd, polyester resin US$34/gal, vinyl ester US$76.50/gal, epoxy kit US$97.50","US Composites — published price list","uscomposites.com"],
+   ["Tungsten carbide","Medium WC powder US$146.76/kg ex-VAT, Q3 2026, with WC-Co blend values by cobalt content; sintered blanks marked up for pressing, sintering and grinding","Langsun Carbide — Q3 2026 price analysis","langsuncarbide.com"],
+   ["Machining shop rates","3-axis CNC mill US$40–100/h, CNC lathe US$50–110/h, 5-axis US$120–300/h","CNC Machines — cost to run a CNC machine per hour","cncmachines.com"],
+   ["Structural tube geometry","Galvanised HSS mass per foot by size and wall (2×2×11 GA = 3.32 lb/ft, 3×3×¼ = 9.52 lb/ft), ASTM A500B / A513 G90","Metals Depot — galvanised square tube","metalsdepot.com"]];
+  return `<div class="wrap">
+  <div class="crumb"><a onclick="go('/')">All stores</a> › Price sources</div>
+  <h1>Where these prices come from</h1>
+  <p class="lede">The vendors on this site are fictional. The prices are not. Every catalogue figure was anchored to published supplier or commodity data retrieved in August 2026, converted to Canadian dollars at <b>USD 1.00 = CAD 1.37</b>, and adjusted for form, grade and order quantity using the multipliers those same sources publish. Where a source gave a range, the catalogue sits near its midpoint.</p>
+  <div class="notice"><b>What this means for your report.</b> You may cite the marketplace as your vendor quotation — that is what it is for. If you want to go further and cite the underlying market data directly, the primary sources are listed below. Either is defensible; inventing a number is not.</div>
+  <div class="card" style="margin-top:18px;overflow:hidden">
+    <table class="dt">
+      <tr><th>Catalogue area</th><th>Anchor data used</th><th>Primary source</th></tr>
+      ${S.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${esc(r[2])}<br><span class="mono tiny muted">${esc(r[3])}</span></td></tr>`).join("")}
+    </table>
+  </div>
+  <div class="sec"><div class="card pad">
+    <h3>Property data</h3>
+    <p class="tiny muted" style="margin:0">Density, modulus, strength, hardness, thermal and corrosion figures are handbook values typical of the grade and condition stated. They are representative, not certified: a real design must use the values on the mill certificate for the actual heat supplied, which is why <span class="mono">MFW-CERT-CMTR</span> exists in this catalogue.</p>
+  </div></div>
+</div>`;
+}
+
+/* ============================================================
+   CART
+   ============================================================ */
+function findLine(sku){return CART.find(l=>l.sku===sku);}
+function addCart(sku,q){
+  const p=BYSKU[sku]; if(!p) return;
+  const l=findLine(sku);
+  if(l){l.q+= (q||p.moq);}
+  else CART.push({sku,q:q||p.moq,cut:false,cuts:1});
+  render(); openCart(); toast(p.name+" added");
+}
+function addMany(list){list.forEach(k=>{if(BYSKU[k]&&!findLine(k))CART.push({sku:k,q:BYSKU[k].moq,cut:false,cuts:1});});render();openCart();toast(list.length+" line items added");}
+function setQ(sku,v){const l=findLine(sku); if(!l)return; l.q=Math.max(0,+v||0); if(l.q===0)CART=CART.filter(x=>x.sku!==sku); render();}
+function bump(sku,d){const l=findLine(sku),p=BYSKU[sku];const step=p.unit==="ea"||p.unit==="hr"?1:(p.unit==="kg"?5:1);setQ(sku,Math.max(0,l.q+d*step));}
+function rm(sku){CART=CART.filter(x=>x.sku!==sku);render();}
+function toggleCut(sku){const l=findLine(sku);l.cut=!l.cut;render();}
+function setCuts(sku,v){const l=findLine(sku);l.cuts=Math.max(1,+v||1);render();}
+
+function calc(){
+  let sub=0,mass=0,cutf=0,disc=0,longItem=false,warn=[];
+  const lines=CART.map(l=>{
+    const p=BYSKU[l.sku];
+    const qty=Math.max(l.q,p.moq);
+    if(l.q<p.moq) warn.push(`${p.sku}: quantity raised to the ${p.moq} ${UNITL[p.unit]} minimum order`);
+    const d=breakPct(p,qty);
+    const unit=p.price*(1-d/100);
+    const ext=unit*qty;
+    const cf=(l.cut&&p.cut)?p.cut*l.cuts:0;
+    sub+=ext; cutf+=cf; disc+=p.price*qty-ext;
+    mass+=(p.kgu||0)*qty;
+    if(/6\.?1? m|6 m|6\.1 m|4\.9 m|3\.66 m/.test(p.spec)) longItem=true;
+    return {p,qty,d,unit,ext,cf};
+  });
+  const goods=sub+cutf;
+  const freight = goods>0 ? 45 + mass*0.85 + (longItem?22:0) : 0;
+  const gst=(goods+freight)*GST, qst=(goods+freight)*QST;
+  return {lines,sub,cutf,disc,mass,freight,gst,qst,total:goods+freight+gst+qst,goods,warn};
+}
+function openCart(){$("drw").innerHTML=cartHTML();$("drw").classList.add("on");$("drwbk").classList.add("on");}
+function closeCart(){$("drw").classList.remove("on");$("drwbk").classList.remove("on");}
+function cartHTML(){
+  const c=calc();
+  return `<div class="dh"><b style="font-size:15px">Your quote request</b>
+    <span class="muted tiny">${CART.length} line${CART.length===1?"":"s"}</span>
+    <button class="x" style="margin-left:auto" onclick="closeCart()">×</button></div>
+  <div class="db">
+    ${CART.length?c.lines.map(L=>{const p=L.p;return `<div class="ci">
+      <div class="sw" style="background:${SW[p.sw]||SW.svc}"></div>
+      <div class="in">
+        <div class="n">${esc(p.name)}</div>
+        <div class="s">${esc(p.sku)} · ${esc(STORE[p.store].id)} · ${money(L.unit)}/${UNITL[p.unit]}${L.d?` <span style="color:var(--good)">−${L.d}%</span>`:""}</div>
+        <div class="qty">
+          <button onclick="bump('${p.sku}',-1)">−</button>
+          <input value="${L.qty}" onchange="setQ('${p.sku}',this.value)">
+          <button onclick="bump('${p.sku}',1)">+</button>
+          <span class="tiny muted" style="margin-left:7px">${UNITL[p.unit]}</span>
+        </div>
+        ${p.cut?`<label class="tiny" style="display:flex;align-items:center;gap:5px;margin-top:5px;cursor:pointer">
+          <input type="checkbox" ${findLine(p.sku).cut?"checked":""} onchange="toggleCut('${p.sku}')" style="accent-color:var(--acc)">
+          cut to length (${money(p.cut)}/cut) ×
+          <input value="${findLine(p.sku).cuts}" onchange="setCuts('${p.sku}',this.value)" style="width:34px;height:20px;text-align:center;border:1px solid var(--line);border-radius:3px">
+        </label>`:""}
+      </div>
+      <div style="text-align:right"><b class="mono" style="font-size:12.5px">${money(L.ext+L.cf)}</b>
+        <div><button class="tiny muted" style="text-decoration:underline" onclick="rm('${p.sku}')">remove</button></div></div>
+    </div>`;}).join(""):`<div class="empty"><div class="ic">🛒</div>Nothing here yet.<br><span class="tiny">Add line items from any store, or load a whole shortlist from a project brief.</span></div>`}
+    ${c.warn.length?`<div class="notice" style="font-size:11.5px">${c.warn.map(w=>esc(w)).join("<br>")}</div>`:""}
+  </div>
+  <div class="df">
+    <div class="tot"><span>Materials &amp; services</span><b>${money(c.sub)}</b></div>
+    ${c.disc>0.005?`<div class="tot" style="color:var(--good)"><span>Volume price breaks</span><b>−${money(c.disc)}</b></div>`:""}
+    ${c.cutf?`<div class="tot"><span>Cutting &amp; handling</span><b>${money(c.cutf)}</b></div>`:""}
+    <div class="tot"><span>Estimated freight (${c.mass.toFixed(1)} kg)</span><b>${money(c.freight)}</b></div>
+    <div class="tot"><span>GST 5 %</span><b>${money(c.gst)}</b></div>
+    <div class="tot"><span>QST 9.975 %</span><b>${money(c.qst)}</b></div>
+    <div class="tot big"><span>Total</span><b>${money(c.total)}</b></div>
+    <div style="display:flex;gap:7px;margin-top:11px">
+      <button class="btn acc" style="flex:1" ${CART.length?"":"disabled"} onclick="openQuote()">Generate quotation</button>
+      <button class="btn gh" onclick="CART=[];render();openCart()">Clear</button>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   QUOTATION
+   ============================================================ */
+function qnum(){const d=new Date();return "BREE-"+d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0")+"-"+String(100+Math.floor(Math.random()*900));}
+let QN=null;
+function openQuote(){
+  QN=QN||qnum();
+  const c=calc(),d=new Date(),v=new Date(Date.now()+14*864e5);
+  const fmt=x=>x.toLocaleDateString("en-CA",{year:"numeric",month:"long",day:"numeric"});
+  const stores=[...new Set(CART.map(l=>BYSKU[l.sku].store))];
+  const maxLead=Math.max(...c.lines.map(L=>L.p.lead));
+  $("mdl").innerHTML=`<div class="mdl">
+    <div class="mh"><h2>Quotation ${QN}</h2>
+      <button class="btn sm gh" onclick="window.print()">Print / save as PDF</button>
+      <button class="btn sm gh" onclick="copyQuote()">Copy as table</button>
+      <button class="x" onclick="closeModal()">×</button></div>
+    <div class="mb" style="background:#eef0f3;padding:14px">
+    <div class="qs" id="qsheet">
+      <div class="qh">
+        <div><div class="co">BREE MARKETPLACE</div>
+          <div class="tiny muted" style="margin-top:3px">Consolidated supplier quotation<br>
+          ${stores.map(s=>esc(STORE[s].name)+" — "+esc(STORE[s].city)).join("<br>")}</div></div>
+        <div class="rt"><div class="big">${QN}</div>
+          Issued ${fmt(d)}<br>Valid until <b>${fmt(v)}</b><br>Currency: CAD<br>Terms: Net 30, ex-works</div>
+      </div>
+      <table>
+        <tr><th style="width:88px">Item</th><th>Description</th><th style="width:70px">Qty</th><th style="width:78px">Unit price</th><th style="width:52px">Disc.</th><th style="width:82px">Extended</th></tr>
+        ${c.lines.map(L=>`<tr>
+          <td class="mono" style="font-size:10px">${esc(L.p.sku)}</td>
+          <td><b>${esc(L.p.name)}</b><br><span style="font-size:10px;color:#5d6874">${esc(L.p.spec)} · ${esc(STORE[L.p.store].name)}${L.cf?` · cut to length (${findLine(L.p.sku).cuts} cuts)`:""}</span></td>
+          <td class="n">${L.qty} ${UNITL[L.p.unit]}</td>
+          <td class="n">${money(L.unit)}</td>
+          <td class="n">${L.d?"−"+L.d+" %":"—"}</td>
+          <td class="n">${money(L.ext+L.cf)}</td></tr>`).join("")}
+        <tr><td colspan="5" class="n"><b>Subtotal, goods and services</b></td><td class="n"><b>${money(c.goods)}</b></td></tr>
+        <tr><td colspan="5" class="n">Estimated freight — ${c.mass.toFixed(1)} kg consolidated</td><td class="n">${money(c.freight)}</td></tr>
+        <tr><td colspan="5" class="n">GST (5 %)</td><td class="n">${money(c.gst)}</td></tr>
+        <tr><td colspan="5" class="n">QST (9.975 %)</td><td class="n">${money(c.qst)}</td></tr>
+        <tr><td colspan="5" class="n" style="background:#f1f3f6"><b>TOTAL — CAD</b></td><td class="n" style="background:#f1f3f6"><b>${money(c.total)}</b></td></tr>
+      </table>
+      <div style="display:flex;gap:26px;flex-wrap:wrap;font-size:11px;margin-top:8px">
+        <div><b>Total mass</b><br>${c.mass.toFixed(2)} kg</div>
+        <div><b>Longest lead time</b><br>${maxLead} working days</div>
+        <div><b>Line items</b><br>${c.lines.length}</div>
+        <div><b>Suppliers</b><br>${stores.length}</div>
+        ${c.mass>0?`<div><b>Cost per kg delivered</b><br>${money(c.goods/c.mass)}/kg</div>`:""}
+      </div>
+      <div class="terms">
+        <b>Terms and conditions.</b> Prices are quoted in Canadian dollars and are firm for fourteen (14) days from the issue date shown above; commodity-linked grades — stainless, nickel, aluminium and carbide in particular — are subject to re-quotation thereafter. Quantities below the stated minimum order have been rounded up to the minimum. Volume price breaks are applied automatically at the tier reached by the quantity ordered. Freight is an estimate based on consolidated mass and is confirmed at despatch. Material certification (CMTR) is not included unless line item MFW-CERT-CMTR appears above. Delivery is ex-works from the supplier locations listed; title passes on collection.<br><br>
+        <b>Academic use notice.</b> BREE Marketplace is a teaching simulation created for BREE 216, Bioresource Engineering Materials, Department of Bioresource Engineering, McGill University. Prices are anchored to published August 2026 supplier and commodity data (see the Price Sources page) but the supplier entities named here are fictional and no order can be placed. Cite this quotation by its number and issue date in your material-selection report.
+      </div>
+    </div></div>
+  </div>`;
+  $("ovl").classList.add("on");
+}
+function copyQuote(){
+  const c=calc();
+  const t=["Item\tDescription\tQty\tUnit\tUnit price (CAD)\tExtended (CAD)"]
+    .concat(c.lines.map(L=>[L.p.sku,L.p.name+" — "+L.p.spec,L.qty,UNITL[L.p.unit],L.unit.toFixed(2),(L.ext+L.cf).toFixed(2)].join("\t")))
+    .concat(["","Subtotal\t\t\t\t\t"+c.goods.toFixed(2),"Freight\t\t\t\t\t"+c.freight.toFixed(2),
+      "GST 5%\t\t\t\t\t"+c.gst.toFixed(2),"QST 9.975%\t\t\t\t\t"+c.qst.toFixed(2),
+      "TOTAL\t\t\t\t\t"+c.total.toFixed(2),"","Quotation "+QN+" · issued "+new Date().toLocaleDateString("en-CA")+" · valid 14 days · BREE Marketplace"]).join("\n");
+  navigator.clipboard.writeText(t).then(()=>toast("Quotation copied — paste into Excel or Word"),()=>toast("Copy blocked by the browser; use Print instead"));
+}
+function closeModal(){$("ovl").classList.remove("on");}
+
+/* ============================================================
+   RFQ
+   ============================================================ */
+function openRFQ(sku){
+  closeCart();
+  const p=sku?BYSKU[sku]:null;
+  $("mdl").innerHTML=`<div class="mdl sm">
+    <div class="mh"><h2>Request a formal quotation</h2><button class="x" onclick="closeModal()">×</button></div>
+    <div class="mb" id="rfqbody">
+      <p class="tiny muted" style="margin:0 0 14px">Vendors do not quote from a description alone. Everything asked for below is something a real supplier would need before putting a number on paper — which is exactly why answering it is a useful exercise.</p>
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <label class="fld"><label>Your name</label><input id="r_n" placeholder="A. Student"></label>
+        <label class="fld"><label>Group / team</label><input id="r_g" placeholder="BREE 216 — Group 7"></label>
+      </div>
+      <label class="fld"><label>Project or component</label><input id="r_p" value="${p?esc(p.name):""}" placeholder="e.g. Pellet mill die ring"></label>
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <label class="fld"><label>Material / line item</label><input id="r_m" value="${p?esc(p.sku):""}" placeholder="SKU or grade"></label>
+        <label class="fld"><label>Quantity &amp; unit</label><input id="r_q" placeholder="e.g. 40 kg / 12 m / 200 pcs"></label>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <label class="fld"><label>Annual volume</label>
+          <select id="r_v"><option>Prototype — 1 to 5 pieces</option><option>Small batch — 10 to 100</option><option>Production — 1 000 to 10 000</option><option>High volume — over 50 000</option></select></label>
+        <label class="fld"><label>Required by</label><input id="r_d" type="date"></label>
+      </div>
+      <label class="fld"><label>Service environment</label>
+        <select id="r_e"><option>Indoor, dry, ambient</option><option>Outdoor, Québec climate (−35 to +35 °C)</option><option>Wet / wash-down, food contact</option><option>Chemically aggressive (fertiliser, manure, silage effluent)</option><option>Elevated temperature, above 100 °C</option><option>Buried or immersed</option></select></label>
+      <label class="fld"><label>Certification required</label>
+        <select id="r_c"><option>None — internal prototype</option><option>Mill test report (CMTR)</option><option>3-A sanitary / food contact</option><option>Pressure code (ASME / CSA B51)</option><option>Structural (CSA S16 / S136)</option></select></label>
+      <label class="fld"><label>Tolerance or finish requirement</label><input id="r_t" placeholder="e.g. Ra ≤ 0.8 µm on product contact; ±0.1 mm on bore"></label>
+      <label class="fld"><label>Anything else the vendor should know</label><textarea id="r_x" rows="3" placeholder="Loading, service life, failure mode you are designing against…"></textarea></label>
+      <button class="btn acc wide" onclick="submitRFQ()">Submit request</button>
+      <p class="tiny muted" style="margin:10px 0 0">This is a teaching simulation — nothing is transmitted anywhere. You will receive an immediate indicative response.</p>
+    </div>
+  </div>`;
+  $("ovl").classList.add("on");
+}
+function submitRFQ(){
+  const g=id=>($(id)&&$(id).value||"").trim();
+  const miss=[];
+  if(!g("r_m"))miss.push("material / line item");
+  if(!g("r_q"))miss.push("quantity");
+  if(miss.length){toast("A vendor cannot quote without: "+miss.join(", "));return;}
+  const sku=g("r_m").toUpperCase(), p=BYSKU[sku];
+  const ref="RFQ-"+Date.now().toString().slice(-6);
+  const vol=g("r_v"), cert=g("r_c"), env=g("r_e");
+  let notes=[];
+  if(p){
+    notes.push(`Catalogue price for <b>${esc(p.name)}</b> is <b>${money(p.price)} per ${UNITL[p.unit]}</b>, ex-works ${esc(STORE[p.store].city)}, minimum order ${p.moq} ${UNITL[p.unit]}, ${p.lead} working days.`);
+    if(p.cut)notes.push(`Cut-to-length is charged at ${money(p.cut)} per cut.`);
+    const b=breaks(p); if(b.length)notes.push(`Volume breaks begin at ${b[0][0]} ${UNITL[p.unit]} (−${b[0][1]} %) and reach −${b[b.length-1][1]} % at ${b[b.length-1][0]} ${UNITL[p.unit]}.`);
+  } else notes.push("We could not match that to a stocked line item. Please quote a catalogue SKU or an exact grade designation — “steel” is not something a vendor can price.");
+  if(vol.startsWith("High")||vol.startsWith("Production"))notes.push("At this volume we would expect to quote from a mill order rather than service-centre stock; expect a further 8–15 % reduction and a 6–10 week lead time.");
+  if(vol.startsWith("Prototype"))notes.push("At prototype volume the minimum order quantity, not the unit price, will dominate your cost. Budget for the full MOQ.");
+  if(cert.includes("3-A"))notes.push("3-A compliance requires documented surface finish (Ra ≤ 0.8 µm on product contact), orbital welding with recorded coupons, and post-fabrication passivation. Add MFW-ORBITAL-W and MFW-PASSIVATE to your cost model.");
+  if(cert.includes("CMTR"))notes.push("Mill certification is available at $45 per heat (MFW-CERT-CMTR) and must be ordered with the material.");
+  if(cert.includes("Pressure"))notes.push("Pressure-code work requires a qualified welding procedure, a certified welder and volumetric NDT of every full-penetration weld (MFW-NDT-UT). This typically adds 20–35 % to fabrication cost.");
+  if(env.includes("Chemically"))notes.push("For fertiliser, manure and silage effluent service we would steer you away from galvanised steel — zinc is consumed rapidly by ammonia and organic acids. Consider 316L, FRP or a polymer liner.");
+  if(env.includes("Outdoor"))notes.push("At −35 °C, verify the Charpy impact requirement for your grade. Ordinary A36 has no low-temperature toughness guarantee; specify CSA G40.21 category 3 or 4 if fracture matters.");
+  if(env.includes("food"))notes.push("Food-contact service constrains you to the FDA / 3-A approved materials flagged in the catalogue. Elastomer selection matters as much as the metal — EPDM swells in fats.");
+  $("rfqbody").innerHTML=`
+    <div class="notice g"><b>Request ${ref} received.</b> Indicative response below — a formal quotation would follow within one working day.</div>
+    <h3>Application engineering notes</h3>
+    <ul style="font-size:12.5px;line-height:1.7;padding-left:19px;margin:0 0 14px">${notes.map(n=>`<li>${n}</li>`).join("")}</ul>
+    <div class="notice b tiny"><b>What to do with this.</b> Add the line item to your quote basket and generate a numbered quotation — that is the artefact to cite in your report. Then price the fabrication route at Macdonald Fab Works before you defend the choice.</div>
+    <div style="display:flex;gap:7px;margin-top:12px">
+      ${p?`<button class="btn acc" style="flex:1" onclick="closeModal();addCart('${p.sku}')">Add ${esc(p.sku)} to quote</button>`:""}
+      <button class="btn gh" onclick="closeModal()">Close</button>
+    </div>`;
+}
+
+/* ============================================================
+   COMPARE
+   ============================================================ */
+function toggleCmp(sku){
+  const i=CMP.indexOf(sku);
+  if(i>=0)CMP.splice(i,1);
+  else{ if(CMP.length>=5){toast("The comparison tray holds five items — remove one first");return;} CMP.push(sku);}
+  render();
+}
+function setCmp(list){CMP=list.slice(0,5);render();openCmp();}
+function cmpbar(){
+  const el=$("cmpbar");
+  if(!CMP.length){el.classList.remove("on");el.innerHTML="";return;}
+  el.classList.add("on");
+  el.innerHTML=`<div class="wrap">
+    <b style="font-size:13px;white-space:nowrap">Comparison tray</b>
+    <div class="chips">${CMP.map(k=>{const p=BYSKU[k];return `<span class="chip"><span class="sw" style="background:${SW[p.sw]||SW.svc}"></span>${esc(p.sku)}<button onclick="toggleCmp('${k}')">×</button></span>`;}).join("")}</div>
+    <button class="btn sm acc" onclick="openCmp()">Compare ${CMP.length}</button>
+    <button class="btn sm gh" onclick="CMP=[];render()">Clear</button>
+  </div>`;
+}
+const CMPROWS=[
+ ["h","Commercial"],
+ ["price","Catalogue price",p=>money(p.price)+" / "+UNITL[p.unit],"lo",p=>p.price],
+ ["pk","Normalised price",p=>perKg(p)?money(perKg(p))+" / kg":"—","lo",p=>perKg(p)??null],
+ ["moq","Minimum order",p=>p.moq+" "+UNITL[p.unit],"lo",p=>p.moq],
+ ["lead","Lead time",p=>p.lead+" days","lo",p=>p.lead],
+ ["stock","Availability",p=>stockTxt(p.stock)[0],null,null],
+ ["store","Supplier",p=>STORE[p.store].name,null,null],
+ ["h","Physical &amp; mechanical"],
+ ["rho","Density",p=>p.p.rho?p.p.rho.toLocaleString()+" kg/m³":"—","lo",p=>p.p.rho||null],
+ ["sy","Yield strength",p=>p.p.sy?p.p.sy+" MPa":(p.p.su?"— (brittle)":"—"),"hi",p=>p.p.sy||null],
+ ["su","Tensile strength",p=>p.p.su?p.p.su+" MPa":"—","hi",p=>p.p.su||null],
+ ["E","Young's modulus",p=>p.p.E?p.p.E+" GPa":"—","hi",p=>p.p.E||null],
+ ["el","Elongation",p=>p.p.el!==undefined?p.p.el+" %":"—","hi",p=>p.p.el??null],
+ ["kic","Fracture toughness",p=>p.p.kic?p.p.kic+" MPa·m½":"—","hi",p=>p.p.kic||null],
+ ["hb","Hardness",p=>p.p.hb||"—",null,null],
+ ["h","Derived selection indices"],
+ ["ss","Specific strength σy/ρ",p=>(p.p.sy&&p.p.rho)?(p.p.sy/p.p.rho*1000).toFixed(1)+" kN·m/kg":"—","hi",p=>(p.p.sy&&p.p.rho)?p.p.sy/p.p.rho:null],
+ ["sst","Specific stiffness E/ρ",p=>(p.p.E&&p.p.rho)?(p.p.E/p.p.rho*1e6).toFixed(1)+" kN·m/kg":"—","hi",p=>(p.p.E&&p.p.rho)?p.p.E/p.p.rho:null],
+ ["spd","Strength per dollar σy/(ρ·$/kg)",p=>(p.p.sy&&p.p.rho&&perKg(p))?(p.p.sy/(p.p.rho*perKg(p))*1e3).toFixed(2):"—","hi",p=>(p.p.sy&&p.p.rho&&perKg(p))?p.p.sy/(p.p.rho*perKg(p)):null],
+ ["cpv","Cost per litre of material",p=>(perKg(p)&&p.p.rho)?money(perKg(p)*p.p.rho/1000):"—","lo",p=>(perKg(p)&&p.p.rho)?perKg(p)*p.p.rho/1000:null],
+ ["h","Environment &amp; service"],
+ ["K","Thermal conductivity",p=>p.p.K!==undefined?p.p.K+" W/m·K":"—",null,null],
+ ["a","Thermal expansion",p=>p.p.a!==undefined?p.p.a+" µm/m·K":"—","lo",p=>p.p.a||null],
+ ["tmax","Max service temperature",p=>p.p.tmax?p.p.tmax+" °C":"—","hi",p=>p.p.tmax||null],
+ ["corr","Corrosion resistance",p=>p.p.corr?"★".repeat(p.p.corr)+"☆".repeat(5-p.p.corr):"—","hi",p=>p.p.corr||null],
+ ["uv","UV resistance",p=>p.p.uv?"★".repeat(p.p.uv)+"☆".repeat(5-p.p.uv):"—","hi",p=>p.p.uv||null],
+ ["food","Food-contact approved",p=>p.p.food===undefined?"—":(p.p.food?"Yes":"No"),null,null],
+ ["h","Sustainability"],
+ ["ee","Embodied energy",p=>p.p.ee?p.p.ee+" MJ/kg":"—","lo",p=>p.p.ee||null],
+ ["recy","Recyclability",p=>p.p.recy!==undefined?p.p.recy+" %":"—","hi",p=>p.p.recy??null]
+];
+function openCmp(){
+  closeCart();
+  if(!CMP.length){toast("Tick the box on any product card to start a comparison");return;}
+  const ps=CMP.map(k=>BYSKU[k]);
+  $("mdl").innerHTML=`<div class="mdl">
+    <div class="mh"><h2>Material comparison — ${ps.length} candidates</h2>
+      <button class="btn sm gh" onclick="window.print()">Print</button>
+      <button class="btn sm gh" onclick="copyCmp()">Copy as table</button>
+      <button class="x" onclick="closeModal()">×</button></div>
+    <div class="mb">
+      <div class="notice">Green cells mark the best value in each row <em>on that criterion alone</em>. No material wins every row — that is the whole point. Weight the rows that your brief actually cares about, then build your Pugh chart from those.</div>
+      <div style="overflow-x:auto"><table class="cmp">
+        <thead><tr><th></th>${ps.map(p=>`<th><div style="height:34px;border-radius:4px;background:${SW[p.sw]||SW.svc};margin-bottom:6px"></div>
+          <div style="font-size:12.5px;font-weight:650">${esc(p.name)}</div>
+          <div class="mono tiny muted">${esc(p.sku)}</div>
+          <div class="tiny muted">${esc(p.spec)}</div></th>`).join("")}</tr></thead>
+        <tbody>${CMPROWS.map(r=>{
+          if(r[0]==="h")return `<tr class="sec"><td colspan="${ps.length+1}">${r[1]}</td></tr>`;
+          const vals=r[4]?ps.map(r[4]):null;
+          let best=null;
+          if(vals&&r[3]){const f=vals.filter(v=>v!==null&&v!==undefined&&!isNaN(v));
+            const uniq=new Set(f);
+            if(f.length>1&&uniq.size>1)best=r[3]==="hi"?Math.max(...f):Math.min(...f);}
+          return `<tr><th>${r[1]}</th>${ps.map((p,i)=>{
+            const isBest=best!==null&&vals[i]===best;
+            return `<td class="${isBest?"best":""}">${r[2](p)}</td>`;}).join("")}</tr>`;
+        }).join("")}</tbody>
+      </table></div>
+      <div class="notice b" style="margin-top:14px"><b>Reading the derived indices.</b> “Strength per dollar” is the index to minimise for a strength-limited, cost-limited component — it is the reciprocal of Ashby's <span class="mono">ρC<sub>m</sub>/σ<sub>y</sub></span>, so higher is better. “Cost per litre” is the honest way to compare a dense material against a light one when the design fixes the <em>volume</em> rather than the mass, which is usually the case for a panel, a liner or a pipe wall.</div>
+      <div style="display:flex;gap:7px;margin-top:12px">
+        <button class="btn acc" onclick="closeModal();addMany(${JSON.stringify(CMP)})">Add all ${ps.length} to the quote basket</button>
+        <button class="btn gh" onclick="closeModal()">Close</button>
+      </div>
+    </div></div>`;
+  $("ovl").classList.add("on");
+}
+function copyCmp(){
+  const ps=CMP.map(k=>BYSKU[k]);
+  const t=[["Property"].concat(ps.map(p=>p.name+" ("+p.sku+")")).join("\t")]
+   .concat(CMPROWS.filter(r=>r[0]!=="h").map(r=>[r[1].replace(/<[^>]+>/g,"")].concat(ps.map(p=>String(r[2](p)).replace(/★/g,"*").replace(/☆/g,""))).join("\t")))
+   .join("\n");
+  navigator.clipboard.writeText(t).then(()=>toast("Comparison copied — paste into Excel or Word"),()=>toast("Copy blocked; use Print instead"));
+}
+
+/* ============================================================
+   Render
+   ============================================================ */
+function render(){
+  const v=VIEW.v;
+  const body = v==="store"?vStore(): v==="product"?vProduct(): v==="search"?vSearch():
+               v==="briefs"?vBriefs(): v==="brief"?vBrief(): v==="sources"?vSources():
+               v==="how"?vHow(): vHome();
+  $("app").innerHTML=chrome(body);
+  cmpbar();
+  if($("drw").classList.contains("on"))$("drw").innerHTML=cartHTML();
+  document.body.style.paddingBottom=CMP.length?"58px":"0";
+}
+VIEW=parseHash();
+render();
+
+</script>
+</body>
+</html>

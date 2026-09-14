@@ -241,6 +241,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/courses/{course_id}/case-studies/{case_study_id}/shortlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Shortlist */
+        get: operations["get_shortlist_api_v1_courses__course_id__case_studies__case_study_id__shortlist_get"];
+        /**
+         * Set Shortlist
+         * @description Replace the shortlist. Order is meaning: the first line is the one the
+         *     student sees first, and a shortlist ordered by what the professor wants
+         *     considered is doing work that alphabetical order is not.
+         */
+        put: operations["set_shortlist_api_v1_courses__course_id__case_studies__case_study_id__shortlist_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses/{course_id}/case-studies/{case_study_id}/unpublish": {
         parameters: {
             query?: never;
@@ -279,6 +302,53 @@ export interface paths {
          *     generation samples the spec, so there is nothing to generate from.
          */
         post: operations["request_variants_api_v1_courses__course_id__case_studies__case_study_id__variants_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/catalogue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Authoring Catalogue
+         * @description The whole catalogue at list prices, with each line's price band, for
+         *     building a shortlist. Pass a case study to have the current shortlist
+         *     flagged.
+         */
+        get: operations["get_authoring_catalogue_api_v1_courses__course_id__catalogue_get"];
+        /**
+         * Pin Catalogue
+         * @description Pin the course to one catalogue version, or unpin it entirely.
+         *
+         *     A pin rather than "latest" because a price list that moves under a term is
+         *     a price list students cannot be asked to defend. Moving the pin forward is
+         *     a deliberate act, and it leaves every issued quotation alone.
+         */
+        put: operations["pin_catalogue_api_v1_courses__course_id__catalogue_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/catalogues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Catalogues */
+        get: operations["list_catalogues_api_v1_courses__course_id__catalogues_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -611,6 +681,28 @@ export interface paths {
          *     evidence on a concept count as unseen.
          */
         get: operations["mastery_distribution_api_v1_courses__course_id__mastery_distribution_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/quotes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Review Quotes
+         * @description Issued quotations across the cohort, newest first, with a tally of what
+         *     was bought. Drafts are not here: a basket someone is still filling is not a
+         *     decision they have made.
+         */
+        get: operations["review_quotes_api_v1_courses__course_id__quotes_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -971,6 +1063,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/quotes/{quote_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Quote
+         * @description Read one quotation. A draft is priced live; an issued one reads back from
+         *     its own snapshot, which is what lets it outlive a catalogue revision.
+         */
+        get: operations["get_quote_api_v1_quotes__quote_id__get"];
+        /**
+         * Replace Quote Lines
+         * @description Replace the whole basket. A whole-basket PUT rather than per-line verbs
+         *     because the client holds the basket anyway and a partial update would make
+         *     the totals a negotiation.
+         */
+        put: operations["replace_quote_lines_api_v1_quotes__quote_id__put"];
+        post?: never;
+        /**
+         * Discard Quote
+         * @description Throw away a draft. An issued quotation is refused: it may already have
+         *     been cited on a submission, and a citation that can vanish is not one.
+         */
+        delete: operations["discard_quote_api_v1_quotes__quote_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/quotes/{quote_id}/issue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Issue Quote
+         * @description Freeze the basket into a numbered quotation.
+         *
+         *     Issuing is the artifact-making act: it stamps the number and the validity,
+         *     and from here the lines never move. Re-issuing an issued quotation returns
+         *     it unchanged rather than erroring, because a retried request must not cost
+         *     a student their quotation number.
+         */
+        post: operations["issue_quote_api_v1_quotes__quote_id__issue_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/seats/me": {
         parameters: {
             query?: never;
@@ -1173,6 +1322,136 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/variants/{variant_id}/marketplace": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Marketplace
+         * @description The supplier directory and this case study's shortlist, at this
+         *     variant's prices.
+         */
+        get: operations["get_marketplace_api_v1_variants__variant_id__marketplace_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/variants/{variant_id}/marketplace/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Compare Lines
+         * @description Compare up to five lines side by side with the derived selection
+         *     indices. A POST because the candidate list is the request, not a
+         *     location.
+         */
+        post: operations["compare_lines_api_v1_variants__variant_id__marketplace_compare_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/variants/{variant_id}/marketplace/lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Lines
+         * @description Browse the catalogue. Filtering narrows and never restricts: every line
+         *     stays reachable, because deciding that a material is wrong is the
+         *     exercise.
+         */
+        get: operations["list_lines_api_v1_variants__variant_id__marketplace_lines_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/variants/{variant_id}/marketplace/lines/{sku}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Line */
+        get: operations["get_line_api_v1_variants__variant_id__marketplace_lines__sku__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/variants/{variant_id}/marketplace/rfqs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Rfqs */
+        get: operations["list_rfqs_api_v1_variants__variant_id__marketplace_rfqs_get"];
+        put?: never;
+        /**
+         * Submit Rfq
+         * @description Send a request for quotation and get the application-engineering notes
+         *     back. Deterministic rules, never a model call (decision 0062).
+         */
+        post: operations["submit_rfq_api_v1_variants__variant_id__marketplace_rfqs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/variants/{variant_id}/quotes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Quotes */
+        get: operations["list_quotes_api_v1_variants__variant_id__quotes_get"];
+        put?: never;
+        /**
+         * Create Quote
+         * @description Open a basket against this variant. A seat may hold several: quoting two
+         *     routes and comparing them is the exercise working as intended.
+         *
+         *     No idempotency key, unlike creating a submission. A retry here costs an
+         *     empty draft the student can discard, whereas the act that makes an artifact
+         *     is issuing, and that one is idempotent by construction.
+         */
+        post: operations["create_quote_api_v1_variants__variant_id__quotes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/variants/{variant_id}/submissions": {
         parameters: {
             query?: never;
@@ -1218,6 +1497,17 @@ export interface components {
             page_index: number;
         };
         /**
+         * AdviceNote
+         * @description One note, and the rule that produced it. The `rule` id is what makes
+         *     this reviewable: a professor who disagrees with a note can name it.
+         */
+        AdviceNote: {
+            /** Rule */
+            rule: string;
+            /** Text */
+            text: string;
+        };
+        /**
          * AttemptOut
          * @description A started attempt. The timestamp is the server's, deliberately: a span
          *     the client can name is a span the client can invent, and the professor is
@@ -1237,6 +1527,58 @@ export interface components {
             /** Token */
             token: string;
         };
+        /** AuthoringCatalogueOut */
+        AuthoringCatalogueOut: {
+            /** Briefs */
+            briefs: components["schemas"]["Brief"][];
+            /** Categories */
+            categories: string[];
+            /** Id */
+            id: string;
+            /** Lines */
+            lines: components["schemas"]["AuthoringLine"][];
+            /** Suppliers */
+            suppliers: components["schemas"]["Supplier"][];
+            /** Title */
+            title: string;
+            /** Version */
+            version: number;
+        };
+        /**
+         * AuthoringLine
+         * @description A catalogue line as the professor picking a shortlist sees it: list
+         *     price, and the band a student's struck price will fall in.
+         */
+        AuthoringLine: {
+            /** Band High Cents */
+            band_high_cents: number;
+            /** Band Low Cents */
+            band_low_cents: number;
+            /** Category */
+            category: string;
+            /** List Price Cents */
+            list_price_cents: number;
+            /** Name */
+            name: string;
+            /** Service */
+            service: boolean;
+            /** Shortlisted */
+            shortlisted: boolean;
+            /** Sku */
+            sku: string;
+            /** Spec */
+            spec: string;
+            /** Supplier Id */
+            supplier_id: string;
+            /** Supplier Name */
+            supplier_name: string;
+            /** Tags */
+            tags: string[];
+            /** Unit Label */
+            unit_label: string;
+            /** Volatility */
+            volatility: number;
+        };
         /**
          * BlockedParameter
          * @description One parameter the check refuses, with the professor-facing reason.
@@ -1250,6 +1592,23 @@ export interface components {
             reason: string;
             /** Value */
             value: string;
+        };
+        /**
+         * Brief
+         * @description A project brief: the selection factors, the families in contention, and
+         *     the lines worth quoting first.
+         */
+        Brief: {
+            /** Candidate Families */
+            candidate_families: string;
+            /** Id */
+            id: string;
+            /** Selection Factors */
+            selection_factors: string[];
+            /** Shortlist */
+            shortlist: string[];
+            /** Title */
+            title: string;
         };
         /** CaseStudyDetail */
         CaseStudyDetail: {
@@ -1304,6 +1663,35 @@ export interface components {
             /** Title */
             title?: string | null;
         };
+        /** CatalogueChoice */
+        CatalogueChoice: {
+            /** Id */
+            id: string;
+            /** Line Count */
+            line_count: number;
+            /** Supplier Count */
+            supplier_count: number;
+            /** Title */
+            title: string;
+            /** Version */
+            version: number;
+        };
+        /**
+         * CataloguesOut
+         * @description What this deployment ships, and what the course is currently pinned to.
+         *     `pinned` is null for a course that does not quote for materials, which is
+         *     the default and stays a perfectly good way to run a course.
+         */
+        CataloguesOut: {
+            /** Available */
+            available: components["schemas"]["CatalogueChoice"][];
+            pinned: components["schemas"]["CatalogueChoice"] | null;
+        };
+        /**
+         * Certification
+         * @enum {string}
+         */
+        Certification: "none" | "mill_test_report" | "sanitary_3a" | "pressure_code" | "structural";
         /** ChoiceParameter */
         ChoiceParameter: {
             /** Base */
@@ -1315,6 +1703,87 @@ export interface components {
              * @enum {string}
              */
             type: "choice";
+        };
+        /** CompareCell */
+        CompareCell: {
+            /** Best */
+            best: boolean;
+            /** Display */
+            display: string;
+            /** Sku */
+            sku: string;
+            /** Value */
+            value: number | null;
+        };
+        /** CompareIn */
+        CompareIn: {
+            /** Skus */
+            skus: string[];
+        };
+        /** CompareOut */
+        CompareOut: {
+            /** Rows */
+            rows: components["schemas"]["CompareRow"][];
+            /** Skus */
+            skus: string[];
+        };
+        /** CompareRow */
+        CompareRow: {
+            /** Better */
+            better: ("lower" | "higher") | null;
+            /** Cells */
+            cells: components["schemas"]["CompareCell"][];
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Section */
+            section: string;
+        };
+        /**
+         * ComputedLine
+         * @description One priced line. Every field here is snapshotted on issue, because a
+         *     quotation has to read back identically after the catalogue moves.
+         */
+        ComputedLine: {
+            /** Break Percent */
+            break_percent: number;
+            /** Cut Count */
+            cut_count: number;
+            /** Cut Fee Cents */
+            cut_fee_cents: number;
+            /** Cut To Length */
+            cut_to_length: boolean;
+            /** Extended Cents */
+            extended_cents: number;
+            /** Lead Days */
+            lead_days: number;
+            /** List Price Cents */
+            list_price_cents: number;
+            /** Mass Grams */
+            mass_grams: number;
+            /** Name */
+            name: string;
+            /** Position */
+            position: number;
+            /** Quantity */
+            quantity: number;
+            /** Requested Quantity */
+            requested_quantity: number;
+            /** Sku */
+            sku: string;
+            /** Spec */
+            spec: string;
+            /** Supplier Id */
+            supplier_id: string;
+            /** Supplier Name */
+            supplier_name: string;
+            /** Unit */
+            unit: string;
+            /** Unit Label */
+            unit_label: string;
+            /** Unit Price Cents */
+            unit_price_cents: number;
         };
         /**
          * ConceptDistribution
@@ -1496,6 +1965,11 @@ export interface components {
              */
             type: "entity";
         };
+        /**
+         * Environment
+         * @enum {string}
+         */
+        Environment: "indoor" | "outdoor" | "washdown" | "chemical" | "elevated_temperature" | "buried";
         /** FigureCreatedOut */
         FigureCreatedOut: {
             /** Figure Id */
@@ -1530,6 +2004,19 @@ export interface components {
              * @enum {string}
              */
             role: "essential" | "decorative";
+        };
+        /**
+         * Freight
+         * @description The consolidated-shipment estimate: a flat despatch charge, a rate on
+         *     total mass, and a surcharge when anything on the order is a long load.
+         */
+        Freight: {
+            /** Base Cents */
+            base_cents: number;
+            /** Long Item Cents */
+            long_item_cents: number;
+            /** Per Kg Cents */
+            per_kg_cents: number;
         };
         /** GenerateIn */
         GenerateIn: {
@@ -1745,6 +2232,114 @@ export interface components {
             /** Width Px */
             width_px: number;
         };
+        /** LineDetail */
+        LineDetail: {
+            /** Category */
+            category: string;
+            /** Cut Fee Cents */
+            cut_fee_cents: number;
+            /** Description */
+            description: string;
+            /** Fabrication */
+            fabrication: string;
+            /** Lead Days */
+            lead_days: number;
+            /** Moq */
+            moq: number;
+            /** Name */
+            name: string;
+            /** Oversize */
+            oversize: boolean;
+            /** Price Breaks */
+            price_breaks: [
+                number,
+                number
+            ][];
+            /** Price Cents */
+            price_cents: number;
+            /** Price Per Kg Cents */
+            price_per_kg_cents: number | null;
+            properties: components["schemas"]["MaterialProperties"];
+            /** Service */
+            service: boolean;
+            /** Shortlisted */
+            shortlisted: boolean;
+            /** Sku */
+            sku: string;
+            /** Spec */
+            spec: string;
+            /** Stock */
+            stock: string;
+            /** Stock Label */
+            stock_label: string;
+            supplier: components["schemas"]["Supplier"];
+            /** Supplier Id */
+            supplier_id: string;
+            /** Supplier Name */
+            supplier_name: string;
+            /** Swatch */
+            swatch: string;
+            /** Tags */
+            tags: string[];
+            /** Unit */
+            unit: string;
+            /** Unit Label */
+            unit_label: string;
+        };
+        /** LineListOut */
+        LineListOut: {
+            /** Items */
+            items: components["schemas"]["LineSummary"][];
+            /** Next Cursor */
+            next_cursor: number | null;
+            /** Total */
+            total: number;
+        };
+        /**
+         * LineSummary
+         * @description A catalogue line as a card: enough to compare on, not enough to
+         *     specify from.
+         */
+        LineSummary: {
+            /** Category */
+            category: string;
+            /** Cut Fee Cents */
+            cut_fee_cents: number;
+            /** Lead Days */
+            lead_days: number;
+            /** Moq */
+            moq: number;
+            /** Name */
+            name: string;
+            /** Price Cents */
+            price_cents: number;
+            /** Price Per Kg Cents */
+            price_per_kg_cents: number | null;
+            /** Service */
+            service: boolean;
+            /** Shortlisted */
+            shortlisted: boolean;
+            /** Sku */
+            sku: string;
+            /** Spec */
+            spec: string;
+            /** Stock */
+            stock: string;
+            /** Stock Label */
+            stock_label: string;
+            /** Supplier Id */
+            supplier_id: string;
+            /** Supplier Name */
+            supplier_name: string;
+            /** Swatch */
+            swatch: string;
+            /** Tags */
+            tags: string[];
+            /** Unit */
+            unit: string;
+            /** Unit Label */
+            unit_label: string;
+        };
         /** LoginIn */
         LoginIn: {
             /**
@@ -1767,10 +2362,81 @@ export interface components {
             /** Mappings */
             mappings: components["schemas"]["MappingIn"][];
         };
+        /**
+         * MarketplaceOut
+         * @description The front door: who trades here, what this case study points at, and the
+         *     terms every quotation is struck on.
+         */
+        MarketplaceOut: {
+            brief: components["schemas"]["Brief"] | null;
+            /** Case Study Id */
+            case_study_id: number;
+            /** Case Study Title */
+            case_study_title: string;
+            /** Catalogue Id */
+            catalogue_id: string;
+            /** Catalogue Version */
+            catalogue_version: number;
+            /** Categories */
+            categories: string[];
+            /** Course Note */
+            course_note: string;
+            /** Currency */
+            currency: string;
+            freight: components["schemas"]["Freight"];
+            /** Quote Validity Days */
+            quote_validity_days: number;
+            /** Shortlist */
+            shortlist: components["schemas"]["LineSummary"][];
+            /** Suppliers */
+            suppliers: components["schemas"]["SupplierSummary"][];
+            /** Taxes */
+            taxes: components["schemas"]["Tax"][];
+            /** Title */
+            title: string;
+            /** Variant Id */
+            variant_id: number;
+        };
         /** MasteryOut */
         MasteryOut: {
             /** Concepts */
             concepts: components["schemas"]["ConceptMastery"][];
+        };
+        /**
+         * MaterialProperties
+         * @description The fifteen figures a selection decision is argued from.
+         */
+        MaterialProperties: {
+            /** Corrosion Resistance */
+            corrosion_resistance?: number | null;
+            /** Density Kg M3 */
+            density_kg_m3?: number | null;
+            /** Elongation Percent */
+            elongation_percent?: number | null;
+            /** Embodied Energy Mj Kg */
+            embodied_energy_mj_kg?: number | null;
+            /** Food Contact */
+            food_contact?: boolean | null;
+            /** Fracture Toughness Mpa M05 */
+            fracture_toughness_mpa_m05?: number | null;
+            /** Hardness */
+            hardness?: string | null;
+            /** Max Service Temp C */
+            max_service_temp_c?: number | null;
+            /** Recyclability Percent */
+            recyclability_percent?: number | null;
+            /** Tensile Strength Mpa */
+            tensile_strength_mpa?: number | null;
+            /** Thermal Conductivity W Mk */
+            thermal_conductivity_w_mk?: number | null;
+            /** Thermal Expansion Um Mk */
+            thermal_expansion_um_mk?: number | null;
+            /** Uv Resistance */
+            uv_resistance?: number | null;
+            /** Yield Strength Mpa */
+            yield_strength_mpa?: number | null;
+            /** Youngs Modulus Gpa */
+            youngs_modulus_gpa?: number | null;
         };
         /** MergeIn */
         MergeIn: {
@@ -1915,6 +2581,13 @@ export interface components {
             /** Rationale */
             rationale: string;
         };
+        /** PinIn */
+        PinIn: {
+            /** Catalogue Id */
+            catalogue_id?: string | null;
+            /** Catalogue Version */
+            catalogue_version?: number | null;
+        };
         /**
          * PracticeVariantOut
          * @description What the practice loop swaps in: a servable variant's body, or the
@@ -1978,6 +2651,143 @@ export interface components {
             model_id: string;
             /** Prompt Version */
             prompt_version: string;
+        };
+        /** QuoteIn */
+        QuoteIn: {
+            /** Lines */
+            lines?: components["schemas"]["QuoteLineIn"][];
+        };
+        /**
+         * QuoteLineIn
+         * @description One basket line as the student asked for it.
+         */
+        QuoteLineIn: {
+            /**
+             * Cut Count
+             * @default 1
+             */
+            cut_count: number;
+            /**
+             * Cut To Length
+             * @default false
+             */
+            cut_to_length: boolean;
+            /** Quantity */
+            quantity: number;
+            /** Sku */
+            sku: string;
+        };
+        /** QuoteListOut */
+        QuoteListOut: {
+            /** Items */
+            items: components["schemas"]["QuoteSummary"][];
+        };
+        /** QuoteOut */
+        QuoteOut: {
+            /** Catalogue Id */
+            catalogue_id: string;
+            /** Catalogue Version */
+            catalogue_version: number;
+            /** Created At */
+            created_at: number;
+            /** Id */
+            id: number;
+            /** Issued At */
+            issued_at: number | null;
+            /** Lines */
+            lines: components["schemas"]["ComputedLine"][];
+            /** Notices */
+            notices: string[];
+            /** Quote Number */
+            quote_number: string | null;
+            /** Status */
+            status: string;
+            totals: components["schemas"]["QuoteTotals"];
+            /** Valid Until */
+            valid_until: number | null;
+            /** Variant Id */
+            variant_id: number;
+        };
+        /**
+         * QuoteReviewEntry
+         * @description One issued quotation, by seat. A seat number, never a name: this surface
+         *     is for noticing that half the cohort bought stainless, not for finding who
+         *     did.
+         */
+        QuoteReviewEntry: {
+            /** Case Study Id */
+            case_study_id: number;
+            /** Cited */
+            cited: boolean;
+            /** Issued At */
+            issued_at: number;
+            /** Line Count */
+            line_count: number;
+            /** Quote Id */
+            quote_id: number;
+            /** Quote Number */
+            quote_number: string;
+            /** Seat Number */
+            seat_number: string;
+            /** Total Cents */
+            total_cents: number;
+            /** Total Mass Grams */
+            total_mass_grams: number;
+            /** Variant Id */
+            variant_id: number;
+        };
+        /** QuoteReviewOut */
+        QuoteReviewOut: {
+            /** Entries */
+            entries: components["schemas"]["QuoteReviewEntry"][];
+            /** Next Cursor */
+            next_cursor: number | null;
+            /** Tallies */
+            tallies: components["schemas"]["SkuTally"][];
+        };
+        /** QuoteSummary */
+        QuoteSummary: {
+            /** Created At */
+            created_at: number;
+            /** Id */
+            id: number;
+            /** Issued At */
+            issued_at: number | null;
+            /** Line Count */
+            line_count: number;
+            /** Quote Number */
+            quote_number: string | null;
+            /** Status */
+            status: string;
+            /** Total Cents */
+            total_cents: number;
+        };
+        /** QuoteTotals */
+        QuoteTotals: {
+            /** Cost Per Kg Cents */
+            cost_per_kg_cents: number | null;
+            /** Cut Fee Cents */
+            cut_fee_cents: number;
+            /** Discount Cents */
+            discount_cents: number;
+            /** Freight Cents */
+            freight_cents: number;
+            /** Goods Cents */
+            goods_cents: number;
+            /** Line Count */
+            line_count: number;
+            /** Longest Lead Days */
+            longest_lead_days: number;
+            /** Supplier Count */
+            supplier_count: number;
+            /** Tax Cents */
+            tax_cents: number;
+            /** Taxes */
+            taxes: components["schemas"]["TaxLine"][];
+            /** Total Cents */
+            total_cents: number;
+            /** Total Mass Grams */
+            total_mass_grams: number;
         };
         /**
          * RecognitionHealth
@@ -2103,6 +2913,62 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** RfqAdvice */
+        RfqAdvice: {
+            /** Missing */
+            missing: string[];
+            /** Notes */
+            notes: components["schemas"]["AdviceNote"][];
+        };
+        /**
+         * RfqIn
+         * @description What a supplier would need answered before putting a number on paper.
+         *
+         *     There is no name field and there never will be: a seat is anonymous, and a
+         *     form that asks a student to identify themselves would be the one place on
+         *     the platform that collects a person.
+         */
+        RfqIn: {
+            /** @default none */
+            certification: components["schemas"]["Certification"];
+            /**
+             * Component
+             * @default
+             */
+            component: string;
+            /** @default indoor */
+            environment: components["schemas"]["Environment"];
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
+            /**
+             * Quantity
+             * @default
+             */
+            quantity: string;
+            /** Sku */
+            sku?: string | null;
+            /**
+             * Tolerance
+             * @default
+             */
+            tolerance: string;
+            /** @default prototype */
+            volume: components["schemas"]["Volume"];
+        };
+        /** RfqOut */
+        RfqOut: {
+            advice: components["schemas"]["RfqAdvice"];
+            /** Created At */
+            created_at: number;
+            /** Id */
+            id: number;
+            /** Reference */
+            reference: string;
+            request: components["schemas"]["RfqIn"];
+        };
         /**
          * Role
          * @enum {string}
@@ -2209,6 +3075,20 @@ export interface components {
             /** Submission Count */
             submission_count: number;
         };
+        /** ShortlistIn */
+        ShortlistIn: {
+            /** Skus */
+            skus?: string[];
+        };
+        /** ShortlistOut */
+        ShortlistOut: {
+            /** Case Study Id */
+            case_study_id: number;
+            /** Dropped */
+            dropped: string[];
+            /** Skus */
+            skus: string[];
+        };
         /** SignupIn */
         SignupIn: {
             /**
@@ -2218,6 +3098,19 @@ export interface components {
             email: string;
             /** Password */
             password: string;
+        };
+        /** SkuTally */
+        SkuTally: {
+            /** Category */
+            category: string;
+            /** Name */
+            name: string;
+            /** Quote Count */
+            quote_count: number;
+            /** Sku */
+            sku: string;
+            /** Total Quantity */
+            total_quantity: number;
         };
         /** SolutionStep */
         SolutionStep: {
@@ -2258,6 +3151,8 @@ export interface components {
             attempt_id?: number | null;
             /** Pages */
             pages: components["schemas"]["PageIn"][];
+            /** Quote Id */
+            quote_id?: number | null;
         };
         /** SubmissionListOut */
         SubmissionListOut: {
@@ -2274,6 +3169,10 @@ export interface components {
             page_count: number;
             /** Pages */
             pages: components["schemas"]["PageOut"][];
+            /** Quote Id */
+            quote_id: number | null;
+            /** Quote Number */
+            quote_number: string | null;
             /** Recognition Conf */
             recognition_conf: number | null;
             /** Started At */
@@ -2344,6 +3243,64 @@ export interface components {
             submitted_at: number;
             /** Variant Id */
             variant_id: number;
+        };
+        /**
+         * Supplier
+         * @description One fictional supplier and the terms it trades on.
+         */
+        Supplier: {
+            /** Blurb */
+            blurb: string;
+            /** Categories */
+            categories: string[];
+            /** City */
+            city: string;
+            /** Established */
+            established: number;
+            /** Glyph */
+            glyph: string;
+            /** Id */
+            id: string;
+            /** Minimum Order Note */
+            minimum_order_note: string;
+            /** Name */
+            name: string;
+            /** Policy */
+            policy: string;
+            /** Rating */
+            rating: number;
+            /** Review Count */
+            review_count: number;
+            /** Shipping */
+            shipping: string;
+            /** Tagline */
+            tagline: string;
+        };
+        /** SupplierSummary */
+        SupplierSummary: {
+            /** Categories */
+            categories: string[];
+            /** From Price Cents */
+            from_price_cents: number;
+            /** Line Count */
+            line_count: number;
+            supplier: components["schemas"]["Supplier"];
+        };
+        /** Tax */
+        Tax: {
+            /** Code */
+            code: string;
+            /** Rate */
+            rate: number;
+        };
+        /** TaxLine */
+        TaxLine: {
+            /** Amount Cents */
+            amount_cents: number;
+            /** Code */
+            code: string;
+            /** Rate */
+            rate: number;
         };
         /** TokenUsageRow */
         TokenUsageRow: {
@@ -2530,6 +3487,11 @@ export interface components {
             /** Verified */
             verified: number;
         };
+        /**
+         * Volume
+         * @enum {string}
+         */
+        Volume: "prototype" | "small_batch" | "production" | "high_volume";
         /**
          * HealthOut
          * @description Liveness of the API process itself; no dependencies are probed.
@@ -3550,6 +4512,119 @@ export interface operations {
             };
         };
     };
+    get_shortlist_api_v1_courses__course_id__case_studies__case_study_id__shortlist_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                case_study_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShortlistOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_shortlist_api_v1_courses__course_id__case_studies__case_study_id__shortlist_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                case_study_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShortlistIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShortlistOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     unpublish_case_study_api_v1_courses__course_id__case_studies__case_study_id__unpublish_post: {
         parameters: {
             query?: never;
@@ -3701,6 +4776,168 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_authoring_catalogue_api_v1_courses__course_id__catalogue_get: {
+        parameters: {
+            query?: {
+                case_study_id?: number | null;
+            };
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthoringCatalogueOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pin_catalogue_api_v1_courses__course_id__catalogue_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PinIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CataloguesOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_catalogues_api_v1_courses__course_id__catalogues_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CataloguesOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4744,6 +5981,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DistributionOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_quotes_api_v1_courses__course_id__quotes_get: {
+        parameters: {
+            query?: {
+                case_study_id?: number | null;
+                cursor?: number | null;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuoteReviewOut"];
                 };
             };
             /** @description Forbidden */
@@ -5819,6 +7109,231 @@ export interface operations {
             };
         };
     };
+    get_quote_api_v1_quotes__quote_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quote_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuoteOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    replace_quote_lines_api_v1_quotes__quote_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quote_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuoteIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuoteOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    discard_quote_api_v1_quotes__quote_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quote_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    issue_quote_api_v1_quotes__quote_id__issue_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quote_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuoteOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     seat_me_api_v1_seats_me_get: {
         parameters: {
             query?: never;
@@ -6291,6 +7806,482 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_marketplace_api_v1_variants__variant_id__marketplace_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                variant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarketplaceOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compare_lines_api_v1_variants__variant_id__marketplace_compare_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                variant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompareIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompareOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_lines_api_v1_variants__variant_id__marketplace_lines_get: {
+        parameters: {
+            query?: {
+                supplier?: string | null;
+                category?: string | null;
+                tag?: string | null;
+                q?: string | null;
+                sort?: string;
+                cursor?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                variant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LineListOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_line_api_v1_variants__variant_id__marketplace_lines__sku__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                variant_id: number;
+                sku: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LineDetail"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_rfqs_api_v1_variants__variant_id__marketplace_rfqs_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                variant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RfqOut"][];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_rfq_api_v1_variants__variant_id__marketplace_rfqs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                variant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RfqIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RfqOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_quotes_api_v1_variants__variant_id__quotes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                variant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuoteListOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_quote_api_v1_variants__variant_id__quotes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                variant_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuoteIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuoteOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -35,6 +35,8 @@ export const strings = {
     seatsLink: "Seats",
     importLink: "Import from PDF",
     masteryLink: "Class progress",
+    materialsLink: "Materials",
+    shortlistLink: "Materials shortlist",
   },
   // The professor's per-concept distribution (mastery spec 6, guide 4.2b): the
   // class's relationship to the material, aggregated with restraint. No per-seat
@@ -196,6 +198,92 @@ export const strings = {
     discard: "Discard",
     discardBlocked: "This variant has submissions and cannot be discarded.",
     reviewError: "That did not go through. Try again.",
+  },
+  // The materials marketplace, professor side (Phase 10, decision 0062). Two
+  // decisions shape this copy. The pin is deliberate, so it says so: a price
+  // list that moved under a term is one students could not be asked to defend.
+  // And the shortlist narrows without restricting, so nothing here promises to
+  // hide a material, because deciding a material is wrong is the exercise.
+  materials: {
+    title: "Materials",
+    back: "Back to course",
+    intro:
+      "Students price their work against one catalogue version. Choose it here, then shortlist what each case study should put in front of them first.",
+    catalogueHeading: "Catalogue",
+    off: "This course does not price materials. Students see no marketplace, which is an ordinary way to run a course.",
+    pinNote:
+      "The version never moves on its own. A price list that shifted under a term would be one nobody could be asked to defend.",
+    catalogueSize: (lines: number, suppliers: number) =>
+      `${lines} lines from ${suppliers} suppliers`,
+    version: (n: number) => `Version ${n}`,
+    use: "Use this catalogue",
+    inUse: "In use",
+    turnOff: "Turn materials off",
+    turnOffNote:
+      "Turning it off hides the marketplace from students. Quotations already issued keep their own prices and stay exactly where they are.",
+    noCatalogues: "No catalogues ship with this deployment.",
+    shortlistsHeading: "Shortlists",
+    shortlistsIntro:
+      "A shortlist decides what a case study puts forward first. It never hides the rest of the catalogue.",
+    editShortlist: "Edit shortlist",
+    shortlisted: (n: number) =>
+      n === 0 ? "Nothing shortlisted" : n === 1 ? "1 line shortlisted" : `${n} lines shortlisted`,
+    quotesHeading: "Issued quotations",
+    quotesIntro:
+      "What the cohort committed to. Drafts are not here: a basket someone is still filling is not a decision they have made.",
+    quotesEmpty: "No quotations yet. They appear here as students issue them.",
+    colQuote: "Quotation",
+    colSeat: "Seat",
+    colLines: "Lines",
+    colTotal: "Total",
+    colMass: "Mass",
+    colCited: "Defended",
+    cited: "Cited in a submission",
+    notCited: "Not cited",
+    lineCount: (n: number) => (n === 1 ? "1 line" : `${n} lines`),
+    older: "Older quotations",
+    talliesHeading: "What the cohort bought",
+    talliesIntro:
+      "Most quoted first. A shortlist nobody quotes from is a shortlist that is not landing.",
+    tallyQuotes: (n: number) => (n === 1 ? "on 1 quotation" : `on ${n} quotations`),
+    everyCaseStudy: "Every case study",
+    error: "That did not go through. Try again.",
+  },
+  // The shortlist editor (Phase 10). List prices and a band, never a student's
+  // struck price: a professor who could read one seat's prices could read them
+  // all, and per-variant pricing would stop meaning anything.
+  shortlist: {
+    title: "Materials shortlist",
+    back: "Back to the case study",
+    intro:
+      "Pick the lines this case study should offer first, in the order you want them considered. Everything else in the catalogue stays reachable.",
+    unpinned:
+      "This course has no catalogue yet, so there is nothing to shortlist from.",
+    chooseCatalogue: "Choose a catalogue",
+    chosenHeading: "Shortlisted",
+    chosenEmpty: "Nothing yet. Add lines from the catalogue below.",
+    order: "Order is meaning: the first line is the one a student meets first.",
+    moveUp: "Move up",
+    moveDown: "Move down",
+    remove: "Remove",
+    catalogueHeading: "Catalogue",
+    search: "Search the catalogue",
+    searchPlaceholder: "Name, spec, SKU or tag",
+    allSuppliers: "Every supplier",
+    allCategories: "Every category",
+    noResults: "Nothing matches that. Try fewer words.",
+    add: "Add",
+    added: "Shortlisted",
+    listPrice: (price: string, unit: string) => `${price} list per ${unit}`,
+    band: (low: string, high: string) => `Students see ${low} to ${high}`,
+    steady: "Steady price",
+    service: "Service, not a material",
+    full: (max: number) => `A shortlist holds at most ${max} lines.`,
+    save: "Save shortlist",
+    saved: "Shortlist saved.",
+    dropped: (skus: string) =>
+      `This catalogue version no longer carries ${skus}, so those lines were dropped.`,
+    error: "That did not save. Try again.",
   },
   seats: {
     back: "Back to course",
