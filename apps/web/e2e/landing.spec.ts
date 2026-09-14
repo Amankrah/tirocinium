@@ -2,15 +2,26 @@ import { expect, test } from "@playwright/test";
 
 import { expectNoA11yViolations } from "./axe";
 
-// The marketing landing as a two-door threshold (decision 0073): wordmark,
-// tagline, the Roman line, the two addressed door cards in the hero, and the
-// honest sections below. It runs on both viewports via the config's projects.
-// The door labels repeat at the page's close, so clicks take the hero's first.
+// The marketing landing, thinned to one decision (decisions 0073 and 0075):
+// a sticky header with the two quiet ways in, a hero that asks one thing with
+// the professor's path a single quiet line, and the honest sections below. It
+// runs on both viewports via the config's projects. Door labels repeat down
+// the page, so clicks take the first match in DOM order (the header's).
 test.describe("landing", () => {
   test("shows the wordmark and tagline", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Tirocinium" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Tirocinium" }),
+    ).toBeVisible();
     await expect(page.getByText("Every problem, freshly ruled.")).toBeVisible();
+  });
+
+  test("the header stays while the page scrolls", async ({ page }) => {
+    await page.goto("/");
+    await page.mouse.wheel(0, 2400);
+    const nav = page.getByRole("banner").getByRole("navigation", { name: "Ways in" });
+    await expect(nav.getByRole("link", { name: "Enter course" })).toBeInViewport();
+    await expect(nav.getByRole("link", { name: "Sign in" })).toBeInViewport();
   });
 
   // Each click waits for network idle first: against next dev under parallel

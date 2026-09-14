@@ -1,69 +1,63 @@
+import Link from "next/link";
+
 import { ButtonLink } from "@/components/ui/button";
 import { ParticleHero } from "@/components/particles/hero";
 import { strings } from "./strings";
 
-// The landing as a two-door threshold (decision 0073). The hero holds the
-// brand moment (wordmark, tagline, the Roman line told once, the particle
-// field behind it all) and the two addressed doors, the student's first
-// because a code card in hand is the dominant arrival. Below the fold the
-// page states the product honestly for each audience, everything
-// server-rendered on the token layer with hairline rules carrying the
-// structure; the particle field is the page's only ambient motion, and the
-// server-rendered wordmark stays the LCP element.
+// The landing as a threshold, thinned to one decision (decisions 0073 and
+// 0075). A sticky header carries the wordmark and the two quiet ways in, so
+// they are reachable from any scroll depth; the hero itself asks one thing
+// (enter the course), with the professor's path a single quiet line beneath
+// it rather than a competing door. Below the fold the page states the product
+// honestly for each audience, everything server-rendered on the token layer
+// with hairline rules carrying the structure; the particle field is the
+// page's only ambient motion, and the server-rendered wordmark stays the LCP
+// element.
 export default function LandingPage() {
   const s = strings;
   return (
     <>
+      <header className="sticky top-0 z-40 border-b border-rule-line bg-ground/95">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-3">
+          <span className="font-display text-xl font-black tracking-tight">
+            {s.wordmark}
+          </span>
+          <nav aria-label={s.doors} className="flex items-center gap-2">
+            <ButtonLink href="/sign-in" variant="quiet" className="text-sm">
+              {s.signIn}
+            </ButtonLink>
+            <ButtonLink href="/enter" className="text-sm">
+              {s.enterCourse}
+            </ButtonLink>
+          </nav>
+        </div>
+      </header>
       <main>
         <ParticleHero>
-          <section className="flex min-h-svh flex-col items-center justify-center px-6 py-16 text-center">
+          <section className="flex min-h-[calc(100svh-3.5rem)] flex-col items-center justify-center px-6 py-16 text-center">
             <h1 className="font-display text-6xl font-black tracking-tight sm:text-7xl">
               {s.wordmark}
             </h1>
             <p className="mt-4 rounded-md bg-ground/80 px-4 py-1 text-lg sm:text-xl">
               {s.tagline}
             </p>
-            <nav
-              aria-label={s.doors}
-              className="mt-12 grid w-full max-w-2xl gap-4 text-left sm:grid-cols-2"
-            >
-              <div className="flex flex-col rounded-lg border border-rule-line bg-ground p-6 transition-colors duration-(--motion-duration) ease-(--motion-ease) hover:border-accent">
-                <h2 className="font-display text-2xl">{s.studentDoorHeading}</h2>
-                <p className="mt-2 flex-1 text-pretty text-sm text-ink-muted">
-                  {s.studentDoorBody}
-                </p>
-                <ButtonLink href="/enter" className="mt-5">
-                  {s.enterCourse}
-                </ButtonLink>
-              </div>
-              <div className="flex flex-col rounded-lg border border-rule-line bg-ground p-6 transition-colors duration-(--motion-duration) ease-(--motion-ease) hover:border-accent">
-                <h2 className="font-display text-2xl">{s.professorDoorHeading}</h2>
-                <p className="mt-2 flex-1 text-pretty text-sm text-ink-muted">
-                  {s.professorDoorBody}
-                </p>
-                <div className="mt-5 flex gap-3">
-                  <ButtonLink
-                    href="/sign-in"
-                    variant="quiet"
-                    className="flex-1 border border-field-border"
-                  >
-                    {s.signIn}
-                  </ButtonLink>
-                  <ButtonLink
-                    href="/sign-up"
-                    variant="quiet"
-                    className="flex-1 border border-field-border"
-                  >
-                    {s.signUp}
-                  </ButtonLink>
-                </div>
-              </div>
-            </nav>
-            {/* A translucent plate in the ground colour keeps the two hero
-                lines that have no card behind them legible when particle
-                strokes drift beneath: invisible over plain ground, and
-                theme-aware through the token. */}
-            <p className="mt-12 max-w-prose rounded-md bg-ground/80 px-4 py-2 text-pretty text-sm text-ink-muted">
+            <ButtonLink href="/enter" className="mt-10 px-8 py-3 text-lg">
+              {s.enterCourse}
+            </ButtonLink>
+            {/* One quiet line, not a second door: the professor's way in
+                (decision 0075). Plated like the tagline so particle strokes
+                drifting beneath never cross the small text at full contrast
+                (decision 0073). */}
+            <p className="mt-4 rounded-md bg-ground/80 px-4 py-1 text-sm text-ink-muted">
+              {s.teachLine}{" "}
+              <Link
+                href="/sign-up"
+                className="font-medium text-accent-text underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              >
+                {s.signUp}
+              </Link>
+            </p>
+            <p className="mt-14 max-w-prose rounded-md bg-ground/80 px-4 py-2 text-pretty text-sm text-ink-muted">
               {s.story}
             </p>
           </section>
@@ -123,6 +117,15 @@ export default function LandingPage() {
                   <p className="mt-2 text-pretty text-sm text-ink-muted">{body}</p>
                 </div>
               ))}
+            </div>
+            <div className="mt-12">
+              <ButtonLink
+                href="/sign-up"
+                variant="quiet"
+                className="border border-field-border"
+              >
+                {s.signUp}
+              </ButtonLink>
             </div>
           </div>
         </section>

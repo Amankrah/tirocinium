@@ -4,10 +4,11 @@ import { describe, expect, it } from "vitest";
 import { strings } from "./strings";
 import LandingPage from "./page";
 
-// The landing as a two-door threshold (decision 0073): the hero holds the
-// wordmark, the tagline, the single Roman-story line (guide 3.1), and the two
-// addressed doors; the sections below state the product honestly for each
-// audience. All copy comes from the typed strings module (guide 3.4).
+// The landing thinned to one decision (decisions 0073 and 0075): a sticky
+// header carries the wordmark and the two quiet ways in, the hero asks one
+// thing with the professor's path a single quiet line, and the sections below
+// state the product honestly for each audience. All copy comes from the typed
+// strings module (guide 3.4).
 describe("landing", () => {
   it("renders the wordmark as the page heading", () => {
     render(<LandingPage />);
@@ -25,24 +26,33 @@ describe("landing", () => {
     expect(screen.getAllByText(strings.story)).toHaveLength(1);
   });
 
-  it("offers both audiences a door in the hero", () => {
+  it("keeps the two quiet ways in inside a sticky header", () => {
     render(<LandingPage />);
-    const doors = screen.getByRole("navigation", { name: strings.doors });
-    expect(
-      within(doors).getByRole("heading", { name: strings.studentDoorHeading }),
-    ).toBeDefined();
-    expect(
-      within(doors).getByRole("heading", { name: strings.professorDoorHeading }),
-    ).toBeDefined();
-    const enter = within(doors).getByRole("link", { name: strings.enterCourse });
-    const signIn = within(doors).getByRole("link", { name: strings.signIn });
-    const signUp = within(doors).getByRole("link", { name: strings.signUp });
+    const header = screen.getByRole("banner");
+    expect(header.className).toContain("sticky");
+    const nav = within(header).getByRole("navigation", { name: strings.doors });
+    const enter = within(nav).getByRole("link", { name: strings.enterCourse });
+    const signIn = within(nav).getByRole("link", { name: strings.signIn });
     expect(enter.getAttribute("href")).toBe("/enter");
     expect(signIn.getAttribute("href")).toBe("/sign-in");
-    expect(signUp.getAttribute("href")).toBe("/sign-up");
-    // The accent is spent on the one primary action: the student's door.
-    expect(enter.className).toContain("bg-accent");
-    expect(signIn.className).not.toContain("bg-accent");
+  });
+
+  it("asks one thing in the hero, with the professor's path a quiet line", () => {
+    render(<LandingPage />);
+    const main = screen.getByRole("main");
+    const enters = within(main).getAllByRole("link", { name: strings.enterCourse });
+    // Hero and closing only: the hero holds a single primary action.
+    expect(enters).toHaveLength(2);
+    const hero = enters[0] as HTMLElement;
+    expect(hero.className).toContain("bg-accent");
+    expect(within(main).getByText(strings.teachLine)).toBeDefined();
+    const signUps = within(main).getAllByRole("link", { name: strings.signUp });
+    // The hero's quiet line and the professor section's action.
+    expect(signUps).toHaveLength(2);
+    for (const link of signUps) {
+      expect(link.getAttribute("href")).toBe("/sign-up");
+      expect(link.className).not.toContain("bg-accent");
+    }
   });
 
   it("states the practice loop in three steps", () => {
@@ -77,7 +87,8 @@ describe("landing", () => {
     render(<LandingPage />);
     const enters = screen.getAllByRole("link", { name: strings.enterCourse });
     const signIns = screen.getAllByRole("link", { name: strings.signIn });
-    expect(enters).toHaveLength(2);
+    // Header, hero, closing; header and closing.
+    expect(enters).toHaveLength(3);
     expect(signIns).toHaveLength(2);
     for (const link of enters) expect(link.getAttribute("href")).toBe("/enter");
     for (const link of signIns) expect(link.getAttribute("href")).toBe("/sign-in");

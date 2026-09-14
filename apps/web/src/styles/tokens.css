@@ -4,10 +4,12 @@
  * maps these into utilities via the @theme block in globals.css; components
  * consume utilities or var() references, never raw values.
  *
- * Palette values are the guide's section 3.2, verbatim; tokens.test.ts pins
- * them. The display face is Fraunces (decision 0007, resolving the guide's
- * Newsreader/Fraunces candidates): it ships through next/font as a self-hosted
- * woff2 with a quiet serif stack as the no-JS fallback.
+ * Palette values are the guide's section 3.2 as refined in design review
+ * under its own "starting point" clause (decisions 0062 and 0074);
+ * tokens.test.ts pins them. The display face is Fraunces (decision 0007,
+ * resolving the guide's Newsreader/Fraunces candidates): it ships through
+ * next/font as a self-hosted woff2 with a quiet serif stack as the no-JS
+ * fallback.
  */
 
 :root {
@@ -19,15 +21,24 @@
      on the AA boundary and fragile to rounding; this clears AA with margin
      (6.22:1) at small text sizes in both themes (decision 0017). */
   --color-ink-muted: #5B5E64;
-  --color-paper: #FAFAF7;
-  --color-accent: #2C5AE9; /* primary actions and live states only */
+  /* Warmed from the guide's #FAFAF7 in the premium refinement of decision
+     0074, under guide 3.2's own "starting point, to be refined in design
+     review" clause: real workbook paper is cream, not clinical near-white. */
+  --color-paper: #F7F4EC;
+  /* Deepened from the guide's #2C5AE9 in the same refinement (decision 0074):
+     fountain-pen ultramarine rather than interface blue, still the one
+     workbook accent for primary actions and live states only. Its luminance
+     sits deliberately inside the band the contrast audit enforces: light
+     enough for a 3:1 focus ring on the dark ground, dark enough for
+     on-accent text at 5.4:1. */
+  --color-accent: #3B5BDB;
   /* The accent set as text on the page ground rather than as a fill. Identical
      to the accent in light mode; lightened in dark, where the accent itself
-     reaches only 3.28:1 and would fail the AA floor as body text. The accent
+     reaches only 3.25:1 and would fail the AA floor as body text. The accent
      stays (guide 3.2): this is the same colour doing a different job, exactly
      as --color-on-accent is (decision 0062). */
   --color-accent-text: var(--color-accent);
-  --color-rule-line: #E4E4DC; /* hairline structure */
+  --color-rule-line: #E6E1D3; /* hairline structure, warmed with the paper */
   /* A form field's boundary is a UI component boundary, so WCAG 2.2 1.4.11
      wants 3:1 against what surrounds it, which the hairline rule-line (1.22:1)
      cannot carry. Fields alone use this; separators keep the hairline. */

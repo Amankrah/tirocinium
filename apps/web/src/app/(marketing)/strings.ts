@@ -8,18 +8,15 @@ export const strings = {
   // (frontend guide 3.1).
   story:
     "In Rome, you learned law by working cases beside a jurist. This is that, for your course.",
-  // The two doors (decision 0073): addressed cards in the hero, one per
-  // audience, each action named as the user does it.
+  // The ways in (decisions 0073 and 0075): one primary action in the hero,
+  // the pair repeated quietly in the sticky header and at the close.
   doors: "Ways in",
   enterCourse: "Enter course",
   signIn: "Sign in",
   signUp: "Create an account",
-  studentDoorHeading: "Have a course code?",
-  studentDoorBody:
-    "Your professor gave you a card with a seat number and a code. That is all you need.",
-  professorDoorHeading: "Teach with it",
-  professorDoorBody:
-    "Bring your own problems, keep every figure exactly as you drew it, and publish variants that never run dry.",
+  // The professor's single quiet line under the hero action, one choice, not
+  // a second door (decision 0075).
+  teachLine: "Teaching a course?",
   // The practice loop, stated as the student does it (guide 4.1 and 4.2).
   practiceHeading: "How practice works",
   practiceStep1Title: "Start a fresh variant",

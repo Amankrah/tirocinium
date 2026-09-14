@@ -11,9 +11,14 @@ const tokens = readFileSync(join(__dirname, "tokens.css"), "utf8").toLowerCase()
 const palette: Record<string, string> = {
   ink: "#161a23",
   "ink-muted": "#5b5e64",
-  paper: "#fafaf7",
-  accent: "#2c5ae9",
-  "rule-line": "#e4e4dc",
+  // Warmed from the guide's #fafaf7, and the accent deepened from #2c5ae9,
+  // in the premium refinement of decision 0074 under the same "starting
+  // point, to be refined in design review" clause 0062 used; the hairline
+  // warms with the paper. The contrast audit below is what makes such a
+  // refinement safe to attempt at all.
+  paper: "#f7f4ec",
+  accent: "#3b5bdb",
+  "rule-line": "#e6e1d3",
   "verify-green": "#1d7a5f",
   // Corrected from the guide's #b4690e, which reads 4.04:1 on paper and is used
   // at small text sizes throughout: guide 3.2 calls the palette "a starting
@@ -73,7 +78,7 @@ describe("tokens.css carries the guide 3.2 palette", () => {
   it("keeps a single accent value across both themes", () => {
     const accents = tokens.match(/--color-accent:\s*(#[0-9a-f]{6})/g) ?? [];
     const distinct = new Set(accents.map((a) => a.replace(/.*(#[0-9a-f]{6})/, "$1")));
-    expect(distinct).toEqual(new Set(["#2c5ae9"]));
+    expect(distinct).toEqual(new Set(["#3b5bdb"]));
   });
 
   it("declares a dark theme via prefers-color-scheme", () => {
@@ -112,7 +117,7 @@ describe("the contrast audit, both themes", () => {
   // accent-text is an alias of the accent in light mode, resolved here so the
   // audit compares rendered colours rather than declarations.
   const LIGHT = {
-    ground: "#fafaf7",
+    ground: "#f7f4ec",
     ...palette,
     "accent-text": palette.accent as string,
   };
