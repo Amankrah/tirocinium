@@ -1059,11 +1059,16 @@ Phase 9, in progress:
   No clock exists anywhere in the frontend, and a test asserts the start call
   sends no body at all, because a client-supplied time would stop the span being
   evidence.
-- 9.6 (web): self-serve professor signup and two quiet landing doors (decision
-  0072). `/sign-up` is the same httpOnly cookie path as sign-in; `/` carries
-  Enter course and Sign in as text links, not a pitch. Duplicate email is the
-  backend's 409, shown honestly. The seeded journeys still mint a professor,
-  because they need a course and a seat.
+- 9.6 (web): self-serve professor signup and the landing doors (decisions
+  0072 and 0073). `/sign-up` is the same httpOnly cookie path as sign-in.
+  `/` is the two-door threshold of decision 0073: addressed door cards in the
+  hero (the student's first, carrying the page's one accent fill; the
+  professor's offering sign in and create an account), the three-step practice
+  loop, the calm line, and the four professor claims below the fold, all
+  server-rendered on the token layer. The door labels repeat at the close, so
+  browser queries for them take `.first()`. Duplicate email is the backend's
+  409, shown honestly. The seeded journeys still mint a professor, because
+  they need a course and a seat.
 - 9.3 (web, the automatable half done; the manual passes are open). The contrast
   audit is `src/styles/tokens.test.ts`, every rendered pair in both themes at
   the threshold its role demands, mutation-checked. **It found four real
