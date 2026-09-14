@@ -20,7 +20,9 @@ export default function LandingPage() {
             <h1 className="font-display text-6xl font-black tracking-tight sm:text-7xl">
               {s.wordmark}
             </h1>
-            <p className="mt-4 text-lg sm:text-xl">{s.tagline}</p>
+            <p className="mt-4 rounded-md bg-ground/80 px-4 py-1 text-lg sm:text-xl">
+              {s.tagline}
+            </p>
             <nav
               aria-label={s.doors}
               className="mt-12 grid w-full max-w-2xl gap-4 text-left sm:grid-cols-2"
@@ -57,7 +59,11 @@ export default function LandingPage() {
                 </div>
               </div>
             </nav>
-            <p className="mt-12 max-w-prose text-pretty text-sm text-ink-muted">
+            {/* A translucent plate in the ground colour keeps the two hero
+                lines that have no card behind them legible when particle
+                strokes drift beneath: invisible over plain ground, and
+                theme-aware through the token. */}
+            <p className="mt-12 max-w-prose rounded-md bg-ground/80 px-4 py-2 text-pretty text-sm text-ink-muted">
               {s.story}
             </p>
           </section>
