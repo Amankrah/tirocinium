@@ -395,7 +395,7 @@ def test_pack_figures_reach_the_tutor_and_the_frozen_check(
 
 
 def test_a_shortlisted_sku_absent_from_the_catalogue_is_refused() -> None:
-    """Mutation check on the shortlist validation (decision 0079): a SKU that is
+    """Mutation check on the shortlist validation (decision 0081): a SKU that is
     not in the pinned catalogue would load as a link to nothing, so the pack
     refuses to parse rather than shipping it."""
     raw = json.loads((PACK_ROOT / PACK_ID / "v1.json").read_text(encoding="utf-8"))

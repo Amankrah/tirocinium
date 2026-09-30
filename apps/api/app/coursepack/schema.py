@@ -118,7 +118,7 @@ class PackQuestion(BaseModel):
     # The marketplace shortlist for this question, in the order the student
     # meets it (course migration 0021). Its presence is the statement that this
     # question is a selection decision, which is what decides whether the
-    # problem view offers "Price your materials" at all (decision 0079). It
+    # problem view offers "Price your materials" at all (decision 0081). It
     # narrows and never restricts: a student may still quote any line in the
     # catalogue, because deciding a material is wrong is the exercise.
     shortlist: list[str] = Field(default_factory=list)

@@ -399,3 +399,40 @@ slide decks well merges a plot with the running head beside it on a dense
 two-column textbook page, and this is the escape hatch, taking the same path
 the confirmation surface's add-a-box verb takes (decision 0031). It is in place
 and tested against Figure 6.22 even though that figure is not shipped.
+
+## After the review pass
+
+**L4 question 6 is loaded, with part (b) re-derived.** The professor confirmed
+that the answer should follow the figure rather than the other way round.
+Figure 6.22 from `Textbook 9E.pdf` is now carried (page 236, cropped at the box
+recorded above), part (a) keeps its 481 MPa, and part (b) becomes about 0.6 mm.
+The working reads the elastic modulus off the inset and gets 210 GPa, which is
+the tabulated value for steel and so doubles as a check that the curve was read
+correctly; 481 MPa then sits far below the roughly 1400 MPa yield, so the
+deformation is purely elastic. The previous answer of 3.4 mm is not carried.
+This is the only place in the pack where a stated answer was replaced rather
+than transcribed, and it was replaced because it contradicted the figure the
+question cites.
+
+**Ceramics, composites and material selection stay as they are.** Five, five
+and two questions is what the course materials hold, and the decision is to
+ship that rather than pad it from the publisher's bank. The mastery picture
+will show those concepts with less evidence behind them, which is true.
+
+**Two questions carry a marketplace shortlist** (decision 0081), and they are
+the two the marketplace was built for: the weighted Pugh chart, shortlisting
+the three materials it compares in the chart's own column order, and the
+pyrolysis reactor, shortlisting the recommended shell and lining first and then
+the solid alloy route it was weighed against, so the cost gap is quotable. The
+SKUs are chosen here rather than by the professor and are the obvious stand-ins
+from the pinned catalogue; the shortlist editor on the professor's case study
+page is where to change them, and a change there is not overwritten until the
+next pack load. Every other question has no shortlist and so no longer shows
+"Price your materials", which is the point.
+
+**Still open, and outside what the materials can settle.** L5 question 8 needs
+a copper-tin phase diagram that exists nowhere in the folder. L5 question 7
+states 32.6 wt% B where an independent solve of its own two lever rules gives
+32.2. The L4 brass curve carries its answers as printed annotations because no
+clean copy exists. The L6 tacticity question has a prose reference rather than a
+drawn one.

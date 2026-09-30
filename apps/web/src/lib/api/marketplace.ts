@@ -119,7 +119,7 @@ export function submitRfq(
 }
 
 /**
- * Whether a problem view should offer "Price your materials" (decision 0079).
+ * Whether a problem view should offer "Price your materials" (decision 0081).
  *
  * Two facts have to line up. The course must price materials at all, which the
  * front door answers by succeeding rather than returning 409. And this

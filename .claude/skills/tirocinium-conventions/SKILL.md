@@ -774,6 +774,22 @@ reference rather than the value, which is why `FIG_PREFIX` lives in the plain
 URL away when it did not. A figure that fails to resolve stays out of the map
 and renders the amber marker, because a figure is never silently omitted.
 
+The marketplace link follows the shortlist, not the catalogue pin (decision
+0081). The pin is course-wide and says the course prices materials at all; the
+shortlist (`case_study_shortlist`) is per case study and is the professor's
+statement that *this* problem is a selection decision. `offersMarketplace` in
+`lib/api/marketplace.ts` is the one expression of the rule (front door succeeds
+**and** shortlist non-empty), and the student problem view is its only caller.
+Two things do not move. The shortlist still narrows and never restricts, which
+is decision 0076's rule: a student who reaches the marketplace quotes the whole
+catalogue, and this gates only whether the problem view volunteers the link. And
+the professor's authoring view still gates on the pin, because gating the
+shortlist editor on a shortlist existing would make the first one impossible to
+create. It is a behaviour change beyond one course: a pricing course whose case
+studies carry no shortlists loses the link everywhere. A course pack carries
+shortlists as content, validated against the pinned catalogue at parse time, so
+a SKU the catalogue lacks fails the pack rather than loading a link to nothing.
+
 The reading surfaces render GFM tables (decision 0078), because a materials
 course states its data in them and CommonMark alone rendered a table as a run of
 pipe characters. `remark-gfm` is on both `ProblemBody` and `ClientProblemBody`,

@@ -41,7 +41,7 @@ export default async function ProblemViewPage({
   const figures = await resolveFigures(token, seat.course_id, body);
 
   // Whether to offer the marketplace on *this* problem (Phase 10, decision
-  // 0079). Asking the front door is still the only honest test of whether the
+  // 0081). Asking the front door is still the only honest test of whether the
   // course prices materials at all: it answers 409 when the course does not,
   // and that is an ordinary way to run a course rather than a failure.
   //

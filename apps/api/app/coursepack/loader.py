@@ -206,7 +206,7 @@ def _sync_question(
             (case_study_id, figure_ids[figure_key]),
         )
 
-    # The marketplace shortlist (course migration 0021, decision 0079).
+    # The marketplace shortlist (course migration 0021, decision 0081).
     # Replaced rather than merged, like the concept mappings and the figures.
     conn.execute(
         "DELETE FROM case_study_shortlist WHERE case_study_id = ?", (case_study_id,)

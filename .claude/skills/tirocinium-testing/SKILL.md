@@ -143,7 +143,7 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 571 collected and 567 passing with 4 skipped (15 course pack (decision 0077), 54 marketplace (Phase 10: pricing and quote arithmetic,
+Python suite, 573 collected and 569 passing with 4 skipped (17 course pack (decisions 0077 and 0081), 54 marketplace (Phase 10: pricing and quote arithmetic,
 the surfaces end to end), 25 data layer + 9 backup verification (9.4), 4 load
 (9.1), 37 security (9.2, incl. 3 on the raise-only redemption ceiling),
 16 case studies/concepts/courses,
@@ -212,7 +212,7 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (514 Vitest tests across 61 files: the token contract with its
+Web suite (518 Vitest tests across 62 files: the token contract with its
 computed-contrast assertion, the primitives, the API clients, the upload flow's
 pre-checks, orchestration controller, SSE processing model, and transcription
 preview, the PDF import upload, controller, and processing checklist (decision
@@ -1204,6 +1204,14 @@ student started, and the handwriting page is the first of the three modes,
 inside a region that scrolls. A pin that is missing or not servable is a 404
 and never another student's question.
 
+Two more course-pack tests cover decision 0081: a shortlisted SKU absent from
+the pinned catalogue fails the pack at parse time (mutation-checked against the
+shipped asset), and shortlists load in the pack's own order, since order is
+meaning on a shortlist. On the web side `lib/api/marketplace.test.ts` pins
+`offersMarketplace` in all four states: shortlisted, pricing-course-but-no-
+shortlist, course that does not price materials (the front door's 409), and no
+variant to price against.
+
 Loading a pack by hand, which is also the shape of the demo:
 
     cd apps/api
@@ -1249,7 +1257,7 @@ plus `SKIP_REASON` on the Python side. Without both preconditions those tests
 assert nothing, which is why CI checks out with `lfs: true` and runs
 `infra/provision-pdfium.sh` in the `rust`, `api`, and `setup-script` jobs;
 `infra/setup.sh` does the same locally: when `git-lfs` is missing it installs
-the pinned binary into `~/.local/bin` and pulls (decision 0079). If that
+the pinned binary into `~/.local/bin` and pulls (decision 0081). If that
 download cannot run, it warns and the fixture-backed tests skip, so read a
 green local run on that host as "not verified here", and check the CI run
 before calling a PDF gate green. If you see
