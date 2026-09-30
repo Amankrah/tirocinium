@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { followPen } from "@/lib/upload/pen-scroll";
 import { strings } from "../../../strings";
 
 // A portrait page ratio; the canvas scales responsively but exports at this size.
@@ -24,6 +25,7 @@ export function PenPad({
   makeId?: () => string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const drawing = useRef(false);
   const [hasInk, setHasInk] = useState(false);
 
@@ -67,6 +69,22 @@ export function PenPad({
     canvasRef.current?.setPointerCapture(event.pointerId);
   }
 
+  // Keep the window under the pen (decision 0082). Only while drawing, so a
+  // student who scrolls to re-read what they wrote is never dragged back.
+  function follow(event: React.PointerEvent) {
+    const box = scrollRef.current;
+    if (!box) return;
+    const next = followPen({
+      pointerY: event.clientY - box.getBoundingClientRect().top,
+      scrollTop: box.scrollTop,
+      clientHeight: box.clientHeight,
+      scrollHeight: box.scrollHeight,
+    });
+    // Comparing first keeps the common case (pen in the middle of the window)
+    // from writing to the DOM on every single pointer move.
+    if (next !== box.scrollTop) box.scrollTop = next;
+  }
+
   function onPointerMove(event: React.PointerEvent) {
     if (!drawing.current) return;
     const g = context();
@@ -75,6 +93,7 @@ export function PenPad({
     g.lineTo(x, y);
     g.stroke();
     if (!hasInk) setHasInk(true);
+    follow(event);
   }
 
   function onPointerUp() {
@@ -97,11 +116,16 @@ export function PenPad({
       {/* The page is taller than the space, so the student scrolls inside it
           to reach the rest of the sheet (decision 0080). touch-action stays
           none on the canvas itself so a stroke does not scroll mid-line;
-          the scrollbar and the wheel move the page. */}
+          the scrollbar and the wheel move the page, and while a stroke is in
+          progress the window follows the pen (decision 0082) so writing does
+          not have to stop at the fold. The height is capped against the
+          viewport as well as in rem, so a short screen shows a usable window
+          instead of one taller than the screen it sits on. */}
       <div
+        ref={scrollRef}
         role="region"
         aria-label={s.penScroll}
-        className="max-h-[32rem] w-full overflow-y-scroll overscroll-contain rounded-md border border-field-border bg-white"
+        className="max-h-[min(32rem,60vh)] w-full overflow-y-scroll overscroll-contain rounded-md border border-field-border bg-white"
       >
         <canvas
           ref={canvasRef}

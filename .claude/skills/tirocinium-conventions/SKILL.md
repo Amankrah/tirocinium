@@ -774,6 +774,22 @@ reference rather than the value, which is why `FIG_PREFIX` lives in the plain
 URL away when it did not. A figure that fails to resolve stays out of the map
 and renders the amber marker, because a figure is never silently omitted.
 
+The handwriting pad's window follows the pen (decision 0082). Decision 0080 put
+the sheet in its own scrolling window; this makes the window move while a
+stroke is in progress, so writing does not stop at the fold. The rule is a pure
+function in `lib/upload/pen-scroll.ts` (where the pen is inside the window, how
+far the window can scroll, out comes the scrollTop it should have), which is
+the upload controller's inject-and-test pattern applied to a smaller thing.
+Four things hold: it follows only while drawing, so a student re-reading what
+they wrote is never dragged forward; it clamps to the real scroll range, so the
+bottom of the sheet is the bottom of a page and the sheet never grows (it
+exports at a fixed 1000 by 1414, the page list counts pages, and the limits are
+per page, so a growing sheet would break all three); it returns the current
+position unchanged in the common case so a pointer move touches no DOM; and a
+window shorter than two margins centres on the pen instead of oscillating,
+which is reachable now that the window is capped against the viewport as well
+as in rem.
+
 The marketplace link follows the shortlist, not the catalogue pin (decision
 0081). The pin is course-wide and says the course prices materials at all; the
 shortlist (`case_study_shortlist`) is per case study and is the professor's

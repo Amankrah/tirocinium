@@ -212,7 +212,7 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (518 Vitest tests across 62 files: the token contract with its
+Web suite (525 Vitest tests across 63 files: the token contract with its
 computed-contrast assertion, the primitives, the API clients, the upload flow's
 pre-checks, orchestration controller, SSE processing model, and transcription
 preview, the PDF import upload, controller, and processing checklist (decision
@@ -1203,6 +1203,14 @@ the practice read, so the question on the writing surface is the one the
 student started, and the handwriting page is the first of the three modes,
 inside a region that scrolls. A pin that is missing or not servable is a 404
 and never another student's question.
+
+`lib/upload/pen-scroll.test.ts` pins decision 0082's arithmetic in seven cases:
+the pen in the comfortable middle moves nothing, nearing either edge scrolls by
+the shortfall, the ends of the sheet clamp rather than invent paper, a window
+too short for a middle centres on the pen, and a window with nothing to scroll
+stays put. The stroke itself is a canvas API jsdom does not implement, so it is
+exercised in the mode-C journey, which is why the rule is a pure function and
+not a handler.
 
 Two more course-pack tests cover decision 0081: a shortlisted SKU absent from
 the pinned catalogue fails the pack at parse time (mutation-checked against the

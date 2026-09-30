@@ -183,7 +183,7 @@ export const strings = {
     modeHint: "How would you like to submit?",
     choosePdf: "Choose a PDF",
     penHint:
-      "Write with a pen, stylus, or finger. Scroll this page to reach the rest of it, then add it when it is done.",
+      "Write with a pen, stylus, or finger. The page scrolls with you as you reach the bottom. Add it when it is done.",
     penScroll: "Handwriting space",
     penCanvas: "Handwriting page",
     penAdd: "Add this page",
