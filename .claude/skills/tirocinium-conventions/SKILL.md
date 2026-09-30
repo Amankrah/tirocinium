@@ -7,12 +7,14 @@ description: Tirocinium coding standards, API conventions, data-layer rules, and
 
 The four documents in `docs/` are the specification and outrank this skill; this
 skill is the operational digest that survives context windows. Last updated
-after decision 0070 (the live-seam defaults moved off retired Claude 3.5 ids
-onto `claude-sonnet-5` for authoring and the rubric, and `claude-haiku-4-5`
-for tutor turns; a local `.env` can still pin any seam, including to Opus).
-Before that, after milestone 3.5 part B (decision 0064: the committed E2E seeder, the `e2e`
-CI job, and the browser-tier seam substitution behind `TIRO_E2E_RECORDED_DIR`;
-the seeded Playwright journeys run now instead of skipping, which is how the
+after the materials marketplace landed on main (decision 0076; its paragraph
+is below, after the Phase 8 surface rules). Before that, after decision 0070
+(the live-seam defaults moved off retired Claude 3.5 ids onto `claude-sonnet-5`
+for authoring and the rubric, and `claude-haiku-4-5` for tutor turns; a local
+`.env` can still pin any seam, including to Opus). Before that, after milestone
+3.5 part B (decision 0064: the committed E2E seeder, the `e2e` CI job, and the
+browser-tier seam substitution behind `TIRO_E2E_RECORDED_DIR`; the seeded
+Playwright journeys run now instead of skipping, which is how the
 content-type-unbound presign and the redemption-ceiling collision were found.
 See the two new paragraphs at the end of the model-call rules, and the presigned
 upload note under API conventions). Before that,
@@ -76,6 +78,34 @@ well as drilled: `verify_snapshots`
 in `app/db/backup.py` fails a shard whose newest snapshot is missing, older than
 36 h, or zero bytes, and shard discovery comes from the data directory so a new
 course reports as unbacked rather than going unnoticed.
+
+The materials marketplace (Phase 10, decision 0076) lives in `app/marketplace/`
+and is the one place money exists. Money is integer cents everywhere and is
+divided exactly once, in the web `lib/money.ts`, at the last moment before it is
+read: a total the client recomputed would be a second opinion the student cannot
+defend, which is also why the browser sends quantities and never prices. The
+catalogue is a versioned asset, not a table: `apps/api/catalogue/{id}/vN.json`
+with a `CHANGELOG.md`, loaded the way `app/prompts.py` loads prompts, and a
+course is pinned to one exact version (directory migration 0005) rather than to
+"latest", because a price list that moved under a term is one students could not
+be asked to defend. Prices are a pure function of (line, variant seed) in
+`pricing.py`, so two students never hold the same number and each can be asked
+about their own. Issuing freezes a full line snapshot (course migration 0021),
+so a catalogue revision, or a professor turning the marketplace off entirely,
+leaves an issued quotation byte-identical: the artifact outlives the setting
+that made it. Two rules here are product law rather than taste. The shortlist
+(`case_study_shortlist`) narrows what a student meets first and never restricts
+what they can reach, because deciding a material is wrong is the exercise and a
+catalogue that hid the wrong answers would be doing it for them. And the RFQ's
+application-engineering notes are deterministic rules over data (`advice.py`),
+never a model call, because a hallucinated engineering note is worse than no
+note. A submission may cite an issued quotation on decision 0058's terms, and
+the defence context carries it as a fourth delimited source under
+`defense-tutor/v3`, which may press on the cost basis and may never name the
+material it would have chosen. The professor's side (`authoring.py`) sees list
+prices and the band a struck price falls in, never a seat's own price, and a
+reviewed quotation is labelled by seat number joined in Python from the
+directory, exactly as the submission review does it.
 
 Untrusted text never goes into a prompt by hand (milestone 9.2, decision 0052).
 `app/prompt_safety.py` is the only way: `new_fence()` once per assembled
@@ -730,6 +760,21 @@ colour, add it to that test in both themes first; when adding a dark theme
 value, remember that a token which does not invert does not stay neutral, it
 inverts its contrast (rule-line was rendering at 14.40:1 on the dark ground
 until this audit).
+
+The marketplace's web surfaces follow from those rules (decision 0076). The student's browser
+refilters through the server rather than narrowing the page it already holds,
+because the catalogue is paginated and a client-side filter would quietly stop
+at the page boundary; the professor's shortlist editor filters in the client,
+because the authoring read returns the whole catalogue in one response and there
+is no boundary to stop at. `lib/api/client.ts` now holds the shared `apiCall`
+returning a `Result` with the status and the backend's problem detail, which the
+marketplace modules use instead of collapsing everything to null: a 409 on the
+front door means the course does not price materials and a 409 on a basket means
+the quotation is already issued, and an interface told only "no" would have to
+guess. The professor's materials page is a Server Component start to finish
+(every verb a form posting a server action, every filter a link), so it holds at
+the shared baseline and ships no client JavaScript at all. Link text on those
+surfaces uses `--color-accent-text`, the same rule as every other text accent.
 
 ## Model-call rules
 

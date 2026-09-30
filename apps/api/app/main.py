@@ -27,6 +27,8 @@ from app.db import ShardManager
 from app.defense import router as defense_router
 from app.events import InMemoryEventBus, RedisEventBus
 from app.imports import router as imports_router
+from app.marketplace import authoring_router as marketplace_authoring_router
+from app.marketplace import router as marketplace_router
 from app.mastery import router as mastery_router
 from app.params import router as params_router
 from app.problems import install_problem_details
@@ -159,4 +161,6 @@ def create_app(
     app.include_router(reports_router)
     app.include_router(unfold_router)
     app.include_router(defense_router)
+    app.include_router(marketplace_router)
+    app.include_router(marketplace_authoring_router)
     return app

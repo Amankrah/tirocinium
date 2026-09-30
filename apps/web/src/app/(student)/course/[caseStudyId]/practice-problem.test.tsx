@@ -16,6 +16,7 @@ function renderProblem(
     variant_id: 12,
     started_at: 1_700_000_000,
   })),
+  pricesMaterials = false,
 ) {
   // The swap hands back the variant with its figures already resolved
   // (decision 0066), since the resolve needs the seat token.
@@ -27,6 +28,7 @@ function renderProblem(
     <PracticeProblem
       caseStudyId={2}
       initialVariantId={initialVariantId}
+      pricesMaterials={pricesMaterials}
       swap={swap as never}
       startAttempt={startAttempt as never}
     >
@@ -129,5 +131,19 @@ describe("PracticeProblem", () => {
         ).toBe("/course/2/upload?variant=20"),
       );
     });
+  });
+
+  // Phase 10: most courses do not price materials, and for those the link is
+  // absent rather than disabled. A dead control is a worse answer than none.
+  it("offers the marketplace only when the course prices materials", () => {
+    renderProblem(12, undefined, false);
+    expect(screen.queryByRole("link", { name: "Price your materials" })).toBeNull();
+  });
+
+  it("carries the current variant into the marketplace when it is on", () => {
+    renderProblem(12, undefined, true);
+    expect(
+      screen.getByRole("link", { name: "Price your materials" }).getAttribute("href"),
+    ).toBe("/course/2/marketplace?variant=12");
   });
 });

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ProblemBody } from "@/components/reading/problem-body";
 import { getCaseStudy } from "@/lib/api/case-studies";
 import { resolveFigures } from "@/lib/api/figures";
+import { getMarketplace } from "@/lib/api/marketplace";
 import { getPracticeVariant } from "@/lib/api/practice";
 import { requireSeat } from "@/lib/seat-session";
 import { StudentShell } from "../../student-shell";
@@ -39,6 +40,12 @@ export default async function ProblemViewPage({
   // base does and the seat sees the pixels either way (decision 0066).
   const figures = await resolveFigures(token, seat.course_id, body);
 
+  // Whether to offer the marketplace at all (Phase 10). Asking the front door
+  // is the only honest test: the course may not price materials, which answers
+  // 409, and that is an ordinary way to run a course rather than a failure.
+  const pricesMaterials =
+    variantId === null ? false : (await getMarketplace(token, variantId)).ok;
+
   return (
     <StudentShell seatNumber={seat.seat_number}>
       <article className="mx-auto flex w-full max-w-[var(--measure-reading)] flex-col gap-6 px-6 py-12">
@@ -71,6 +78,7 @@ export default async function ProblemViewPage({
         <PracticeProblem
           caseStudyId={id}
           initialVariantId={variantId}
+          pricesMaterials={pricesMaterials}
           swap={getPracticeVariantAction}
           startAttempt={startAttemptAction}
         >

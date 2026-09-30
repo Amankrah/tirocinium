@@ -33,6 +33,9 @@ REFERENCE_SOLUTION = "By Ohm's law, I = V/R = 12 / 4700 A = 2.553 mA."
 FINAL_ANSWER = "2.553 mA"
 VARIANT_BODY = "A 12 V supply feeds the circuit. Find the current."
 
+QUOTE_NUMBER = "BREE-20260914-0001"
+QUOTED_LINE = "ASTM A36 hot-rolled plate"
+
 SOLUTION_BLOB = json.dumps(
     {"solution_md": REFERENCE_SOLUTION, "final_answers": [FINAL_ANSWER]}
 )
@@ -79,6 +82,7 @@ def seed_defensible_submission(
     status: str = "processed",
     seat_id: int = 1,
     with_figure: bool = True,
+    with_quotation: bool = False,
 ) -> int:
     """One processed submission a student may defend: a variant of a case study
     that maps two concepts (weights 1.0 and 0.3) and carries one essential
@@ -150,7 +154,30 @@ def seed_defensible_submission(
             status,
         ),
     )
-    return int(submission.lastrowid or 0)
+    submission_id = int(submission.lastrowid or 0)
+    if with_quotation:
+        quote = conn.execute(
+            "INSERT INTO quotes (variant_id, seat_id, status, quote_number,"
+            " catalogue_id, catalogue_version, goods_cents, discount_cents,"
+            " cut_fee_cents, freight_cents, tax_cents, total_cents,"
+            " total_mass_grams, created_at, issued_at, valid_until)"
+            " VALUES (?, ?, 'issued', ?, 'bree-216', 1, 48000, 2000, 0, 13000,"
+            " 9135, 70135, 100000, 0, 0, 1209600)",
+            (int(variant.lastrowid or 0), seat_id, QUOTE_NUMBER),
+        )
+        conn.execute(
+            "INSERT INTO quote_lines (quote_id, position, sku, supplier_id, name,"
+            " spec, unit, quantity, list_price_cents, unit_price_cents,"
+            " break_percent, extended_cents, mass_grams)"
+            " VALUES (?, 1, 'LMS-A36-PL06', 'LMS', ?, '6 mm plate', 'kg', 100,"
+            " 500, 480, 4, 48000, 100000)",
+            (int(quote.lastrowid or 0), QUOTED_LINE),
+        )
+        conn.execute(
+            "UPDATE submissions SET quote_id = ? WHERE id = ?",
+            (int(quote.lastrowid or 0), submission_id),
+        )
+    return submission_id
 
 
 def open_conversation_row(

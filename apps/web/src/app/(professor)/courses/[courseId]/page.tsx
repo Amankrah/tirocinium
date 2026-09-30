@@ -69,6 +69,12 @@ export default async function CoursePage({
             >
               {strings.reports.link}
             </Link>
+            <Link
+              href={`/courses/${id}/materials`}
+              className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            >
+              {strings.course.materialsLink}
+            </Link>
           </div>
         </div>
 

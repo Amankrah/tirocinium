@@ -57,6 +57,11 @@ class SubmissionIn(BaseModel):
     # student who started before the feature, a retake); it simply carries no
     # span rather than a made-up one.
     attempt_id: int | None = None
+    # The quotation this work costed against, if the course quotes for
+    # materials and the student issued one. Optional on the same terms as the
+    # attempt: a submission that cites nothing is complete, and only an issued
+    # quotation can be cited, because a draft is still moving.
+    quote_id: int | None = None
 
 
 class UploadTarget(BaseModel):
@@ -98,6 +103,11 @@ class SubmissionOut(BaseModel):
     submitted_at: int
     started_at: int | None
     recognition_conf: float | None
+    # The quotation cited, if any, by its number rather than only its id: the
+    # number is what appears on the student's own artifact and what the tutor
+    # can name out loud.
+    quote_id: int | None
+    quote_number: str | None
     pages: list[PageOut]
 
 
@@ -143,8 +153,10 @@ async def _load_submission(
 ) -> SubmissionOut:
     def read(conn: sqlite3.Connection) -> SubmissionOut:
         row = conn.execute(
-            "SELECT id, variant_id, seat_id, page_count, status, submitted_at,"
-            " recognition_conf, started_at FROM submissions WHERE id = ?",
+            "SELECT s.id, s.variant_id, s.seat_id, s.page_count, s.status,"
+            " s.submitted_at, s.recognition_conf, s.started_at, s.quote_id,"
+            " q.quote_number FROM submissions s"
+            " LEFT JOIN quotes q ON q.id = s.quote_id WHERE s.id = ?",
             (submission_id,),
         ).fetchone()
         # A submission that is not this seat's is indistinguishable from one
@@ -164,6 +176,8 @@ async def _load_submission(
             submitted_at=int(row[5]),
             recognition_conf=None if row[6] is None else float(row[6]),
             started_at=None if row[7] is None else int(row[7]),
+            quote_id=None if row[8] is None else int(row[8]),
+            quote_number=None if row[9] is None else str(row[9]),
             pages=[
                 PageOut(
                     page_index=int(p[0]),
@@ -310,12 +324,25 @@ async def create_submission(
             ).fetchone()
             if attempt is not None:
                 started_at = int(attempt[0])
+        # The citation is checked here rather than trusted, for the same reason
+        # the span is: another seat's quotation, or a draft, or one struck
+        # against a different variant, cites nothing rather than something
+        # false.
+        quote_id: int | None = None
+        if body.quote_id is not None:
+            quote = conn.execute(
+                "SELECT 1 FROM quotes WHERE id = ? AND seat_id = ? AND variant_id = ?"
+                " AND status = 'issued'",
+                (body.quote_id, seat_id, variant_id),
+            ).fetchone()
+            if quote is not None:
+                quote_id = body.quote_id
         cursor = conn.execute(
             "INSERT INTO submissions"
             " (variant_id, seat_id, page_count, storage_prefix, status,"
-            "  submitted_at, started_at)"
-            " VALUES (?, ?, ?, ?, 'pending', ?, ?)",
-            (variant_id, seat_id, len(body.pages), prefix, now, started_at),
+            "  submitted_at, started_at, quote_id)"
+            " VALUES (?, ?, ?, ?, 'pending', ?, ?, ?)",
+            (variant_id, seat_id, len(body.pages), prefix, now, started_at, quote_id),
         )
         submission_id = cursor.lastrowid
         assert submission_id is not None
