@@ -287,9 +287,23 @@ def test_a_seat_practises_a_loaded_question_with_no_model_call(
     conn.close()
 
     token = seat_tokens(client, headers, course_id, storage)[0]
-    listed = client.get(f"/api/v1/courses/{course_id}/case-studies", headers=bearer(token))
-    assert listed.status_code == 200, listed.text
-    items = listed.json()["items"]
+    # Walk the cursor rather than trusting one page: the list is paginated at
+    # 50 by default and the pack passed that with L6, so a single-page
+    # assertion silently became a test of the page size rather than of the
+    # load. Paging it also exercises the seat's own read of a course this big.
+    items: list[dict[str, object]] = []
+    cursor: int | None = None
+    while True:
+        query = f"?limit=100&cursor={cursor}" if cursor is not None else "?limit=100"
+        listed = client.get(
+            f"/api/v1/courses/{course_id}/case-studies{query}", headers=bearer(token)
+        )
+        assert listed.status_code == 200, listed.text
+        body = listed.json()
+        items.extend(body["items"])
+        cursor = body["next_cursor"]
+        if cursor is None:
+            break
     assert len(items) == len(pack.questions)
 
     first = items[0]["id"]

@@ -1052,6 +1052,425 @@
         "1.96 wt% C"
       ],
       "figures": []
+    },
+    {
+      "key": "l6-styrene-butadiene-fractions",
+      "title": "Repeat unit fractions in a styrene-butadiene copolymer",
+      "concepts": [
+        {
+          "key": "polymers",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T7 - Polymers/Sample questions.pdf (question 1)",
+      "body_md": "A random poly(styrene-butadiene) copolymer has a number-average molecular weight of $350{,}000\\ \\mathrm{g/mol}$ and a degree of polymerization of 5000. Compute the fraction of styrene and butadiene repeat units in this copolymer.\n",
+      "solution_md": "### The styrene repeat unit\n\nThe styrene repeat unit has eight carbon and eight hydrogen atoms, so\n\n$$m_{st} = (8)(12.01\\ \\mathrm{g/mol}) + (8)(1.008\\ \\mathrm{g/mol}) = 104.14\\ \\mathrm{g/mol}$$\n\n### The butadiene repeat unit\n\nThe butadiene repeat unit has four carbon and six hydrogen atoms, so\n\n$$m_{bu} = (4)(12.01\\ \\mathrm{g/mol}) + (6)(1.008\\ \\mathrm{g/mol}) = 54.09\\ \\mathrm{g/mol}$$\n\n### The average repeat unit weight\n\nFor a copolymer the average repeat unit molecular weight is the fraction-weighted mean:\n\n$$\\bar{m} = f_{st}m_{st} + f_{bu}m_{bu}$$\n\nand since $f_{st} + f_{bu} = 1$, this becomes\n\n$$\\bar{m} = f_{st}m_{st} + (1 - f_{st})m_{bu}$$\n\n### Get the average from the degree of polymerization\n\nFrom the definition of DP,\n\n$$\\bar{m} = \\frac{\\overline{M}_n}{DP} = \\frac{350{,}000\\ \\mathrm{g/mol}}{5000} = 70\\ \\mathrm{g/mol}$$\n\n### Solve for the styrene fraction\n\n$$70 = f_{st}(104.14) + (1 - f_{st})(54.09)$$\n\n$$f_{st} = 0.32$$\n\n### And the butadiene fraction\n\n$$f_{bu} = 1 - 0.32 = 0.68$$\n",
+      "final_answers": [
+        "0.32",
+        "0.68"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l6-acrylonitrile-butadiene-repeat-units",
+      "title": "Repeat units per molecule in an alternating copolymer",
+      "concepts": [
+        {
+          "key": "polymers",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T7 - Polymers/Sample questions.pdf (question 2)",
+      "body_md": "The number-average molecular weight of a poly(acrylonitrile-butadiene) alternating copolymer is $1{,}000{,}000\\ \\mathrm{g/mol}$; determine the average number of acrylonitrile and butadiene repeat units per molecule.\n",
+      "solution_md": "### Why alternating makes this simpler\n\nSince it is an alternating copolymer, the number of both types of repeat unit will be the same. Therefore consider the pair as a single repeat unit and determine the number-average degree of polymerization for that.\n\n### The combined repeat unit weight\n\nThe acrylonitrile repeat unit has three carbon atoms, three hydrogen atoms and one nitrogen atom, while the butadiene repeat unit consists of four carbon atoms and six hydrogen atoms. The combined unit is therefore\n\n$$m = 7(A_C) + 9(A_H) + 1(A_N)$$\n\n$$= (7)(12.01\\ \\mathrm{g/mol}) + (9)(1.008\\ \\mathrm{g/mol}) + (14.01\\ \\mathrm{g/mol}) = 107.15\\ \\mathrm{g/mol}$$\n\n### The degree of polymerization\n\n$$DP = \\frac{\\overline{M}_n}{m} = \\frac{1{,}000{,}000\\ \\mathrm{g/mol}}{107.15\\ \\mathrm{g/mol}} = 9333$$\n\nThus there is an average of 9333 of both repeat unit types per molecule.\n",
+      "final_answers": [
+        "9333"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l6-repeat-unit-molecular-weights",
+      "title": "Repeat unit molecular weights for four polymers",
+      "concepts": [
+        {
+          "key": "polymers",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T7 - Polymers/Sample questions.pdf (question 3)",
+      "body_md": "Compute repeat unit molecular weights for the following: **(a)** poly(vinyl chloride), **(b)** poly(ethylene terephthalate), **(c)** polycarbonate, and **(d)** polydimethylsiloxane.\n",
+      "solution_md": "### (a) Poly(vinyl chloride)\n\nEach repeat unit consists of two carbons, three hydrogens and one chlorine:\n\n$$m = 2(A_C) + 3(A_H) + (A_{Cl})$$\n\n$$= (2)(12.01) + (3)(1.008) + 35.45 = 62.49\\ \\mathrm{g/mol}$$\n\n### (b) Poly(ethylene terephthalate)\n\nEach repeat unit has ten carbons, eight hydrogens and four oxygens:\n\n$$m = 10(A_C) + 8(A_H) + 4(A_O)$$\n\n$$= (10)(12.01) + (8)(1.008) + (4)(16.00) = 192.16\\ \\mathrm{g/mol}$$\n\n### (c) Polycarbonate\n\nEach repeat unit has sixteen carbons, fourteen hydrogens and three oxygens:\n\n$$m = 16(A_C) + 14(A_H) + 3(A_O)$$\n\n$$= (16)(12.01) + (14)(1.008) + (3)(16.00) = 254.27\\ \\mathrm{g/mol}$$\n\n### (d) Polydimethylsiloxane\n\nEach repeat unit has two carbons, six hydrogens, one silicon and one oxygen:\n\n$$m = 2(A_C) + 6(A_H) + (A_{Si}) + (A_O)$$\n\n$$= (2)(12.01) + (6)(1.008) + (28.09) + (16.00) = 74.16\\ \\mathrm{g/mol}$$\n",
+      "final_answers": [
+        "62.49 g/mol",
+        "192.16 g/mol",
+        "254.27 g/mol",
+        "74.16 g/mol"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l6-polypropylene-molecular-weights",
+      "title": "Number-average and weight-average molecular weight of a polypropylene",
+      "concepts": [
+        {
+          "key": "polymers",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T7 - Polymers/Sample questions.pdf (question 4)",
+      "body_md": "The following table lists molecular weight data for a polypropylene material. Compute the following: **(a)** the number-average molecular weight, **(b)** the weight-average molecular weight, and **(c)** the degree of polymerization.\n\n| Molecular weight range (g/mol) | $x_i$ | $w_i$ |\n| --- | --- | --- |\n| 8,000-16,000 | 0.05 | 0.02 |\n| 16,000-24,000 | 0.16 | 0.10 |\n| 24,000-32,000 | 0.24 | 0.20 |\n| 32,000-40,000 | 0.28 | 0.30 |\n| 40,000-48,000 | 0.20 | 0.27 |\n| 48,000-56,000 | 0.07 | 0.11 |\n",
+      "solution_md": "### (a) The number-average molecular weight\n\nTake the mean of each range and weight it by the number fraction $x_i$:\n\n| Range | Mean $M_i$ | $x_i$ | $x_i M_i$ |\n| --- | --- | --- | --- |\n| 8,000-16,000 | 12,000 | 0.05 | 600 |\n| 16,000-24,000 | 20,000 | 0.16 | 3200 |\n| 24,000-32,000 | 28,000 | 0.24 | 6720 |\n| 32,000-40,000 | 36,000 | 0.28 | 10,080 |\n| 40,000-48,000 | 44,000 | 0.20 | 8800 |\n| 48,000-56,000 | 52,000 | 0.07 | 3640 |\n\n$$\\overline{M}_n = \\sum x_i M_i = 33{,}040\\ \\mathrm{g/mol}$$\n\n### (b) The weight-average molecular weight\n\nSame means, but weighted by the weight fraction $w_i$:\n\n| Range | Mean $M_i$ | $w_i$ | $w_i M_i$ |\n| --- | --- | --- | --- |\n| 8,000-16,000 | 12,000 | 0.02 | 240 |\n| 16,000-24,000 | 20,000 | 0.10 | 2000 |\n| 24,000-32,000 | 28,000 | 0.20 | 5600 |\n| 32,000-40,000 | 36,000 | 0.30 | 10,800 |\n| 40,000-48,000 | 44,000 | 0.27 | 11,880 |\n| 48,000-56,000 | 52,000 | 0.11 | 5720 |\n\n$$\\overline{M}_w = \\sum w_i M_i = 36{,}240\\ \\mathrm{g/mol}$$\n\n### (c) The degree of polymerization\n\nFor polypropylene the repeat unit molecular weight is\n\n$$m = 3(A_C) + 6(A_H) = (3)(12.01) + (6)(1.008) = 42.08\\ \\mathrm{g/mol}$$\n\n$$DP = \\frac{\\overline{M}_n}{m} = \\frac{33{,}040}{42.08} = 785$$\n\nNote that $\\overline{M}_w$ is larger than $\\overline{M}_n$, as it always is for a distribution with any spread: weighting by mass favours the heavy chains.\n",
+      "final_answers": [
+        "33040 g/mol",
+        "36240 g/mol",
+        "785"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l6-pmma-degree-of-polymerization-check",
+      "title": "Is this poly(methyl methacrylate) data possible?",
+      "concepts": [
+        {
+          "key": "polymers",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T7 - Polymers/Sample questions.pdf (question 5)",
+      "body_md": "Is it possible to have a poly(methyl methacrylate) homopolymer with the following molecular weight data and a degree of polymerization of 527? Why or why not?\n\n| Molecular weight range (g/mol) | $w_i$ | $x_i$ |\n| --- | --- | --- |\n| 8,000-20,000 | 0.02 | 0.05 |\n| 20,000-32,000 | 0.08 | 0.15 |\n| 32,000-44,000 | 0.17 | 0.21 |\n| 44,000-56,000 | 0.29 | 0.28 |\n| 56,000-68,000 | 0.23 | 0.18 |\n| 68,000-80,000 | 0.16 | 0.10 |\n| 80,000-92,000 | 0.05 | 0.03 |\n",
+      "solution_md": "### The approach\n\nThe degree of polymerization follows from the number-average molecular weight and the repeat unit weight, both of which the data fixes. So compute it and compare with the claimed 527.\n\n### The number-average molecular weight\n\nWeighting each range mean by its number fraction $x_i$:\n\n| Mean $M_i$ | $x_i$ | $x_i M_i$ |\n| --- | --- | --- |\n| 14,000 | 0.05 | 700 |\n| 26,000 | 0.15 | 3900 |\n| 38,000 | 0.21 | 7980 |\n| 50,000 | 0.28 | 14,000 |\n| 62,000 | 0.18 | 11,160 |\n| 74,000 | 0.10 | 7400 |\n| 86,000 | 0.03 | 2580 |\n\n$$\\overline{M}_n = 47{,}720\\ \\mathrm{g/mol}$$\n\n### The repeat unit weight\n\nPoly(methyl methacrylate) has five carbons, eight hydrogens and two oxygens per repeat unit:\n\n$$m = 5(A_C) + 8(A_H) + 2(A_O) = 100.11\\ \\mathrm{g/mol}$$\n\n### The degree of polymerization\n\n$$DP = \\frac{47{,}720}{100.11} = 477$$\n\n### Conclusion\n\nSuch a homopolymer is not possible, since the calculated degree of polymerization is 477 and not 527. The data and the claim contradict each other.\n",
+      "final_answers": [
+        "not possible",
+        "477"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l6-chlorinated-polyethylene",
+      "title": "Chlorine content of a chlorinated polyethylene",
+      "concepts": [
+        {
+          "key": "polymers",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T7 - Polymers/Sample questions.pdf (question 6)",
+      "body_md": "High-density polyethylene may be chlorinated by inducing the random substitution of chlorine atoms for hydrogen.\n\n- **(a)** Determine the concentration of Cl (in wt%) that must be added if this substitution occurs for 5% of all the original hydrogen atoms.\n- **(b)** In what ways does this chlorinated polyethylene differ from poly(vinyl chloride)?\n",
+      "solution_md": "### (a) Work from a convenient basis\n\nTake 100 repeat units of polyethylene. Each is $\\mathrm{C_2H_4}$, so the basis holds 200 carbon atoms and 400 hydrogen atoms.\n\n### How many atoms are exchanged\n\n5% of the 400 hydrogens is 20, so 20 hydrogen atoms are replaced by 20 chlorine atoms, leaving 380 hydrogens.\n\n### The masses\n\n$$m_C = (200)(12.01) = 2402\\ \\mathrm{g}$$\n\n$$m_H = (380)(1.008) = 383\\ \\mathrm{g}$$\n\n$$m_{Cl} = (20)(35.45) = 709\\ \\mathrm{g}$$\n\n### The chlorine concentration\n\n$$C_{Cl} = \\frac{709}{2402 + 383 + 709}\\times 100 = 20.3\\ \\mathrm{wt\\%}$$\n\nNote how few atoms this is: swapping one hydrogen in twenty puts chlorine at a fifth of the mass, because a chlorine atom is thirty-five times heavier than the hydrogen it replaced.\n\n### (b) How it differs from PVC\n\nThe chlorine in chlorinated polyethylene is placed at random along the chain, whereas in poly(vinyl chloride) every repeat unit carries exactly one chlorine in the same position, giving a regular and repeating structure. The two therefore differ in chain regularity even where they happen to agree on chlorine content, and that regularity is what governs how readily the polymer crystallises.\n",
+      "final_answers": [
+        "20.3 wt%"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l6-ptfe-chain-length",
+      "title": "Chain length and end-to-end distance of a polytetrafluoroethylene",
+      "concepts": [
+        {
+          "key": "polymers",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T7 - Polymers/Sample questions.pdf (question 7)",
+      "body_md": "For a linear polymer molecule, the total chain length $L$ depends on the bond length between chain atoms $d$, the total number of bonds in the molecule $N$, and the angle between adjacent backbone chain atoms $\\theta$, as follows:\n\n$$L = Nd\\sin\\left(\\frac{\\theta}{2}\\right)$$\n\nFurthermore, the average end-to-end distance for a series of polymer molecules $r$ is equal to\n\n$$r = d\\sqrt{N}$$\n\nA linear polytetrafluoroethylene has a number-average molecular weight of $500{,}000\\ \\mathrm{g/mol}$; compute average values of $L$ and $r$ for this material.\n",
+      "solution_md": "### The repeat unit weight\n\nFor polytetrafluoroethylene each repeat unit has two carbons and four fluorines:\n\n$$m = 2(A_C) + 4(A_F) = (2)(12.01) + (4)(19.00) = 100.02\\ \\mathrm{g/mol}$$\n\n### The degree of polymerization\n\n$$DP = \\frac{\\overline{M}_n}{m} = \\frac{500{,}000}{100.02} = 5000$$\n\nwhich is the number of repeat units along an average chain.\n\n### The number of chain bonds\n\nSince there are two carbon atoms per repeat unit, there are two C-C chain bonds per repeat unit, so the total number of chain bonds is\n\n$$N = (2)(5000) = 10{,}000\\ \\mathrm{bonds}$$\n\n### The total chain length\n\nFor single carbon-carbon bonds, $d = 0.154\\ \\mathrm{nm}$ and $\\theta = 109^\\circ$, so\n\n$$L = Nd\\sin\\left(\\frac{\\theta}{2}\\right) = (10{,}000)(0.154\\ \\mathrm{nm})\\sin\\left(\\frac{109^\\circ}{2}\\right) = 1254\\ \\mathrm{nm}$$\n\n### The end-to-end distance\n\n$$r = d\\sqrt{N} = (0.154\\ \\mathrm{nm})\\sqrt{10{,}000} = 15.4\\ \\mathrm{nm}$$\n\nThe coiled molecule spans about one eightieth of its stretched-out length, which is the whole reason a polymer can be elastic.\n",
+      "final_answers": [
+        "1254 nm",
+        "15.4 nm"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l6-polystyrene-tacticity",
+      "title": "Sketching syndiotactic, atactic and isotactic polystyrene",
+      "concepts": [
+        {
+          "key": "polymers",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T7 - Polymers/Finals Tutorials 2.pdf (question 7)",
+      "body_md": "Sketch portions of a linear polystyrene molecule that are **(a)** syndiotactic, **(b)** atactic, and **(c)** isotactic. Use two-dimensional schematics.\n",
+      "solution_md": "### What tacticity describes\n\nDraw the backbone as a zigzag chain of carbon atoms in the plane of the page. Every second carbon carries one phenyl group ($\\mathrm{-C_6H_5}$) and one hydrogen; the other carbon of each repeat unit carries two hydrogens. Tacticity is about which side of the backbone each phenyl group sits on.\n\n### (a) Syndiotactic\n\nThe phenyl groups alternate regularly from one side of the chain to the other: above, below, above, below.\n\n### (b) Atactic\n\nThe phenyl groups sit on either side at random, with no repeating pattern along the chain.\n\n### (c) Isotactic\n\nAll the phenyl groups sit on the same side of the chain.\n\n### Why it matters\n\nRegularity is what allows chains to pack. Isotactic and syndiotactic polystyrene can crystallise; atactic polystyrene cannot, and is the transparent amorphous material used for disposable articles.\n",
+      "final_answers": [],
+      "figures": []
+    },
+    {
+      "key": "l6-nitrile-rubber-molecular-weight",
+      "title": "Molecular weight of a nitrile rubber for agricultural tubing",
+      "concepts": [
+        {
+          "key": "polymers",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T7 - Polymers/Finals Tutorials 2.pdf (question 8)",
+      "body_md": "A nitrile rubber-based polymer is being considered for use in a flexible agricultural tubing application. Calculate the number-average molecular weight of this random nitrile rubber [poly(acrylonitrile-butadiene) copolymer] if the fraction of butadiene repeat units is 0.30 and the degree of polymerization is 2100. How would this molecular weight impact the physical properties of the tubing, such as flexibility and resistance to environmental stress?\n",
+      "solution_md": "### The two repeat unit weights\n\nThe acrylonitrile repeat unit is $\\mathrm{C_3H_3N}$:\n\n$$m_{ac} = (3)(12.01) + (3)(1.008) + (14.01) = 53.06\\ \\mathrm{g/mol}$$\n\nThe butadiene repeat unit is $\\mathrm{C_4H_6}$:\n\n$$m_{bu} = (4)(12.01) + (6)(1.008) = 54.09\\ \\mathrm{g/mol}$$\n\n### The average repeat unit weight\n\nWith $f_{bu} = 0.30$ and therefore $f_{ac} = 0.70$:\n\n$$\\bar{m} = f_{ac}m_{ac} + f_{bu}m_{bu} = (0.70)(53.06) + (0.30)(54.09) = 53.37\\ \\mathrm{g/mol}$$\n\n### The number-average molecular weight\n\n$$\\overline{M}_n = (DP)(\\bar{m}) = (2100)(53.37) = 1.12\\times10^{5}\\ \\mathrm{g/mol}$$\n\n### What that means for the tubing\n\nLonger chains entangle more, so a higher molecular weight raises tensile strength, tear resistance and resistance to environmental stress cracking, while making the melt more viscous and so harder to extrude. The acrylonitrile fraction is the other lever: more acrylonitrile improves resistance to oils and fuels but stiffens the rubber, so a tubing specification is a compromise between flexibility and chemical resistance rather than a maximum of either.\n",
+      "final_answers": [
+        "1.12e5 g/mol",
+        "112000 g/mol"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l6-ethylene-propylene-mole-fractions",
+      "title": "Mole fractions in an ethylene-propylene seal copolymer",
+      "concepts": [
+        {
+          "key": "polymers",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T7 - Polymers/Finals Tutorials 2.pdf (question 9)",
+      "body_md": "A bioresource engineering project is exploring the use of synthetic rubber for flexible seals in irrigation systems. A crosslinked copolymer consisting of 60 wt% ethylene and 40 wt% propylene is being considered due to its similar elastic properties to natural rubber. For this copolymer, determine the mole fraction of each repeat unit (ethylene and propylene) in order to understand how the composition might influence its performance in agricultural environments.\n",
+      "solution_md": "### The two repeat unit weights\n\nEthylene is $\\mathrm{C_2H_4}$ and propylene is $\\mathrm{C_3H_6}$:\n\n$$m_{eth} = (2)(12.01) + (4)(1.008) = 28.05\\ \\mathrm{g/mol}$$\n\n$$m_{pro} = (3)(12.01) + (6)(1.008) = 42.08\\ \\mathrm{g/mol}$$\n\n### Work from a 100 g basis\n\nA convenient basis is 100 g of copolymer, which holds 60 g of ethylene repeat units and 40 g of propylene repeat units.\n\n### Convert each mass to moles\n\n$$n_{eth} = \\frac{60}{28.05} = 2.139\\ \\mathrm{mol}$$\n\n$$n_{pro} = \\frac{40}{42.08} = 0.951\\ \\mathrm{mol}$$\n\n### The mole fractions\n\n$$f_{eth} = \\frac{2.139}{2.139 + 0.951} = 0.69$$\n\n$$f_{pro} = 1 - 0.69 = 0.31$$\n\nEthylene dominates by mole rather more than it does by mass, because its repeat unit is the lighter of the two.\n",
+      "final_answers": [
+        "0.69",
+        "0.31"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l6-identify-the-alternating-repeat-unit",
+      "title": "Identifying the second repeat unit of an alternating copolymer",
+      "concepts": [
+        {
+          "key": "polymers",
+          "weight": 1.0
+        }
+      ],
+      "source": "02 - Lectures/L6 - Polymers/Answers to Chap 4.pdf (chapter 4 problem)",
+      "body_md": "An alternating copolymer is known to have a number-average molecular weight of $100{,}000\\ \\mathrm{g/mol}$ and a degree of polymerization of 2210. If one of the repeat units is ethylene, which of styrene, propylene, tetrafluoroethylene and vinyl chloride is the other repeat unit? Why?\n",
+      "solution_md": "### The average repeat unit weight\n\n$$\\bar{m} = \\frac{\\overline{M}_n}{DP} = \\frac{100{,}000\\ \\mathrm{g/mol}}{2210} = 45.25\\ \\mathrm{g/mol}$$\n\n### Alternating fixes the fractions\n\nWe are told this is an alternating copolymer, therefore $f_1 = 0.5$ and $f_2 = 0.5$, and\n\n$$\\bar{m} = f_1 m_1 + f_2 m_2$$\n\n### The ethylene repeat unit\n\nOne ethylene repeat unit is $\\mathrm{C_2H_4}$:\n\n$$m_{eth} = (4)(1.008) + (2)(12.01) = 28.05\\ \\mathrm{g/mol}$$\n\n### Solve for the unknown repeat unit\n\n$$45.25 = 0.5\\,m_1 + 0.5(28.05)$$\n\n$$m_1 = 62.45\\ \\mathrm{g/mol}$$\n\n### Compare against the four candidates\n\n| Candidate | Repeat unit weight (g/mol) |\n| --- | --- |\n| Styrene | $(8)(12.01) + (8)(1.008) = 104.16$ |\n| Propylene | $(3)(12.01) + (6)(1.008) = 42.08$ |\n| Tetrafluoroethylene | $(2)(12.01) + (4)(19.00) = 100.02$ |\n| Vinyl chloride | $(2)(12.01) + (3)(1.008) + 35.45 = 62.49$ |\n\n### Conclusion\n\nVinyl chloride at $62.49\\ \\mathrm{g/mol}$ is the only candidate matching the required $62.45\\ \\mathrm{g/mol}$, so vinyl chloride is the answer.\n",
+      "final_answers": [
+        "vinyl chloride",
+        "62.45 g/mol"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l6-polyester-thermoplastic-or-thermosetting",
+      "title": "Why a polyester can be either thermoplastic or thermosetting",
+      "concepts": [
+        {
+          "key": "polymers",
+          "weight": 1.0
+        }
+      ],
+      "source": "02 - Lectures/L6 - Polymers/Answers to additional proactice problems.docx (conceptual problem)",
+      "body_md": "Some polymers (such as the polyesters) may be either thermoplastic or thermosetting. Suggest one reason for this.\n",
+      "solution_md": "### The answer\n\nThermosetting polyesters will be crosslinked, while thermoplastic ones will have linear structures without any appreciable crosslinking.\n\n### Why that settles it\n\nThe same chemistry can be built into either architecture. Linear chains slide past one another when heated, so the material softens and can be reshaped repeatedly. Crosslinks tie the chains into one network, so heating cannot make them flow: the material degrades before it melts. The distinction is structural rather than compositional, which is exactly why one family of polymers can sit on both sides of it.\n",
+      "final_answers": [],
+      "figures": []
+    },
+    {
+      "key": "l7-feo-crystal-structure",
+      "title": "Predicting the crystal structure of FeO from ionic radii",
+      "concepts": [
+        {
+          "key": "ceramics",
+          "weight": 1.0
+        }
+      ],
+      "source": "02 - Lectures/L7 - Ceramics/L7 - Structures and Properties of Ceramics.pdf (example problem, slide 8)",
+      "body_md": "On the basis of ionic radii, what crystal structure would you predict for FeO?\n\n| Cation | Ionic radius (nm) |\n| --- | --- |\n| $\\mathrm{Al^{3+}}$ | 0.053 |\n| $\\mathrm{Fe^{2+}}$ | 0.077 |\n| $\\mathrm{Fe^{3+}}$ | 0.069 |\n| $\\mathrm{Ca^{2+}}$ | 0.100 |\n\n| Anion | Ionic radius (nm) |\n| --- | --- |\n| $\\mathrm{O^{2-}}$ | 0.140 |\n| $\\mathrm{Cl^{-}}$ | 0.181 |\n| $\\mathrm{F^{-}}$ | 0.133 |\n",
+      "solution_md": "### Form the cation-anion radius ratio\n\n$$\\frac{r_{\\mathrm{Fe^{2+}}}}{r_{\\mathrm{O^{2-}}}} = \\frac{0.077\\ \\mathrm{nm}}{0.140\\ \\mathrm{nm}} = 0.550$$\n\n### Read off the coordination number\n\nThe ratio fixes how many anions can pack around each cation without the arrangement becoming unstable:\n\n| $r_{\\mathrm{cation}}/r_{\\mathrm{anion}}$ | Coordination number |\n| --- | --- |\n| $< 0.155$ | 2 |\n| $0.155 - 0.225$ | 3 |\n| $0.225 - 0.414$ | 4 |\n| $0.414 - 0.732$ | 6 |\n| $0.732 - 1.0$ | 8 |\n\nSince $0.414 < 0.550 < 0.732$, the coordination number is 6.\n\n### Name the structure\n\nA coordination number of 6 with equal cation and anion charges gives the rock salt (NaCl) crystal structure.\n",
+      "final_answers": [
+        "0.550",
+        "6",
+        "rock salt",
+        "NaCl"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l7-csi-crystal-structure",
+      "title": "Predicting the crystal structure of CsI",
+      "concepts": [
+        {
+          "key": "ceramics",
+          "weight": 1.0
+        }
+      ],
+      "source": "02 - Lectures/L7 - Ceramics/L7 - Structures and Properties of Ceramics.pdf (example problem, slide 9)",
+      "body_md": "On the basis of ionic charge and ionic radii, predict the crystal structure for CsI. Take the ionic radii as $r_{\\mathrm{Cs^+}} = 0.170\\ \\mathrm{nm}$ and $r_{\\mathrm{I^-}} = 0.220\\ \\mathrm{nm}$.\n",
+      "solution_md": "### Form the radius ratio\n\n$$\\frac{r_{\\mathrm{Cs^+}}}{r_{\\mathrm{I^-}}} = \\frac{0.17}{0.22} = 0.77$$\n\n### Read off the coordination number\n\n| $r_{\\mathrm{cation}}/r_{\\mathrm{anion}}$ | Coordination number |\n| --- | --- |\n| $< 0.155$ | 2 |\n| $0.155 - 0.225$ | 3 |\n| $0.225 - 0.414$ | 4 |\n| $0.414 - 0.732$ | 6 |\n| $0.732 - 1.0$ | 8 |\n\nSince $0.732 < 0.77 < 1.0$, the coordination number is 8.\n\n### Name the structure\n\nSo the coordination number is 8 and it is a cubic structure: the caesium chloride (CsCl) structure, with each caesium ion at the centre of a cube of eight iodide ions.\n\nNote the contrast with FeO in the previous question. Both are one-to-one ionic compounds, but the larger cation relative to its anion lets CsI pack eight neighbours where FeO manages six.\n",
+      "final_answers": [
+        "0.77",
+        "8",
+        "CsCl",
+        "cubic"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l7-nacl-theoretical-density",
+      "title": "Theoretical density of sodium chloride",
+      "concepts": [
+        {
+          "key": "ceramics",
+          "weight": 1.0
+        }
+      ],
+      "source": "02 - Lectures/L7 - Ceramics/L7 - Structures and Properties of Ceramics.pdf (example 1, slides 17 to 18)",
+      "body_md": "On the basis of the crystal structure, compute the theoretical density for sodium chloride. How does this compare with its measured density of $2.16\\ \\mathrm{g/cm^3}$?\n\nTake the ionic radii as $r_{\\mathrm{Na^+}} = 0.102\\ \\mathrm{nm}$ and $r_{\\mathrm{Cl^-}} = 0.181\\ \\mathrm{nm}$.\n",
+      "solution_md": "### The density relation for a ceramic\n\n$$\\rho = \\frac{n'\\left(\\sum A_C + \\sum A_A\\right)}{V_C N_A}$$\n\nwhere $n'$ is the number of formula units per unit cell, $\\sum A_C$ the sum of the atomic weights of all cations in the formula unit, and $\\sum A_A$ the same for the anions.\n\n### How many formula units per cell\n\n$n' = 4$, because both the sodium and the chloride ions form FCC lattices.\n\n### The atomic weights\n\n$$\\sum A_C = A_{\\mathrm{Na}} = 22.99\\ \\mathrm{g/mol}\\qquad\\sum A_A = A_{\\mathrm{Cl}} = 35.45\\ \\mathrm{g/mol}$$\n\n### The unit cell edge\n\nBecause the unit cell is cubic, $V_C = a^3$. Along the face of the cube the ions touch in the sequence anion, cation, anion, so\n\n$$a = 2r_{\\mathrm{Na^+}} + 2r_{\\mathrm{Cl^-}}$$\n\n$$V_C = a^3 = \\left(2r_{\\mathrm{Na^+}} + 2r_{\\mathrm{Cl^-}}\\right)^3$$\n\n### Substitute\n\n$$\\rho = \\frac{4(22.99 + 35.45)}{\\left[2(0.102\\times10^{-7}) + 2(0.181\\times10^{-7})\\right]^3\\left(6.022\\times10^{23}\\right)} = 2.14\\ \\mathrm{g/cm^3}$$\n\n### Compare with the measurement\n\nThis result compares very favourably with the experimental value of $2.16\\ \\mathrm{g/cm^3}$, about 1% below it. The small shortfall is what you would expect from a model that treats ions as hard spheres of tabulated radius.\n",
+      "final_answers": [
+        "2.14 g/cm3"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l7-mgo-unit-cell-edge",
+      "title": "Unit cell edge length of magnesium oxide from its density",
+      "concepts": [
+        {
+          "key": "ceramics",
+          "weight": 1.0
+        }
+      ],
+      "source": "02 - Lectures/L7 - Ceramics/L7 - Structures and Properties of Ceramics.pdf (example 2, slides 19 to 20)",
+      "body_md": "Magnesium oxide has a rock salt crystal structure and a density of $3.58\\ \\mathrm{g/cm^3}$. Determine the unit cell edge length.\n",
+      "solution_md": "### Count the formula units per cell\n\nThe rock salt structure puts the anions on an FCC lattice. Counting them in one cell: at the corners there are 8, each shared eight ways, giving $\\frac{1}{8}(8) = 1$; on the faces there are 6, each shared two ways, giving $6\\left(\\frac{1}{2}\\right) = 3$. So $1 + 3 = 4$ anions, and therefore 4 MgO pairs per unit cell: $n' = 4$.\n\n### The density relation\n\n$$\\rho = \\frac{n'\\left(\\sum A_C + \\sum A_A\\right)}{V_C N_A} = \\frac{n'\\left(A_{\\mathrm{Mg}} + A_{\\mathrm{O}}\\right)}{a^3 N_A}$$\n\n### Substitute what is known\n\nWith $A_{\\mathrm{Mg}} = 24.305\\ \\mathrm{g/mol}$ and $A_{\\mathrm{O}} = 16\\ \\mathrm{g/mol}$:\n\n$$3.58\\ \\mathrm{g/cm^3} = \\frac{4(24.305 + 16)}{a^3\\left(6.022\\times10^{23}\\ \\mathrm{mol^{-1}}\\right)}$$\n\n### Solve for the edge length\n\n$$a^3 = \\frac{4(40.305)}{(3.58)\\left(6.022\\times10^{23}\\right)} = 7.48\\times10^{-23}\\ \\mathrm{cm^3}$$\n\n$$a = 4.2\\times10^{-8}\\ \\mathrm{cm} = 0.42\\ \\mathrm{nm}$$\n\nThis is the same calculation as the previous question run backwards: there the structure gave the density, here the density gives the cell.\n",
+      "final_answers": [
+        "4.2e-8 cm",
+        "0.42 nm"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l7-mgo-minimum-radius-bending",
+      "title": "Minimum radius of an MgO specimen in three-point bending",
+      "concepts": [
+        {
+          "key": "ceramics",
+          "weight": 1.0
+        }
+      ],
+      "source": "02 - Lectures/L7 - Ceramics/L7 - Structures and Properties of Ceramics.pdf (example, slides 34 to 35)",
+      "body_md": "A circular specimen of MgO is loaded using a 3 point bending mode. Compute the minimum possible radius of the specimen without fracture, given the applied load is $425\\ \\mathrm{N}$, the flexural strength is $105\\ \\mathrm{MPa}$, and the separation between the load points is $50\\ \\mathrm{mm}$.\n",
+      "solution_md": "### Flexural strength for a circular cross section\n\n$$\\sigma_{fs} = \\frac{F_f L}{\\pi R^3}$$\n\nwhere $F_f$ is the load at fracture, $L$ the separation between the support points, and $R$ the specimen radius.\n\n### Set the applied stress equal to the strength\n\nThe smallest specimen that survives is the one where the stress the load produces exactly reaches the flexural strength:\n\n$$105\\times10^{6}\\ \\mathrm{Pa} = \\frac{425\\ \\mathrm{N}\\,(0.05\\ \\mathrm{m})}{\\pi R^3}$$\n\n### Solve for the radius\n\n$$R^3 = \\frac{(425)(0.05)}{\\pi\\left(105\\times10^{6}\\right)} = 6.44\\times10^{-8}\\ \\mathrm{m^3}$$\n\n$$R = 4\\ \\mathrm{mm}$$\n\nNote the cube: the radius enters to the third power, so a specimen only slightly thinner than this fails at a much lower load. That sensitivity is part of why brittle ceramics are specified with generous safety margins.\n",
+      "final_answers": [
+        "4 mm"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l8-aramid-epoxy-possible",
+      "title": "Is this aramid-epoxy composite possible?",
+      "concepts": [
+        {
+          "key": "composites",
+          "weight": 1.0
+        }
+      ],
+      "source": "02 - Lectures/L8 - Composites/Prep/Answers to Chap 15.pdf (question 1)",
+      "body_md": "Would it be possible to manufacture a continuous and oriented aramid fiber-epoxy matrix composite that would exhibit longitudinal and transverse moduli of elasticity of $35\\ \\mathrm{GPa}$ and $5.17\\ \\mathrm{GPa}$ respectively? The elastic modulus of the epoxy is given as $3.4\\ \\mathrm{GPa}$, and that of aramid fibre as $131\\ \\mathrm{GPa}$.\n",
+      "solution_md": "### The idea\n\nBoth moduli are fixed by the same fibre volume fraction, so work out what $V_f$ each one demands. If the two disagree, no single composite can deliver both.\n\n### The longitudinal modulus\n\nIn the longitudinal direction fibre and matrix strain together, so the moduli add in proportion to volume:\n\n$$E_{cl} = E_m\\left(1 - V_f\\right) + E_f V_f$$\n\n$$35\\ \\mathrm{GPa} = 3.4\\ \\mathrm{GPa}\\left(1 - V_f\\right) + (131\\ \\mathrm{GPa})V_f$$\n\nSolving for $V_f$ gives $V_f = 0.248$.\n\n### The transverse modulus\n\nAcross the fibres the two carry the same stress instead, so the compliances add and the relation is the reciprocal one:\n\n$$E_{ct} = \\frac{E_m E_f}{\\left(1 - V_f\\right)E_f + V_f E_m}$$\n\n$$5.17\\ \\mathrm{GPa} = \\frac{(3.4\\ \\mathrm{GPa})(131\\ \\mathrm{GPa})}{\\left(1 - V_f\\right)(131\\ \\mathrm{GPa}) + V_f(3.4\\ \\mathrm{GPa})}$$\n\nSolving this one for $V_f$ gives $V_f = 0.351$.\n\n### The verdict\n\nSince the two values of $V_f$ are not equal, the proposed composite is not possible. One fibre loading cannot satisfy both requirements at once.\n",
+      "final_answers": [
+        "not possible",
+        "0.248",
+        "0.351"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l8-specific-longitudinal-strengths",
+      "title": "Specific longitudinal strengths of three reinforced epoxies",
+      "concepts": [
+        {
+          "key": "composites",
+          "weight": 1.0
+        },
+        {
+          "key": "material-selection",
+          "weight": 0.5
+        }
+      ],
+      "source": "02 - Lectures/L8 - Composites/Prep/Answers to Chap 15.pdf (question 2)",
+      "body_md": "Determine the specific longitudinal strengths of glass-fiber, carbon-fiber and aramid-fiber reinforced epoxy composites presented in the table below (all at $V_f = 0.60$).\n\n| Property | Glass (E-glass) | Carbon (high strength) | Aramid (Kevlar 49) |\n| --- | --- | --- | --- |\n| Specific gravity | 2.1 | 1.6 | 1.4 |\n| Tensile modulus, longitudinal (GPa) | 45 | 145 | 76 |\n| Tensile modulus, transverse (GPa) | 12 | 10 | 5.5 |\n| Tensile strength, longitudinal (MPa) | 1020 | 1240 | 1380 |\n| Tensile strength, transverse (MPa) | 40 | 41 | 30 |\n| Ultimate tensile strain, longitudinal | 2.3 | 0.9 | 1.8 |\n| Ultimate tensile strain, transverse | 0.4 | 0.4 | 0.5 |\n",
+      "solution_md": "### What specific strength means\n\nSpecific strength is the longitudinal tensile strength divided by the specific gravity: strength per unit of weight carried, which is the figure that matters whenever the structure has to fly, float or be lifted.\n\n### Glass-reinforced epoxy\n\n$$\\frac{1020\\ \\mathrm{MPa}}{2.1} = 486\\ \\mathrm{MPa}$$\n\n### Carbon-fiber reinforced epoxy\n\n$$\\frac{1240\\ \\mathrm{MPa}}{1.6} = 775\\ \\mathrm{MPa}$$\n\n### Aramid-fiber reinforced epoxy\n\n$$\\frac{1380\\ \\mathrm{MPa}}{1.4} = 986\\ \\mathrm{MPa}$$\n\n### Reading the result\n\nThe ranking by specific strength is the reverse of the ranking by density, and aramid wins despite carbon having the higher modulus. Which of the three is the right choice therefore depends on whether the design is limited by strength or by stiffness, which is a different question the table also answers.\n",
+      "final_answers": [
+        "486 MPa",
+        "775 MPa",
+        "986 MPa"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l8-tungsten-copper-specific-stiffness",
+      "title": "Upper limit on the specific stiffness of a tungsten-copper composite",
+      "concepts": [
+        {
+          "key": "composites",
+          "weight": 1.0
+        }
+      ],
+      "source": "02 - Lectures/L8 - Composites/Prep/Answers to Chap 15.pdf (question 3)",
+      "body_md": "A large-particle composite consisting of tungsten particles within a copper matrix is to be prepared. If the volume fractions of tungsten and copper are 0.70 and 0.30, respectively, estimate the upper limit for the specific stiffness of this composite given the data that follows.\n\n| Material | Specific gravity | Modulus of elasticity (GPa) |\n| --- | --- | --- |\n| Copper | 8.9 | 110 |\n| Tungsten | 19.3 | 407 |\n",
+      "solution_md": "### The upper-bound rule of mixtures\n\nFor a particle composite the upper limit on modulus is the volume-weighted average, which is what you get if the two phases are forced to strain together:\n\n$$E_c(u) = E_m V_m + E_p V_p$$\n\n### The upper limit on modulus\n\n$$E_c(u) = (110\\ \\mathrm{GPa})(0.30) + (407\\ \\mathrm{GPa})(0.70) = 318\\ \\mathrm{GPa}$$\n\n### The specific gravity of the composite\n\n$$\\rho_c = \\rho_m V_m + \\rho_p V_p = (8.9)(0.30) + (19.3)(0.70) = 16.18$$\n\n### The specific stiffness\n\n$$\\text{Specific stiffness} = \\frac{E_c(u)}{\\rho_c} = \\frac{318}{16.18} = 19.65\\ \\mathrm{GPa}$$\n\n### An alternate approach\n\nThe same estimate can be reached by taking the volume-weighted average of the two specific stiffnesses instead:\n\n$$\\sum \\frac{E_i}{\\rho_i}V_i = \\left(\\frac{110}{8.9}\\right)(0.30) + \\left(\\frac{407}{19.3}\\right)(0.70) = 18.47\\ \\mathrm{GPa}$$\n\nThe two differ because averaging a ratio is not the same as taking the ratio of the averages. Both are stated in the course answer; the first divides composite stiffness by composite density and is the one that matches the definition of the quantity asked for.\n",
+      "final_answers": [
+        "318 GPa",
+        "16.18",
+        "19.65 GPa",
+        "18.47 GPa"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l8-hemp-pla-biocomposite",
+      "title": "Strength and stiffness of a hemp-PLA biocomposite",
+      "concepts": [
+        {
+          "key": "composites",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T7 - Polymers/Finals Tutorials 2.pdf (question 10)",
+      "body_md": "A continuous and aligned fiber-reinforced composite is to be produced using natural hemp fibers in a biodegradable polylactic acid (PLA) matrix for agricultural equipment components. The composite consists of 30 vol% hemp fibers and 70 vol% PLA matrix. The mechanical characteristics of these two materials are as follows:\n\n| Material | Modulus of elasticity (GPa) | Tensile strength (MPa) |\n| --- | --- | --- |\n| Hemp fiber | 70 | 690 |\n| PLA matrix | 3.6 | 50 |\n\nThe stress on the PLA matrix when the hemp fibers fail is $35\\ \\mathrm{MPa}$.\n\nFor this sustainable biocomposite, compute the following: **(a)** the longitudinal tensile strength, **(b)** the longitudinal modulus of elasticity.\n",
+      "solution_md": "### (a) Why the matrix strength is not the number to use\n\nIn an aligned composite loaded along the fibres, the composite fails when the fibres do. At that instant the matrix is not at its own tensile strength of $50\\ \\mathrm{MPa}$ but at whatever stress corresponds to the fibre's failure strain, which the question gives as $\\sigma'_m = 35\\ \\mathrm{MPa}$. That is the value the rule of mixtures needs.\n\n### The longitudinal tensile strength\n\n$$\\sigma_{cl}^* = \\sigma'_m\\left(1 - V_f\\right) + \\sigma_f^* V_f$$\n\n$$= (35\\ \\mathrm{MPa})(0.70) + (690\\ \\mathrm{MPa})(0.30) = 231.5\\ \\mathrm{MPa}$$\n\n### (b) The longitudinal modulus\n\nHere the ordinary rule of mixtures applies, with each phase's own modulus weighted by its volume fraction:\n\n$$E_{cl} = E_m\\left(1 - V_f\\right) + E_f V_f$$\n\n$$= (3.6\\ \\mathrm{GPa})(0.70) + (70\\ \\mathrm{GPa})(0.30) = 23.5\\ \\mathrm{GPa}$$\n\n### What the numbers say about the design\n\nThirty percent of hemp multiplies the matrix stiffness more than sixfold and its strength more than fourfold, which is the case for a natural-fibre composite in an agricultural component. Both figures apply along the fibres only; across them the composite is far weaker, so the fibre direction has to match the load path.\n",
+      "final_answers": [
+        "231.5 MPa",
+        "23.5 GPa"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l9-weighted-pugh-chart",
+      "title": "Choosing a tank material with a weighted Pugh chart",
+      "concepts": [
+        {
+          "key": "material-selection",
+          "weight": 1.0
+        }
+      ],
+      "source": "02 - Lectures/L9 - Material selection and sustainability/Material_Selection_Sustainability_BREE216.pptx (worked example, slide 14)",
+      "body_md": "A weighted Pugh chart compares alternatives against a datum material using $+$, $0$ and $-$ ratings, each multiplied by the weight of its criterion. HDPE is the datum, and stainless steel 316 and GFRP are the candidates.\n\n| Selection criterion | Weight | HDPE (datum) | SS 316 | GFRP |\n| --- | --- | --- | --- | --- |\n| Corrosion resistance | 5 | 0 | $+$ | $0$ |\n| Mechanical strength | 4 | 0 | $+$ | $+$ |\n| Initial cost | 4 | 0 | $-$ | $-$ |\n| Service life | 5 | 0 | $+$ | $+$ |\n| Embodied energy | 2 | 0 | $-$ | $-$ |\n| Recyclability | 2 | 0 | $+$ | $-$ |\n| Fabrication ease | 3 | 0 | $0$ | $-$ |\n\nCompute the weighted total for each candidate and state which material the chart recommends.\n",
+      "solution_md": "### The scoring rule\n\n$$\\text{Total} = \\sum_i \\left(\\text{Weight}_i \\times \\text{Rating}_i\\right)$$\n\nwith $+$ counting as $+1$, $-$ as $-1$ and $0$ as zero. The datum scores zero by construction: every other column is a comparison against it, not an absolute measure.\n\n### Stainless steel 316\n\n| Criterion | Weight | Rating | Contribution |\n| --- | --- | --- | --- |\n| Corrosion resistance | 5 | $+$ | $+5$ |\n| Mechanical strength | 4 | $+$ | $+4$ |\n| Initial cost | 4 | $-$ | $-4$ |\n| Service life | 5 | $+$ | $+5$ |\n| Embodied energy | 2 | $-$ | $-2$ |\n| Recyclability | 2 | $+$ | $+2$ |\n| Fabrication ease | 3 | $0$ | $0$ |\n\n$$\\text{Total} = 5 + 4 - 4 + 5 - 2 + 2 + 0 = +10$$\n\n### GFRP\n\n| Criterion | Weight | Rating | Contribution |\n| --- | --- | --- | --- |\n| Corrosion resistance | 5 | $0$ | $0$ |\n| Mechanical strength | 4 | $+$ | $+4$ |\n| Initial cost | 4 | $-$ | $-4$ |\n| Service life | 5 | $+$ | $+5$ |\n| Embodied energy | 2 | $-$ | $-2$ |\n| Recyclability | 2 | $-$ | $-2$ |\n| Fabrication ease | 3 | $-$ | $-3$ |\n\n$$\\text{Total} = 0 + 4 - 4 + 5 - 2 - 2 - 3 = -2$$\n\n### The recommendation\n\nSS 316 at $+10$ is significantly better than the HDPE datum despite its higher cost and embodied energy, while GFRP at $-2$ is slightly worse than the datum overall.\n\n### What the method does and does not settle\n\nThe weights are a judgement, not a measurement, and they decide the outcome: raising initial cost and embodied energy enough would reverse the ranking. The chart's value is that it makes those judgements explicit and arguable rather than leaving them implicit in a preference.\n",
+      "final_answers": [
+        "+10",
+        "-2",
+        "SS 316"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l9-pyrolysis-reactor-selection",
+      "title": "Selecting a material for a biomass pyrolysis reactor",
+      "concepts": [
+        {
+          "key": "material-selection",
+          "weight": 1.0
+        }
+      ],
+      "source": "02 - Lectures/L9 - Material selection and sustainability/Material_Selection_Sustainability_BREE216.pptx (case study, slide 15)",
+      "body_md": "A continuous pyrolysis reactor is to be built for bio-oil production.\n\nRequirements:\n\n- Temperature: $450$ to $550\\ ^\\circ\\mathrm{C}$\n- Environment: acidic tars, corrosive gases\n- Size: $2\\ \\mathrm{m}\\times4\\ \\mathrm{m}$ cylinder\n- Service life: 15 years\n- Production: one unit (prototype)\n\n| Material | Handles the temperature | Corrosion resistance | Cost ($/kg) |\n| --- | --- | --- | --- |\n| Carbon steel + lining | yes | good | 1 to 2 |\n| 310 stainless | yes | very good | 8 to 12 |\n| Inconel 600 | yes | excellent | 25 to 35 |\n| Refractory ceramics | yes | very good | 3 to 6 |\n\nRecommend a material solution and justify it against the requirements.\n",
+      "solution_md": "### Screening first\n\nAll four candidates meet the temperature requirement, so temperature does not discriminate between them. The decision therefore rests on corrosion resistance, cost, and the fact that this is a single prototype rather than a production run.\n\n### The recommendation\n\nA carbon steel shell with a refractory ceramic lining.\n\n### Why it wins\n\n- It balances performance and cost, at roughly $\\$20\\mathrm{k}$ against $\\$80\\mathrm{k}$ to $\\$200\\mathrm{k}$ for the solid alloy options.\n- The lining can be repaired or replaced in the field, which matters over a fifteen-year life in an environment that attacks the wetted surface.\n- The steel shell is recyclable at end of life.\n- It is proven industry technology, which carries weight for a prototype where the risk of an unfamiliar solution is itself a cost.\n\n### The principle underneath\n\nThe corrosive duty applies to the inner surface and the structural duty applies to the shell, so they can be met by two different materials instead of one material forced to do both. Paying Inconel prices for the whole vessel would buy corrosion resistance in the one place it is not needed.\n",
+      "final_answers": [
+        "carbon steel shell with refractory ceramic lining"
+      ],
+      "figures": []
     }
   ]
 }
