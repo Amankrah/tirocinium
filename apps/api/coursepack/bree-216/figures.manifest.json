@@ -19,5 +19,40 @@
     "page": 29,
     "select": "largest_embedded_raster",
     "caption": "Engineering stress-strain curve for a brass specimen, with the tensile strength, the 0.002 offset yield strength, and point A at 345 MPa marked"
+  },
+  {
+    "key": "l5-cu-ni",
+    "document": "05 - Tutorials/T5 - Phase Diagrams/T5 - Phase Diagrams.pdf",
+    "page": 0,
+    "select": "largest_embedded_raster",
+    "caption": "The copper-nickel phase diagram, temperature against wt% Ni"
+  },
+  {
+    "key": "l5-pb-sn",
+    "document": "05 - Tutorials/T5 - Phase Diagrams/Phase diagrams.pdf",
+    "page": 0,
+    "select": "largest_embedded_raster",
+    "caption": "The lead-tin phase diagram, with the 183 degree C eutectic isotherm at 61.9 wt% Sn"
+  },
+  {
+    "key": "l5-mg-pb",
+    "document": "05 - Tutorials/T5 - Phase Diagrams/Phase diagrams.pdf",
+    "page": 1,
+    "select": "largest_embedded_raster",
+    "caption": "The magnesium-lead phase diagram, temperature against wt% Pb"
+  },
+  {
+    "key": "l5-ag-cu",
+    "document": "05 - Tutorials/T5 - Phase Diagrams/Phase diagrams.pdf",
+    "page": 2,
+    "select": "largest_embedded_raster",
+    "caption": "The copper-silver phase diagram, with the 779 degree C eutectic isotherm at 71.9 wt% Ag"
+  },
+  {
+    "key": "l5-cu-zn",
+    "document": "05 - Tutorials/T5 - Phase Diagrams/Phase diagrams.pdf",
+    "page": 3,
+    "select": "largest_embedded_raster",
+    "caption": "The copper-zinc phase diagram, temperature against wt% Zn"
   }
 ]

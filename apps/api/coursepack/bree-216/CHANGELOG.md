@@ -181,3 +181,44 @@ it, and the figure is carried unaltered because a figure is never redrawn or
 edited; the alternative would have been to drop the topic's only figure
 question. Part (a) still requires taking the slope and part (d) still requires
 locating point A.
+
+### L5, phase diagrams (12 questions, 5 figures)
+
+Twelve of the thirteen in the tutorial `T5 - Phase Diagrams`. The lecture deck
+`Sample questions - Phase Diagrams` repeats three of them and adds none.
+
+The diagrams come from the companion `Phase diagrams.pdf` in the same folder,
+which carries clean copies of the lead-tin, magnesium-lead, copper-silver and
+copper-zinc systems, rather than from the worked solutions, which carry copies
+annotated with their own answers (the Mg-Pb one in the solution to question 3
+has "First solid (21 wt% Pb)", "560 C", "465 C" and "Last liquid (67 wt% Pb)"
+drawn on it, which is the whole answer). This is the opposite of the L4 brass
+curve, where no clean copy existed and the annotated one had to be carried. The
+copper-nickel diagram has no clean copy either, but the points marked on it
+belong to a different textbook example and give nothing away here.
+
+Every stated answer was recomputed and agrees, including the two lever-rule
+identities in question 10 that decompose the same kilogram two different ways
+(phases in part b, microconstituents in part c).
+
+**One question is held back.** Question 8 asks whether a 95 wt% Cu-5 wt% Sn
+alloy at 850 C is hypoeutectic or hypereutectic and for its phase fractions and
+compositions. There is no copper-tin diagram anywhere in the course materials,
+so it cannot be answered. It lands as soon as the professor supplies one.
+
+**Two answers supplied where the source has none**, both flagged rather than
+quiet. Question 5's worked solution sets up the two phase densities and stops
+before evaluating them; the volume fractions are 0.70 and 0.30, which happen to
+match the mass fractions because both phases here are nearly all zinc and so
+nearly the same density. And question 9 is posed with no answer at all; the
+three parts are read straight off the clean lead-tin diagram (alpha at
+18.3 wt% Sn plus liquid at 61.9 wt% Sn on the isotherm, alpha plus beta one
+degree below, and 183 C being the only temperature at which three phases
+coexist), so the answer is derived here rather than transcribed.
+
+**One discrepancy that needs the professor.** Question 7 states the answer as
+C0 = 32.6 wt% B. Solving its two lever-rule equations independently for the two
+unknowns gives C_alpha = 5.5 and C0 = 32.2 wt% B, about 1% away, and that gap
+could not be reconciled from the data the question supplies. The pack carries
+the professor's 32.6 and shows the method; the arithmetic should be checked
+before a student is graded against it.

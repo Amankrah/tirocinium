@@ -114,6 +114,101 @@
         ],
         "kind": "embedded_raster"
       }
+    },
+    {
+      "key": "l5-cu-ni",
+      "sha256": "a0ab5f87d2c41bd60d3aec4e9c5d1c1b1de0f525c00a3025006f69e75f02d917",
+      "file": "figures/a0ab5f87d2c41bd60d3aec4e9c5d1c1b1de0f525c00a3025006f69e75f02d917.jpg",
+      "width_px": 394,
+      "height_px": 384,
+      "caption": "The copper-nickel phase diagram, temperature against wt% Ni",
+      "source": {
+        "document": "05 - Tutorials/T5 - Phase Diagrams/T5 - Phase Diagrams.pdf",
+        "page": 0,
+        "bbox": [
+          0.117647,
+          0.282115,
+          0.482843,
+          0.363636
+        ],
+        "kind": "embedded_raster"
+      }
+    },
+    {
+      "key": "l5-pb-sn",
+      "sha256": "7a8764a39a1608dbaa7a1069fe1ed4e1e630f6ad8ec94db1c6a23fb7a1d304d1",
+      "file": "figures/7a8764a39a1608dbaa7a1069fe1ed4e1e630f6ad8ec94db1c6a23fb7a1d304d1.png",
+      "width_px": 1083,
+      "height_px": 758,
+      "caption": "The lead-tin phase diagram, with the 183 degree C eutectic isotherm at 61.9 wt% Sn",
+      "source": {
+        "document": "05 - Tutorials/T5 - Phase Diagrams/Phase diagrams.pdf",
+        "page": 0,
+        "bbox": [
+          0.117647,
+          0.090909,
+          0.764706,
+          0.413573
+        ],
+        "kind": "embedded_raster"
+      }
+    },
+    {
+      "key": "l5-mg-pb",
+      "sha256": "90b14880327b033b90b210e17e67454f9d5ce1d2db8dfac3a6c8af74b9c694e9",
+      "file": "figures/90b14880327b033b90b210e17e67454f9d5ce1d2db8dfac3a6c8af74b9c694e9.jpg",
+      "width_px": 541,
+      "height_px": 395,
+      "caption": "The magnesium-lead phase diagram, temperature against wt% Pb",
+      "source": {
+        "document": "05 - Tutorials/T5 - Phase Diagrams/Phase diagrams.pdf",
+        "page": 1,
+        "bbox": [
+          0.117647,
+          0.090909,
+          0.66299,
+          0.374053
+        ],
+        "kind": "embedded_raster"
+      }
+    },
+    {
+      "key": "l5-ag-cu",
+      "sha256": "157cf12c90c316aa5886d034bdc723ef3a82ffc36b8a3f0e303c822edb18e7d5",
+      "file": "figures/157cf12c90c316aa5886d034bdc723ef3a82ffc36b8a3f0e303c822edb18e7d5.jpg",
+      "width_px": 568,
+      "height_px": 432,
+      "caption": "The copper-silver phase diagram, with the 779 degree C eutectic isotherm at 71.9 wt% Ag",
+      "source": {
+        "document": "05 - Tutorials/T5 - Phase Diagrams/Phase diagrams.pdf",
+        "page": 2,
+        "bbox": [
+          0.117647,
+          0.090909,
+          0.696078,
+          0.409091
+        ],
+        "kind": "embedded_raster"
+      }
+    },
+    {
+      "key": "l5-cu-zn",
+      "sha256": "8d4d80bcd814a28252afbe40b38ea6d3cc446cc559be69a22847f84dc34e911b",
+      "file": "figures/8d4d80bcd814a28252afbe40b38ea6d3cc446cc559be69a22847f84dc34e911b.jpg",
+      "width_px": 530,
+      "height_px": 373,
+      "caption": "The copper-zinc phase diagram, temperature against wt% Zn",
+      "source": {
+        "document": "05 - Tutorials/T5 - Phase Diagrams/Phase diagrams.pdf",
+        "page": 3,
+        "bbox": [
+          0.117647,
+          0.090909,
+          0.64951,
+          0.35322
+        ],
+        "kind": "embedded_raster"
+      }
     }
   ],
   "questions": [
@@ -720,6 +815,243 @@
       "figures": [
         "l4-brass-stress-strain"
       ]
+    },
+    {
+      "key": "l5-cu-ni-nickel-to-add",
+      "title": "Nickel to add to keep a copper melt fully liquid",
+      "concepts": [
+        {
+          "key": "phase-diagrams",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T5 - Phase Diagrams/T5 - Phase Diagrams.pdf (question 1)",
+      "body_md": "You're working at a metal casting workshop making specialized copper-nickel alloys for high-temperature industrial equipment. You have $5.66\\ \\mathrm{kg}$ of copper ready in your crucible. How many kilograms of nickel should you add to ensure the mixture stays fully liquid at $1200\\ ^\\circ\\mathrm{C}$ for proper casting?\n\n![The copper-nickel phase diagram, temperature against wt% Ni](pack:l5-cu-ni)\n",
+      "solution_md": "### Read the liquidus off the diagram\n\nAccording to the copper-nickel phase diagram, the composition at the $1200\\ ^\\circ\\mathrm{C}$ liquidus temperature is about 20 wt% Ni. Any more nickel than that and the melt would begin to solidify at this temperature.\n\n### Set up the composition relation\n\nIf we let $m_{\\mathrm{Ni}}$ represent the mass of nickel required, then the weight percent of nickel is\n\n$$C_{\\mathrm{Ni}} = \\frac{m_{\\mathrm{Ni}}}{m_{\\mathrm{Ni}} + m_{\\mathrm{Cu}}}\\times 100 = 20$$\n\n### Substitute and solve\n\n$$\\frac{m_{\\mathrm{Ni}}}{m_{\\mathrm{Ni}} + 5.66\\ \\mathrm{kg}} = 0.20$$\n\n$$m_{\\mathrm{Ni}} = 1.42\\ \\mathrm{kg}$$\n",
+      "final_answers": [
+        "1.42 kg"
+      ],
+      "figures": [
+        "l5-cu-ni"
+      ]
+    },
+    {
+      "key": "l5-phases-and-compositions",
+      "title": "Phases and phase compositions for eight alloys",
+      "concepts": [
+        {
+          "key": "phase-diagrams",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T5 - Phase Diagrams/T5 - Phase Diagrams.pdf (question 2)",
+      "body_md": "Cite the phases that are present and the phase compositions for the following alloys:\n\n- **(a)** 90 wt% Zn-10 wt% Cu at $400\\ ^\\circ\\mathrm{C}$\n- **(b)** 75 wt% Sn-25 wt% Pb at $175\\ ^\\circ\\mathrm{C}$\n- **(c)** 55 wt% Ag-45 wt% Cu at $900\\ ^\\circ\\mathrm{C}$\n- **(d)** 30 wt% Pb-70 wt% Mg at $425\\ ^\\circ\\mathrm{C}$\n- **(e)** $2.12\\ \\mathrm{kg}$ Zn and $1.88\\ \\mathrm{kg}$ Cu at $500\\ ^\\circ\\mathrm{C}$\n- **(f)** $37\\ \\mathrm{lb_m}$ Pb and $6.5\\ \\mathrm{lb_m}$ Mg at $400\\ ^\\circ\\mathrm{C}$\n- **(g)** $8.2\\ \\mathrm{mol}$ Ni and $4.3\\ \\mathrm{mol}$ Cu at $1250\\ ^\\circ\\mathrm{C}$\n- **(h)** $4.5\\ \\mathrm{mol}$ Sn and $0.45\\ \\mathrm{mol}$ Pb at $200\\ ^\\circ\\mathrm{C}$\n\n![The copper-zinc phase diagram, temperature against wt% Zn](pack:l5-cu-zn)\n\n![The lead-tin phase diagram, with the 183 degree C eutectic isotherm at 61.9 wt% Sn](pack:l5-pb-sn)\n\n![The copper-silver phase diagram, with the 779 degree C eutectic isotherm at 71.9 wt% Ag](pack:l5-ag-cu)\n\n![The magnesium-lead phase diagram, temperature against wt% Pb](pack:l5-mg-pb)\n\n![The copper-nickel phase diagram, temperature against wt% Ni](pack:l5-cu-ni)\n",
+      "solution_md": "### The method, once\n\nLocate the point on the relevant diagram. If it lies in a single-phase field, that phase is present and its composition is the alloy's own. If it lies in a two-phase field, construct a tie line at that temperature: where it meets each phase boundary gives that phase's composition.\n\n### (a) 90 wt% Zn-10 wt% Cu at 400 °C\n\nThe point lies within the $\\varepsilon + \\eta$ phase field. A tie line at $400\\ ^\\circ\\mathrm{C}$ meets the $\\varepsilon-(\\varepsilon + \\eta)$ boundary at 87 wt% Zn and the $(\\varepsilon + \\eta)-\\eta$ boundary at 97 wt% Zn. Thus\n\n$$C_\\varepsilon = 87\\ \\mathrm{wt\\%\\ Zn}\\text{-}13\\ \\mathrm{wt\\%\\ Cu}\\qquadC_\\eta = 97\\ \\mathrm{wt\\%\\ Zn}\\text{-}3\\ \\mathrm{wt\\%\\ Cu}$$\n\n### (b) 75 wt% Sn-25 wt% Pb at 175 °C\n\nThe point lies within the $\\alpha + \\beta$ phase field. The tie line meets the $\\alpha-(\\alpha + \\beta)$ boundary at 16 wt% Sn and the $(\\alpha + \\beta)-\\beta$ boundary at 97 wt% Sn:\n\n$$C_\\alpha = 16\\ \\mathrm{wt\\%\\ Sn}\\text{-}84\\ \\mathrm{wt\\%\\ Pb}\\qquadC_\\beta = 97\\ \\mathrm{wt\\%\\ Sn}\\text{-}3\\ \\mathrm{wt\\%\\ Pb}$$\n\n### (c) 55 wt% Ag-45 wt% Cu at 900 °C\n\nThe point lies within the liquid phase field. Therefore only the liquid phase is present, and its composition is the alloy's own: 55 wt% Ag-45 wt% Cu.\n\n### (d) 30 wt% Pb-70 wt% Mg at 425 °C\n\nOnly the $\\alpha$ phase is present; its composition is 30 wt% Pb-70 wt% Mg.\n\n### (e) 2.12 kg Zn and 1.88 kg Cu at 500 °C\n\nFirst convert the masses to a composition:\n\n$$C_{\\mathrm{Zn}} = \\frac{2.12}{2.12 + 1.88}\\times 100 = 53\\ \\mathrm{wt\\%\\ Zn}$$\n\nThe point lies within the $\\beta + \\gamma$ phase field, and the tie line at $500\\ ^\\circ\\mathrm{C}$ gives\n\n$$C_\\beta = 49\\ \\mathrm{wt\\%\\ Zn}\\text{-}51\\ \\mathrm{wt\\%\\ Cu}\\qquadC_\\gamma = 58\\ \\mathrm{wt\\%\\ Zn}\\text{-}42\\ \\mathrm{wt\\%\\ Cu}$$\n\n### (f) 37 lbm Pb and 6.5 lbm Mg at 400 °C\n\n$$C_{\\mathrm{Mg_2Pb}} = 81\\ \\mathrm{wt\\%\\ Pb}\\text{-}19\\ \\mathrm{wt\\%\\ Mg}\\qquadC_L = 93\\ \\mathrm{wt\\%\\ Pb}\\text{-}7\\ \\mathrm{wt\\%\\ Mg}$$\n\n### (g) 8.2 mol Ni and 4.3 mol Cu at 1250 °C\n\nOnly the $\\alpha$ phase is present; its composition is 63.8 wt% Ni-36.2 wt% Cu.\n\n### (h) 4.5 mol Sn and 0.45 mol Pb at 200 °C\n\nConvert moles to masses, then to weight percent:\n\n$$m_{\\mathrm{Sn}} = (4.5)(118.71) = 534\\ \\mathrm{g}\\qquadm_{\\mathrm{Pb}} = (0.45)(207.2) = 93.2\\ \\mathrm{g}$$\n\n$$C_{\\mathrm{Sn}} = \\frac{534}{534 + 93.2}\\times 100 = 85.1\\ \\mathrm{wt\\%\\ Sn}$$\n\nThe point lies within the $\\beta + L$ phase field, and the tie line at $200\\ ^\\circ\\mathrm{C}$ gives\n\n$$C_\\beta = 97.5\\ \\mathrm{wt\\%\\ Sn}\\text{-}2.5\\ \\mathrm{wt\\%\\ Pb}\\qquadC_L = 74\\ \\mathrm{wt\\%\\ Sn}\\text{-}26\\ \\mathrm{wt\\%\\ Pb}$$\n",
+      "final_answers": [],
+      "figures": [
+        "l5-cu-zn",
+        "l5-pb-sn",
+        "l5-ag-cu",
+        "l5-mg-pb",
+        "l5-cu-ni"
+      ]
+    },
+    {
+      "key": "l5-mg-pb-slow-cooling",
+      "title": "Slow cooling of a 50 wt% Pb-50 wt% Mg alloy",
+      "concepts": [
+        {
+          "key": "phase-diagrams",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T5 - Phase Diagrams/T5 - Phase Diagrams.pdf (question 3)",
+      "body_md": "A 50 wt% Pb-50 wt% Mg alloy is slowly cooled from $700\\ ^\\circ\\mathrm{C}$ to $400\\ ^\\circ\\mathrm{C}$.\n\n- **(a)** At what temperature does the first solid phase form?\n- **(b)** What is the composition of this solid phase?\n- **(c)** At what temperature does the liquid solidify?\n- **(d)** What is the composition of this last remaining liquid phase?\n\n![The magnesium-lead phase diagram, temperature against wt% Pb](pack:l5-mg-pb)\n",
+      "solution_md": "### Construct the composition line\n\nDraw a vertical line on the Mg-Pb diagram at 50 wt% Pb and follow it downward from $700\\ ^\\circ\\mathrm{C}$.\n\n### (a) First solid\n\nUpon cooling from $700\\ ^\\circ\\mathrm{C}$, the first solid phase forms where the vertical line crosses the $L-(\\alpha + L)$ phase boundary, at about $560\\ ^\\circ\\mathrm{C}$.\n\n### (b) Composition of that solid\n\nConstruct a tie line across the $\\alpha + L$ region at $560\\ ^\\circ\\mathrm{C}$; its intersection with the $\\alpha-(\\alpha + L)$ boundary gives 21 wt% Pb-79 wt% Mg.\n\n### (c) Complete solidification\n\nComplete solidification occurs where the same vertical line meets the eutectic isotherm, at about $465\\ ^\\circ\\mathrm{C}$.\n\n### (d) The last liquid\n\nThe composition of the last liquid remaining before complete solidification is the eutectic composition, about 67 wt% Pb-33 wt% Mg.\n",
+      "final_answers": [
+        "560 C",
+        "21 wt% Pb",
+        "465 C",
+        "67 wt% Pb"
+      ],
+      "figures": [
+        "l5-mg-pb"
+      ]
+    },
+    {
+      "key": "l5-solder-half-melted",
+      "title": "Getting a solder batch half melted, two ways",
+      "concepts": [
+        {
+          "key": "phase-diagrams",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T5 - Phase Diagrams/T5 - Phase Diagrams.pdf (question 4)",
+      "body_md": "You're working at a soldering facility that manufactures specialized lead-tin solder joints. You have a $1.5\\ \\mathrm{kg}$ batch of solder that's 90% lead and 10% tin, currently heated to $250\\ ^\\circ\\mathrm{C}$ in your temperature-controlled pot. For your next manufacturing process, you need exactly half of the solder to be melted while the other half remains solid; this specific semi-solid state is crucial for the joint quality.\n\nYou can achieve this two ways: (1) simply adjusting the temperature of your current mixture, or (2) keeping the temperature at $250\\ ^\\circ\\mathrm{C}$ but adding more tin to the mix.\n\n- **(a)** If you choose to adjust temperature, what should you set your heating pot to?\n- **(b)** If you prefer keeping it at $250\\ ^\\circ\\mathrm{C}$, how many grams of tin should you add to your current $1.5\\ \\mathrm{kg}$ batch?\n\n![The lead-tin phase diagram, with the 183 degree C eutectic isotherm at 61.9 wt% Sn](pack:l5-pb-sn)\n",
+      "solution_md": "### (a) Find the temperature by trial and error\n\nHalf melted means $W_\\alpha = W_L = 0.5$, and by the lever rule that happens exactly where the tie-line lengths on both sides of the alloy composition are equal. On the Pb-Sn diagram, move vertically at 10 wt% Sn through the $\\alpha + L$ region until that is true. This occurs at approximately $295\\ ^\\circ\\mathrm{C}$.\n\n### (b) Or change the composition instead\n\nAt $250\\ ^\\circ\\mathrm{C}$, within the $\\alpha + L$ phase region, the tie line gives\n\n$$C_\\alpha = 14\\ \\mathrm{wt\\%\\ Sn}\\text{-}86\\ \\mathrm{wt\\%\\ Pb}\\qquadC_L = 34\\ \\mathrm{wt\\%\\ Sn}\\text{-}66\\ \\mathrm{wt\\%\\ Pb}$$\n\n### The composition that splits the tie line evenly\n\nLet $C_0$ be the new alloy composition giving $W_\\alpha = W_L = 0.5$. Equal mass fractions put $C_0$ at the midpoint of the tie line:\n\n$$C_0 = \\frac{C_\\alpha + C_L}{2} = \\frac{14 + 34}{2} = 24\\ \\mathrm{wt\\%\\ Sn}$$\n\n### How much tin that means adding\n\nThe amount of Sn in the original alloy is $(0.10)(1.5\\ \\mathrm{kg}) = 0.15\\ \\mathrm{kg}$. Letting $m_{\\mathrm{Sn}}$ be the mass added,\n\n$$\\frac{0.15 + m_{\\mathrm{Sn}}}{1.5 + m_{\\mathrm{Sn}}} = 0.24$$\n\n$$m_{\\mathrm{Sn}} = 0.276\\ \\mathrm{kg} = 276\\ \\mathrm{g}$$\n\nNote that the tin added counts in both the numerator and the denominator, which is why this is not simply 24% of 1.5 kg.\n",
+      "final_answers": [
+        "295 C",
+        "0.276 kg",
+        "276 g"
+      ],
+      "figures": [
+        "l5-pb-sn"
+      ]
+    },
+    {
+      "key": "l5-volume-fractions-cu-zn",
+      "title": "Volume fractions of the phases in a 90 wt% Zn brass",
+      "concepts": [
+        {
+          "key": "phase-diagrams",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T5 - Phase Diagrams/T5 - Phase Diagrams.pdf (question 5)",
+      "body_md": "Determine the relative amounts (in terms of volume fractions) of the phases for 90 wt% Zn-10 wt% Cu at $400\\ ^\\circ\\mathrm{C}$. Take the densities of Zn and Cu to be $6.83$ and $8.77\\ \\mathrm{g/cm^3}$ respectively.\n\n![The copper-zinc phase diagram, temperature against wt% Zn](pack:l5-cu-zn)\n",
+      "solution_md": "### What the diagram and the lever rule give\n\nThis is a Cu-Zn alloy at $400\\ ^\\circ\\mathrm{C}$, where\n\n$$C_\\varepsilon = 87\\ \\mathrm{wt\\%\\ Zn}\\qquadC_\\eta = 97\\ \\mathrm{wt\\%\\ Zn}$$\n\n$$W_\\varepsilon = \\frac{C_\\eta - C_0}{C_\\eta - C_\\varepsilon} = \\frac{97 - 90}{97 - 87} = 0.70\\qquad W_\\eta = 0.30$$\n\n### Mass fractions are not volume fractions\n\nTo convert, each phase's own density is needed, and each is computed from its composition and the two elemental densities:\n\n$$\\rho_\\varepsilon = \\frac{100}{\\frac{C_{\\mathrm{Zn}(\\varepsilon)}}{\\rho_{\\mathrm{Zn}}} + \\frac{C_{\\mathrm{Cu}(\\varepsilon)}}{\\rho_{\\mathrm{Cu}}}} = \\frac{100}{\\frac{87}{6.83} + \\frac{13}{8.77}} = 7.03\\ \\mathrm{g/cm^3}$$\n\n$$\\rho_\\eta = \\frac{100}{\\frac{97}{6.83} + \\frac{3}{8.77}} = 6.88\\ \\mathrm{g/cm^3}$$\n\n### Now the volume fractions\n\n$$V_\\varepsilon = \\frac{\\frac{W_\\varepsilon}{\\rho_\\varepsilon}}{\\frac{W_\\varepsilon}{\\rho_\\varepsilon} + \\frac{W_\\eta}{\\rho_\\eta}} = \\frac{\\frac{0.70}{7.03}}{\\frac{0.70}{7.03} + \\frac{0.30}{6.88}} = 0.70$$\n\n$$V_\\eta = 0.30$$\n\nThe volume fractions come out almost equal to the mass fractions here, because the two phases are both nearly all zinc and so have nearly the same density. That is a coincidence of this alloy, not a rule: where two phases differ in density the two sets of fractions part company.\n",
+      "final_answers": [
+        "0.70",
+        "0.30"
+      ],
+      "figures": [
+        "l5-cu-zn"
+      ]
+    },
+    {
+      "key": "l5-impossible-mg-pb-measurements",
+      "title": "Are these magnesium-lead measurements even possible?",
+      "concepts": [
+        {
+          "key": "phase-diagrams",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T5 - Phase Diagrams/T5 - Phase Diagrams.pdf (question 6)",
+      "body_md": "A colleague engineer is running quality control at a casting facility, and he is seeing some odd measurements from their magnesium-lead batch. The furnace is running at $460\\ ^\\circ\\mathrm{C}$, and he just tested a $6.70\\ \\mathrm{kg}$ sample. His measurements show $4.23\\ \\mathrm{kg}$ of primary alpha phase (formed during initial cooling) and $6.00\\ \\mathrm{kg}$ of total alpha phase (including what formed later). Something feels off about these numbers.\n\nBefore he calls for equipment recalibration or halts production, he is asking if you can check whether it is even physically possible to have these measurements in a $6.70\\ \\mathrm{kg}$ sample at $460\\ ^\\circ\\mathrm{C}$. If not, what's wrong with these numbers?\n\n![The magnesium-lead phase diagram, temperature against wt% Pb](pack:l5-mg-pb)\n",
+      "solution_md": "### Convert the masses to mass fractions\n\n$$W_{\\alpha'} = \\frac{4.23}{6.70} = 0.6313\\qquadW_\\alpha = \\frac{6.00}{6.70} = 0.8955$$\n\n### Read the compositions off the diagram\n\nAt $460\\ ^\\circ\\mathrm{C}$: $C_\\alpha = 41\\ \\mathrm{wt\\%\\ Pb}$, $C_{\\mathrm{Mg_2Pb}} = 81\\ \\mathrm{wt\\%\\ Pb}$, and $C_{\\mathrm{eutectic}} = 66\\ \\mathrm{wt\\%\\ Pb}$.\n\n### The lever rule for primary alpha\n\n$$W_{\\alpha'} = \\frac{C_{\\mathrm{eutectic}} - C_0}{C_{\\mathrm{eutectic}} - C_\\alpha} = \\frac{66 - C_0}{66 - 41} = 0.6313$$\n\nSolving gives $C_0 = 50.2\\ \\mathrm{wt\\%\\ Pb}$.\n\n### The lever rule for total alpha\n\n$$W_\\alpha = \\frac{C_{\\mathrm{Mg_2Pb}} - C_0}{C_{\\mathrm{Mg_2Pb}} - C_\\alpha} = \\frac{81 - C_0}{81 - 41} = 0.8955$$\n\nAnd this value of $C_0$ is $45.2\\ \\mathrm{wt\\%\\ Pb}$.\n\n### The verdict\n\nA sample has one composition. These two measurements imply two different ones, so the alloy is not possible and the measurements are inconsistent with each other rather than merely imprecise.\n",
+      "final_answers": [
+        "not possible",
+        "50.2 wt% Pb",
+        "45.2 wt% Pb"
+      ],
+      "figures": [
+        "l5-mg-pb"
+      ]
+    },
+    {
+      "key": "l5-hypothetical-eutectic-alpha",
+      "title": "Composition from primary and total alpha fractions",
+      "concepts": [
+        {
+          "key": "phase-diagrams",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T5 - Phase Diagrams/T5 - Phase Diagrams.pdf (question 7)",
+      "body_md": "Consider the hypothetical eutectic phase diagram for metals A and B, which is similar to that for the lead-tin system. Assume that (1) $\\alpha$ and $\\beta$ phases exist at the A and B extremes of the phase diagram, respectively; (2) the eutectic composition is 47 wt% B-53 wt% A; and (3) the composition of the $\\beta$ phase at the eutectic temperature is 92.6 wt% B-7.4 wt% A. Determine the composition of an alloy that will yield primary $\\alpha$ and total $\\alpha$ mass fractions of 0.356 and 0.693, respectively.\n",
+      "solution_md": "### Two lever rules, two unknowns\n\nPrimary $\\alpha$ is what forms before the eutectic reaction, so its lever arm runs to the eutectic composition. Total $\\alpha$ includes the $\\alpha$ inside the eutectic structure, so its lever arm runs to the $\\beta$ composition. The unknowns are the alloy composition $C_0$ and the $\\alpha$ composition $C_\\alpha$.\n\n### Primary alpha\n\n$$W_{\\alpha'} = \\frac{C_{\\mathrm{eutectic}} - C_0}{C_{\\mathrm{eutectic}} - C_\\alpha} = \\frac{47 - C_0}{47 - C_\\alpha} = 0.356$$\n\n### Total alpha\n\n$$W_\\alpha = \\frac{C_\\beta - C_0}{C_\\beta - C_\\alpha} = \\frac{92.6 - C_0}{92.6 - C_\\alpha} = 0.693$$\n\n### Solve the pair\n\nRearranging each for $C_0$ and eliminating it gives $C_\\alpha$, and substituting back gives the alloy composition:\n\n$$C_0 = 32.6\\ \\mathrm{wt\\%\\ B}$$\n",
+      "final_answers": [
+        "32.6 wt% B"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l5-eutectic-temperature-phases",
+      "title": "What happens to a 30 wt% Sn solder at the eutectic temperature",
+      "concepts": [
+        {
+          "key": "phase-diagrams",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T5 - Phase Diagrams/T5 - Phase Diagrams.pdf (question 9)",
+      "body_md": "As a quality engineer at a solder manufacturing plant, you're developing a new lead-tin solder. You've created a mixture that's 70 wt% Pb-30 wt% Sn and heated it to exactly the eutectic temperature. Your supervisor asks:\n\n- **(a)** What phases are present at this moment?\n- **(b)** If you lower the temperature by just $1\\ ^\\circ\\mathrm{C}$, what phases will form?\n- **(c)** What makes this composition special at this exact temperature?\n\n![The lead-tin phase diagram, with the 183 degree C eutectic isotherm at 61.9 wt% Sn](pack:l5-pb-sn)\n",
+      "solution_md": "### Where the alloy sits\n\nThe eutectic composition is 61.9 wt% Sn and the eutectic temperature is $183\\ ^\\circ\\mathrm{C}$. At 30 wt% Sn this alloy is hypoeutectic: it lies to the left of the eutectic point.\n\n### (a) At exactly the eutectic temperature\n\nThe vertical line at 30 wt% Sn meets the eutectic isotherm inside the $\\alpha + L$ field, so $\\alpha$ and liquid are both present. The tie line along the isotherm gives their compositions as the two ends of that line:\n\n$$C_\\alpha = 18.3\\ \\mathrm{wt\\%\\ Sn}\\qquadC_L = 61.9\\ \\mathrm{wt\\%\\ Sn}$$\n\n### (b) One degree lower\n\nBelow the isotherm no liquid can exist. The remaining liquid, which is sitting at exactly the eutectic composition, undergoes the eutectic reaction\n\n$$L \\rightarrow \\alpha + \\beta$$\n\nso the alloy becomes the proeutectoid $\\alpha$ that had already formed plus eutectic structure, and the phases present are $\\alpha$ and $\\beta$.\n\n### (c) Why this temperature is special\n\n$183\\ ^\\circ\\mathrm{C}$ is the eutectic isotherm: the lowest temperature at which any liquid can exist in the lead-tin system, and the only temperature at which three phases ($\\alpha$, $\\beta$ and $L$) coexist in equilibrium. Liquid does not freeze over a range here, it transforms at a single temperature, which is exactly the property that makes eutectic compositions useful as solders.\n",
+      "final_answers": [
+        "alpha and liquid",
+        "alpha and beta",
+        "183 C"
+      ],
+      "figures": [
+        "l5-pb-sn"
+      ]
+    },
+    {
+      "key": "l5-austenite-1-15-carbon",
+      "title": "Ferrite, cementite and pearlite from 1.15 wt% C austenite",
+      "concepts": [
+        {
+          "key": "phase-diagrams",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T5 - Phase Diagrams/T5 - Phase Diagrams.pdf (question 10)",
+      "body_md": "Consider $1.0\\ \\mathrm{kg}$ of austenite containing 1.15 wt% C, cooled to below $727\\ ^\\circ\\mathrm{C}$.\n\n- **(a)** What is the proeutectoid phase?\n- **(b)** How many kilograms each of total ferrite and cementite form?\n- **(c)** How many kilograms each of pearlite and the proeutectoid phase form?\n",
+      "solution_md": "### (a) Which side of the eutectoid\n\nThe proeutectoid phase will be $\\mathrm{Fe_3C}$, since 1.15 wt% C is greater than the eutectoid composition of 0.76 wt% C. The alloy is hypereutectoid.\n\n### (b) Total ferrite\n\n$$W_\\alpha = \\frac{6.70 - C_0}{6.70 - 0.022} = \\frac{6.70 - 1.15}{6.678} = 0.83$$\n\nMultiplied by the total mass of $1.0\\ \\mathrm{kg}$, this gives $0.83\\ \\mathrm{kg}$ of total ferrite.\n\n### Total cementite\n\n$$W_{\\mathrm{Fe_3C}} = \\frac{C_0 - 0.022}{6.70 - 0.022} = \\frac{1.15 - 0.022}{6.678} = 0.17$$\n\nso $0.17\\ \\mathrm{kg}$ of total cementite forms.\n\n### (c) Pearlite\n\nFor pearlite the lever arm runs to the eutectoid composition rather than to pure ferrite:\n\n$$W_p = \\frac{6.70 - C_0}{6.70 - 0.76} = \\frac{6.70 - 1.15}{5.94} = 0.93$$\n\nwhich corresponds to a mass of $0.93\\ \\mathrm{kg}$.\n\n### And the proeutectoid cementite\n\n$$W_{\\mathrm{Fe_3C}'} = \\frac{C_0 - 0.76}{6.70 - 0.76} = \\frac{1.15 - 0.76}{5.94} = 0.07$$\n\nwhich is equivalent to $0.07\\ \\mathrm{kg}$ of the total $1.0\\ \\mathrm{kg}$ mass.\n\nNote that (b) and (c) are different decompositions of the same kilogram: (b) counts the phases, (c) counts the microconstituents.\n",
+      "final_answers": [
+        "Fe3C",
+        "0.83 kg",
+        "0.17 kg",
+        "0.93 kg",
+        "0.07 kg"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l5-hypothetical-eutectic-beta",
+      "title": "Composition from primary and total beta fractions",
+      "concepts": [
+        {
+          "key": "phase-diagrams",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T5 - Phase Diagrams/T5 - Phase Diagrams.pdf (question 11)",
+      "body_md": "Consider a hypothetical eutectic phase diagram for metals A and B similar to the lead-tin system. Assume that $\\alpha$ and $\\beta$ phases exist at extremities of the phase diagram for A and B respectively; that the eutectic composition is 36 wt% A and 64 wt% B; and that the composition of the $\\alpha$ phase at the eutectic temperature is 88 wt% A and 12 wt% B. Determine the composition of an alloy that will yield primary $\\beta$ and total $\\beta$ mass fractions of 0.367 and 0.768 respectively.\n",
+      "solution_md": "### What is known\n\n$$W_\\beta = 0.768\\qquad W_{\\beta'} = 0.367$$\n\n$$C_{\\mathrm{eutectic}} = 64\\ \\mathrm{wt\\%\\ B}\\qquadC_\\alpha = 12\\ \\mathrm{wt\\%\\ B}$$\n\n### Total beta\n\n$$W_\\beta = \\frac{C_0 - C_\\alpha}{C_\\beta - C_\\alpha} = \\frac{C_0 - 12}{C_\\beta - 12} = 0.768$$\n\n### Primary beta\n\n$$W_{\\beta'} = \\frac{C_0 - C_{\\mathrm{eutectic}}}{C_\\beta - C_{\\mathrm{eutectic}}} = \\frac{C_0 - 64}{C_\\beta - 64} = 0.367$$\n\n### Two equations and two unknowns\n\n$$C_0 - 12 = 0.768\\,C_\\beta - 9.216$$\n\n$$C_0 - 64 = 0.367\\,C_\\beta - 23.49$$\n\n### Solving for the two compositions\n\n$$C_0 = 75\\ \\mathrm{wt\\%\\ B}\\qquadC_\\beta = 94\\ \\mathrm{wt\\%\\ B}$$\n",
+      "final_answers": [
+        "75 wt% B",
+        "94 wt% B"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l5-proeutectoid-ferrite-and-pearlite",
+      "title": "Proeutectoid ferrite and pearlite in a 0.35 wt% C steel",
+      "concepts": [
+        {
+          "key": "phase-diagrams",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T5 - Phase Diagrams/T5 - Phase Diagrams.pdf (question 12)",
+      "body_md": "Compute the mass fractions of proeutectoid ferrite and pearlite that form in an iron-carbon alloy containing 0.35 wt% C.\n",
+      "solution_md": "### Which side of the eutectoid\n\n0.35 wt% C is below the eutectoid composition of 0.76 wt% C, so the alloy is hypoeutectoid and the proeutectoid phase is ferrite.\n\n### Mass fraction of pearlite\n\n$$W_p = \\frac{T}{U + T} = \\frac{C_0 - 0.022}{0.76 - 0.022} = \\frac{0.35 - 0.022}{0.74} = 0.44$$\n\n### Mass fraction of proeutectoid ferrite\n\n$$W_{\\alpha'} = \\frac{U}{U + T} = \\frac{0.76 - C_0}{0.76 - 0.022} = \\frac{0.76 - 0.35}{0.74} = 0.56$$\n\nThe two sum to one, which is the check worth making: every gram of this steel is either proeutectoid ferrite or pearlite.\n",
+      "final_answers": [
+        "0.44",
+        "0.56"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l5-composition-from-eutectoid-ferrite",
+      "title": "Can a eutectoid ferrite fraction fix the composition?",
+      "concepts": [
+        {
+          "key": "phase-diagrams",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T5 - Phase Diagrams/T5 - Phase Diagrams.pdf (question 13)",
+      "body_md": "The mass fraction of eutectoid ferrite in an iron-carbon alloy is 0.71. On the basis of this information, is it possible to determine the composition of the alloy? If so, what is its composition? If this is not possible, explain why.\n",
+      "solution_md": "### Why there are two cases\n\nEutectoid ferrite is the ferrite inside the pearlite, and it is found both in the hypoeutectoid region and in the hypereutectoid region. So the single number 0.71 does not by itself say which side of the eutectoid the alloy sits on, and both must be tested.\n\n### Hypoeutectoid case\n\nHere eutectoid ferrite is the total ferrite minus the proeutectoid ferrite:\n\n$$W_{\\alpha(\\mathrm{eutectoid})} = W_\\alpha - W_{\\alpha'} = \\frac{6.7 - C_0}{6.7 - 0.022} - \\frac{0.76 - C_0}{0.76 - 0.022} = 0.71$$\n\nSolving for $C_0$ gives $C_0 = 0.61\\ \\mathrm{wt\\%\\ C}$.\n\n### Hypereutectoid case\n\nHere there is no proeutectoid ferrite at all, so all the ferrite is in the pearlite and the eutectoid ferrite is the total ferrite:\n\n$$W_{\\alpha(\\mathrm{eutectoid})} = \\frac{C_{\\mathrm{Fe_3C}} - C_0}{C_{\\mathrm{Fe_3C}} - C_\\alpha} = \\frac{6.7 - C_0}{6.7 - 0.022} = 0.71$$\n\n$$C_0 = 1.96\\ \\mathrm{wt\\%\\ C}$$\n\n### The answer\n\nBoth are consistent with the information given, so the composition cannot be determined uniquely: it is either $0.61\\ \\mathrm{wt\\%\\ C}$ or $1.96\\ \\mathrm{wt\\%\\ C}$, and one further fact (the presence or absence of proeutectoid cementite, say) would settle it.\n",
+      "final_answers": [
+        "0.61 wt% C",
+        "1.96 wt% C"
+      ],
+      "figures": []
     }
   ]
 }
