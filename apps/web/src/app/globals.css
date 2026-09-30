@@ -71,6 +71,32 @@ body {
   height: auto;
   max-width: 100%;
 }
+/* Tables are how a materials course states its data (decision 0078). They
+   scroll inside their own container rather than widening the reading column,
+   which is the same rule display math follows below. Ruled with the hairline
+   and the token palette, never a border colour of their own. */
+.reading-body table {
+  border-collapse: collapse;
+  display: block;
+  font-size: 0.9375rem;
+  max-width: 100%;
+  overflow-x: auto;
+  width: max-content;
+}
+.reading-body th,
+.reading-body td {
+  border-block-end: 1px solid var(--color-rule-line);
+  padding: 0.5rem 0.875rem;
+  text-align: start;
+  vertical-align: top;
+}
+.reading-body th {
+  font-weight: 600;
+}
+.reading-body thead th {
+  border-block-end: 1px solid var(--color-ink-muted);
+}
+
 /* Display math scrolls rather than overflowing the reading column. */
 .reading-body .katex-display {
   overflow-x: auto;

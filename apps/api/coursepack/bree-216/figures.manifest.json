@@ -1,0 +1,23 @@
+[
+  {
+    "key": "l1-directions-cell",
+    "document": "05 - Tutorials/T1 - Crystaline solids/Q and A - crystallographic direction and planes.pdf",
+    "page": 1,
+    "select": "largest_embedded_raster",
+    "caption": "A cubic unit cell with four directions marked A, B, C and D"
+  },
+  {
+    "key": "l1-planes-cell",
+    "document": "05 - Tutorials/T1 - Crystaline solids/Q and A - crystallographic direction and planes.pdf",
+    "page": 6,
+    "select": "largest_embedded_raster",
+    "caption": "A cubic unit cell with two shaded planes marked A and B"
+  },
+  {
+    "key": "l4-brass-stress-strain",
+    "document": "02 - Lectures/L4 - Mechanical Properties/L4 - Mechanical properties.pdf",
+    "page": 29,
+    "select": "largest_embedded_raster",
+    "caption": "Engineering stress-strain curve for a brass specimen, with the tensile strength, the 0.002 offset yield strength, and point A at 345 MPa marked"
+  }
+]

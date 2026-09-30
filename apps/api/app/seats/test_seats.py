@@ -437,3 +437,20 @@ def test_plaintext_codes_exactly_once_and_never_logged(
         in_responses = sum(code in text for text in responses)
         in_csv = 1 if code in csv_text else 0
         assert in_responses + in_csv == 1, f"{code}: seen {in_responses + in_csv} times"
+
+
+def test_a_course_title_outside_latin1_still_issues_its_cards() -> None:
+    """A course title is professor input and the card PDF is drawn with core
+    fonts that encode Latin-1 only, so an em-dash used to raise inside fpdf and
+    fail the one call that mints credentials. Codes are generated once and are
+    never reproducible, so a 500 here costs the professor the whole batch."""
+    from app.seats.artifacts import build_pdf, latin1_safe
+
+    title = "BREE 216 — Biorésource “Matériaux” Ω"
+    assert latin1_safe(title) == 'BREE 216 - Biorésource "Matériaux" ?'
+    # Accented Latin-1 letters are carried, never folded to ASCII: the title is
+    # the professor's, and only what the encoding cannot hold is rewritten.
+    assert "é" in latin1_safe(title)
+
+    pdf = build_pdf(title, [("S-001", "ABCD-EFGH-JKLM")])
+    assert pdf.startswith(b"%PDF")

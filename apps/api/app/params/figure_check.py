@@ -54,9 +54,15 @@ class BlockedParameter(BaseModel, frozen=True):
 def load_essential_figures(
     case_study_id: int,
 ) -> Callable[[sqlite3.Connection], list[EssentialFigure]]:
-    """The case study's essential figures, via the confirmed import item that
-    became it. Decorative figures are excluded by definition: marking a figure
-    decorative is one of the two escape hatches."""
+    """The case study's essential figures, by either of the two routes a figure
+    reaches a case study: the confirmed import item that became it, or the
+    direct link a course pack (or a UI-authored body) writes, decision 0077.
+    Decorative figures are excluded by definition on both routes, because
+    marking a figure decorative is one of the two escape hatches and it must
+    mean the same thing whichever way the figure arrived.
+
+    This is the single lookup the tutor's context and the figure-frozen check
+    both read, so a figure invisible here is one the defence never sees."""
 
     def read(conn: sqlite3.Connection) -> list[EssentialFigure]:
         rows = conn.execute(
@@ -65,8 +71,13 @@ def load_essential_figures(
             " JOIN item_figures link ON link.figure_id = f.id"
             " JOIN import_items item ON item.id = link.item_id"
             " WHERE item.case_study_id = ? AND link.role = 'essential'"
-            " ORDER BY f.id",
-            (case_study_id,),
+            " UNION"
+            " SELECT f.id, f.content_hash, f.storage_key, f.caption"
+            " FROM figures f"
+            " JOIN case_study_figures link ON link.figure_id = f.id"
+            " WHERE link.case_study_id = ? AND link.role = 'essential'"
+            " ORDER BY 1",
+            (case_study_id, case_study_id),
         ).fetchall()
         return [
             EssentialFigure(

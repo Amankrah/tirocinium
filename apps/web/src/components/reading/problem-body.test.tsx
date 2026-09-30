@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
+import { ClientProblemBody } from "./client-problem-body";
 import { ProblemBody } from "./problem-body";
 
 // Guide 2 and constraint 2: the body typesets markdown and math, and figures
@@ -93,5 +94,44 @@ describe("ProblemBody", () => {
   it("shows an honest marker when a figure token cannot be resolved", () => {
     render(<ProblemBody body={"![Missing diagram](fig://nope)"} />);
     expect(screen.getByText("Figure unavailable")).toBeDefined();
+  });
+
+  // decision 0078: a materials course states its data in tables, and without
+  // GFM a table renders as a run of pipe characters rather than failing
+  // visibly, which is the worst kind of wrong.
+  const TABLE = [
+    "| Element | Radius (nm) | Structure |",
+    "| --- | --- | --- |",
+    "| Cu | 0.1278 | FCC |",
+    "| Ni | 0.1246 | FCC |",
+  ].join("\n");
+
+  it("renders a GFM table as a real table", () => {
+    render(<ProblemBody body={TABLE} />);
+    expect(screen.getByRole("table")).toBeDefined();
+    expect(screen.getByRole("columnheader", { name: "Element" })).toBeDefined();
+    expect(screen.getAllByRole("row")).toHaveLength(3);
+    expect(screen.getByRole("cell", { name: "0.1278" })).toBeDefined();
+  });
+
+  it("renders a table identically in the client twin", () => {
+    // The twin shows the same professor's markdown after a practice swap, so a
+    // plugin on one side and not the other reads as a table that reformats
+    // itself mid-session (the server/client drift of decision 0068).
+    const server = render(<ProblemBody body={TABLE} />);
+    const serverRows = server.container.querySelectorAll("tr").length;
+    server.unmount();
+    const client = render(<ClientProblemBody body={TABLE} />);
+    expect(client.container.querySelectorAll("tr").length).toBe(serverRows);
+  });
+
+  it("still sanitises a dangerous URL now that GFM autolinks are on", () => {
+    // GFM turns bare URLs into links, and a body can carry transcribed student
+    // text, so the default sanitizer must still be the one deciding.
+    const { container } = render(
+      <ProblemBody body={"[click](javascript:alert(1))"} />,
+    );
+    const href = container.querySelector("a")?.getAttribute("href") ?? "";
+    expect(href).not.toContain("javascript:");
   });
 });

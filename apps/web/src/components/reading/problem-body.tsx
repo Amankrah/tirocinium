@@ -2,6 +2,7 @@ import "katex/dist/katex.min.css";
 
 import ReactMarkdown, { defaultUrlTransform } from "react-markdown";
 import rehypeKatex from "rehype-katex";
+import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 
 import { FIG_PREFIX, type FigureMap } from "./figure";
@@ -43,8 +44,19 @@ export function ProblemBody({
 }) {
   return (
     <div className="reading-body">
+      {/* remark-gfm is here for one reason: tables. A materials course states
+          its data in them (the Hume-Rothery comparison, a phase diagram's
+          readings, a stress-strain table), and without GFM a table renders as
+          an unreadable run of pipe characters rather than failing visibly.
+          The cost is nothing on the surfaces that matter: this is a Server
+          Component, so on the server-rendered path the plugin never reaches a
+          browser at all, and the client twin that does ship it is already
+          lazy-loaded behind next/dynamic (decision 0078). GFM's autolink
+          literals are safe here because `urlTransform` below still runs
+          react-markdown's default sanitizer on every non-fig URL, which is
+          what a body carrying transcribed student text depends on. */}
       <ReactMarkdown
-        remarkPlugins={[remarkMath]}
+        remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeShiftHeadings, rehypeKatex]}
         // Preserve the fig:// scheme (sanitized away by default), but keep the
         // default sanitizer for every other URL: a case study body can carry

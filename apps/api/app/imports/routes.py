@@ -684,14 +684,22 @@ async def resolve_figure_image(
         if row is None:
             raise HTTPException(status_code=404, detail="Figure not found.")
         if not can_see_drafts:
-            # A seat may only resolve a figure that a published case study carries
-            # (figure -> item_figures -> confirmed item -> published case study).
+            # A seat may only resolve a figure that a published case study
+            # carries, by either route a figure reaches one: the import chain
+            # (figure -> item_figures -> confirmed item -> published case
+            # study) or the direct link a course pack writes (decision 0077).
+            # The rule is unchanged, only the ways of satisfying it.
             published = conn.execute(
                 "SELECT 1 FROM item_figures itf"
                 " JOIN import_items ii ON itf.item_id = ii.id"
                 " JOIN case_studies cs ON ii.case_study_id = cs.id"
-                " WHERE itf.figure_id = ? AND cs.status = 'published' LIMIT 1",
-                (figure_id,),
+                " WHERE itf.figure_id = ? AND cs.status = 'published'"
+                " UNION ALL"
+                " SELECT 1 FROM case_study_figures csf"
+                " JOIN case_studies cs ON csf.case_study_id = cs.id"
+                " WHERE csf.figure_id = ? AND cs.status = 'published'"
+                " LIMIT 1",
+                (figure_id, figure_id),
             ).fetchone()
             if published is None:
                 # Indistinguishable from a missing figure, so an unpublished

@@ -1,0 +1,725 @@
+{
+  "id": "bree-216",
+  "version": 1,
+  "title": "BREE 216 — Bioresource Engineering Materials",
+  "course_note": "The practice questions of BREE 216, taken from the course's own tutorials and lecture sample-question sets. Every question carries the professor's worked solution, and every figure is the professor's own image pulled out of the source slide unaltered.",
+  "catalogue_id": "bree-216",
+  "catalogue_version": 1,
+  "concepts": [
+    {
+      "key": "crystalline-solids",
+      "name": "Structure of crystalline solids",
+      "description": "Unit cells, packing, density, and crystallographic directions and planes."
+    },
+    {
+      "key": "imperfections",
+      "name": "Imperfections in solids",
+      "description": "Point, line and interfacial defects, solid solutions, and composition."
+    },
+    {
+      "key": "diffusion",
+      "name": "Diffusion",
+      "description": "Fick's laws, steady and non-steady state, and the temperature dependence."
+    },
+    {
+      "key": "mechanical-properties",
+      "name": "Mechanical properties",
+      "description": "Stress and strain, elastic and plastic behaviour, hardness and toughness."
+    },
+    {
+      "key": "metal-processing",
+      "name": "Applications and processing of metals",
+      "description": "Casting, forming, heat treatment, and strengthening mechanisms."
+    },
+    {
+      "key": "phase-diagrams",
+      "name": "Phase diagrams",
+      "description": "Binary systems, the lever rule, eutectics, and the iron-carbon diagram."
+    },
+    {
+      "key": "polymers",
+      "name": "Polymer structures and processing",
+      "description": "Molecular weight, chain structure, thermoplastics and thermosets."
+    },
+    {
+      "key": "ceramics",
+      "name": "Structures and properties of ceramics",
+      "description": "Ceramic crystal structures, silicates, and mechanical behaviour."
+    },
+    {
+      "key": "composites",
+      "name": "Composite materials",
+      "description": "Fibre reinforcement, rule of mixtures, and composite design."
+    },
+    {
+      "key": "material-selection",
+      "name": "Material selection and sustainability",
+      "description": "Selection criteria, performance indices, and life-cycle considerations."
+    }
+  ],
+  "figures": [
+    {
+      "key": "l1-directions-cell",
+      "sha256": "752b6afe6cd887d02d3225fa6f73b188ae3982073b23c662523405bef217eb13",
+      "file": "figures/752b6afe6cd887d02d3225fa6f73b188ae3982073b23c662523405bef217eb13.png",
+      "width_px": 1371,
+      "height_px": 879,
+      "caption": "A cubic unit cell with four directions marked A, B, C and D",
+      "source": {
+        "document": "05 - Tutorials/T1 - Crystaline solids/Q and A - crystallographic direction and planes.pdf",
+        "page": 1,
+        "bbox": [
+          0.21471,
+          0.286715,
+          0.570579,
+          0.649192
+        ],
+        "kind": "embedded_raster"
+      }
+    },
+    {
+      "key": "l1-planes-cell",
+      "sha256": "162537fdab59de72e8ee25bd4e1cb12ce2429a994a3fb2db47576e3d661655b4",
+      "file": "figures/162537fdab59de72e8ee25bd4e1cb12ce2429a994a3fb2db47576e3d661655b4.png",
+      "width_px": 995,
+      "height_px": 684,
+      "caption": "A cubic unit cell with two shaded planes marked A and B",
+      "source": {
+        "document": "05 - Tutorials/T1 - Crystaline solids/Q and A - crystallographic direction and planes.pdf",
+        "page": 6,
+        "bbox": [
+          0.214313,
+          0.250797,
+          0.59547,
+          0.727797
+        ],
+        "kind": "embedded_raster"
+      }
+    },
+    {
+      "key": "l4-brass-stress-strain",
+      "sha256": "982b29c735a3225364004086806481b8b2deeed6f4cbec4ac746b06bbdb04e6e",
+      "file": "figures/982b29c735a3225364004086806481b8b2deeed6f4cbec4ac746b06bbdb04e6e.png",
+      "width_px": 564,
+      "height_px": 480,
+      "caption": "Engineering stress-strain curve for a brass specimen, with the tensile strength, the 0.002 offset yield strength, and point A at 345 MPa marked",
+      "source": {
+        "document": "02 - Lectures/L4 - Mechanical Properties/L4 - Mechanical properties.pdf",
+        "page": 29,
+        "bbox": [
+          0.19992,
+          0.433333,
+          0.282102,
+          0.42662
+        ],
+        "kind": "embedded_raster"
+      }
+    }
+  ],
+  "questions": [
+    {
+      "key": "l1-pd-atomic-radius",
+      "title": "Atomic radius of palladium from its density",
+      "concepts": [
+        {
+          "key": "crystalline-solids",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T1 - Crystaline solids/T1 - Crystalline structures.pdf (question 1)",
+      "body_md": "Calculate the radius of a palladium atom, given that Pd has an FCC crystal structure, a density of $12.0\\ \\mathrm{g/cm^3}$ and an atomic weight of $106.4\\ \\mathrm{g/mol}$.\n",
+      "solution_md": "### What is given\n\n- Pd, FCC crystal structure\n- Density $\\rho = 12.0\\ \\mathrm{g/cm^3}$\n- Atomic mass $A_{\\mathrm{Pd}} = 106.4\\ \\mathrm{g/mol}$\n\n### Set up the density relation\n\nFor FCC there are $n = 4$ atoms per unit cell, the cube edge is $a = 2R\\sqrt{2}$, and so the cell volume is $V_C = a^3 = 16R^3\\sqrt{2}$. The density of a crystal is\n\n$$\\rho = \\frac{nA}{V_C N_A}$$\n\nwhere $n$ is the number of atoms per unit cell, $A$ the atomic mass, $V_C$ the unit cell volume and $N_A$ Avogadro's number.\n\n### Substitute\n\n$$\\rho_{\\mathrm{Pd}} = \\frac{4\\,(106.4\\ \\mathrm{g/mol})}{\\left(16R^3\\sqrt{2}\\right)\\left(6.023\\times10^{23}\\ \\mathrm{atoms/mol}\\right)} = 12.0\\ \\mathrm{g/cm^3}$$\n\n### Solve for $R$\n\n$$R = \\sqrt[3]{\\frac{4\\,(106.4)}{\\left(16\\sqrt{2}\\right)\\left(12.0\\right)\\left(6.023\\times10^{23}\\right)}} = 1.38\\times10^{-8}\\ \\mathrm{cm} = 0.138\\ \\mathrm{nm}$$\n",
+      "final_answers": [
+        "0.138 nm"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l1-nb-structure",
+      "title": "Is niobium FCC or BCC?",
+      "concepts": [
+        {
+          "key": "crystalline-solids",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T1 - Crystaline solids/T1 - Crystalline structures.pdf (question 2)",
+      "body_md": "Niobium has an atomic radius of $0.1430\\ \\mathrm{nm}$ and a density of $8.57\\ \\mathrm{g/cm^3}$. Determine whether it has an FCC or a BCC crystal structure.\n",
+      "solution_md": "### What is known\n\n- $A_{\\mathrm{Nb}} = 92.91\\ \\mathrm{g/mol}$\n- $R = 0.1430\\ \\mathrm{nm} = 1.43\\times10^{-8}\\ \\mathrm{cm}$\n- Density $\\rho = 8.57\\ \\mathrm{g/cm^3}$\n\nThe method is to compute the density each structure would give and see which one matches, using\n\n$$\\rho = \\frac{nA}{a^3 N_A}$$\n\n### Test FCC\n\nIf Nb were FCC then $n = 4$ and $a = 2R\\sqrt{2}$:\n\n$$\\rho = \\frac{nA}{\\left(2R\\sqrt{2}\\right)^3 N_A} = \\frac{4\\times92.91}{\\left(2\\times1.43\\times10^{-8}\\sqrt{2}\\right)^3\\times6.023\\times10^{23}} = 9.33\\ \\mathrm{g/cm^3}$$\n\nThat is not the measured value.\n\n### Test BCC\n\nIf Nb were BCC then $n = 2$ and $a = \\dfrac{4R}{\\sqrt{3}}$:\n\n$$\\rho = \\frac{nA}{\\left(\\frac{4R}{\\sqrt{3}}\\right)^3 N_A} = \\frac{2\\times92.91}{\\left(\\frac{4\\times1.43\\times10^{-8}}{\\sqrt{3}}\\right)^3\\times6.023\\times10^{23}} = 8.57\\ \\mathrm{g/cm^3}$$\n\nThis matches the density given in the problem statement, so niobium has a BCC crystal structure.\n",
+      "final_answers": [
+        "BCC",
+        "8.57 g/cm3"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l1-fe-bcc-fcc-volume-change",
+      "title": "Volume change when iron transforms from BCC to FCC",
+      "concepts": [
+        {
+          "key": "crystalline-solids",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T1 - Crystaline solids/T1 - Crystalline structures.pdf (question 3)",
+      "body_md": "What is the fractional volume change in iron as it transforms from BCC to FCC at $910\\ ^\\circ\\mathrm{C}$? Assume that the lattice parameter $a$ is $0.2910\\ \\mathrm{nm}$ for BCC iron and $0.3647\\ \\mathrm{nm}$ for FCC iron.\n",
+      "solution_md": "### The quantity to compare\n\nThe two structures pack different numbers of atoms into a cell, so the cells themselves are not comparable. What is comparable is the volume *per atom*: the unit cell volume divided by the number of atoms it contains.\n\n### BCC iron\n\nThere are 2 atoms per unit cell in the BCC structure, so\n\n$$V_{\\mathrm{BCC}} = \\frac{a^3}{2} = \\frac{(0.2910\\ \\mathrm{nm})^3}{2} = 0.01232\\ \\mathrm{nm^3/atom}$$\n\n### FCC iron\n\nThere are 4 atoms per unit cell in the FCC structure, so\n\n$$V_{\\mathrm{FCC}} = \\frac{a^3}{4} = \\frac{(0.3647\\ \\mathrm{nm})^3}{4} = 0.01213\\ \\mathrm{nm^3/atom}$$\n\n### Fractional change\n\n$$\\frac{\\Delta V}{V} = \\frac{V_{\\mathrm{FCC}} - V_{\\mathrm{BCC}}}{V_{\\mathrm{BCC}}} = \\frac{0.01213 - 0.01232}{0.01232} = -0.0157$$\n\nThere is a $1.57\\%$ contraction. Iron gets denser on becoming FCC, which is what you would expect: FCC is a close-packed structure and BCC is not.\n",
+      "final_answers": [
+        "-1.57%",
+        "1.57% contraction"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l1-ta-atomic-radius",
+      "title": "Atomic radius of tantalum from its density",
+      "concepts": [
+        {
+          "key": "crystalline-solids",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T1 - Crystaline solids/T1 - Crystalline structures.pdf (question 4)",
+      "body_md": "Calculate the radius of a tantalum atom, given that it has a BCC crystal structure, a density of $16.6\\ \\mathrm{g/cm^3}$ and an atomic weight of $180.9\\ \\mathrm{g/mol}$.\n",
+      "solution_md": "### Set up the BCC cell volume\n\nFor BCC there are $n = 2$ atoms per unit cell and the cube edge is $a = \\dfrac{4R}{\\sqrt{3}}$, so\n\n$$V_C = a^3 = \\left(\\frac{4R}{\\sqrt{3}}\\right)^3 = \\frac{64R^3}{3\\sqrt{3}}$$\n\n### Substitute into the density relation\n\n$$\\rho = \\frac{nA}{V_C N_A} = \\frac{2 A_{\\mathrm{Ta}}}{\\left(\\frac{64R^3}{3\\sqrt{3}}\\right) N_A}$$\n\n### Solve for $R$\n\n$$R = \\sqrt[3]{\\frac{3\\sqrt{3}\\,(2)(180.9)}{64\\,(16.6)\\left(6.023\\times10^{23}\\right)}} = 1.43\\times10^{-8}\\ \\mathrm{cm} = 0.143\\ \\mathrm{nm}$$\n",
+      "final_answers": [
+        "0.143 nm"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l1-rh-structure",
+      "title": "Is rhodium FCC or BCC?",
+      "concepts": [
+        {
+          "key": "crystalline-solids",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T1 - Crystaline solids/T1 - Crystalline structures.pdf (question 5)",
+      "body_md": "Rhodium has an atomic radius of $0.1345\\ \\mathrm{nm}$ and a density of $12.41\\ \\mathrm{g/cm^3}$. Determine whether it has an FCC or a BCC crystal structure.\n",
+      "solution_md": "### What is known\n\n- $A_{\\mathrm{Rh}} = 102.91\\ \\mathrm{g/mol}$\n- $R = 0.1345\\ \\mathrm{nm} = 1.345\\times10^{-8}\\ \\mathrm{cm}$\n- Density $\\rho = 12.41\\ \\mathrm{g/cm^3}$\n\n### Test FCC\n\nAssume FCC, so $n = 4$ and $a = 2R\\sqrt{2}$:\n\n$$a = 2\\left(1.345\\times10^{-8}\\right)\\sqrt{2} = 3.804\\times10^{-8}\\ \\mathrm{cm}$$\n\n$$\\rho = \\frac{nA}{a^3 N_A} = \\frac{4\\times102.91}{\\left(3.804\\times10^{-8}\\right)^3\\times6.023\\times10^{23}} = 12.41\\ \\mathrm{g/cm^3}$$\n\n### Conclusion\n\nThe calculated density is $12.41\\ \\mathrm{g/cm^3}$, which is the value given in the problem statement. Therefore rhodium has the FCC crystal structure.\n",
+      "final_answers": [
+        "FCC",
+        "12.41 g/cm3"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l1-directions-indices",
+      "title": "Indices for four directions in a cubic unit cell",
+      "concepts": [
+        {
+          "key": "crystalline-solids",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T1 - Crystaline solids/Q and A - crystallographic direction and planes.pdf (question 1)",
+      "body_md": "Determine the indices for the directions A, B, C and D shown in the following cubic unit cell.\n\n![A cubic unit cell with four directions marked A, B, C and D](pack:l1-directions-cell)\n",
+      "solution_md": "For each direction, take the head and tail coordinates in terms of the lattice parameters $a$, $b$ and $c$, subtract tail from head, then clear fractions to the smallest set of integers. A negative index is written with a bar over it.\n\n### Direction A\n\n| | $x$ | $y$ | $z$ |\n| --- | --- | --- | --- |\n| Head coordinates | $0a$ | $0b$ | $0c$ |\n| Tail coordinates | $0a$ | $b$ | $c$ |\n| Coordinate differences | $0a$ | $-b$ | $-c$ |\n| Calculated $u$, $v$, $w$ | $0$ | $-1$ | $-1$ |\n\nEnclosure: $[0\\bar{1}\\bar{1}]$\n\n### Direction B\n\n| | $x$ | $y$ | $z$ |\n| --- | --- | --- | --- |\n| Head coordinates | $0a$ | $b$ | $c$ |\n| Tail coordinates | $a$ | $b/2$ | $c$ |\n| Coordinate differences | $-a$ | $b/2$ | $0$ |\n| Calculated $u$, $v$, $w$ | $-2$ | $1$ | $0$ |\n\nEnclosure: $[\\bar{2}10]$\n\n### Direction C\n\n| | $x$ | $y$ | $z$ |\n| --- | --- | --- | --- |\n| Head coordinates | $a$ | $b$ | $c$ |\n| Tail coordinates | $a/2$ | $b/2$ | $0c$ |\n| Coordinate differences | $a/2$ | $b/2$ | $c$ |\n| Calculated $u$, $v$, $w$ | $1$ | $1$ | $2$ |\n\nEnclosure: $[112]$\n\n### Direction D\n\n| | $x$ | $y$ | $z$ |\n| --- | --- | --- | --- |\n| Head coordinates | $a$ | $b/2$ | $0c$ |\n| Tail coordinates | $a/2$ | $0b$ | $c$ |\n| Coordinate differences | $a/2$ | $b/2$ | $-c$ |\n| Calculated $u$, $v$, $w$ | $1$ | $1$ | $-2$ |\n\nEnclosure: $[11\\bar{2}]$\n",
+      "final_answers": [],
+      "figures": [
+        "l1-directions-cell"
+      ]
+    },
+    {
+      "key": "l1-planes-miller-indices",
+      "title": "Miller indices for two planes in a cubic unit cell",
+      "concepts": [
+        {
+          "key": "crystalline-solids",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T1 - Crystaline solids/Q and A - crystallographic direction and planes.pdf (question 2)",
+      "body_md": "Determine the Miller indices for the planes A and B shown in the following unit cell.\n\n![A cubic unit cell with two shaded planes marked A and B](pack:l1-planes-cell)\n",
+      "solution_md": "For each plane, read its intercepts on the three axes, express them as multiples of $a$, $b$ and $c$, take reciprocals, and reduce to the smallest integers. Where a plane passes through the origin, move the origin one unit cell first.\n\n### Plane A\n\nMove the origin of the coordinate system one unit cell distance upward along the $z$ axis. This gives a $(32\\bar{2})$ plane:\n\n| | $x$ | $y$ | $z$ |\n| --- | --- | --- | --- |\n| Intercepts | $a/3$ | $b/2$ | $-c/2$ |\n| Intercepts in terms of $a$, $b$, $c$ | $1/3$ | $1/2$ | $-1/2$ |\n| Reciprocals of intercepts | $3$ | $2$ | $-2$ |\n| Reduction | not necessary | | |\n\nEnclosure: $(32\\bar{2})$\n\n### Plane B\n\nMove the origin of the coordinate system one unit cell distance along the $x$ axis. This gives a $(\\bar{1}01)$ plane:\n\n| | $x$ | $y$ | $z$ |\n| --- | --- | --- | --- |\n| Intercepts | $-a/2$ | $\\infty b$ | $c/2$ |\n| Intercepts in terms of $a$, $b$, $c$ | $-1/2$ | $\\infty$ | $1/2$ |\n| Reciprocals of intercepts | $-2$ | $0$ | $2$ |\n| Reduction | $-1$ | $0$ | $1$ |\n\nEnclosure: $(\\bar{1}01)$\n",
+      "final_answers": [],
+      "figures": [
+        "l1-planes-cell"
+      ]
+    },
+    {
+      "key": "l2-al-li-skin-composition",
+      "title": "Lithium content of an aluminium-lithium aircraft skin",
+      "concepts": [
+        {
+          "key": "imperfections",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T2 - Imperfection in solids/Sample questions - Imperfection of solids.pdf (question 1)",
+      "body_md": "Aluminum-lithium alloys have been developed by the aircraft industry to reduce the weight and improve the performance of its aircrafts. A commercial aircraft skin material having a density of $2.47\\ \\mathrm{g/cm^3}$ is desired. Compute the concentration of Li (in wt%) that is required.\n",
+      "solution_md": "### What is known\n\n$\\rho_{\\mathrm{Li}} = 0.534\\ \\mathrm{g/cm^3}$; $\\rho_{\\mathrm{Al}} = 2.71\\ \\mathrm{g/cm^3}$; $\\rho_{\\mathrm{alloy}} = 2.47\\ \\mathrm{g/cm^3}$\n\n### Start from the alloy density relation\n\nFor a two-element alloy the density follows from the weight percentages of its constituents:\n\n$$\\rho_{\\mathrm{alloy}} = \\frac{100}{\\left(\\frac{C_{\\mathrm{Li}}}{\\rho_{\\mathrm{Li}}}\\right) + \\left(\\frac{C_{\\mathrm{Al}}}{\\rho_{\\mathrm{Al}}}\\right)}$$\n\n### Eliminate the second unknown\n\nThere are only two components, so $C_{\\mathrm{Al}} = 100 - C_{\\mathrm{Li}}$:\n\n$$\\rho_{\\mathrm{alloy}} = \\frac{100}{\\left(\\frac{C_{\\mathrm{Li}}}{\\rho_{\\mathrm{Li}}}\\right) + \\left(\\frac{100 - C_{\\mathrm{Li}}}{\\rho_{\\mathrm{Al}}}\\right)}$$\n\n### Rearrange for the lithium content\n\n$$\\frac{\\rho_{\\mathrm{Al}} C_{\\mathrm{Li}} + 100\\rho_{\\mathrm{Li}} - \\rho_{\\mathrm{Li}} C_{\\mathrm{Li}}}{\\rho_{\\mathrm{Li}}\\rho_{\\mathrm{Al}}} = \\frac{100}{\\rho_{\\mathrm{alloy}}}$$\n\n$$C_{\\mathrm{Li}} = \\frac{100\\,\\rho_{\\mathrm{Li}}\\left(\\rho_{\\mathrm{Al}} - \\rho_{\\mathrm{alloy}}\\right)}{\\rho_{\\mathrm{alloy}}\\left(\\rho_{\\mathrm{Al}} - \\rho_{\\mathrm{Li}}\\right)}$$\n\n### Substitute\n\n$$C_{\\mathrm{Li}} = \\frac{100\\,(0.534)(2.71 - 2.47)}{2.47\\,(2.71 - 0.534)} = 2.38\\ \\mathrm{wt\\%}$$\n",
+      "final_answers": [
+        "2.38 wt%"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l2-ti-6al-4v-density",
+      "title": "Approximate density of a Ti-6Al-4V alloy",
+      "concepts": [
+        {
+          "key": "imperfections",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T2 - Imperfection in solids/Sample questions - Imperfection of solids.pdf (question 2)",
+      "body_md": "Determine the approximate density of a Ti-6Al-4V titanium alloy that has a composition of 90 wt% Ti, 6 wt% Al and 4 wt% V.\n",
+      "solution_md": "### The relation for a multi-component alloy\n\n$$\\rho_{\\mathrm{average}} = \\frac{100}{\\left(\\frac{C_1}{\\rho_1}\\right) + \\left(\\frac{C_2}{\\rho_2}\\right) + \\left(\\frac{C_3}{\\rho_3}\\right)}$$\n\n### Look up the constituent densities\n\nFrom tables, $\\rho_{\\mathrm{Ti}} = 4.51\\ \\mathrm{g/cm^3}$; $\\rho_{\\mathrm{Al}} = 2.71\\ \\mathrm{g/cm^3}$; $\\rho_{\\mathrm{V}} = 6.1\\ \\mathrm{g/cm^3}$\n\n### Substitute\n\n$$\\rho_{\\mathrm{average}} = \\frac{100}{\\left(\\frac{90}{4.51}\\right) + \\left(\\frac{6}{2.71}\\right) + \\left(\\frac{4}{6.1}\\right)} = 4.38\\ \\mathrm{g/cm^3}$$\n",
+      "final_answers": [
+        "4.38 g/cm3"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l2-iron-vacancy-concentration",
+      "title": "Vacancies per cubic metre in iron at 850 °C",
+      "concepts": [
+        {
+          "key": "imperfections",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T2 - Imperfection in solids/Sample questions - Imperfection of solids.pdf (question 3)",
+      "body_md": "Calculate the number of vacancies per cubic meter in iron at $850\\ ^\\circ\\mathrm{C}$. The energy for vacancy formation is $1.08\\ \\mathrm{eV/atom}$. The density and atomic weight for Fe are $7.65\\ \\mathrm{g/cm^3}$ and $55.85\\ \\mathrm{g/mol}$, respectively.\n",
+      "solution_md": "### Which equations are needed\n\nDetermining the number of vacancies per cubic metre in iron at $850\\ ^\\circ\\mathrm{C}$ ($1123\\ \\mathrm{K}$) requires the equilibrium vacancy relation together with the expression for the number of atomic sites per unit volume:\n\n$$N_v = N \\exp\\left(-\\frac{Q_v}{kT}\\right) = \\frac{N_A \\rho_{\\mathrm{Fe}}}{A_{\\mathrm{Fe}}} \\exp\\left(-\\frac{Q_v}{kT}\\right)$$\n\n### Substitute the given values\n\n$$N_v = \\frac{\\left(6.022\\times10^{23}\\ \\mathrm{atoms/mol}\\right)\\left(7.65\\ \\mathrm{g/cm^3}\\right)}{55.85\\ \\mathrm{g/mol}} \\exp\\left[-\\frac{1.08\\ \\mathrm{eV/atom}}{\\left(8.62\\times10^{-5}\\ \\mathrm{eV/atom\\text{-}K}\\right)\\left(850\\ ^\\circ\\mathrm{C} + 273\\ \\mathrm{K}\\right)}\\right]$$\n\n### Result\n\n$$N_v = 1.18\\times10^{18}\\ \\mathrm{cm^{-3}} = 1.18\\times10^{24}\\ \\mathrm{m^{-3}}$$\n\nNote the unit conversion at the end: the density was given per cubic centimetre, and the question asks per cubic metre.\n",
+      "final_answers": [
+        "1.18e24 m-3",
+        "1.18 x 10^24 m^-3"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l2-lead-vacancy-fraction",
+      "title": "Fraction of vacant sites in lead at two temperatures",
+      "concepts": [
+        {
+          "key": "imperfections",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T2 - Imperfection in solids/Sample questions - Imperfection of solids.pdf (question 4)",
+      "body_md": "(a) Calculate the fraction of atom sites that are vacant for lead at its melting temperature of $327\\ ^\\circ\\mathrm{C}$ ($600\\ \\mathrm{K}$). Assume an energy for vacancy formation of $0.55\\ \\mathrm{eV/atom}$.\n\n(b) Repeat this calculation at room temperature ($298\\ \\mathrm{K}$).\n\n(c) What is the ratio of $N_v/N(600\\ \\mathrm{K})$ and $N_v/N(298\\ \\mathrm{K})$?\n",
+      "solution_md": "### (a) At the melting temperature\n\nTo compute the fraction of atom sites that are vacant in lead at $600\\ \\mathrm{K}$ we use the equilibrium vacancy relation. As stated in the problem, $Q_v = 0.55\\ \\mathrm{eV/atom}$. Thus,\n\n$$\\frac{N_v}{N} = \\exp\\left(-\\frac{Q_v}{kT}\\right) = \\exp\\left[-\\frac{0.55\\ \\mathrm{eV/atom}}{\\left(8.62\\times10^{-5}\\ \\mathrm{eV/atom\\text{-}K}\\right)\\left(600\\ \\mathrm{K}\\right)}\\right] = 2.41\\times10^{-5}$$\n\n### (b) At room temperature\n\nWe repeat this computation at room temperature ($298\\ \\mathrm{K}$), as follows:\n\n$$\\frac{N_v}{N} = \\exp\\left[-\\frac{0.55\\ \\mathrm{eV/atom}}{\\left(8.62\\times10^{-5}\\ \\mathrm{eV/atom\\text{-}K}\\right)\\left(298\\ \\mathrm{K}\\right)}\\right] = 5.03\\times10^{-10}$$\n\n### (c) The ratio\n\n$$\\frac{N_v/N(600\\ \\mathrm{K})}{N_v/N(298\\ \\mathrm{K})} = \\frac{2.41\\times10^{-5}}{5.03\\times10^{-10}} = 4.79\\times10^{4}$$\n\nNearly five orders of magnitude between room temperature and the melting point, from a term that sits in an exponential: this is why vacancy-driven processes are negligible cold and dominant hot.\n",
+      "final_answers": [
+        "2.41e-5",
+        "5.03e-10",
+        "4.79e4"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l2-cu-zn-atom-percent",
+      "title": "Atom percent of a 30 wt% Zn brass",
+      "concepts": [
+        {
+          "key": "imperfections",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T2 - Imperfection in solids/Sample questions - Imperfection of solids.pdf (question 5)",
+      "body_md": "What is the composition, in atom percent, of an alloy that consists of 30 wt% Zn and 70 wt% Cu?\n",
+      "solution_md": "### The weight-percent to atom-percent conversion\n\nFor a two-element alloy,\n\n$$C'_1 = \\frac{C_1 A_2}{C_1 A_2 + C_2 A_1}\\times 100$$\n\n### Atomic weights\n\n$A_{\\mathrm{Cu}} = 63.55\\ \\mathrm{g/mol}$ and $A_{\\mathrm{Zn}} = 65.41\\ \\mathrm{g/mol}$.\n\n### Substitute for copper\n\n$$C'_{\\mathrm{Cu}} = \\frac{(70)(65.41)}{(70)(65.41) + (30)(63.55)}\\times 100 = 70.6\\ \\mathrm{at\\%}$$\n\n### And zinc by difference\n\n$$C'_{\\mathrm{Zn}} = 100 - 70.6 = 29.4\\ \\mathrm{at\\%}$$\n\nThe two percentages are close to the weight percentages here because copper and zinc have nearly the same atomic weight.\n",
+      "final_answers": [
+        "70.6 at%",
+        "29.4 at%"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l2-sn-pb-atom-percent",
+      "title": "Atom percent of a tin-lead alloy given its masses",
+      "concepts": [
+        {
+          "key": "imperfections",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T2 - Imperfection in solids/Sample questions - Imperfection of solids.pdf (question 6)",
+      "body_md": "What is the composition, in atom percent, of an alloy that contains 98 g tin and 65 g of lead?\n",
+      "solution_md": "### Work in moles\n\nThe masses are given directly, so go straight to the number of moles of each element rather than through weight percent:\n\n$$n_{m1} = \\frac{m_1}{A_1}$$\n\n### Atomic weights\n\n$A_{\\mathrm{Sn}} = 118.71\\ \\mathrm{g/mol}$ and $A_{\\mathrm{Pb}} = 207.2\\ \\mathrm{g/mol}$.\n\n### Moles of each\n\n$$n_{m\\mathrm{Sn}} = \\frac{98\\ \\mathrm{g}}{118.71\\ \\mathrm{g/mol}} = 0.826\\ \\mathrm{mol}$$\n\n$$n_{m\\mathrm{Pb}} = \\frac{65\\ \\mathrm{g}}{207.2\\ \\mathrm{g/mol}} = 0.314\\ \\mathrm{mol}$$\n\n### Atom percent\n\n$$C'_{\\mathrm{Sn}} = \\frac{n_{m\\mathrm{Sn}}}{n_{m\\mathrm{Sn}} + n_{m\\mathrm{Pb}}}\\times 100 = \\frac{0.826}{0.826 + 0.314}\\times 100 = 72.5\\ \\mathrm{at\\%}$$\n\n$$C'_{\\mathrm{Pb}} = 100 - 72.5 = 27.5\\ \\mathrm{at\\%}$$\n\nLead is the heavier atom, so its share by atoms is well below its share by mass.\n",
+      "final_answers": [
+        "72.5 at%",
+        "27.5 at%"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l2-alloy-crystal-structure",
+      "title": "Crystal structure of a hypothetical A-B alloy",
+      "concepts": [
+        {
+          "key": "imperfections",
+          "weight": 1.0
+        },
+        {
+          "key": "crystalline-solids",
+          "weight": 0.6
+        }
+      ],
+      "source": "05 - Tutorials/T2 - Imperfection in solids/Sample questions in imperfection of solids.docx (question 7)",
+      "body_md": "Some hypothetical alloy is composed of 25 wt% of metal A and 75 wt% of metal B. If the densities of metals A and B are $6.17\\ \\mathrm{g/cm^3}$ and $8.00\\ \\mathrm{g/cm^3}$ respectively, and their respective atomic weights are $171.3\\ \\mathrm{g/mol}$ and $162.0\\ \\mathrm{g/mol}$, determine whether the crystal structure for this alloy is simple cubic, face-centered cubic, or body-centered cubic. Assume a unit cell edge length of $0.332\\ \\mathrm{nm}$.\n",
+      "solution_md": "### The idea\n\nUse the density relation, but with the *average* density and average atomic weight of the alloy in place of a pure element's, and solve it for $n$, the number of atoms per unit cell. The unit cell is cubic in all three candidate structures, so $V_C = a^3$:\n\n$$\\rho_{\\mathrm{ave}} = \\frac{n A_{\\mathrm{ave}}}{a^3 N_A}$$\n\n### What $n$ tells you\n\nFor $n = 1$ the structure is simple cubic, while values of 2 and 4 mean BCC and FCC respectively.\n\n### Average density and atomic weight\n\n$$\\rho_{\\mathrm{ave}} = \\frac{100}{\\frac{C_A}{\\rho_A} + \\frac{C_B}{\\rho_B}} = \\frac{100}{\\frac{25}{6.17} + \\frac{75}{8.00}} = 7.45\\ \\mathrm{g/cm^3}$$\n\n$$A_{\\mathrm{ave}} = \\frac{100}{\\frac{C_A}{A_A} + \\frac{C_B}{A_B}} = \\frac{100}{\\frac{25}{171.3} + \\frac{75}{162.0}} = 164.2\\ \\mathrm{g/mol}$$\n\n### Solve for $n$\n\n$$n = \\frac{\\rho_{\\mathrm{ave}} a^3 N_A}{A_{\\mathrm{ave}}} = \\frac{(7.45)\\left(3.32\\times10^{-8}\\ \\mathrm{cm}\\right)^3\\left(6.022\\times10^{23}\\right)}{164.2} = 1.00\\ \\mathrm{atom/unit\\ cell}$$\n\n### Conclusion\n\nOn the basis of this value, the crystal structure is simple cubic.\n",
+      "final_answers": [
+        "simple cubic",
+        "1.00 atom/unit cell"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l2-copper-solid-solutions",
+      "title": "Which elements form solid solutions with copper",
+      "concepts": [
+        {
+          "key": "imperfections",
+          "weight": 1.0
+        }
+      ],
+      "source": "02 - Lectures/L2 - Imperfections in solids/Sample questions - Imperfections.pdf (question 4)",
+      "body_md": "Which of these elements would you expect to form the following with copper:\n\n- **(a)** A substitutional solid solution having complete solubility\n- **(b)** A substitutional solid solution of incomplete solubility\n- **(c)** An interstitial solid solution\n\n| Element | Atomic radius (nm) | Crystal structure | Electronegativity | Valence |\n| --- | --- | --- | --- | --- |\n| Cu | 0.1278 | FCC | 1.9 | +2 |\n| C | 0.071 | | | |\n| H | 0.046 | | | |\n| O | 0.060 | | | |\n| Ag | 0.1445 | FCC | 1.9 | +1 |\n| Al | 0.1431 | FCC | 1.5 | +3 |\n| Co | 0.1253 | HCP | 1.8 | +2 |\n| Cr | 0.1249 | BCC | 1.6 | +3 |\n| Fe | 0.1241 | BCC | 1.8 | +2 |\n| Ni | 0.1246 | FCC | 1.8 | +2 |\n| Pd | 0.1376 | FCC | 2.2 | +2 |\n| Pt | 0.1387 | FCC | 2.2 | +2 |\n| Zn | 0.1332 | HCP | 1.6 | +2 |\n",
+      "solution_md": "### The rules being applied\n\nComplete substitutional solubility asks for all four Hume-Rothery conditions at once: an atomic radius within about $\\pm15\\%$ of copper's, the same crystal structure, similar electronegativity, and the same valence. Failing any one of them leaves incomplete solubility. An atom much smaller than copper does not substitute at all; it fits between the copper atoms instead.\n\n### The comparison\n\n| Element | $\\Delta R\\%$ | Crystal structure | $\\Delta$Electronegativity | Valence |\n| --- | --- | --- | --- | --- |\n| Cu | | FCC | | 2+ |\n| C | $-44$ | | | |\n| H | $-64$ | | | |\n| O | $-53$ | | | |\n| Ag | $+13$ | FCC | $0$ | 1+ |\n| Al | $+12$ | FCC | $-0.4$ | 3+ |\n| Co | $-2$ | HCP | $-0.1$ | 2+ |\n| Cr | $-2$ | BCC | $-0.3$ | 3+ |\n| Fe | $-3$ | BCC | $-0.1$ | 2+ |\n| Ni | $-3$ | FCC | $-0.1$ | 2+ |\n| Pd | $+8$ | FCC | $+0.3$ | 2+ |\n| Pt | $+9$ | FCC | $+0.3$ | 2+ |\n| Zn | $+4$ | HCP | $-0.3$ | 2+ |\n\n### (a) Complete solubility\n\nNi, Pd and Pt meet all of the criteria and thus form substitutional solid solutions having complete solubility.\n\n### (b) Incomplete solubility\n\nAg, Al, Co, Cr, Fe and Zn form substitutional solid solutions of incomplete solubility. All these metals have either BCC or HCP crystal structures, and/or the difference between their atomic radii and that for Cu is greater than $\\pm15\\%$, and/or have a valence different than 2+.\n\n### (c) Interstitial solid solutions\n\nC, H and O form interstitial solid solutions. These elements have atomic radii that are significantly smaller than the atomic radius of Cu.\n",
+      "final_answers": [],
+      "figures": []
+    },
+    {
+      "key": "l3-hydrogen-through-palladium",
+      "title": "Hydrogen passing through a palladium sheet",
+      "concepts": [
+        {
+          "key": "diffusion",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T3 - Diffusion/Sample question on Diffusion.pdf (question 1)",
+      "body_md": "Compute the number of kilograms of hydrogen that pass per hour through a 6-mm thick sheet of palladium having an area of $0.25\\ \\mathrm{m^2}$ at $600\\ ^\\circ\\mathrm{C}$. Assume a diffusion coefficient of $1.7\\times10^{-8}\\ \\mathrm{m^2/s}$, that the concentrations at the high and low pressure sides of the plate are 2.0 and $0.4\\ \\mathrm{kg}$ of hydrogen per cubic meter of palladium, and that steady state conditions have been attained.\n",
+      "solution_md": "### Fick's first law\n\nAt steady state the diffusion flux is constant through the sheet:\n\n$$J = \\frac{M}{At} = -D\\frac{\\Delta C}{\\Delta X}$$\n\nwhere $M$ is the mass diffusing through area $A$ in time $t$.\n\n### Rearrange for the mass\n\n$$M = -D\\frac{\\Delta C}{\\Delta X}At$$\n\n### Substitute, with one hour as the time\n\n$$M = -\\left(1.7\\times10^{-8}\\ \\mathrm{m^2/s}\\right)\\left(\\frac{-1.6\\ \\mathrm{kg/m^3}}{6\\times10^{-3}\\ \\mathrm{m}}\\right)\\left(0.25\\ \\mathrm{m^2}\\right)\\left(3600\\ \\mathrm{s}\\right) = 4.1\\times10^{-3}\\ \\mathrm{kg}$$\n\nThe concentration difference is negative going down the gradient, and the minus sign in Fick's law turns it back into a positive mass, which is the sanity check worth making before trusting the arithmetic.\n",
+      "final_answers": [
+        "4.1e-3 kg",
+        "4.1 x 10^-3 kg"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l3-nitrogen-depth-in-steel",
+      "title": "Depth at which nitrogen reaches a given concentration",
+      "concepts": [
+        {
+          "key": "diffusion",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T3 - Diffusion/Sample question on Diffusion.pdf (question 2)",
+      "body_md": "A sheet of steel 1.5 mm thick has nitrogen atmospheres on both sides at $1200\\ ^\\circ\\mathrm{C}$ and is permitted to achieve a steady-state diffusion condition. The diffusion coefficient for nitrogen in steel at this temperature is $6\\times10^{-11}\\ \\mathrm{m^2/s}$, and the diffusion flux is found to be $1.2\\times10^{-7}\\ \\mathrm{kg/m^2\\text{-}s}$. Also, it is known that the concentration of nitrogen in the steel at the high-pressure surface is $4\\ \\mathrm{kg/m^3}$. How far into the sheet from this high-pressure side will the concentration be $2.0\\ \\mathrm{kg/m^3}$? Assume a linear concentration profile.\n",
+      "solution_md": "### Start from Fick's first law\n\nThis problem is solved by using Fick's first law in the form\n\n$$J = -D\\frac{C_A - C_B}{x_A - x_B}$$\n\n### Solve for the unknown position\n\nIf we take $C_A$ to be the point at which the concentration of nitrogen is $4\\ \\mathrm{kg/m^3}$, then it becomes necessary to solve for $x_B$:\n\n$$x_B = x_A + D\\left(\\frac{C_A - C_B}{J}\\right)$$\n\n### Substitute\n\nAssume $x_A$ is zero at the surface, in which case\n\n$$x_B = 0 + \\left(6\\times10^{-11}\\ \\mathrm{m^2/s}\\right)\\left[\\frac{4\\ \\mathrm{kg/m^3} - 2\\ \\mathrm{kg/m^3}}{1.2\\times10^{-7}\\ \\mathrm{kg/m^2\\text{-}s}}\\right] = 1\\times10^{-3}\\ \\mathrm{m} = 1\\ \\mathrm{mm}$$\n\nThe sheet is 1.5 mm thick, so the answer falls inside it, which it had to for the linear profile to be the right assumption.\n",
+      "final_answers": [
+        "1 mm",
+        "1e-3 m"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l3-diffusion-coefficient-in-bcc-iron",
+      "title": "Diffusion coefficient from a carburizing-decarburizing couple",
+      "concepts": [
+        {
+          "key": "diffusion",
+          "weight": 1.0
+        },
+        {
+          "key": "imperfections",
+          "weight": 0.5
+        }
+      ],
+      "source": "05 - Tutorials/T3 - Diffusion/Sample question on Diffusion.pdf (question 3)",
+      "body_md": "A sheet of BCC iron 1 mm thick was exposed to a carburizing gas atmosphere on one side and a decarburizing atmosphere on the other side at $725\\ ^\\circ\\mathrm{C}$. After having reached steady state, the iron was quickly cooled to room temperature. The carbon concentrations at the two surfaces of the sheet were determined to be 0.012 and 0.0075 wt%. Compute the diffusion coefficient if the diffusion flux is $1.4\\times10^{-8}\\ \\mathrm{kg/m^2\\text{-}s}$.\n\nHint: convert the concentrations from weight percent to kilograms of carbon per cubic meter of iron.\n",
+      "solution_md": "### First convert the concentrations\n\nFick's law needs mass per unit volume, not weight percent, so convert both surface concentrations using the mass-per-unit-volume relation. For 0.012 wt% C:\n\n$$C''_C = \\frac{C_C}{\\frac{C_C}{\\rho_C} + \\frac{C_{\\mathrm{Fe}}}{\\rho_{\\mathrm{Fe}}}}\\times 10^3 = \\frac{0.012}{\\frac{0.012}{2.25\\ \\mathrm{g/cm^3}} + \\frac{99.988}{7.87\\ \\mathrm{g/cm^3}}}\\times 10^3 = 0.944\\ \\mathrm{kg\\ C/m^3}$$\n\n### And the other surface\n\nSimilarly, for 0.0075 wt% C:\n\n$$C''_C = \\frac{0.0075}{\\frac{0.0075}{2.25\\ \\mathrm{g/cm^3}} + \\frac{99.9925}{7.87\\ \\mathrm{g/cm^3}}}\\times 10^3 = 0.590\\ \\mathrm{kg\\ C/m^3}$$\n\n### Rearrange Fick's first law for $D$\n\n$$D = -J\\left[\\frac{x_A - x_B}{C_A - C_B}\\right]$$\n\n### Substitute\n\n$$D = -\\left(1.40\\times10^{-8}\\ \\mathrm{kg/m^2\\text{-}s}\\right)\\left[\\frac{-10^{-3}\\ \\mathrm{m}}{0.944\\ \\mathrm{kg/m^3} - 0.590\\ \\mathrm{kg/m^3}}\\right] = 3.96\\times10^{-11}\\ \\mathrm{m^2/s}$$\n",
+      "final_answers": [
+        "3.96e-11 m2/s"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l3-decarburization-position",
+      "title": "Position of a carbon concentration after decarburization",
+      "concepts": [
+        {
+          "key": "diffusion",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T3 - Diffusion/Sample question on Diffusion.pdf (question 4)",
+      "body_md": "An FCC iron-carbon alloy initially containing 0.35 wt% C is exposed to an oxygen-rich and virtually carbon-free atmosphere at $1400\\ \\mathrm{K}$ ($1127\\ ^\\circ\\mathrm{C}$). Under these circumstances the carbon diffuses from the alloy and reacts at the surface with the oxygen in the atmosphere; that is, the carbon concentration at the surface position is maintained essentially at 0 wt% C. (This process of carbon depletion is termed decarburization.) At what position will the carbon concentration be 0.15 wt% after a 10-h treatment? The value of $D$ at $1400\\ \\mathrm{K}$ is $6.9\\times10^{-11}\\ \\mathrm{m^2/s}$.\n",
+      "solution_md": "### The non-steady-state solution\n\nThis problem asks for the position at which the carbon concentration is 0.15 wt% after a 10-h heat treatment at $1400\\ \\mathrm{K}$ when $C_0 = 0.35\\ \\mathrm{wt\\%\\ C}$. From the error-function solution to Fick's second law,\n\n$$\\frac{C_x - C_0}{C_s - C_0} = \\frac{0.15 - 0.35}{0 - 0.35} = 0.5714 = 1 - \\mathrm{erf}\\left(\\frac{x}{2\\sqrt{Dt}}\\right)$$\n\n### Thus\n\n$$\\mathrm{erf}\\left(\\frac{x}{2\\sqrt{Dt}}\\right) = 0.4286$$\n\n### Interpolate for $z$\n\nUsing tabulated values of the error function and linear interpolation:\n\n| $z$ | $\\mathrm{erf}(z)$ |\n| --- | --- |\n| 0.40 | 0.4284 |\n| $z$ | 0.4286 |\n| 0.45 | 0.4755 |\n\n$$\\frac{z - 0.40}{0.45 - 0.40} = \\frac{0.4286 - 0.4284}{0.4755 - 0.4284}$$\n\n$$z = 0.4002$$\n\n### Solve for the position\n\n$$x = 2(0.4002)\\sqrt{Dt} = (0.8004)\\sqrt{\\left(6.9\\times10^{-11}\\ \\mathrm{m^2/s}\\right)\\left(3.6\\times10^{4}\\ \\mathrm{s}\\right)} = 1.26\\times10^{-3}\\ \\mathrm{m} = 1.26\\ \\mathrm{mm}$$\n",
+      "final_answers": [
+        "1.26 mm",
+        "1.26e-3 m"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l3-temperature-for-a-given-d",
+      "title": "Temperature giving a stated diffusion coefficient",
+      "concepts": [
+        {
+          "key": "diffusion",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T3 - Diffusion/Sample question on Diffusion.pdf (question 5)",
+      "body_md": "At what temperature will the diffusion coefficient for the diffusion of copper in nickel have a value of $6.5\\times10^{-17}\\ \\mathrm{m^2/s}$? Use the tabulated diffusion data for copper in nickel.\n",
+      "solution_md": "### The temperature dependence\n\n$$D = D_0\\exp\\left(-\\frac{Q_d}{RT}\\right)$$\n\n### Rearrange for temperature\n\nTaking logarithms and solving for $T$:\n\n$$T = \\frac{Q_d}{R\\ln\\left(\\frac{D_0}{D}\\right)}$$\n\n### Substitute the tabulated constants\n\nFor copper diffusing in nickel, $D_0 = 2.7\\times10^{-5}\\ \\mathrm{m^2/s}$ and $Q_d = 256{,}000\\ \\mathrm{J/mol}$:\n\n$$T = \\frac{256{,}000}{(8.314)\\ln\\left(\\frac{2.7\\times10^{-5}}{6.5\\times10^{-17}}\\right)} = 1152\\ \\mathrm{K}$$\n\n### In degrees Celsius\n\n$$T = 1152\\ \\mathrm{K} - 273 = 879\\ ^\\circ\\mathrm{C}$$\n",
+      "final_answers": [
+        "1152 K",
+        "879 C"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l3-activation-energy-from-two-temperatures",
+      "title": "Activation energy for iron diffusing in nickel",
+      "concepts": [
+        {
+          "key": "diffusion",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T3 - Diffusion/Sample question on Diffusion.pdf (question 6)",
+      "body_md": "The diffusion coefficients for iron in nickel are given at two temperatures:\n\n| $T$ (K) | $D$ (m²/s) |\n| --- | --- |\n| 1273 | $9.4\\times10^{-16}$ |\n| 1473 | $2.4\\times10^{-14}$ |\n\n(a) Determine the values of $D_0$ and the activation energy $Q_d$.\n\n(b) What is the magnitude of $D$ at $1100\\ ^\\circ\\mathrm{C}$ ($1373\\ \\mathrm{K}$)?\n",
+      "solution_md": "### (a) Two equations, two unknowns\n\nWriting the temperature dependence at each of the two temperatures and dividing one by the other eliminates $D_0$:\n\n$$\\ln\\left(\\frac{D_2}{D_1}\\right) = -\\frac{Q_d}{R}\\left(\\frac{1}{T_2} - \\frac{1}{T_1}\\right)$$\n\n### Solve for the activation energy\n\n$$Q_d = -R\\,\\frac{\\ln\\left(\\frac{D_2}{D_1}\\right)}{\\frac{1}{T_2} - \\frac{1}{T_1}} = -(8.314)\\,\\frac{\\ln\\left(\\frac{2.4\\times10^{-14}}{9.4\\times10^{-16}}\\right)}{\\frac{1}{1473} - \\frac{1}{1273}} = 2.53\\times10^{5}\\ \\mathrm{J/mol}$$\n\n### Then back-substitute for $D_0$\n\n$$D_0 = D_1\\exp\\left(\\frac{Q_d}{RT_1}\\right) = \\left(9.4\\times10^{-16}\\right)\\exp\\left[\\frac{2.53\\times10^{5}}{(8.314)(1273)}\\right] = 2.2\\times10^{-5}\\ \\mathrm{m^2/s}$$\n\n### (b) Evaluate at 1373 K\n\n$$D = \\left(2.2\\times10^{-5}\\right)\\exp\\left[-\\frac{2.53\\times10^{5}}{(8.314)(1373)}\\right] = 5.4\\times10^{-15}\\ \\mathrm{m^2/s}$$\n\nThe answer sits between the two tabulated values, as it must, since 1373 K lies between 1273 K and 1473 K.\n",
+      "final_answers": [
+        "2.53e5 J/mol",
+        "2.2e-5 m2/s",
+        "5.4e-15 m2/s"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l3-silver-gold-diffusion-couple",
+      "title": "Heating time for a silver-gold diffusion couple",
+      "concepts": [
+        {
+          "key": "diffusion",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T3 - Diffusion/Solution to tutorial Question 7.docx (question 7)",
+      "body_md": "A diffusion couple composed of two silver-gold alloys is formed; these alloys have compositions of 98 wt% Ag-2 wt% Au and 95 wt% Ag-5 wt% Au. Determine the time this diffusion couple must be heated at $750\\ ^\\circ\\mathrm{C}$ ($1023\\ \\mathrm{K}$) in order for the composition to be 2.5 wt% Au at the $50\\ \\mathrm{\\mu m}$ position into the 2 wt% Au side of the diffusion couple. Preexponential and activation energy values for Au diffusion in Ag are $8.5\\times10^{-5}\\ \\mathrm{m^2/s}$ and $202{,}100\\ \\mathrm{J/mol}$, respectively.\n",
+      "solution_md": "### The diffusion-couple solution\n\nFor this silver-gold diffusion couple, with $C_1 = 5\\ \\mathrm{wt\\%\\ Au}$ and $C_2 = 2\\ \\mathrm{wt\\%\\ Au}$, we are asked for the diffusion time at $750\\ ^\\circ\\mathrm{C}$ that gives a composition of 2.5 wt% Au at the $50\\ \\mathrm{\\mu m}$ position:\n\n$$C_x = \\frac{C_1 + C_2}{2} + \\frac{C_1 - C_2}{2}\\left[1 - \\mathrm{erf}\\left(\\frac{x}{2\\sqrt{Dt}}\\right)\\right]$$\n\n### Compute the diffusion coefficient first\n\nIt now becomes necessary to compute the diffusion coefficient at $750\\ ^\\circ\\mathrm{C}$ ($1023\\ \\mathrm{K}$) given that $D_0 = 8.5\\times10^{-5}\\ \\mathrm{m^2/s}$ and $Q_d = 202{,}100\\ \\mathrm{J/mol}$:\n\n$$D = \\left(8.5\\times10^{-5}\\right)\\exp\\left[-\\frac{202{,}100\\ \\mathrm{J/mol}}{(8.314\\ \\mathrm{J/mol\\text{-}K})(1023\\ \\mathrm{K})}\\right] = 4.03\\times10^{-15}\\ \\mathrm{m^2/s}$$\n\n### Reduce to an error function\n\nSubstituting the compositions into the expression above reduces it to\n\n$$\\mathrm{erf}\\left(\\frac{x}{2\\sqrt{Dt}}\\right) = 0.6667$$\n\n### Interpolate for $z$\n\n| $z$ | $\\mathrm{erf}(z)$ |\n| --- | --- |\n| 0.650 | 0.6420 |\n| $y$ | 0.6667 |\n| 0.700 | 0.6778 |\n\nfrom which $z = 0.6845$.\n\n### Solve for the time\n\n$$t = \\frac{x^2}{4Dz^2} = \\frac{\\left(50\\times10^{-6}\\ \\mathrm{m}\\right)^2}{4\\left(4.03\\times10^{-15}\\right)(0.6845)^2} = 3.31\\times10^{5}\\ \\mathrm{s} = 92\\ \\mathrm{h}$$\n",
+      "final_answers": [
+        "3.31e5 s",
+        "92 h"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l3-carburizing-time",
+      "title": "Carburizing time to reach a carbon concentration at depth",
+      "concepts": [
+        {
+          "key": "diffusion",
+          "weight": 1.0
+        }
+      ],
+      "source": "02 - Lectures/L3 - Diffusion/Prep/Sample questions- Diffusion.pdf (question 2)",
+      "body_md": "Determine the carburizing time necessary to achieve a carbon concentration of 0.30 wt% at a position 4 mm into an iron-carbon alloy that initially contains 0.10 wt% C. The surface concentration is to be maintained at 0.90 wt% C, and the treatment is to be conducted at $1100\\ ^\\circ\\mathrm{C}$. Use the diffusion data for $\\gamma$-Fe.\n",
+      "solution_md": "### What is given\n\n- Carbon concentration $C_x = 0.30\\ \\mathrm{wt\\%}$\n- $x = 4\\ \\mathrm{mm}$\n- $C_0 = 0.10\\ \\mathrm{wt\\%}$\n- $C_s = 0.90\\ \\mathrm{wt\\%\\ C}$\n- $T = 1100\\ ^\\circ\\mathrm{C}$, and for $\\gamma$-Fe this gives $D = 5.3\\times10^{-11}\\ \\mathrm{m^2/s}$\n\n### Set up the error-function solution\n\n$$\\frac{C_x - C_0}{C_s - C_0} = 1 - \\mathrm{erf}\\left(\\frac{x}{2\\sqrt{Dt}}\\right)$$\n\n$$\\frac{0.30 - 0.10}{0.90 - 0.10} = 0.2500 = 1 - \\mathrm{erf}\\left(\\frac{x}{2\\sqrt{Dt}}\\right)$$\n\n$$\\mathrm{erf}(z) = 1 - 0.25 = 0.75$$\n\n### Interpolate for $z$\n\n| $\\mathrm{erf}(z)$ | $z$ |\n| --- | --- |\n| 0.7421 | 0.80 |\n| 0.75 | $z$ |\n| 0.7707 | 0.85 |\n\n$$\\frac{z - 0.80}{0.85 - 0.80} = \\frac{0.75 - 0.7421}{0.7707 - 0.7421}$$\n\n$$z = 0.814 = \\frac{x}{2\\sqrt{Dt}}$$\n\n### Solve for the time\n\n$$t = \\frac{x^2}{4Dz^2} = \\frac{\\left(4\\times10^{-3}\\right)^2}{4\\left(5.3\\times10^{-11}\\right)(0.814)^2} = 113{,}903\\ \\mathrm{s} = 31.6\\ \\mathrm{hours}$$\n",
+      "final_answers": [
+        "113903 s",
+        "31.6 hours"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l4-aluminium-elastic-strain",
+      "title": "Elastic strain in an aluminium bar",
+      "concepts": [
+        {
+          "key": "mechanical-properties",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T4 - Mechanical properties/Sample question - Mechanical properties 2.pdf (question 1)",
+      "body_md": "A specimen of aluminum having a rectangular cross section $10\\ \\mathrm{mm}\\times12.7\\ \\mathrm{mm}$ is pulled in tension with $35{,}500\\ \\mathrm{N}$ force, producing only elastic deformation. Calculate the resulting strain.\n",
+      "solution_md": "### The cross-sectional area\n\nThe cross-sectional area is just $(10\\ \\mathrm{mm})\\times(12.7\\ \\mathrm{mm}) = 127\\ \\mathrm{mm^2} = 1.27\\times10^{-4}\\ \\mathrm{m^2}$.\n\n### The elastic modulus\n\nThe elastic modulus for Al is tabulated as $69\\ \\mathrm{GPa}$ (or $69\\times10^{9}\\ \\mathrm{N/m^2}$).\n\n### Combine the definitions of stress and Hooke's law\n\n$$\\varepsilon = \\frac{\\sigma}{E} = \\frac{F}{A_0 E}$$\n\n### Substitute\n\n$$\\varepsilon = \\frac{35{,}500\\ \\mathrm{N}}{\\left(1.27\\times10^{-4}\\ \\mathrm{m^2}\\right)\\left(69\\times10^{9}\\ \\mathrm{N/m^2}\\right)} = 4.1\\times10^{-3}$$\n\nStrain is dimensionless, which is the check to make: if units survive to the answer, something has gone wrong earlier.\n",
+      "final_answers": [
+        "4.1e-3"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l4-titanium-maximum-length",
+      "title": "Maximum length of a titanium specimen under an elongation limit",
+      "concepts": [
+        {
+          "key": "mechanical-properties",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T4 - Mechanical properties/Sample question - Mechanical properties 2.pdf (question 2)",
+      "body_md": "A cylindrical specimen of a titanium alloy having an elastic modulus of $107\\ \\mathrm{GPa}$ and an original diameter of $3.8\\ \\mathrm{mm}$ will experience only elastic deformation when a tensile load of $2000\\ \\mathrm{N}$ is applied. Compute the maximum length of the specimen before deformation if the maximum allowable elongation is $0.42\\ \\mathrm{mm}$.\n",
+      "solution_md": "### The cross-sectional area\n\nFor a cylindrical specimen the cross-sectional area is\n\n$$A_0 = \\pi\\left(\\frac{d_0}{2}\\right)^2$$\n\nwhere $d_0$ is the original diameter.\n\n### Combine stress, strain and Hooke's law\n\n$$\\sigma = E\\varepsilon\\quad\\Rightarrow\\quad\\frac{F}{A_0} = E\\,\\frac{\\Delta l}{l_0}$$\n\n### Solve for the original length\n\n$$l_0 = \\frac{\\Delta l\\,E\\,A_0}{F} = \\frac{\\Delta l\\,E\\,\\pi\\left(\\frac{d_0}{2}\\right)^2}{F}$$\n\n### Substitute\n\n$$l_0 = \\frac{\\left(0.42\\times10^{-3}\\ \\mathrm{m}\\right)\\left(107\\times10^{9}\\ \\mathrm{N/m^2}\\right)\\pi\\left(\\frac{3.8\\times10^{-3}\\ \\mathrm{m}}{2}\\right)^2}{2000\\ \\mathrm{N}} = 0.255\\ \\mathrm{m} = 255\\ \\mathrm{mm}$$\n",
+      "final_answers": [
+        "255 mm",
+        "0.255 m"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l4-aluminium-elongation-and-diameter",
+      "title": "Elongation and diameter change of an aluminium specimen",
+      "concepts": [
+        {
+          "key": "mechanical-properties",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T4 - Mechanical properties/Sample question - Mechanical properties 2.pdf (question 3)",
+      "body_md": "A cylindrical specimen of aluminum having a diameter of $19\\ \\mathrm{mm}$ and length of $200\\ \\mathrm{mm}$ is deformed elastically in tension with a force of $48{,}800\\ \\mathrm{N}$. Using tabulated data, determine the following:\n\n- **(a)** The amount by which this specimen will elongate in the direction of the applied stress.\n- **(b)** The change in diameter of the specimen. Will the diameter increase or decrease?\n",
+      "solution_md": "### (a) Combine stress, strain and Hooke's law\n\n$$\\sigma = E\\varepsilon\\quad\\Rightarrow\\quad\\frac{F}{\\pi\\left(\\frac{d_0^2}{4}\\right)} = E\\,\\frac{\\Delta l}{l_0}$$\n\n### Solve for the elongation\n\nSolving for $\\Delta l$, and taking $E = 69\\ \\mathrm{GPa}$ for aluminium:\n\n$$\\Delta l = \\frac{4Fl_0}{\\pi d_0^2 E} = \\frac{(4)(48{,}800\\ \\mathrm{N})\\left(200\\times10^{-3}\\ \\mathrm{m}\\right)}{(\\pi)\\left(19\\times10^{-3}\\ \\mathrm{m}\\right)^2\\left(69\\times10^{9}\\ \\mathrm{N/m^2}\\right)} = 5\\times10^{-4}\\ \\mathrm{m} = 0.50\\ \\mathrm{mm}$$\n\n### (b) Bring in Poisson's ratio\n\n$$\\nu = -\\frac{\\varepsilon_x}{\\varepsilon_z} = -\\frac{\\Delta d/d_0}{\\Delta l/l_0}$$\n\n### Solve for the diameter change\n\nFor aluminium, $\\nu = 0.33$. Solving the above for $\\Delta d$:\n\n$$\\Delta d = -\\frac{\\nu\\,\\Delta l\\,d_0}{l_0} = -\\frac{(0.33)(0.50\\ \\mathrm{mm})(19\\ \\mathrm{mm})}{200\\ \\mathrm{mm}} = -1.6\\times10^{-2}\\ \\mathrm{mm}$$\n\nThe diameter will decrease. The negative sign is the physics, not a slip: a bar pulled longer gets thinner.\n",
+      "final_answers": [
+        "0.50 mm",
+        "-1.6e-2 mm",
+        "decrease"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l4-force-for-a-diameter-reduction",
+      "title": "Force producing a stated elastic reduction in diameter",
+      "concepts": [
+        {
+          "key": "mechanical-properties",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T4 - Mechanical properties/Sample question - Mechanical properties 2.pdf (question 4)",
+      "body_md": "A cylindrical bar of steel $10\\ \\mathrm{mm}$ in diameter is to be deformed elastically by application of a force along the bar axis. Using tabulated data, determine the force that will produce an elastic reduction of $3\\times10^{-3}\\ \\mathrm{mm}$ in the diameter.\n",
+      "solution_md": "### Work backwards from the lateral strain\n\nThe reduction in diameter is a lateral strain, and Poisson's ratio connects it to the axial strain that caused it:\n\n$$\\varepsilon_z = -\\frac{\\Delta d}{\\nu d_0}$$\n\n### Substitute, with $\\nu = 0.30$ for steel\n\n$$\\varepsilon_z = \\frac{3\\times10^{-3}\\ \\mathrm{mm}}{(0.30)(10\\ \\mathrm{mm})} = 1\\times10^{-3}$$\n\n### Turn the axial strain into a force\n\n$$F = \\varepsilon_z A_0 E = \\varepsilon_z \\pi\\left(\\frac{d_0}{2}\\right)^2 E$$\n\n### Substitute, with $E = 207\\ \\mathrm{GPa}$ for steel\n\n$$F = \\left(1\\times10^{-3}\\right)\\pi\\left(5\\times10^{-3}\\ \\mathrm{m}\\right)^2\\left(207\\times10^{9}\\ \\mathrm{N/m^2}\\right) = 16{,}250\\ \\mathrm{N}$$\n",
+      "final_answers": [
+        "16250 N"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l4-candidate-materials-for-a-rod",
+      "title": "Which alloys can carry a rod's load within its limits",
+      "concepts": [
+        {
+          "key": "mechanical-properties",
+          "weight": 1.0
+        },
+        {
+          "key": "material-selection",
+          "weight": 0.6
+        }
+      ],
+      "source": "05 - Tutorials/T4 - Mechanical properties/Sample question - Mechanical properties 2.pdf (question 5)",
+      "body_md": "A cylindrical rod $100\\ \\mathrm{mm}$ long and having a diameter of $10.0\\ \\mathrm{mm}$ is to be deformed using a tensile load of $27{,}500\\ \\mathrm{N}$. It must not experience either plastic deformation or a diameter reduction of more than $7.5\\times10^{-3}\\ \\mathrm{mm}$. Of the materials listed as follows, which are possible candidates?\n\n| Material | Modulus of elasticity (GPa) | Yield strength (MPa) | Poisson's ratio |\n| --- | --- | --- | --- |\n| Aluminum alloy | 70 | 200 | 0.33 |\n| Brass alloy | 101 | 300 | 0.34 |\n| Steel alloy | 207 | 400 | 0.30 |\n| Titanium alloy | 107 | 650 | 0.34 |\n",
+      "solution_md": "### There are two separate criteria\n\nA candidate has to pass both: no plastic deformation, and a diameter reduction inside the limit. Test them one at a time.\n\n### The applied stress\n\n$$\\sigma = \\frac{F}{A_0} = \\frac{27{,}500\\ \\mathrm{N}}{\\pi\\left(5\\times10^{-3}\\ \\mathrm{m}\\right)^2} = 350\\ \\mathrm{MPa}$$\n\n### First criterion: the yield strength must exceed it\n\nThe aluminium alloy (200 MPa) and the brass alloy (300 MPa) both yield under 350 MPa, so they are out. The steel (400 MPa) and the titanium (650 MPa) survive.\n\n### Second criterion: the diameter reduction\n\n$$\\Delta d = -\\frac{\\nu\\,\\sigma\\,d_0}{E}$$\n\nFor the steel:\n\n$$\\Delta d = \\frac{(0.30)(350\\ \\mathrm{MPa})(10\\ \\mathrm{mm})}{207\\times10^{3}\\ \\mathrm{MPa}} = 5.1\\times10^{-3}\\ \\mathrm{mm}$$\n\nFor the titanium:\n\n$$\\Delta d = \\frac{(0.34)(350\\ \\mathrm{MPa})(10\\ \\mathrm{mm})}{107\\times10^{3}\\ \\mathrm{MPa}} = 1.1\\times10^{-2}\\ \\mathrm{mm}$$\n\n### Conclusion\n\nThe steel's reduction is inside the $7.5\\times10^{-3}\\ \\mathrm{mm}$ limit and the titanium's is not, despite the titanium having much the higher yield strength. The steel is the candidate. The stiffer material wins the second criterion, and stiffness and strength are not the same property.\n",
+      "final_answers": [
+        "steel"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l4-structural-component-under-load",
+      "title": "Length and yield load of a structural steel component",
+      "concepts": [
+        {
+          "key": "mechanical-properties",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T4 - Mechanical properties/Sample question - Mechanical properties 2.pdf (unnumbered question, structural component)",
+      "body_md": "A structural component, $2.54\\ \\mathrm{cm}$ in diameter and $6.1\\ \\mathrm{m}$ long, is made of a special steel alloy which has the following properties: Young's modulus $= 193\\times10^{3}\\ \\mathrm{MPa}$; tensile strength $= 1309\\ \\mathrm{MPa}$; yield strength $= 1034\\ \\mathrm{MPa}$; and ductility $= 15\\%\\mathrm{EL}$.\n\n- **(a)** What will be the length of the bar under a load of $334\\ \\mathrm{kN}$?\n- **(b)** At what approximate load will the bar be stretched permanently?\n",
+      "solution_md": "### (a) The cross-sectional area\n\n$$A = \\pi\\left(\\frac{d}{2}\\right)^2 = \\pi\\left(\\frac{0.0254\\ \\mathrm{m}}{2}\\right)^2 = 5.067\\times10^{-4}\\ \\mathrm{m^2}$$\n\n### The stress\n\n$$\\sigma = \\frac{F}{A} = \\frac{334\\times10^{3}\\ \\mathrm{N}}{5.067\\times10^{-4}\\ \\mathrm{m^2}} = 659\\ \\mathrm{MPa}$$\n\nThis is below the $1034\\ \\mathrm{MPa}$ yield strength, so the deformation is elastic and Hooke's law applies.\n\n### The strain\n\n$$\\varepsilon = \\frac{\\sigma}{E} = \\frac{659\\times10^{6}\\ \\mathrm{Pa}}{193\\times10^{9}\\ \\mathrm{Pa}} = 0.003415$$\n\n### The stretched length\n\n$$L = L_0(1 + \\varepsilon) = (6.1\\ \\mathrm{m})(1.003415) = 6.12\\ \\mathrm{m}$$\n\n### (b) Permanent stretch begins at yield\n\nPermanent strain occurs once the stress reaches the yield strength of $1034\\ \\mathrm{MPa}$:\n\n$$F = A\\sigma_y = \\left(5.067\\times10^{-4}\\ \\mathrm{m^2}\\right)\\left(1034\\times10^{6}\\ \\mathrm{Pa}\\right) = 524{,}000\\ \\mathrm{N} \\approx 524\\ \\mathrm{kN}$$\n",
+      "final_answers": [
+        "6.12 m",
+        "524 kN",
+        "523900 N"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l4-three-point-bending-ceramic",
+      "title": "Flexural strength and deflection in a three-point bend test",
+      "concepts": [
+        {
+          "key": "mechanical-properties",
+          "weight": 1.0
+        },
+        {
+          "key": "ceramics",
+          "weight": 0.5
+        }
+      ],
+      "source": "05 - Tutorials/T4 - Mechanical properties/Sample question - Mechanical properties 2.pdf (unnumbered question, three-point bending)",
+      "body_md": "A three-point bending test is performed on a ceramic ($\\mathrm{MgAl_2O_4}$) specimen having a rectangular cross section of height $d = 3.8\\ \\mathrm{mm}$ and width $b = 9\\ \\mathrm{mm}$; the distance between support points is $25\\ \\mathrm{mm}$.\n\n- **(a)** Compute the flexural strength if the load at fracture is $350\\ \\mathrm{N}$.\n- **(b)** The point of maximum deflection $\\Delta y$ occurs at the centre of the specimen and is described by\n\n$$\\Delta y = \\frac{FL^3}{48EI}$$\n\nwhere $E$ is the modulus of elasticity and $I$ is the cross-sectional moment of inertia. Compute $\\Delta y$ at a load of $310\\ \\mathrm{N}$.\n",
+      "solution_md": "### (a) Flexural strength for a rectangular cross section\n\n$$\\sigma_{fs} = \\frac{3F_f L}{2bd^2} = \\frac{3(350\\ \\mathrm{N})(0.025\\ \\mathrm{m})}{2(0.009\\ \\mathrm{m})(0.0038\\ \\mathrm{m})^2} = 101\\ \\mathrm{MPa}$$\n\n### (b) The moment of inertia\n\nFor a rectangular cross section,\n\n$$I = \\frac{bd^3}{12} = \\frac{(0.009)(0.0038)^3}{12} = 4.115\\times10^{-11}\\ \\mathrm{m^4}$$\n\n### The modulus\n\nThe value of the modulus $E$ for this ceramic is $260\\ \\mathrm{GPa}$.\n\n### The deflection at 310 N\n\n$$\\Delta y = \\frac{FL^3}{48EI} = \\frac{(310)(0.025)^3}{48\\left(260\\times10^{9}\\right)\\left(4.115\\times10^{-11}\\right)} = 9.4\\times10^{-6}\\ \\mathrm{m}$$\n\nUnder ten micrometres of deflection at a load most of the way to fracture: a ceramic is stiff, and it is that stiffness with no plastic reserve behind it that makes the failure sudden.\n",
+      "final_answers": [
+        "101 MPa",
+        "9.4e-6 m"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l4-brinell-hardness",
+      "title": "Brinell hardness and indentation diameter",
+      "concepts": [
+        {
+          "key": "mechanical-properties",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T4 - Mechanical properties/Sample question - Mechanical properties 2.pdf (unnumbered question, Brinell hardness)",
+      "body_md": "A $10\\ \\mathrm{mm}$ diameter Brinell hardness indenter produced an indentation of $2.5\\ \\mathrm{mm}$ in diameter in a steel alloy when a load of $1000\\ \\mathrm{kg}$ was used.\n\n- **(a)** What is the Brinell Hardness (HB) of this material?\n- **(b)** What would be the diameter of the indentation for a hardness of $300\\ \\mathrm{HB}$ for a $500\\ \\mathrm{kg}$ applied load?\n",
+      "solution_md": "### (a) The Brinell relation\n\n$$HB = \\frac{2P}{\\pi D\\left(D - \\sqrt{D^2 - d^2}\\right)}$$\n\nwhere $P$ is the load in kg, $D$ the indenter diameter and $d$ the indentation diameter, both in mm.\n\n### Substitute\n\n$$HB = \\frac{2(1000)}{\\pi(10)\\left(10 - \\sqrt{10^2 - 2.5^2}\\right)} = 200.48$$\n\n### (b) Rearrange for the indentation diameter\n\n$$d = \\sqrt{D^2 - \\left(D - \\frac{2P}{(HB)\\pi D}\\right)^2}$$\n\n### Substitute\n\n$$d = \\sqrt{10^2 - \\left(10 - \\frac{2(500)}{(300)\\pi(10)}\\right)^2} = 1.45\\ \\mathrm{mm}$$\n\nA harder material under half the load leaves a smaller dent, which is the whole idea the test is built on.\n",
+      "final_answers": [
+        "200.48 HB",
+        "1.45 mm"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l4-copper-true-stress-at-fracture",
+      "title": "True stress at fracture for a copper wire",
+      "concepts": [
+        {
+          "key": "mechanical-properties",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T4 - Mechanical properties/Sample question - Mechanical properties 2.pdf (unnumbered question, copper wire)",
+      "body_md": "A copper wire has a nominal breaking strength of $300\\ \\mathrm{MPa}$. Its ductility is 77 percent reduction of area. Calculate the true stress at fracture.\n",
+      "solution_md": "### What the two stresses mean\n\nThe nominal (engineering) strength divides the breaking load by the *original* area. True stress divides it by the area the wire actually has at fracture, which the necking has reduced.\n\n### Use the reduction of area to get the final area\n\n$$\\%RA = \\frac{A_0 - A_f}{A_0}\\times 100\\quad\\Rightarrow\\quad 0.77 = 1 - \\frac{A_f}{A_0}$$\n\n$$A_f = (1 - 0.77)A_0$$\n\n### The breaking load is the same either way\n\n$$F = \\sigma A_0 = \\left(300\\times10^{6}\\right)A_0$$\n\n### Divide it by the true area\n\n$$\\sigma_{true} = \\frac{F}{A_f} = \\frac{\\left(300\\times10^{6}\\right)A_0}{(1 - 0.77)A_0} = 1304\\ \\mathrm{MPa}$$\n\nThe original area cancels, so the answer never needed the wire's actual size. A very ductile metal necks hard, and its true fracture stress is several times the number the tensile test reports.\n",
+      "final_answers": [
+        "1304 MPa"
+      ],
+      "figures": []
+    },
+    {
+      "key": "l4-brass-stress-strain-curve",
+      "title": "Reading a brass stress-strain curve",
+      "concepts": [
+        {
+          "key": "mechanical-properties",
+          "weight": 1.0
+        }
+      ],
+      "source": "02 - Lectures/L4 - Mechanical Properties/L4 - Mechanical properties.pdf (worked example, slides 29 to 32)",
+      "body_md": "The stress-strain behaviour for a specimen of brass is presented here. Determine:\n\n- **(a)** the modulus of elasticity,\n- **(b)** the yield strength at a strain offset of 0.002,\n- **(c)** the maximum load that can be sustained by a cylindrical specimen having an original diameter of $12.8\\ \\mathrm{mm}$,\n- **(d)** the change in length of a specimen originally $250\\ \\mathrm{mm}$ long that is subjected to a tensile stress of $345\\ \\mathrm{MPa}$.\n\n![Engineering stress-strain curve for a brass specimen, with the tensile strength, the 0.002 offset yield strength, and point A at 345 MPa marked](pack:l4-brass-stress-strain)\n",
+      "solution_md": "### (a) The modulus of elasticity\n\nThe modulus of elasticity is the slope of the linear portion of the stress-strain curve:\n\n$$E = \\mathrm{slope} = \\frac{\\Delta\\sigma}{\\Delta\\varepsilon} = \\frac{\\sigma_2 - \\sigma_1}{\\varepsilon_2 - \\varepsilon_1} = \\frac{(150 - 0)\\ \\mathrm{MPa}}{0.0016 - 0} = 93.8\\ \\mathrm{GPa}$$\n\n### (b) The yield strength\n\nThe 0.002 strain offset is drawn parallel to the linear section of the stress-strain curve. Where it intersects the curve, you obtain the yield strength. In this case $250\\ \\mathrm{MPa}$.\n\n### (c) The maximum load\n\nThe maximum load is calculated from the engineering stress equation, with $\\sigma$ the maximum tensile strength of $450\\ \\mathrm{MPa}$ read off the curve:\n\n$$F = \\sigma A_0 = \\sigma\\pi\\left(\\frac{d_0}{2}\\right)^2 = \\left(450\\times10^{6}\\ \\mathrm{N/m^2}\\right)\\pi\\left(\\frac{12.8\\times10^{-3}\\ \\mathrm{m}}{2}\\right)^2 = 57{,}900\\ \\mathrm{N}$$\n\n### (d) The change in length\n\n$\\Delta l = \\varepsilon l_0$. Locate $\\varepsilon$ on the curve for $\\sigma = 345\\ \\mathrm{MPa}$: it is represented by point A, for a value $\\varepsilon = 0.06$. With $l_0 = 250\\ \\mathrm{mm}$:\n\n$$\\Delta l = \\varepsilon l_0 = (0.06)(250\\ \\mathrm{mm}) = 15\\ \\mathrm{mm}$$\n",
+      "final_answers": [
+        "93.8 GPa",
+        "250 MPa",
+        "57900 N",
+        "15 mm"
+      ],
+      "figures": [
+        "l4-brass-stress-strain"
+      ]
+    }
+  ]
+}

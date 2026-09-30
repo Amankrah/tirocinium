@@ -107,6 +107,59 @@ prices and the band a struck price falls in, never a seat's own price, and a
 reviewed quotation is labelled by seat number joined in Python from the
 directory, exactly as the submission review does it.
 
+The course pack (decision 0077) is the third way content reaches a course, beside
+the authoring UI and the PDF import pipeline, and it exists because a whole
+course arriving at once from a folder of tutorials and lecture decks is neither
+of those. A pack is one course's taught content as a versioned file asset,
+`apps/api/coursepack/{id}/vN.json` with a `CHANGELOG.md`, loaded the way
+`app.prompts` loads a prompt and pinned the way a catalogue is: a revision is a
+new file, never an edit in place. It carries concepts, questions with the
+professor's own worked solutions and final answers, and the figures those
+questions read from. `app/coursepack/schema.py` parses and validates it (a
+question mapped to an unknown concept, a duplicate key, or a body whose figure
+tokens and declared figures disagree all fail at parse), `loader.py` writes it
+into a shard, and `scripts/load_course_pack.py` is the command.
+
+Three rules there are load-bearing. Each question becomes a published case study
+plus exactly one variant marked `manual`, seed zero: `manual` is servable and is
+the honest state for text a human wrote and no model checked, which is why a
+pack question is practisable the instant it lands with no generation, no pool
+fill and no model call, and why loading a course works with no API key at all.
+`model_id` records `course-pack` and both prompt-version columns record the pack
+revision, because those columns are provenance. Figures travel as committed
+bytes under `figures/{sha256}.png` with the hash verified on load, never as a
+path into the professor's materials folder, which is gigabytes and is not in the
+repository; `scripts/extract_pack_figures.py` puts them there through
+`platform_core.pdf.extract_figures`, the same deterministic extractor the import
+pipeline uses, so an embedded raster is byte for byte the professor's. A body
+names a figure by the pack's own `pack:key` scheme and the loader rewrites it to
+`fig://{id}` once the row exists, which is what lets one pack load into many
+courses. And loading is idempotent through `course_pack_items` (course migration
+0022), keyed on the pack's stable item key and never on a title, because a
+reload must land on the case study a student's history and mastery evidence
+already point at.
+
+Course migration 0023 came out of that work and is general rather than
+pack-specific: `case_study_figures` links a figure straight to a case study.
+Until it, the only route from a figure to a case study went through the import
+chain (figure to item_figures to confirmed import_item to case_studies), so a
+case study whose body carried a `fig://` token but which never came from an
+import had no route at all: its figures were a 404 to the seat reading the
+problem and were absent from the tutor's context and the figure-frozen check. A
+UI-authored body has the same shape, so both routes are unioned in the two
+places essential figures are read, `load_essential_figures` in
+`app/params/figure_check.py` and the resolve route's published-only check. When
+adding a third way for a figure to reach a case study, those are the two
+queries to extend, and the seat rule they enforce (a figure reachable from no
+published case study is a 404) must not widen.
+
+One small product fix rides along: `app/seats/artifacts.py` draws the seat-code
+cards with fpdf core fonts, which encode Latin-1 only, so a course title
+carrying an em-dash raised inside fpdf and failed the one call that mints
+credentials. `latin1_safe` folds what the encoding cannot hold and leaves
+accented Latin-1 letters exactly as the professor wrote them, because a
+Québécois course title is not a character to transliterate.
+
 Untrusted text never goes into a prompt by hand (milestone 9.2, decision 0052).
 `app/prompt_safety.py` is the only way: `new_fence()` once per assembled
 document, then `fence.wrap(text)` around every block the platform did not write.
@@ -720,6 +773,21 @@ reference rather than the value, which is why `FIG_PREFIX` lives in the plain
 `figure.ts` and why the server renderer was silently sanitising every `fig://`
 URL away when it did not. A figure that fails to resolve stays out of the map
 and renders the amber marker, because a figure is never silently omitted.
+
+The reading surfaces render GFM tables (decision 0078), because a materials
+course states its data in them and CommonMark alone rendered a table as a run of
+pipe characters. `remark-gfm` is on both `ProblemBody` and `ClientProblemBody`,
+and **those two plugin lists must stay identical**: they are duplicated
+configuration on a server renderer and its lazy client twin, and a plugin on one
+side only shows as a table that reformats itself mid-session after a practice
+swap. A test renders the same table through both and compares what a reader
+gets. The cost is nearly nothing (the server path never ships the plugin; the
+twin is already behind next/dynamic; the practice route went 114 to 117 kB), and
+GFM's autolink literals are safe only because `urlTransform` still hands every
+non-fig URL to react-markdown's default sanitizer, which a body carrying
+transcribed student text depends on. Table styling comes from the token layer,
+never a dependency, and a wide table scrolls inside its own container rather
+than widening the reading column, the same rule display math follows.
 
 The unfold typesets its steps too (decision 0068), which closed the last surface
 rendering a professor's markdown as source. The pattern there is the practice

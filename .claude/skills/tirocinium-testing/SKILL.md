@@ -143,7 +143,7 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 547 tests (54 marketplace (Phase 10: pricing and quote arithmetic,
+Python suite, 569 collected and 565 passing with 4 skipped (15 course pack (decision 0077), 54 marketplace (Phase 10: pricing and quote arithmetic,
 the surfaces end to end), 25 data layer + 9 backup verification (9.4), 4 load
 (9.1), 37 security (9.2, incl. 3 on the raise-only redemption ceiling),
 16 case studies/concepts/courses,
@@ -211,7 +211,7 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (477 Vitest tests across 61 files: the token contract with its
+Web suite (513 Vitest tests across 61 files: the token contract with its
 computed-contrast assertion, the primitives, the API clients, the upload flow's
 pre-checks, orchestration controller, SSE processing model, and transcription
 preview, the PDF import upload, controller, and processing checklist (decision
@@ -1161,6 +1161,54 @@ Phase 10 (the materials marketplace, decision 0076), in progress:
   surface.
 - Still open on the gate: Playwright journey seven (browse, compare, quote,
   issue, cite it on a submission, defend it, with axe).
+
+The course pack (decision 0077), tests in `app/coursepack/test_coursepack.py`:
+
+- The asset half runs against the shipped `coursepack/bree-216/v1.json` itself,
+  not a fixture, so a pack committed with a broken reference fails the suite.
+  Parsing is the validation (duplicate keys, an unknown concept, a body whose
+  figure tokens and declared figures disagree all raise), and every figure file
+  is checked to exist and to hash to its declared sha256, with a mutation check
+  that a drifted figure is refused at load.
+- The load half asserts a published case study and one servable `manual`
+  variant per question, the solution stored in the 5.3 blob shape so
+  `variants.solution.solution_markdown` and `answer_match` read it exactly as
+  they read a generated variant, the concept mappings with their weights, the
+  figure bytes reaching storage unaltered, and every `fig://` token in a loaded
+  body naming a figures row that exists.
+- Idempotency is the one to keep: reloading must not change a single
+  `case_study_id`, because a student's history and mastery evidence point at it.
+- Three tests cover migration 0023's link. A seat resolves a figure its
+  published pack question carries; the same figure is a 404 once its case study
+  is a draft, while the owning professor still resolves it (the mutation check
+  that widening the routes did not widen the seat rule); and
+  `load_essential_figures` returns it, since that is the single lookup the
+  defence context and the figure-frozen check share and a figure missing from it
+  is one the tutor never sees.
+- The end-to-end one stands for the whole exercise: a seat redeems, lists the
+  loaded questions, and reads one through `practice-variant`, getting a non-null
+  variant id and no solution, with no model call anywhere on the path.
+
+`problem-body.test.tsx` also pins decision 0078: a GFM table renders as a real
+table with its column headers and cells, the client twin renders it identically
+(compare what a reader gets, never `innerHTML`, for the reason under 8.4), and a
+`javascript:` href is still sanitised now that autolink literals are on. If you
+add a remark or rehype plugin, add it to **both** renderers and to that
+comparison test, or the twin drifts silently.
+
+Loading a pack by hand, which is also the shape of the demo:
+
+    cd apps/api
+    # the professor signs up through the product; the loader never mints one
+    TIRO_DATA_DIR=/tmp/bree216-data .venv/bin/python scripts/load_course_pack.py \
+        bree-216 --professor prof@bree216.example.com
+
+It prints one JSON line reporting created and updated counts, and a second run
+must report zero created. Figure assets are regenerated from the professor's
+materials folder (not in the repository) with
+`scripts/extract_pack_figures.py bree-216 --materials "/path/to/BREE 216"`;
+`--check` verifies the committed bytes still match the source instead of
+rewriting them.
 
 Recorded working-assessment responses live at
 `apps/api/tests/recorded/working-assessment/`, one JSON per document sha256

@@ -42,3 +42,9 @@ data/
 # OS
 .DS_Store
 Thumbs.db
+
+# The course materials folder: gigabytes of lectures, videos and textbook
+# scans, and the source the course pack was extracted from. It is an input to
+# infra tooling, never an artifact of the build (decision 0077).
+BREE 216/
+BREE 216 Marketplace.html

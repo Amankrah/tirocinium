@@ -4,6 +4,7 @@ import "katex/dist/katex.min.css";
 
 import ReactMarkdown, { defaultUrlTransform } from "react-markdown";
 import rehypeKatex from "rehype-katex";
+import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 
 import { FIG_PREFIX, type FigureMap } from "./figure";
@@ -41,7 +42,11 @@ export function ClientProblemBody({
   return (
     <div className="reading-body">
       <ReactMarkdown
-        remarkPlugins={[remarkMath]}
+        // Must stay identical to ProblemBody's list: this twin renders the
+        // same professor's markdown after a swap, and a plugin present on one
+        // side and not the other is the server/client drift decision 0068
+        // warns about, showing as a table that reformats itself mid-session.
+        remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeShiftHeadings, rehypeKatex]}
         urlTransform={(url) =>
           url.startsWith(FIG_PREFIX) ? url : defaultUrlTransform(url)
