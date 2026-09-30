@@ -94,18 +94,28 @@ export function PenPad({
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm text-ink-muted">{s.penHint}</p>
-      <canvas
-        ref={canvasRef}
-        width={WIDTH}
-        height={HEIGHT}
-        role="img"
-        aria-label={s.penCanvas}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerLeave={onPointerUp}
-        className="aspect-[1000/1414] w-full max-w-sm touch-none rounded-md border border-field-border bg-paper"
-      />
+      {/* The page is taller than the space, so the student scrolls inside it
+          to reach the rest of the sheet (decision 0080). touch-action stays
+          none on the canvas itself so a stroke does not scroll mid-line;
+          the scrollbar and the wheel move the page. */}
+      <div
+        role="region"
+        aria-label={s.penScroll}
+        className="max-h-[32rem] w-full overflow-y-scroll overscroll-contain rounded-md border border-field-border bg-white"
+      >
+        <canvas
+          ref={canvasRef}
+          width={WIDTH}
+          height={HEIGHT}
+          role="img"
+          aria-label={s.penCanvas}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerLeave={onPointerUp}
+          className="block aspect-[1000/1414] w-full touch-none bg-paper"
+        />
+      </div>
       <div className="flex gap-3">
         <Button onClick={addPage} disabled={!hasInk}>
           {s.penAdd}

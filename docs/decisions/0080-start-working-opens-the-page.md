@@ -1,0 +1,3 @@
+# 0080: starting work opens the page you write on
+
+Starting a problem and then hunting for the upload was two acts for one intention. Start working now records the attempt and opens the submission page, and that page keeps the question on it, because a student writing a solution has to be able to read the problem they are answering. The question is the variant they started, read back by pinning `variant_id` on the practice read, which still returns a body and never a solution. Write here is the first way to submit, and the handwriting page sits in its own scroll so a full page can be reached without the question leaving the screen. Photos of paper and a handwriting PDF stay beside it, which is the fallback decision 0042 requires.

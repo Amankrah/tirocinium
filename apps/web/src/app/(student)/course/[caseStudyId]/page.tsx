@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ProblemBody } from "@/components/reading/problem-body";
 import { getCaseStudy } from "@/lib/api/case-studies";
 import { resolveFigures } from "@/lib/api/figures";
-import { getMarketplace } from "@/lib/api/marketplace";
+import { getMarketplace, offersMarketplace } from "@/lib/api/marketplace";
 import { getPracticeVariant } from "@/lib/api/practice";
 import { requireSeat } from "@/lib/seat-session";
 import { StudentShell } from "../../student-shell";
@@ -40,11 +40,23 @@ export default async function ProblemViewPage({
   // base does and the seat sees the pixels either way (decision 0066).
   const figures = await resolveFigures(token, seat.course_id, body);
 
-  // Whether to offer the marketplace at all (Phase 10). Asking the front door
-  // is the only honest test: the course may not price materials, which answers
-  // 409, and that is an ordinary way to run a course rather than a failure.
-  const pricesMaterials =
-    variantId === null ? false : (await getMarketplace(token, variantId)).ok;
+  // Whether to offer the marketplace on *this* problem (Phase 10, decision
+  // 0079). Asking the front door is still the only honest test of whether the
+  // course prices materials at all: it answers 409 when the course does not,
+  // and that is an ordinary way to run a course rather than a failure.
+  //
+  // The catalogue pin is course-wide, though, and the shortlist is per case
+  // study, so the pin alone offered "Price your materials" on every problem in
+  // a pricing course. On a crystal-structure question that is a control with
+  // nothing behind it, which is the thing guide 4.1 says to avoid: a dead
+  // control is a worse answer than no control. The shortlist is the professor's
+  // own statement that this problem is a selection decision, so the link
+  // follows it. Reaching the marketplace is never restricted by the shortlist
+  // (decision 0076 is explicit that it narrows what a student meets first and
+  // never what they can reach); this only decides whether the problem view
+  // volunteers the link.
+  const marketplace = variantId === null ? null : await getMarketplace(token, variantId);
+  const pricesMaterials = offersMarketplace(marketplace);
 
   return (
     <StudentShell seatNumber={seat.seat_number}>

@@ -209,6 +209,25 @@
         ],
         "kind": "embedded_raster"
       }
+    },
+    {
+      "key": "l4-alloy-steel-stress-strain",
+      "sha256": "9ef4943b96e13070c4d556e072d02718e7850aad55325ed72fa2eef247193d57",
+      "file": "figures/9ef4943b96e13070c4d556e072d02718e7850aad55325ed72fa2eef247193d57.png",
+      "width_px": 636,
+      "height_px": 492,
+      "caption": "Tensile stress-strain behaviour for an alloy steel, with an inset showing the initial elastic region",
+      "source": {
+        "document": "02 - Lectures/Textbook and others/Textbook 9E.pdf",
+        "page": 235,
+        "bbox": [
+          0.0775,
+          0.076,
+          0.3975,
+          0.246
+        ],
+        "kind": "page_crop"
+      }
     }
   ],
   "questions": [
@@ -814,6 +833,27 @@
       ],
       "figures": [
         "l4-brass-stress-strain"
+      ]
+    },
+    {
+      "key": "l4-steel-specimen-under-load",
+      "title": "Will this steel specimen deform plastically, and by how much?",
+      "concepts": [
+        {
+          "key": "mechanical-properties",
+          "weight": 1.0
+        }
+      ],
+      "source": "05 - Tutorials/T4 - Mechanical properties/Sample question - Mechanical properties 2.pdf (question 6; see the changelog on part b)",
+      "body_md": "A load of $85{,}000\\ \\mathrm{N}$ is applied to a cylindrical specimen of a steel alloy (displaying the stress-strain behaviour shown below) that has a cross-sectional diameter of $15\\ \\mathrm{mm}$.\n\n- **(a)** Will the specimen experience elastic and/or plastic deformation? Why?\n- **(b)** If the original specimen length is $250\\ \\mathrm{mm}$, how much will it increase in length when this load is applied?\n\n![Tensile stress-strain behaviour for an alloy steel, with an inset showing the initial elastic region](pack:l4-alloy-steel-stress-strain)\n",
+      "solution_md": "### (a) Find the applied stress first\n\n$$\\sigma = \\frac{F}{A_0} = \\frac{85{,}000\\ \\mathrm{N}}{\\pi\\left(\\frac{15\\times10^{-3}\\ \\mathrm{m}}{2}\\right)^2} = 481\\ \\mathrm{MPa}$$\n\n### Compare it with the yield strength\n\nRead the yield point off the inset, where the curve departs from its straight initial portion: that happens at roughly $1400\\ \\mathrm{MPa}$. The applied $481\\ \\mathrm{MPa}$ is well below it.\n\n### The answer to (a)\n\nThe specimen deforms **elastically only**, with no plastic deformation, because the applied stress does not reach the yield strength. Remove the load and the specimen returns to $250\\ \\mathrm{mm}$.\n\n### (b) Read the elastic modulus from the inset\n\nThe inset exists precisely so the small-strain region can be read. Its linear portion passes through roughly $(0.0046,\\ 970\\ \\mathrm{MPa})$, so\n\n$$E = \\frac{\\Delta\\sigma}{\\Delta\\varepsilon} \\approx \\frac{970\\ \\mathrm{MPa}}{0.0046} \\approx 210\\ \\mathrm{GPa}$$\n\nwhich is the value tabulated for steel, a useful check that the curve has been read correctly.\n\n### The strain at the applied stress\n\nSince the deformation is elastic, Hooke's law applies:\n\n$$\\varepsilon = \\frac{\\sigma}{E} = \\frac{481\\ \\mathrm{MPa}}{210\\times10^{3}\\ \\mathrm{MPa}} = 0.0023$$\n\n### The elongation\n\n$$\\Delta l = \\varepsilon l_0 = (0.0023)(250\\ \\mathrm{mm}) \\approx 0.6\\ \\mathrm{mm}$$\n\nNote how little this is. A load of eighty-five kilonewtons stretches a quarter-metre bar by half a millimetre, which is what working well inside the elastic region looks like.\n",
+      "final_answers": [
+        "481 MPa",
+        "elastic only",
+        "0.6 mm"
+      ],
+      "figures": [
+        "l4-alloy-steel-stress-strain"
       ]
     },
     {
@@ -1437,6 +1477,29 @@
       "figures": []
     },
     {
+      "key": "l8-carbon-epoxy-fibre-fraction-range",
+      "title": "Fibre fraction window for a carbon-epoxy composite",
+      "concepts": [
+        {
+          "key": "composites",
+          "weight": 1.0
+        },
+        {
+          "key": "material-selection",
+          "weight": 0.5
+        }
+      ],
+      "source": "05 - Tutorials/T7 - Polymers/Finals Tutorials 2.pdf (question 11; the data table is recovered, see the changelog)",
+      "body_md": "It is desired to produce a continuous and oriented carbon fiber-reinforced epoxy having a modulus of elasticity of at least $69\\ \\mathrm{GPa}$ in the longitudinal direction. The maximum permissible specific gravity is 1.40. Given the data in the following table:\n\n| Material | Specific gravity | Modulus of elasticity (GPa) |\n| --- | --- | --- |\n| Carbon fiber | 1.80 | 260 |\n| Epoxy | 1.25 | 2.4 |\n\n- **(a)** Determine the range of fiber fraction for which the composite will be possible.\n- **(b)** Determine the fiber-matrix load ratio at the maximum volume fraction of the fiber.\n",
+      "solution_md": "### (a) Two requirements pull in opposite directions\n\nMore fibre raises the modulus, which the first requirement wants, and also raises the density, which the second one caps. So each requirement fixes one end of a window, and the composite is possible only if the window is not empty.\n\n### The modulus sets a floor\n\n$$E_{cl} = E_m\\left(1 - V_f\\right) + E_f V_f \\geq 69\\ \\mathrm{GPa}$$\n\n$$2.4\\left(1 - V_f\\right) + 260 V_f \\geq 69$$\n\n$$V_f \\geq \\frac{69 - 2.4}{260 - 2.4} = 0.259$$\n\n### The specific gravity sets a ceiling\n\n$$\\rho_c = \\rho_m\\left(1 - V_f\\right) + \\rho_f V_f \\leq 1.40$$\n\n$$1.25\\left(1 - V_f\\right) + 1.80 V_f \\leq 1.40$$\n\n$$V_f \\leq \\frac{1.40 - 1.25}{1.80 - 1.25} = 0.273$$\n\n### The window\n\n$$0.259 \\leq V_f \\leq 0.273$$\n\nThe window is real but narrow, about one and a half percentage points wide. Such a composite is possible, though the fibre loading would have to be held to a tighter tolerance than a process normally guarantees, which is itself worth saying in an answer.\n\n### (b) The load ratio at the top of the window\n\nIn an aligned composite loaded along the fibres, both phases carry the same strain, so the loads divide in proportion to $E V$:\n\n$$\\frac{F_f}{F_m} = \\frac{E_f V_f}{E_m V_m}$$\n\n### Substitute at $V_f = 0.273$\n\n$$\\frac{F_f}{F_m} = \\frac{(260)(0.273)}{(2.4)(0.727)} = 40.6$$\n\nThe fibres carry about forty times the load the matrix does, on barely a quarter of the volume. That is the whole point of the composite: the matrix is there to hold the fibres in place and transfer load into them, not to carry it.\n",
+      "final_answers": [
+        "0.259",
+        "0.273",
+        "40.6"
+      ],
+      "figures": []
+    },
+    {
       "key": "l9-weighted-pugh-chart",
       "title": "Choosing a tank material with a weighted Pugh chart",
       "concepts": [
@@ -1453,7 +1516,12 @@
         "-2",
         "SS 316"
       ],
-      "figures": []
+      "figures": [],
+      "shortlist": [
+        "CPP-HDPE-100",
+        "BSA-316-2B",
+        "TFC-CSM-450"
+      ]
     },
     {
       "key": "l9-pyrolysis-reactor-selection",
@@ -1470,7 +1538,13 @@
       "final_answers": [
         "carbon steel shell with refractory ceramic lining"
       ],
-      "figures": []
+      "figures": [],
+      "shortlist": [
+        "LMS-A36-PL06",
+        "VHM-AL2O3-PL",
+        "VHM-SIC-TILE",
+        "BSA-316L-2B"
+      ]
     }
   ]
 }

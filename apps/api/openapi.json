@@ -7103,7 +7103,7 @@
     },
     "/api/v1/courses/{course_id}/case-studies/{case_study_id}/practice-variant": {
       "get": {
-        "description": "The practice loop's \"new variant\": a random servable variant from the\npool (verified or manual, never flagged), preferring one other than\n`exclude` (the variant on screen). The pool invariant is absolute: this\nread never waits on generation. A dry pool serves the base case study\ninstantly and tops the pool up in the background.",
+        "description": "The practice loop's \"new variant\": a random servable variant from the\npool (verified or manual, never flagged), preferring one other than\n`exclude` (the variant on screen). Passing `variant_id` returns that\nvariant's body instead, when it belongs to this case study and is\nservable, so the writing surface can show the question the student just\nstarted. A pin that is missing, flagged, or from another case study is a\n404, and the response is still never a solution. The pool invariant is\nabsolute: this read never waits on generation. A dry pool serves the base\ncase study instantly and tops the pool up in the background.",
         "operationId": "practice_variant_api_v1_courses__course_id__case_studies__case_study_id__practice_variant_get",
         "parameters": [
           {
@@ -7138,6 +7138,22 @@
                 }
               ],
               "title": "Exclude"
+            }
+          },
+          {
+            "in": "query",
+            "name": "variant_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Variant Id"
             }
           }
         ],

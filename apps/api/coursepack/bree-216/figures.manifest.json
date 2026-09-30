@@ -54,5 +54,12 @@
     "page": 3,
     "select": "largest_embedded_raster",
     "caption": "The copper-zinc phase diagram, temperature against wt% Zn"
+  },
+  {
+    "key": "l4-alloy-steel-stress-strain",
+    "document": "02 - Lectures/Textbook and others/Textbook 9E.pdf",
+    "page": 235,
+    "select": "box:0.0775,0.0760,0.3975,0.2460",
+    "caption": "Tensile stress-strain behaviour for an alloy steel, with an inset showing the initial elastic region"
   }
 ]

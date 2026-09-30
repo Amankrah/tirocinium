@@ -19,6 +19,7 @@ Two standing rules govern the whole plan. First, a phase is not complete until i
 - Rust stable via rustup, plus `cargo install maturin` and `cargo install cargo-criterion`. If the environment cannot reach rustup (some sandboxes only allow distro archives), fall back to the distro toolchain and keep the dependency pins the mastery crate already carries for Rust 1.75.
 - Python via `uv` (preferred) or pip: fastapi, uvicorn, pydantic v2, arq, redis, httpx, python-multipart, argon2-cffi, pyjwt, boto3 (MinIO/S3), zstandard (until the Rust codec lands), anthropic, pytest, pytest-asyncio, ruff, mypy, litestream (binary, in infra).
 - Node via pnpm: next@15, react, tailwindcss@4, radix-ui primitives, react-markdown, katex, @tanstack/react-query, openapi-typescript, playwright, vitest, @testing-library/react, lighthouse-ci, axe-core.
+- Git LFS. The golden corpora and fixture PDFs are LFS-tracked project assets. `infra/setup.sh` installs a pinned `git-lfs` binary into `~/.local/bin` when the command is not already on `PATH`, then pulls those assets (decision 0079).
 
 0.3 API contract pipeline: FastAPI generates `openapi.json` in CI; `pnpm generate:client` produces the typed client in `apps/web`; a CI check fails if the committed client is stale. This is the seam the two developers meet at, so it exists before either builds features.
 

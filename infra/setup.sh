@@ -107,19 +107,65 @@ say "pdfium (native binary in crates/platform_core/pdf/vendor)"
 "$ROOT/infra/provision-pdfium.sh"
 
 # ---------------------------------------------------------------- Git LFS
-# The golden corpora and fixture PDFs are LFS-tracked project assets. Without
-# them the fixture-backed tests skip with a stated reason rather than fail, so
-# a missing git-lfs is a warning here, not an error.
-say "Git LFS assets"
+# The golden corpora and fixture PDFs are LFS-tracked project assets, so
+# git-lfs is a Phase 0.2 requirement (decision 0079). When the command is
+# missing, install the pinned release binary into ~/.local/bin, which is on a
+# normal user PATH. A download failure warns and continues, matching pdfium,
+# because the fixture-backed tests skip with a stated reason when the bytes
+# are absent.
+GIT_LFS_VERSION="v3.8.0"
+say "Git LFS ($GIT_LFS_VERSION)"
+if ! command -v git-lfs >/dev/null 2>&1; then
+  LFS_BIN_DIR="${HOME}/.local/bin"
+  mkdir -p "$LFS_BIN_DIR"
+  case "$(uname -s)-$(uname -m)" in
+    Linux-x86_64)  LFS_ASSET="git-lfs-linux-amd64-${GIT_LFS_VERSION}.tar.gz" ;;
+    Linux-aarch64) LFS_ASSET="git-lfs-linux-arm64-${GIT_LFS_VERSION}.tar.gz" ;;
+    Darwin-x86_64) LFS_ASSET="git-lfs-darwin-amd64-${GIT_LFS_VERSION}.zip" ;;
+    Darwin-arm64)  LFS_ASSET="git-lfs-darwin-arm64-${GIT_LFS_VERSION}.zip" ;;
+    MINGW*-x86_64|MSYS*-x86_64|CYGWIN*-x86_64)
+                   LFS_ASSET="git-lfs-windows-amd64-${GIT_LFS_VERSION}.zip" ;;
+    *)             LFS_ASSET="" ;;
+  esac
+  LFS_TMP="$(mktemp -d)"
+  LFS_URL="https://github.com/git-lfs/git-lfs/releases/download/${GIT_LFS_VERSION}/${LFS_ASSET}"
+  if [ -z "$LFS_ASSET" ] || ! command -v curl >/dev/null 2>&1; then
+    warn "git-lfs not installed and no build for this host ($(uname -s)-$(uname -m)); fixture-backed PDF tests will skip"
+  elif curl -fsSL "$LFS_URL" -o "$LFS_TMP/$LFS_ASSET"; then
+    case "$LFS_ASSET" in
+      *.tar.gz) tar -xzf "$LFS_TMP/$LFS_ASSET" -C "$LFS_TMP" ;;
+      *.zip)    unzip -o -q "$LFS_TMP/$LFS_ASSET" -d "$LFS_TMP" ;;
+    esac
+    # The release archive unpacks to git-lfs-<version>/git-lfs[.exe]. A glob
+    # avoids find -quit, which macOS find does not have.
+    LFS_BIN=""
+    for candidate in "$LFS_TMP"/*/git-lfs "$LFS_TMP"/*/git-lfs.exe \
+                     "$LFS_TMP"/git-lfs "$LFS_TMP"/git-lfs.exe; do
+      if [ -f "$candidate" ]; then
+        LFS_BIN="$candidate"
+        break
+      fi
+    done
+    if [ -n "$LFS_BIN" ]; then
+      cp "$LFS_BIN" "$LFS_BIN_DIR/"
+      chmod 755 "$LFS_BIN_DIR/$(basename "$LFS_BIN")"
+      export PATH="$LFS_BIN_DIR:$PATH"
+      git-lfs version
+    else
+      warn "git-lfs archive had no binary; fixture-backed PDF tests will skip"
+    fi
+  else
+    warn "git-lfs download failed; fixture-backed PDF tests will skip"
+  fi
+  rm -rf "$LFS_TMP"
+fi
 if command -v git-lfs >/dev/null 2>&1; then
   git -C "$ROOT" lfs install --local >/dev/null 2>&1 || true
-  if git -C "$ROOT" lfs pull 2>/dev/null; then
+  if git -C "$ROOT" lfs pull; then
     echo "LFS assets fetched"
   else
     warn "git lfs pull failed; fixture-backed PDF tests will skip"
   fi
-else
-  warn "git-lfs not installed; fixture-backed PDF tests will skip (see .gitattributes)"
 fi
 
 # ---------------------------------------------------------------- Node / web

@@ -392,3 +392,41 @@ def test_pack_figures_reach_the_tutor_and_the_frozen_check(
         assert [f.figure_id for f in found] == [int(row[1])]
     finally:
         conn.close()
+
+
+def test_a_shortlisted_sku_absent_from_the_catalogue_is_refused() -> None:
+    """Mutation check on the shortlist validation (decision 0079): a SKU that is
+    not in the pinned catalogue would load as a link to nothing, so the pack
+    refuses to parse rather than shipping it."""
+    raw = json.loads((PACK_ROOT / PACK_ID / "v1.json").read_text(encoding="utf-8"))
+    raw["questions"][0]["shortlist"] = ["NOT-A-REAL-SKU"]
+    with pytest.raises(ValueError, match="absent from"):
+        CoursePack.model_validate(raw)
+
+
+def test_shortlists_load_in_the_order_the_pack_sets(
+    tmp_path: Path, pack: CoursePack, storage: FakeObjectStorage
+) -> None:
+    """Order is meaning on a shortlist: the first line is the one the student
+    meets first, so the pack's order has to be the shard's order."""
+    shortlisted = [q for q in pack.questions if q.shortlist]
+    if not shortlisted:
+        pytest.skip("this revision of the pack shortlists nothing")
+    conn = _load(tmp_path, pack, storage, course_id=1)
+    try:
+        for question in shortlisted:
+            rows = conn.execute(
+                "SELECT s.sku FROM case_study_shortlist s JOIN course_pack_items i"
+                " ON i.case_study_id = s.case_study_id"
+                " WHERE i.item_key = ? ORDER BY s.position",
+                (question.key,),
+            ).fetchall()
+            assert [str(r[0]) for r in rows] == question.shortlist, question.key
+        # And a question with no shortlist gets no rows, which is what makes the
+        # problem view withhold the marketplace link.
+        total = conn.execute(
+            "SELECT COUNT(DISTINCT case_study_id) FROM case_study_shortlist"
+        ).fetchone()[0]
+        assert total == len(shortlisted)
+    finally:
+        conn.close()

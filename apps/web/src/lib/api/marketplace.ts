@@ -117,3 +117,23 @@ export function submitRfq(
     body: request,
   });
 }
+
+/**
+ * Whether a problem view should offer "Price your materials" (decision 0079).
+ *
+ * Two facts have to line up. The course must price materials at all, which the
+ * front door answers by succeeding rather than returning 409. And this
+ * particular case study must be a selection decision, which the professor says
+ * by giving it a shortlist. A pricing course full of crystal-structure
+ * questions would otherwise show the link on every one of them, and a control
+ * with nothing behind it is worse than no control (frontend guide 4.1).
+ *
+ * This gates the invitation only. The shortlist never restricts what a student
+ * can reach once inside the marketplace, which is decision 0076's rule and is
+ * not weakened here.
+ */
+export function offersMarketplace(
+  marketplace: Result<Marketplace> | null,
+): boolean {
+  return marketplace?.ok === true && marketplace.data.shortlist.length > 0;
+}

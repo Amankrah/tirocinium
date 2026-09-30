@@ -143,7 +143,7 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 569 collected and 565 passing with 4 skipped (15 course pack (decision 0077), 54 marketplace (Phase 10: pricing and quote arithmetic,
+Python suite, 571 collected and 567 passing with 4 skipped (15 course pack (decision 0077), 54 marketplace (Phase 10: pricing and quote arithmetic,
 the surfaces end to end), 25 data layer + 9 backup verification (9.4), 4 load
 (9.1), 37 security (9.2, incl. 3 on the raise-only redemption ceiling),
 16 case studies/concepts/courses,
@@ -172,14 +172,15 @@ cache, no-figures no model call, and the auth surface; 9 auto-parameterize:
 the draft with annotations and stored provenance, the document carrying
 solution and frozen values but never figure bytes, a frozen proposal locked
 out, no positions for an absent literal, idempotent replay, the save-time
-edit signal, and the auth surface), 41 variants (4 sampling, 18 pipeline of
+edit signal, and the auth surface), 43 variants (4 sampling, 18 pipeline of
 which 12 are the seeded adversarial gate (3 seeds x 4 corruption modes,
 always flagged and never in the verified list), 9 surface: enqueue, seed
 idempotency, no-spec 409, state filters, the flagged diff read, promote,
-edit, discard, auth; 10 pool: fill-to-target with token accounting,
+edit, discard, auth; 12 pool: fill-to-target with token accounting,
 idempotent top-up, the flagging attempt ceiling, the exhausted budget,
 publish enqueues (and not without a spec), the seat read without a solution,
-exclude, flagged never practised, draft invisibility, and the 50-request
+exclude, a pinned variant's body with no solution, a pin that is missing or
+unservable, flagged never practised, draft invisibility, and the 50-request
 empty-budget pool-invariant gate), 70 imports
 (4 stage derivation, 5 decode pipeline of which 1 is page-count-during-segmentation, 2 figure pipeline (born-digital + scanned detector),
 11 endpoint (incl. GET reading and segmenting progress), 8 confirm/list/metrics, 8 figure verbs (incl. the items read carrying
@@ -211,7 +212,7 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (513 Vitest tests across 61 files: the token contract with its
+Web suite (514 Vitest tests across 61 files: the token contract with its
 computed-contrast assertion, the primitives, the API clients, the upload flow's
 pre-checks, orchestration controller, SSE processing model, and transcription
 preview, the PDF import upload, controller, and processing checklist (decision
@@ -1196,6 +1197,13 @@ table with its column headers and cells, the client twin renders it identically
 add a remark or rehype plugin, add it to **both** renderers and to that
 comparison test, or the twin drifts silently.
 
+Start working opens the submission page and cites the attempt on the way
+(decision 0080). The page reads that same variant back with `variant_id` on
+the practice read, so the question on the writing surface is the one the
+student started, and the handwriting page is the first of the three modes,
+inside a region that scrolls. A pin that is missing or not servable is a 404
+and never another student's question.
+
 Loading a pack by hand, which is also the shape of the demo:
 
     cd apps/api
@@ -1240,11 +1248,13 @@ skips when the pdfium binary is unprovisioned (decision 0046):
 plus `SKIP_REASON` on the Python side. Without both preconditions those tests
 assert nothing, which is why CI checks out with `lfs: true` and runs
 `infra/provision-pdfium.sh` in the `rust`, `api`, and `setup-script` jobs;
-`infra/setup.sh` does the same locally and warns when git-lfs is missing. If
-you see `PdfiumLibraryInternalError(FormatError)`, that is an unfetched pointer
-reaching pdfium, not a decode regression: install git-lfs and pull. On a host
-without git-lfs those tests skip, so read a green local run as "not verified
-here", and check the CI run before calling a PDF gate green.
+`infra/setup.sh` does the same locally: when `git-lfs` is missing it installs
+the pinned binary into `~/.local/bin` and pulls (decision 0079). If that
+download cannot run, it warns and the fixture-backed tests skip, so read a
+green local run on that host as "not verified here", and check the CI run
+before calling a PDF gate green. If you see
+`PdfiumLibraryInternalError(FormatError)`, that is an unfetched pointer
+reaching pdfium, not a decode regression: install git-lfs and pull.
 
 The 30-photo handwriting corpus lives at
 `crates/platform_core/preprocess/corpus/` (photos under `images/`, golden

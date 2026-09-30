@@ -115,6 +115,13 @@ class PackQuestion(BaseModel):
     # emits no answer_match evidence.
     final_answers: list[str] = Field(default_factory=list)
     figures: list[str] = Field(default_factory=list)
+    # The marketplace shortlist for this question, in the order the student
+    # meets it (course migration 0021). Its presence is the statement that this
+    # question is a selection decision, which is what decides whether the
+    # problem view offers "Price your materials" at all (decision 0079). It
+    # narrows and never restricts: a student may still quote any line in the
+    # catalogue, because deciding a material is wrong is the exercise.
+    shortlist: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _figures_match_the_tokens(self) -> "PackQuestion":
@@ -179,6 +186,22 @@ class CoursePack(BaseModel):
                 raise ValueError(
                     f"question {question.key} references unknown figures {unknown_figures}"
                 )
+
+        # A shortlisted SKU that is not in the pinned catalogue would load as a
+        # link to nothing, so this fails rather than writes, the same way the
+        # catalogue extractor refuses a brief naming a line that does not exist.
+        if any(q.shortlist for q in self.questions) and self.catalogue_id is not None:
+            from app.marketplace.catalogue import load_catalogue
+
+            catalogue = load_catalogue(self.catalogue_id, self.catalogue_version or 1)
+            skus = {line.sku for line in catalogue.lines}
+            for question in self.questions:
+                unknown = sorted(set(question.shortlist) - skus)
+                if unknown:
+                    raise ValueError(
+                        f"question {question.key} shortlists SKUs absent from"
+                        f" {self.catalogue_id}/v{self.catalogue_version}: {unknown}"
+                    )
         return self
 
     def figure(self, key: str) -> PackFigure:

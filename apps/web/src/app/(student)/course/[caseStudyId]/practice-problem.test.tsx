@@ -3,6 +3,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { PracticeProblem } from "./practice-problem";
 
+const push = vi.hoisted(() => vi.fn());
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push }),
+}));
+
 // The swapped body renders through the lazy client renderer; stub it so this
 // test does not pull in react-markdown/KaTeX.
 vi.mock("@/components/reading/client-problem-body", () => ({
@@ -38,7 +43,10 @@ function renderProblem(
   return { swap, startAttempt };
 }
 
-afterEach(() => vi.clearAllMocks());
+afterEach(() => {
+  push.mockClear();
+  vi.clearAllMocks();
+});
 
 describe("PracticeProblem", () => {
   it("shows the first variant and an upload link carrying its variant id", () => {
@@ -82,15 +90,8 @@ describe("PracticeProblem", () => {
       await waitFor(() => expect(startAttempt).toHaveBeenCalledWith(12));
 
       await waitFor(() =>
-        expect(
-          screen.getByRole("link", { name: "Upload solution" }).getAttribute("href"),
-        ).toBe("/course/2/upload?variant=12&attempt=77"),
+        expect(push).toHaveBeenCalledWith("/course/2/upload?variant=12&attempt=77"),
       );
-      expect(
-        screen.getByText(
-          "We noted when you started. Your work will show the time you spent on it.",
-        ),
-      ).toBeDefined();
     });
 
     it("stops offering a start once one is running", async () => {
@@ -106,10 +107,10 @@ describe("PracticeProblem", () => {
       renderProblem(12, failing as never);
       fireEvent.click(screen.getByRole("button", { name: "Start working" }));
       await waitFor(() => expect(failing).toHaveBeenCalled());
-      // No attempt cited, and the upload path is untouched: a lost span never
-      // costs a submission.
-      expect(screen.getByRole("link", { name: "Upload solution" }).getAttribute("href")).toBe(
-        "/course/2/upload?variant=12",
+      // No attempt cited, and the writing page still opens: a lost span never
+      // costs the work.
+      await waitFor(() =>
+        expect(push).toHaveBeenCalledWith("/course/2/upload?variant=12"),
       );
     });
 

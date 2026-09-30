@@ -172,8 +172,9 @@ export const strings = {
   upload: {
     title: "Upload your solution",
     back: "Back to the problem",
+    question: "The problem",
     intro:
-      "Add clear photos of each handwritten page. You can reorder them before you send.",
+      "Write your solution here, or add photos of each page. You can reorder them before you send.",
     // The three input modes (decision 0042). The file modes are the fallback
     // for anyone without a pen or touch.
     modePhotos: "Photos of paper",
@@ -181,7 +182,9 @@ export const strings = {
     modePen: "Write here",
     modeHint: "How would you like to submit?",
     choosePdf: "Choose a PDF",
-    penHint: "Write your solution with a pen, stylus, or finger. Add each page when it is done.",
+    penHint:
+      "Write with a pen, stylus, or finger. Scroll this page to reach the rest of it, then add it when it is done.",
+    penScroll: "Handwriting space",
     penCanvas: "Handwriting page",
     penAdd: "Add this page",
     penClear: "Clear",
@@ -200,7 +203,7 @@ export const strings = {
     moveUp: (index: number) => `Move page ${index} up`,
     moveDown: (index: number) => `Move page ${index} down`,
     retry: (index: number) => `Retry page ${index}`,
-    empty: "No pages yet. Add photos of your handwritten work.",
+    empty: "No pages yet. Write a page, or add a photo of your work.",
     submit: (count: number) =>
       count === 1 ? "Send 1 page" : `Send ${count} pages`,
     statusUploading: "Sending your pages…",

@@ -12,8 +12,12 @@ export async function getPracticeVariant(
   courseId: number,
   caseStudyId: number,
   exclude?: number | null,
+  variantId?: number | null,
 ): Promise<Schemas["PracticeVariantOut"] | null> {
-  const query = exclude != null ? `?exclude=${exclude}` : "";
+  const params = new URLSearchParams();
+  if (exclude != null) params.set("exclude", String(exclude));
+  if (variantId != null) params.set("variant_id", String(variantId));
+  const query = params.size > 0 ? `?${params.toString()}` : "";
   let response: Response;
   try {
     response = await fetch(

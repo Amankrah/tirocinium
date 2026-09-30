@@ -367,6 +367,51 @@ def test_a_seat_gets_a_variant_and_never_a_solution(
     assert set(body) == set(PracticeVariantOut.model_fields)
 
 
+def test_pinning_a_variant_returns_that_body_and_never_a_solution(
+    client: TestClient, tmp_path: Path, storage: FakeStorage
+) -> None:
+    headers = professor(client)
+    course_id, case_study_id = make_case_study(
+        client, headers, tmp_path, publish=True
+    )
+    first = seed_variant(tmp_path, course_id, case_study_id, seed=1)
+    second = seed_variant(tmp_path, course_id, case_study_id, seed=2)
+    seat_headers = seat(client, headers, course_id, storage)
+    url = f"/api/v1/courses/{course_id}/case-studies/{case_study_id}/practice-variant"
+
+    r = client.get(url, params={"variant_id": second}, headers=seat_headers)
+
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["variant_id"] == second
+    assert body["body"] == "Pool variant 2."
+    assert set(body) == set(PracticeVariantOut.model_fields)
+    assert first != second
+
+
+def test_pinning_a_missing_or_unservable_variant_is_a_404(
+    client: TestClient, tmp_path: Path, storage: FakeStorage
+) -> None:
+    headers = professor(client)
+    course_id, case_study_id = make_case_study(
+        client, headers, tmp_path, publish=True
+    )
+    flagged = seed_variant(
+        tmp_path, course_id, case_study_id, seed=1, verification="flagged"
+    )
+    seat_headers = seat(client, headers, course_id, storage)
+    url = f"/api/v1/courses/{course_id}/case-studies/{case_study_id}/practice-variant"
+
+    assert (
+        client.get(url, params={"variant_id": flagged}, headers=seat_headers).status_code
+        == 404
+    )
+    assert (
+        client.get(url, params={"variant_id": 999_999}, headers=seat_headers).status_code
+        == 404
+    )
+
+
 def test_exclude_prefers_a_different_variant(
     client: TestClient, tmp_path: Path, storage: FakeStorage
 ) -> None:

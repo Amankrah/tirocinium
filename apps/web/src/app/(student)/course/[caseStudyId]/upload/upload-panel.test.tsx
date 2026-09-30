@@ -109,6 +109,7 @@ function processingState(over: Partial<ProcessingState>): ProcessingState {
 const jpeg = (name: string) => new File(["data"], name, { type: "image/jpeg" });
 
 function choose(files: File[]) {
+  fireEvent.click(screen.getByRole("button", { name: "Photos of paper" }));
   const input = screen.getByLabelText("Choose photos");
   fireEvent.change(input, { target: { files } });
 }
@@ -118,7 +119,9 @@ afterEach(() => vi.clearAllMocks());
 describe("UploadPanel", () => {
   it("starts empty with the submit disabled", () => {
     renderPanel();
-    expect(screen.getByText("No pages yet. Add photos of your handwritten work.")).toBeDefined();
+    expect(
+      screen.getByText("No pages yet. Write a page, or add a photo of your work."),
+    ).toBeDefined();
     expect(screen.getByRole("button", { name: "Send 0 pages" })).toHaveProperty(
       "disabled",
       true,
@@ -127,15 +130,21 @@ describe("UploadPanel", () => {
 
   it("offers the three input modes and switches between them", async () => {
     renderPanel();
-    // Photos is the default: the photo choosers are shown.
+    const modes = screen.getByRole("group", { name: "How would you like to submit?" });
+    const names = Array.from(modes.querySelectorAll("button")).map((button) =>
+      button.textContent,
+    );
+    expect(names).toEqual(["Write here", "Photos of paper", "Handwriting PDF"]);
+    // Writing on the page is the default.
+    expect(await screen.findByTestId("pen-pad")).toBeDefined();
+    expect(screen.queryByLabelText("Choose photos")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Photos of paper" }));
     expect(screen.getByLabelText("Choose photos")).toBeDefined();
 
     fireEvent.click(screen.getByRole("button", { name: "Handwriting PDF" }));
     expect(screen.getByLabelText("Choose a PDF")).toBeDefined();
     expect(screen.queryByLabelText("Choose photos")).toBeNull();
-
-    fireEvent.click(screen.getByRole("button", { name: "Write here" }));
-    expect(await screen.findByTestId("pen-pad")).toBeDefined();
   });
 
   it("adds an accepted photo as a page and enables submit", async () => {

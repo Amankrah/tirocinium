@@ -352,3 +352,50 @@ of decision 0076 was built for exactly these decisions. It already prices 146
 lines against the properties a selection argument needs, and its briefs name
 selection factors and candidate families. A L9 question set would have a place
 to send students that the other eight topics do not need.
+
+## Resolving the held-back questions
+
+Three questions were withheld across L4, L5 and L8 for missing assets. Chasing
+them through the textbook in the materials folder resolved one, and turned
+another from a missing asset into a different problem entirely.
+
+**L8 question 11 is now loaded.** Its missing table is the one from Callister
+problem 16.D3, which the professor's question is adapted from: carbon fibre at
+specific gravity 1.80 and 260 GPa, epoxy at 1.25 and 2.4 GPa. The professor's
+version asks for the fibre-fraction range and the load ratio rather than the
+textbook's yes-or-no, and both are answerable from those two rows. The window
+is 0.259 to 0.273 and the load ratio at its top is 40.6. This is the one place
+in the pack where data comes from the textbook rather than from the course's
+own files, and it is two numbers completing a question the professor already
+set, not a question imported from the publisher.
+
+**L4 question 6 stays withheld, and the reason has changed.** Figure 6.22 is in
+the materials folder after all, in `Textbook 9E.pdf` on page 236: the tensile
+stress-strain behaviour of an alloy steel, cleanly croppable at the normalised
+box [0.0775, 0.0760, 0.3975, 0.2460] of the rendered page. It does not fit the
+question. The professor's part (a) answer of 481 MPa is exactly right for the
+stated load and diameter, but part (b)'s 3.4 mm is not: that needs a strain of
+0.0136, and on this curve 481 MPa sits in the elastic region at a strain of
+0.002, giving an elongation of about 0.5 mm. A strain of 0.0136 on this curve
+belongs to a stress near 1600 MPa. The textbook's own version of the problem
+(6.28) uses 140,000 N on a 10 mm diameter over 500 mm, so the numbers were
+adapted and the answer was not re-derived against the figure. Attaching the
+figure would pair the question with a curve its own answer contradicts, which
+is worse than leaving it out. It needs the professor to say which curve the
+question was set against, or to re-derive part (b) against this one; the crop
+box above makes it a one-line change once that is settled.
+
+**L5 question 8 stays withheld and is genuinely unresolvable from the
+materials.** There is no copper-tin phase diagram anywhere in the folder. The
+textbook carries copper-silver, copper-zinc, copper-aluminium, lead-tin,
+magnesium-lead and tin-gold, and no copper-tin. The question needs a diagram
+from outside the course's files.
+
+One extractor change came out of this. `scripts/extract_pack_figures.py` now
+takes a `box:x,y,w,h` selector alongside the largest-raster rules, cropping a
+hand-specified normalised box out of a rendered page through
+`platform_core.pdf.crop_figures`. The deterministic clustering that serves
+slide decks well merges a plot with the running head beside it on a dense
+two-column textbook page, and this is the escape hatch, taking the same path
+the confirmation surface's add-a-box verb takes (decision 0031). It is in place
+and tested against Figure 6.22 even though that figure is not shipped.

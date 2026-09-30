@@ -107,7 +107,7 @@ export function UploadPanel({
   fetchTranscription?: FetchTranscription;
 }) {
   const [pages, setPages] = useState<SelectedPage[]>([]);
-  const [mode, setMode] = useState<InputMode>("photos");
+  const [mode, setMode] = useState<InputMode>("pen");
   const [rejections, setRejections] = useState<Rejection[]>([]);
   const [upload, setUpload] = useState<UploadState | null>(null);
   const [processing, setProcessing] = useState<ProcessingState | null>(null);
@@ -255,7 +255,7 @@ export function UploadPanel({
       {!locked ? (
         <div className="flex flex-col gap-4">
           <div role="group" aria-label={s.modeHint} className="flex flex-wrap gap-2">
-            {(["photos", "pdf", "pen"] as const).map((option) => (
+            {(["pen", "photos", "pdf"] as const).map((option) => (
               <Button
                 key={option}
                 variant={mode === option ? "primary" : "quiet"}

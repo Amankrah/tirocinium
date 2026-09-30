@@ -4,7 +4,9 @@ Development and operations tooling. Populated across Phase 0-1:
 
 - `setup.sh` (0.2) — one-command toolchain and dependency bootstrap, pinned by
   `apps/api/uv.lock` and `crates/platform_core/Cargo.lock`, ending in a
-  verification gate (imports, ruff, mypy strict, both test suites). Flags:
+  verification gate (imports, ruff, mypy strict, both test suites). It also
+  installs a pinned `git-lfs` into `~/.local/bin` when the command is absent,
+  then pulls the LFS-tracked fixtures (decision 0079). Flags:
   `TIRO_SKIP_CRITERION=1` skips the slow cargo-criterion install,
   `TIRO_SKIP_VERIFY=1` provisions without running the gates.
 - `docker-compose.yml` (0.1/0.2) — dev services: MinIO (object storage, S3 API

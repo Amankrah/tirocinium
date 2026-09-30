@@ -23,6 +23,15 @@ describe("getPracticeVariant", () => {
     expect(fetchSpy.mock.calls[0]![0]).not.toContain("exclude");
   });
 
+  it("pins a variant when the writing surface asks for the one on screen", async () => {
+    const out = { variant_id: 12, body: "# The question" };
+    const fetchSpy = vi.fn().mockResolvedValue({ ok: true, json: async () => out });
+    vi.stubGlobal("fetch", fetchSpy);
+    expect(await getPracticeVariant("seat", 1, 2, null, 12)).toEqual(out);
+    expect(fetchSpy.mock.calls[0]![0]).toContain("variant_id=12");
+    expect(fetchSpy.mock.calls[0]![0]).not.toContain("exclude");
+  });
+
   it("returns null on any failure", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 404 }));
     expect(await getPracticeVariant("seat", 1, 2)).toBeNull();

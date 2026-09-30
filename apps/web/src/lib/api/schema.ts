@@ -211,9 +211,13 @@ export interface paths {
          * Practice Variant
          * @description The practice loop's "new variant": a random servable variant from the
          *     pool (verified or manual, never flagged), preferring one other than
-         *     `exclude` (the variant on screen). The pool invariant is absolute: this
-         *     read never waits on generation. A dry pool serves the base case study
-         *     instantly and tops the pool up in the background.
+         *     `exclude` (the variant on screen). Passing `variant_id` returns that
+         *     variant's body instead, when it belongs to this case study and is
+         *     servable, so the writing surface can show the question the student just
+         *     started. A pin that is missing, flagged, or from another case study is a
+         *     404, and the response is still never a solution. The pool invariant is
+         *     absolute: this read never waits on generation. A dry pool serves the base
+         *     case study instantly and tops the pool up in the background.
          */
         get: operations["practice_variant_api_v1_courses__course_id__case_studies__case_study_id__practice_variant_get"];
         put?: never;
@@ -4421,6 +4425,7 @@ export interface operations {
         parameters: {
             query?: {
                 exclude?: number | null;
+                variant_id?: number | null;
             };
             header?: never;
             path: {

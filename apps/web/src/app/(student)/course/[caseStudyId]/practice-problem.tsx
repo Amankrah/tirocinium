@@ -4,11 +4,13 @@
 // The first variant is server-rendered (passed in as children); "New variant"
 // asks the pool for another and swaps its body in place with the lazy client
 // renderer, so the engine only loads when a student actually swaps and there is
-// never a generation spinner (the pool serves instantly). "Upload solution"
-// carries the current variant id into the upload flow, which is what finally
-// makes that path live rather than seed-only.
+// never a generation spinner (the pool serves instantly). "Start working"
+// records the attempt and opens the writing page for this variant (decision
+// 0080). "Upload solution" is the same page without that start, for a student
+// who already has pages to send.
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
 import type { FigureMap } from "@/components/reading/problem-body";
@@ -62,6 +64,7 @@ export function PracticeProblem({
   // server's, and nothing here measures anything.
   const [attemptId, setAttemptId] = useState<number | null>(null);
   const [starting, setStarting] = useState(false);
+  const router = useRouter();
   const s = strings.problem;
 
   const variantId = current ? current.variant.variant_id : initialVariantId;
@@ -83,10 +86,15 @@ export function PracticeProblem({
     setStarting(true);
     const attempt = await startAttempt(variantId);
     setStarting(false);
-    // A failed start costs the span and never the attempt itself: the student
-    // carries on to the upload with no attempt cited, which reads as "nobody
-    // recorded the start" rather than as a fabricated zero.
-    if (attempt) setAttemptId(attempt.attempt_id);
+    // A failed start costs the span and never the work itself: the student
+    // still opens the page, with no attempt cited, which reads as "nobody
+    // recorded the start" rather than as a fabricated zero (decision 0058).
+    const started = attempt?.attempt_id ?? null;
+    if (started !== null) setAttemptId(started);
+    const attemptQuery = started === null ? "" : `&attempt=${started}`;
+    router.push(
+      `/course/${caseStudyId}/upload?variant=${variantId}${attemptQuery}`,
+    );
   }
 
   const uploadHref =
@@ -110,14 +118,14 @@ export function PracticeProblem({
         {/* The "start attempt" moment (guide 4.2): an explicit act, not a page
             view, and never a gate on uploading. */}
         {variantId !== null && attemptId === null ? (
-          <Button variant="quiet" onClick={() => void onStart()} disabled={starting}>
+          <Button onClick={() => void onStart()} disabled={starting}>
             {s.startAttempt}
           </Button>
         ) : null}
         {uploadHref !== null ? (
           <Link
             href={uploadHref}
-            className="inline-flex items-center justify-center rounded-md bg-accent px-4 py-2 font-medium text-on-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="inline-flex items-center justify-center rounded-md px-4 py-2 font-medium text-ink hover:bg-rule-line/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             {s.upload}
           </Link>

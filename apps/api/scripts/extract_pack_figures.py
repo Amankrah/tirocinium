@@ -47,6 +47,42 @@ DEFAULT_PDFIUM = (
 )
 
 
+def _page_crop(source_pdf: Path, page_index: int, box: tuple[float, float, float, float]) -> Any:
+    """Crop one hand-specified box out of a rendered page.
+
+    The deterministic extractor clusters vector drawings, and on a dense
+    two-column textbook page it merges a plot with the running head beside it.
+    This is the escape hatch for that case and it is the same path the
+    confirmation surface's add-a-box verb takes (decision 0031): render the
+    page, then crop the raster with `platform_core.pdf.crop_figures`, which is
+    a pure image operation and never a re-render of the figure itself.
+    """
+    import subprocess
+    import tempfile
+
+    from platform_core import pdf as _pdf
+
+    with tempfile.TemporaryDirectory() as tmp:
+        stem = Path(tmp) / "page"
+        # poppler renders the page; the crop itself stays in the platform's
+        # own code, which is the half the figures-are-pixels rule governs.
+        subprocess.run(
+            [
+                "pdftoppm", "-r", "200", "-png",
+                "-f", str(page_index + 1), "-l", str(page_index + 1),
+                str(source_pdf), str(stem),
+            ],
+            check=True,
+            capture_output=True,
+        )
+        rendered = next(Path(tmp).glob("page*.png"))
+        page_png = rendered.read_bytes()
+
+    _w, _h, regions = _pdf.crop_figures(page_png, [box])
+    png, _x, _y, width, height = regions[0]
+    return ("page_crop", box, width, height, "png", png, None, None)
+
+
 def _select(figures: list[Any], rule: str) -> Any:
     """Pick one figure off a page. The rules are deliberately few and explicit:
     a manifest that says `largest_embedded_raster` states that the wanted thing
@@ -87,7 +123,15 @@ def main() -> int:
         page_width, page_height, figures = _pdf.extract_figures(
             source_pdf.read_bytes(), str(args.pdfium), page_index
         )
-        picked = _select(figures, entry.get("select", "largest_embedded_raster"))
+        rule = entry.get("select", "largest_embedded_raster")
+        if rule.startswith("box:"):
+            box = tuple(float(v) for v in rule[4:].split(","))
+            picked = _page_crop(source_pdf, page_index, box)  # type: ignore[arg-type]
+            # A hand-cropped box is already normalised to the page, so the
+            # bbox is recorded as given rather than divided again.
+            page_width = page_height = 1.0
+        else:
+            picked = _select(figures, rule)
         kind, bbox, width_px, height_px, fmt, image = picked[:6]
         content_hash = hashlib.sha256(image).hexdigest()
         name = f"{content_hash}.{fmt if fmt != 'jpeg' else 'jpg'}"

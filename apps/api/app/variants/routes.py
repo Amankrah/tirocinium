@@ -231,12 +231,17 @@ async def practice_variant(
     shards: Annotated[ShardManager, Depends(get_shards)],
     queue: Annotated[TaskQueue, Depends(get_task_queue)],
     exclude: int | None = None,
+    variant_id: int | None = None,
 ) -> PracticeVariantOut:
     """The practice loop's "new variant": a random servable variant from the
     pool (verified or manual, never flagged), preferring one other than
-    `exclude` (the variant on screen). The pool invariant is absolute: this
-    read never waits on generation. A dry pool serves the base case study
-    instantly and tops the pool up in the background."""
+    `exclude` (the variant on screen). Passing `variant_id` returns that
+    variant's body instead, when it belongs to this case study and is
+    servable, so the writing surface can show the question the student just
+    started. A pin that is missing, flagged, or from another case study is a
+    404, and the response is still never a solution. The pool invariant is
+    absolute: this read never waits on generation. A dry pool serves the base
+    case study instantly and tops the pool up in the background."""
     can_see_drafts = await ensure_course_reader(shards, course_id, identity)
 
     def read(conn: sqlite3.Connection) -> tuple[int | None, str, int]:
@@ -248,6 +253,24 @@ async def practice_variant(
             raise HTTPException(status_code=404, detail="Case study not found.")
         base_body = decompress_text(conn, "problem_text", bytes(row[0]))
         placeholders = ", ".join("?" for _ in SERVABLE_STATES)
+        if variant_id is not None:
+            pinned = conn.execute(
+                "SELECT id, body_z FROM variants"
+                f" WHERE id = ? AND case_study_id = ? AND verification IN ({placeholders})",
+                (variant_id, case_study_id, *SERVABLE_STATES),
+            ).fetchone()
+            if pinned is None:
+                raise HTTPException(status_code=404, detail="Variant not found.")
+            servable = conn.execute(
+                "SELECT COUNT(*) FROM variants"
+                f" WHERE case_study_id = ? AND verification IN ({placeholders})",
+                (case_study_id, *SERVABLE_STATES),
+            ).fetchone()
+            return (
+                int(pinned[0]),
+                decompress_text(conn, "problem_text", bytes(pinned[1])),
+                int(servable[0]),
+            )
         pick = conn.execute(
             "SELECT id, body_z FROM variants"
             f" WHERE case_study_id = ? AND verification IN ({placeholders})"
@@ -276,12 +299,12 @@ async def practice_variant(
             int(servable[0]),
         )
 
-    variant_id, body, servable = await shards.course_reads(course_id).run(read)
+    served_id, body, servable = await shards.course_reads(course_id).run(read)
     if servable < pool_target():
         # Opportunistic top-up, off the request path; the per-case-study job
         # id collapses repeats, and a no-broker deployment simply no-ops.
         await queue.enqueue_fill_pool(course_id, case_study_id)
-    return PracticeVariantOut(variant_id=variant_id, body=body)
+    return PracticeVariantOut(variant_id=served_id, body=body)
 
 
 @router.get(

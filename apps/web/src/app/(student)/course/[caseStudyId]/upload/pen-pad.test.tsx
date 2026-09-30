@@ -9,7 +9,11 @@ import { PenPad } from "./pen-pad";
 describe("PenPad", () => {
   it("renders the labelled canvas with the controls disabled before any ink", () => {
     render(<PenPad onCapture={vi.fn()} />);
-    expect(screen.getByRole("img", { name: "Handwriting page" })).toBeDefined();
+    const space = screen.getByRole("region", { name: "Handwriting space" });
+    expect(space.className).toContain("overflow-y-scroll");
+    expect(space.contains(screen.getByRole("img", { name: "Handwriting page" }))).toBe(
+      true,
+    );
     expect(
       screen.getByRole("button", { name: "Add this page" }).hasAttribute("disabled"),
     ).toBe(true);
