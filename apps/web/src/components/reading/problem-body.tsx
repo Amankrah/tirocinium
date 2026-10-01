@@ -8,6 +8,7 @@ import remarkMath from "remark-math";
 import { rehypeBreakDisplayChains } from "./display-math";
 import { FIG_PREFIX, type FigureMap } from "./figure";
 import { FigureImage } from "./figure-image";
+import { rehypeOpenFractionDenominators } from "./fraction-gap";
 import { rehypeNativeScripts } from "./math-scripts";
 
 // The figure content model lives in `figure.ts` (decision 0066); re-exported
@@ -66,6 +67,7 @@ export function ProblemBody({
           rehypeShiftHeadings,
           rehypeBreakDisplayChains,
           rehypeKatex,
+          rehypeOpenFractionDenominators,
           rehypeNativeScripts,
         ]}
         // Preserve the fig:// scheme (sanitized away by default), but keep the

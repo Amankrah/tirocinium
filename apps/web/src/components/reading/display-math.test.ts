@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { alignDisplayChain } from "./display-math";
+import { alignDisplayChain, nestedFractionDepth } from "./display-math";
 
 describe("alignDisplayChain", () => {
   it("leaves a single relation alone", () => {
@@ -44,6 +44,18 @@ describe("the row gap follows what the rows carry", () => {
     const aligned = alignDisplayChain("a = b + c = d");
     expect(aligned).toContain("\\\\[1em]");
     expect(aligned).not.toContain("1.8em");
+  });
+
+  it("opens further when a denominator is itself a fraction", () => {
+    const aligned = alignDisplayChain(
+      String.raw`\rho = \frac{100}{\left(\frac{90}{4.51}\right) + \left(\frac{6}{2.71}\right)} = 4.38`,
+    );
+    // 1.8em, plus the extra depth one level of nesting hangs below the bar.
+    expect(aligned).toContain("\\\\[3.3em]");
+    expect(nestedFractionDepth(String.raw`\frac{a}{b} = \frac{c}{d}`)).toBe(0);
+    expect(
+      nestedFractionDepth(String.raw`\frac{100}{\frac{90}{4.51}}`),
+    ).toBe(1);
   });
 
   it("still breaks the chain at each top-level equals", () => {

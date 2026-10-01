@@ -1,0 +1,3 @@
+# 0094: a fraction denominator is given more room
+
+A fraction whose denominator contains a fraction was drawing the bar onto the inner numerators, and those inner fractions, set in the tighter text style, were drawing their own bars onto their numerators and denominators. The alloy density rule is the formula a student actually meets. After KaTeX has placed the formula, the reading surfaces lower a denominator that itself holds a fraction and open both sides of a fraction that sits inside another. A plain fraction keeps KaTeX's own metrics. The stored TeX is unchanged, which is the same display rule as the equality-chain break (decision 0086).

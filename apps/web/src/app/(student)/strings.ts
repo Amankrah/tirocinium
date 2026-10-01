@@ -277,6 +277,10 @@ export const strings = {
   unfold: {
     title: "The worked solution",
     back: "Back to the problem",
+    // The question the steps answer. The writing page uses the same words
+    // (decision 0080): a solution without its problem is a derivation you
+    // cannot check.
+    question: "The problem",
     // Shown when the seat has neither submitted nor given up. Both ways in are
     // named, because the 403 is a state, not a failure.
     notEarned:

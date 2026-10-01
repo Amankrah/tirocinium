@@ -167,7 +167,8 @@ body {
    then leaves the numerator crowding the prose above it. Only formulas that
    actually carry a fraction pay for the extra room; a browser without :has()
    keeps the single em, which is the current behaviour rather than a broken
-   one. */
+   one. The gap inside a denominator that itself holds a fraction is opened
+   after KaTeX has placed the formula (decision 0094). */
 .reading-body .katex-display:has(.mfrac) {
   padding-block: 1.9em;
 }

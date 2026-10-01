@@ -3,12 +3,15 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { ProblemBody } from "@/components/reading/problem-body";
+import { getCaseStudy } from "@/lib/api/case-studies";
 import { resolveFiguresForBodies } from "@/lib/api/figures";
+import { getPracticeVariant } from "@/lib/api/practice";
 import { getHistory, getUnfold } from "@/lib/api/unfold";
 import { requireSeat } from "@/lib/seat-session";
 import { StudentShell } from "../../../../student-shell";
 import { strings } from "../../../../strings";
 import { revealAction } from "./actions";
+import { SolutionQuestion } from "./solution-question";
 import { UnfoldPanel } from "./unfold-panel";
 
 // The understanding unfold (guide 4.2, milestone 8.4). A Server Component that
@@ -33,22 +36,31 @@ export default async function SolutionPage({
   if (!Number.isInteger(caseId) || caseId <= 0) notFound();
   if (!Number.isInteger(vid) || vid <= 0) notFound();
 
-  const result = await getUnfold(token, seat.course_id, vid);
+  const [result, caseStudy, pinned] = await Promise.all([
+    getUnfold(token, seat.course_id, vid),
+    getCaseStudy(token, seat.course_id, caseId),
+    // The question this solution answers, pinned to the variant on screen
+    // rather than drawn again from the pool (decision 0093, the same read the
+    // writing page uses). A pin that cannot be read falls back to the case
+    // study body, so the steps are never shown against a blank.
+    getPracticeVariant(token, seat.course_id, caseId, null, vid),
+  ]);
   const s = strings.unfold;
+  const questionBody = pinned?.body ?? caseStudy?.body ?? null;
 
   // The tutor reads a submission, not a variant, so a step can only be sent
   // into a conversation when this seat has a processed submission for this
   // variant. History is the one seat-readable place that join lives.
   // The steps already out are typeset here rather than in the island, so the
   // solution is in the HTML and the markdown engine never reaches this route
-  // unless a student reveals another step (decision 0068).
+  // unless a student reveals another step (decision 0068). Figures in the
+  // question and the steps resolve together.
+  const figures = await resolveFiguresForBodies(token, seat.course_id, [
+    questionBody,
+    ...(result.ok ? result.unfold.steps.map((step) => step.markdown) : []),
+  ]);
   let rendered: Record<number, ReactNode> = {};
   if (result.ok) {
-    const figures = await resolveFiguresForBodies(
-      token,
-      seat.course_id,
-      result.unfold.steps.map((step) => step.markdown),
-    );
     rendered = Object.fromEntries(
       result.unfold.steps.map((step) => [
         step.number,
@@ -79,6 +91,14 @@ export default async function SolutionPage({
           {s.back}
         </Link>
         <h1 className="font-display text-4xl">{s.title}</h1>
+
+        {questionBody ? (
+          <SolutionQuestion
+            title={caseStudy?.title ?? null}
+            body={questionBody}
+            figures={figures}
+          />
+        ) : null}
 
         {result.ok ? (
           <UnfoldPanel

@@ -10,6 +10,7 @@ import remarkMath from "remark-math";
 import { rehypeBreakDisplayChains } from "./display-math";
 import { FIG_PREFIX, type FigureMap } from "./figure";
 import { FigureImage } from "./figure-image";
+import { rehypeOpenFractionDenominators } from "./fraction-gap";
 import { rehypeNativeScripts } from "./math-scripts";
 
 // The client twin of ProblemBody (decision 0014), for swapping a practice
@@ -53,6 +54,7 @@ export function ClientProblemBody({
           rehypeShiftHeadings,
           rehypeBreakDisplayChains,
           rehypeKatex,
+          rehypeOpenFractionDenominators,
           rehypeNativeScripts,
         ]}
         urlTransform={(url) =>

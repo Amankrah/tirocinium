@@ -1,0 +1,3 @@
+# 0093: the worked solution shows its question
+
+A derivation read on its own is a sequence of moves with nothing to check them against. The writing page already keeps the question on screen for that reason (decision 0080), and the worked solution page now does the same: it pins the variant the steps belong to, through the same practice read, and sets the case study title and the variant body above the steps, typeset as on the problem view. A pin that cannot be read falls back to the case study body. A question that cannot be read at all leaves the steps as they were, rather than failing the page.

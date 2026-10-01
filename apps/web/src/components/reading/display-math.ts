@@ -1,3 +1,5 @@
+import { NESTED_FRACTION_EXTRA_DEPTH_EM } from "./fraction-gap";
+
 // A chain of equalities is one display formula, and KaTeX will not wrap it.
 // In the reading column the centred line is wider than the page, so the left
 // side cannot be scrolled back to and the last power is cut off, which reads
@@ -50,10 +52,68 @@ export function alignDisplayChain(tex: string): string | null {
   // A blank \\ stacks a tall fraction against the next equals. The extra em
   // is the gap between those lines, not a change to the formula. One em is
   // enough between plain relations and not between fractions, where the line
-  // above ends in a denominator and the line below opens with a numerator, so
-  // the gap follows the content rather than being a single constant.
-  const rowGap = trimmed.includes("\\frac") ? "1.8em" : "1em";
+  // above ends in a denominator and the line below opens with a numerator.
+  // A denominator that is itself a fraction hangs further still, by the same
+  // amount the reading surface later opens that bar (decision 0094), so the
+  // gap follows the content rather than being a single constant.
+  const nested = nestedFractionDepth(trimmed);
+  const rowGap =
+    nested > 0
+      ? em(1.8 + nested * NESTED_FRACTION_EXTRA_DEPTH_EM)
+      : trimmed.includes("\\frac")
+        ? "1.8em"
+        : "1em";
   return `\\begin{aligned}\n${lines.join(` \\\\[${rowGap}]\n`)}\n\\end{aligned}`;
+}
+
+function em(value: number): string {
+  const rounded = Math.round(value * 1000) / 1000;
+  return `${rounded}em`;
+}
+
+// How many fractions are drawn inside another fraction. Sibling fractions in
+// a chain (\frac{a}{b} = \frac{c}{d}) are depth 0. The alloy rule, a fraction
+// over a sum of fractions, is depth 1.
+export function nestedFractionDepth(tex: string): number {
+  let maxNested = 0;
+  let depth = 0;
+  const fracOpen: number[] = [];
+  let pending = 0;
+  let i = 0;
+  while (i < tex.length) {
+    if (tex[i] === "\\") {
+      const cmd = /^\\[a-zA-Z]+/.exec(tex.slice(i));
+      const name = cmd?.[0] ?? "";
+      if (name === "\\frac" || name === "\\dfrac" || name === "\\tfrac") {
+        if (fracOpen.length > 0) maxNested = Math.max(maxNested, fracOpen.length);
+        pending += 2;
+        i += name.length;
+        continue;
+      }
+      i += name.length > 0 ? name.length : 2;
+      continue;
+    }
+    if (tex[i] === "{") {
+      depth += 1;
+      if (pending > 0) {
+        pending -= 1;
+        fracOpen.push(depth);
+      }
+      i += 1;
+      continue;
+    }
+    if (tex[i] === "}") {
+      if (fracOpen[fracOpen.length - 1] === depth) fracOpen.pop();
+      depth = Math.max(0, depth - 1);
+      i += 1;
+      continue;
+    }
+    // A lone token can be a \frac argument (\frac12). A character inside a
+    // group is part of the group that already counted as the argument.
+    if (pending > 0 && depth === 0 && tex[i] !== " ") pending -= 1;
+    i += 1;
+  }
+  return maxNested;
 }
 
 function isMathElement(node: HastNode): boolean {
