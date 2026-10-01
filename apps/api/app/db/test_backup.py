@@ -4,12 +4,19 @@ so its determinism and sensitivity get their own tests."""
 
 import sqlite3
 from pathlib import Path
+from typing import Any, cast
 
 import boto3
 import pytest
 from botocore.stub import ANY, Stubber
 
-from app.db.backup import digest_shard, snapshot_shard, upload_file
+from app.db.backup import (
+    _configured,
+    digest_shard,
+    s3_client_from_env,
+    snapshot_shard,
+    upload_file,
+)
 from app.db.connection import connect
 from app.db.migrations import apply_migrations
 from app.db.shards import COURSE_MIGRATIONS
@@ -95,3 +102,42 @@ def test_upload_targets_the_exact_key(shard: Path) -> None:
         )
         upload_file(client, shard, "tirocinium-snapshots", "2026-07-23/courses/1.db")
         stub.assert_no_pending_responses()
+
+
+def test_unset_s3_settings_keep_the_compose_defaults(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Development runs with no TIRO_S3_* at all and must still reach the
+    compose MinIO, so an unset variable is not the same as an empty one."""
+    for name in ("TIRO_S3_ENDPOINT", "TIRO_S3_ACCESS_KEY", "TIRO_S3_SECRET_KEY"):
+        monkeypatch.delenv(name, raising=False)
+
+    assert _configured("TIRO_S3_ENDPOINT", "http://localhost:9000") == (
+        "http://localhost:9000"
+    )
+    assert _configured("TIRO_S3_ACCESS_KEY", "tirocinium") == "tirocinium"
+
+
+def test_empty_s3_credentials_mean_the_ambient_ones(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A deployment on an instance role leaves the credentials empty. That has
+    to reach boto3 as None: an empty access key does not fall back to the role,
+    it fails to sign, and the error names neither the role nor the empty key."""
+    monkeypatch.setenv("TIRO_S3_ACCESS_KEY", "")
+    monkeypatch.setenv("TIRO_S3_SECRET_KEY", "")
+
+    assert _configured("TIRO_S3_ACCESS_KEY", "tirocinium") is None
+    assert _configured("TIRO_S3_SECRET_KEY", "tirocinium-dev") is None
+
+
+def test_real_s3_endpoint_drops_path_style_addressing(monkeypatch: pytest.MonkeyPatch) -> None:
+    """MinIO needs path-style addressing; AWS has been deprecating it. An
+    empty endpoint means real AWS, so it must reach boto3 as None and leave
+    the addressing style alone; only a custom endpoint selects path-style."""
+    monkeypatch.setenv("TIRO_S3_ENDPOINT", "")
+    monkeypatch.setenv("TIRO_S3_REGION", "ca-central-1")
+    monkeypatch.setenv("TIRO_S3_ACCESS_KEY", "")
+    monkeypatch.setenv("TIRO_S3_SECRET_KEY", "")
+
+    # The Protocol models only the calls the app makes; boto3's own `meta`
+    # is what records the resolved endpoint and addressing style.
+    client = cast(Any, s3_client_from_env())
+    assert client.meta.region_name == "ca-central-1"
+    assert client.meta.config.s3 in (None, {})

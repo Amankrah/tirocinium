@@ -102,19 +102,40 @@ def upload_file(
         client.put_object(Bucket=bucket, Key=key, Body=f)
 
 
+def _configured(name: str, default: str | None) -> str | None:
+    """A TIRO_S3_* setting, where empty means "not configured" rather than
+    "configured to the empty string". Unset falls back to the compose default,
+    so development keeps working with no environment at all; set-but-empty
+    returns None, which is how a deployment says "use the ambient AWS
+    credentials" (an instance role) or "use the real AWS endpoint". Passing
+    boto3 an empty access key instead of None does not fall back to the
+    instance role: it fails to sign, with an error that names neither cause."""
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value or None
+
+
 def s3_client_from_env() -> ObjectStorageClient:
-    """The dev/CI object-storage client: MinIO-compatible, path-style,
-    configured by TIRO_S3_* with the compose defaults."""
+    """The object-storage client. With no TIRO_S3_* set it targets the compose
+    MinIO, which is what dev and CI want. A deployment sets the endpoint to real
+    S3 and leaves the credentials empty to use the instance role."""
     import boto3
     from botocore.config import Config
 
+    endpoint = _configured("TIRO_S3_ENDPOINT", "http://localhost:9000")
+    # Path-style addressing is what MinIO needs and what AWS has been
+    # deprecating; ask for it only when a custom endpoint says we are not
+    # talking to S3 itself, and let boto3 pick virtual-hosted style otherwise.
+    config = Config(s3={"addressing_style": "path"}) if endpoint else Config()
+
     client: ObjectStorageClient = boto3.client(
         "s3",
-        endpoint_url=os.environ.get("TIRO_S3_ENDPOINT", "http://localhost:9000"),
-        aws_access_key_id=os.environ.get("TIRO_S3_ACCESS_KEY", "tirocinium"),
-        aws_secret_access_key=os.environ.get("TIRO_S3_SECRET_KEY", "tirocinium-dev"),
-        region_name=os.environ.get("TIRO_S3_REGION", "us-east-1"),
-        config=Config(s3={"addressing_style": "path"}),
+        endpoint_url=endpoint,
+        aws_access_key_id=_configured("TIRO_S3_ACCESS_KEY", "tirocinium"),
+        aws_secret_access_key=_configured("TIRO_S3_SECRET_KEY", "tirocinium-dev"),
+        region_name=os.environ.get("TIRO_S3_REGION") or "us-east-1",
+        config=config,
     )
     return client
 

@@ -55,6 +55,9 @@ umask 077
   echo
   echo "# Host settings. These differ from a development machine by design."
   echo "TIRO_DATA_DIR=/var/lib/tirocinium/data"
+  echo "# Empty means real AWS, which picks the regional endpoint and the"
+  echo "# addressing style S3 wants. Set it only for a MinIO-compatible server."
+  echo "TIRO_S3_ENDPOINT="
   echo "TIRO_S3_REGION=ca-central-1"
   echo "TIRO_SCANS_BUCKET=tirocinium-scans"
   echo "TIRO_IMPORTS_BUCKET=tirocinium-imports"
@@ -66,7 +69,8 @@ umask 077
   echo "# Freshly generated. Never carried from a development machine."
   echo "TIRO_JWT_SECRET=$(openssl rand -hex 32)"
   echo
-  echo "# Leave empty to use the instance role. Fill only if there is no role."
+  echo "# Empty means the ambient credentials: the instance role, if one is"
+  echo "# attached. Fill these only if the instance has no role."
   echo "TIRO_S3_ACCESS_KEY="
   echo "TIRO_S3_SECRET_KEY="
   echo

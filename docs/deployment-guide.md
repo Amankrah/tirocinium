@@ -65,6 +65,19 @@ The first three hold student scans, imported PDFs and figures, and one-time
 download artifacts. The fourth holds the replicated databases, and is the one
 you would be glad of on the worst day.
 
+Worth knowing why these are not just directories on the instance. Binary never
+goes in SQLite (backend guide 3.3), so a shard holds storage keys and metadata
+while the bytes live in a bucket; a course's figures alone would otherwise
+bloat every replication and every hand-copy. The browser uploads straight to
+the bucket through a presigned URL, so a class's worth of phone photos never
+passes through the API, which on this instance is a single uvicorn worker. And
+Litestream's whole job is getting the shards off the box, so a backup bucket on
+the same volume as the thing it backs up would not be a backup.
+
+The storage layer is a seam, so the first three buckets could be a MinIO on the
+instance, which is what development uses. The fourth could not, and once you are
+running S3 for backups the other three cost cents and save you operating MinIO.
+
 ### 1.2 An IAM user for Litestream
 
 The application can use an instance role, but Litestream needs explicit keys
@@ -319,11 +332,15 @@ Open the result and settle the one decision it leaves you:
 nano ~/tirocinium.env
 ```
 
-`TIRO_S3_ACCESS_KEY` and `TIRO_S3_SECRET_KEY` are empty. Leave them empty if you
-attached an instance role in step 1.4, and boto3 will find the role. Fill them
-only if you did not. Do not paste the Litestream user's keys here: that user
-reaches the backup bucket and nothing else, and the application needs the other
-three.
+`TIRO_S3_ACCESS_KEY` and `TIRO_S3_SECRET_KEY` are empty, and so is
+`TIRO_S3_ENDPOINT`. Empty is meaningful here rather than unfinished: it means
+the ambient AWS settings, so the credentials come from the instance role and
+the endpoint is the regional S3 one. Leave all three empty if you attached a
+role in step 1.4.
+
+Fill the two credentials only if you did not attach a role. Do not paste the
+Litestream user's keys into them: that user reaches the backup bucket and
+nothing else, while the application needs the other three.
 
 Ship it, then destroy the copy that travelled:
 
