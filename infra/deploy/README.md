@@ -8,6 +8,7 @@ behind the shape (one host, one account, and why not serverless) is
 | File | What it is | Installed to |
 |---|---|---|
 | `provision.sh` | One-time host bootstrap: packages, Node 20, Caddy, Rust, pdfium, the service user, the directories, the units. Idempotent. | run in place |
+| `build-server-env.sh` | Builds the server env file from a local `apps/api/.env`: carries the provider keys and model pins, regenerates the JWT secret, rewrites the storage and data-directory settings, and refuses to write inside the repository. | run from your laptop |
 | `tirocinium.env.example` | Every setting the services read, with the credentials grouped at the end. | `/etc/tirocinium/tirocinium.env` (0640, root:tirocinium) |
 | `tirocinium-api.service` | uvicorn, one worker, loopback only. | `/etc/systemd/system/` |
 | `tirocinium-worker.service` | The arq worker. No port. | `/etc/systemd/system/` |

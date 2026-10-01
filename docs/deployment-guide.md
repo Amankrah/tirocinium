@@ -22,9 +22,10 @@ up half configured.
   allocate an Elastic IP, and to attach a volume to the running instance.
   The `aws` CLI configured locally, or the console and some patience.
 - Control of DNS for `sasellab.com`.
-- An Anthropic API key. The tutor, the handwriting reader and variant
-  generation all need it.
-- An OpenAI API key, for retrieval embeddings.
+- An Anthropic API key (the tutor, the handwriting reader and variant
+  generation all need it) and an OpenAI API key for retrieval embeddings. If
+  you already run the project locally these are in `apps/api/.env` and step 4
+  copies them across for you.
 - The email address that will hold the only account: `ebenezer.kwofie@mcgill.ca`.
 - The machine that currently holds BREE 216's data, if you are moving the
   existing variant pool rather than regenerating it.
@@ -283,30 +284,74 @@ without the NodeSource mirror.
 
 ## 4. Configure
 
-```bash
-sudo nano /etc/tirocinium/tirocinium.env
-```
-
-Fill in, at minimum:
-
-| Key | Value |
-|---|---|
-| `TIRO_JWT_SECRET` | `openssl rand -hex 32` |
-| `TIRO_ANTHROPIC_API_KEY` | your key |
-| `TIRO_OPENAI_API_KEY` | your key |
-| `TIRO_S3_ACCESS_KEY`, `TIRO_S3_SECRET_KEY` | the Litestream user's keys from 1.2, unless you gave the instance a role for the application too |
-| `TIRO_SIGNUP_ALLOWLIST` | `ebenezer.kwofie@mcgill.ca` |
-
-Leave the rest at the template's values. The file is `0640`, owned by root with
-the service group, and must stay that way:
+The keys you already run locally are the ones the server needs, so build the
+server file from `apps/api/.env` rather than retyping them. **From your laptop,
+in the repository:**
 
 ```bash
-sudo chmod 640 /etc/tirocinium/tirocinium.env
-sudo chown root:tirocinium /etc/tirocinium/tirocinium.env
+./infra/deploy/build-server-env.sh ~/tirocinium.env
 ```
 
-**Do not commit a filled copy anywhere.** Every value below the first block of
-the template is a credential.
+It prints the key names it carried across and never prints a value. What it
+carries is deliberately narrow: the provider keys and the model pins, which are
+account-level facts that are the same from a laptop as from EC2.
+
+Three things it does not carry.
+
+`TIRO_JWT_SECRET` is **regenerated**. A secret that has lived on a development
+machine signs tokens that would then be valid in production, and the whole
+value of the secret is that only the server holds it. Carrying it across would
+quietly make every development token a production credential.
+
+The storage settings are rewritten, because local runs talk to MinIO on
+loopback and the deployment talks to S3.
+
+`TIRO_DATA_DIR` is rewritten to `/var/lib/tirocinium/data`, because local runs
+keep shards under the repository and the deployment keeps them on the volume
+that outlives the instance.
+
+The script refuses to write inside the repository at all, which is the same
+lesson as decision 0092 expressed as code rather than as a rule to remember.
+
+Open the result and settle the one decision it leaves you:
+
+```bash
+nano ~/tirocinium.env
+```
+
+`TIRO_S3_ACCESS_KEY` and `TIRO_S3_SECRET_KEY` are empty. Leave them empty if you
+attached an instance role in step 1.4, and boto3 will find the role. Fill them
+only if you did not. Do not paste the Litestream user's keys here: that user
+reaches the backup bucket and nothing else, and the application needs the other
+three.
+
+Ship it, then destroy the copy that travelled:
+
+```bash
+scp -i ~/.ssh/tiro_key_new ~/tirocinium.env ubuntu@tirocinium.sasellab.com:/tmp/
+ssh -i ~/.ssh/tiro_key_new ubuntu@tirocinium.sasellab.com \
+  "sudo install -o root -g tirocinium -m 0640 /tmp/tirocinium.env \
+     /etc/tirocinium/tirocinium.env && rm -f /tmp/tirocinium.env"
+shred -u ~/tirocinium.env
+```
+
+`install` sets the owner, group and mode in one step, so the file is never
+briefly world-readable on the host the way `cp` then `chmod` would leave it.
+The `rm` and the `shred` matter for the same reason: `/tmp` on the server and
+your home directory are both places a credentials file should not quietly
+accumulate.
+
+**Check:**
+
+```bash
+ssh -i ~/.ssh/tiro_key_new ubuntu@tirocinium.sasellab.com \
+  'sudo stat -c "%U:%G %a %n" /etc/tirocinium/tirocinium.env; \
+   sudo grep -c . /etc/tirocinium/tirocinium.env'
+```
+
+**Expected:** `root:tirocinium 640 /etc/tirocinium/tirocinium.env`, and a line
+count in the twenties. If the mode is `644`, the service user is not the only
+reader and every key in the file should be considered shared.
 
 ---
 
