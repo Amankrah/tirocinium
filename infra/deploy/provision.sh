@@ -22,8 +22,25 @@ echo "==> packages"
 apt-get update -qq
 apt-get install -y -qq \
   python3.12 python3.12-venv python3-pip \
-  redis-server caddy git git-lfs curl unzip \
+  redis-server git git-lfs curl unzip ca-certificates gnupg \
   build-essential pkg-config
+
+echo "==> node 20 and caddy from their own repositories"
+# Ubuntu ships neither at the version this needs: Next 15 wants Node 20+, and
+# Caddy is not in the default archive at all.
+if ! command -v node >/dev/null 2>&1 || [[ "$(node --version)" != v2* ]]; then
+  curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+  apt-get install -y -qq nodejs
+fi
+if ! command -v caddy >/dev/null 2>&1; then
+  curl -fsSL https://dl.cloudsmith.io/public/caddy/stable/gpg.key \
+    | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+  curl -fsSL https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt \
+    > /etc/apt/sources.list.d/caddy-stable.list
+  apt-get update -qq
+  apt-get install -y -qq caddy
+fi
+corepack enable
 
 echo "==> service user and directories"
 id -u tirocinium >/dev/null 2>&1 || useradd --system --home /opt/tirocinium --shell /usr/sbin/nologin tirocinium
@@ -33,6 +50,15 @@ install -d -o root -g tirocinium -m 0750 "$ETC_DIR"
 if [[ ! -f "$ETC_DIR/tirocinium.env" ]]; then
   install -o root -g tirocinium -m 0640 "$HERE/tirocinium.env.example" "$ETC_DIR/tirocinium.env"
   echo "    wrote $ETC_DIR/tirocinium.env from the template; fill it in before starting"
+fi
+
+echo "==> rust toolchain"
+# platform_core is compiled from source by maturin at deploy time, so cargo has
+# to be here. Installed for the service user rather than system-wide, because
+# nothing else on the box needs it.
+if ! sudo -u tirocinium test -x /opt/tirocinium/.cargo/bin/cargo; then
+  sudo -u tirocinium env HOME=/opt/tirocinium bash -c \
+    "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --no-modify-path"
 fi
 
 echo "==> pdfium"
