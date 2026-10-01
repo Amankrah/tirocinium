@@ -161,6 +161,16 @@ body {
 .reading-body .katex-display > .katex {
   text-align: start;
 }
+/* A fraction is taller than the line it sits on: the numerator reaches up and
+   the denominator down, and a nested one (the alloy rule, whose denominator is
+   itself three fractions) reaches twice as far. The em that suits "a = b + c"
+   then leaves the numerator crowding the prose above it. Only formulas that
+   actually carry a fraction pay for the extra room; a browser without :has()
+   keeps the single em, which is the current behaviour rather than a broken
+   one. */
+.reading-body .katex-display:has(.mfrac) {
+  padding-block: 1.9em;
+}
 
 /* Subtle progress shimmer (guide 3.3): a hairline of accent sweeping the
    live processing row. Functional, not ambient; reduced motion removes it. */

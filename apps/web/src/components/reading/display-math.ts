@@ -48,8 +48,12 @@ export function alignDisplayChain(tex: string): string | null {
     index === 0 ? `${lhs} &= ${right}` : `&= ${right}`,
   );
   // A blank \\ stacks a tall fraction against the next equals. The extra em
-  // is the gap between those lines, not a change to the formula.
-  return `\\begin{aligned}\n${lines.join(" \\\\[1em]\n")}\n\\end{aligned}`;
+  // is the gap between those lines, not a change to the formula. One em is
+  // enough between plain relations and not between fractions, where the line
+  // above ends in a denominator and the line below opens with a numerator, so
+  // the gap follows the content rather than being a single constant.
+  const rowGap = trimmed.includes("\\frac") ? "1.8em" : "1em";
+  return `\\begin{aligned}\n${lines.join(` \\\\[${rowGap}]\n`)}\n\\end{aligned}`;
 }
 
 function isMathElement(node: HastNode): boolean {
