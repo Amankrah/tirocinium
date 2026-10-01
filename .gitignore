@@ -48,3 +48,12 @@ Thumbs.db
 # infra tooling, never an artifact of the build (decision 0077).
 BREE 216/
 BREE 216 Marketplace.html
+
+# Private keys never belong in the repository. tiro_key.pem reached a public
+# commit once (see docs/decisions/0092); these patterns are what stops the
+# next one, since `git add -A` cannot be trusted to notice.
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
