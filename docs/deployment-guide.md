@@ -112,6 +112,25 @@ sudo mount -a
 Getting this wrong means the shards live on the root volume and are lost with
 the instance.
 
+### 1.4 The keypair
+
+Create the keypair when you launch the instance and download the `.pem`. Move it
+out of wherever your browser put it, straight to `~/.ssh`, and never into a
+checkout of this repository:
+
+```bash
+mv ~/Downloads/tiro_key.pem ~/.ssh/tiro_key.pem
+chmod 600 ~/.ssh/tiro_key.pem
+```
+
+SSH refuses a key that is group- or world-readable, so the `chmod` is not
+optional. Every `ssh` and `scp` in this guide takes `-i ~/.ssh/tiro_key.pem`.
+
+A key that has ever been public is compromised, and rewriting the history that
+carried it does not undo that: anything public is assumed captured the moment it
+lands. The remedy is a new keypair, never a cleaner history. Decision 0092 has
+the reasoning and the `.gitignore` rules that keep a key out of the tree.
+
 ---
 
 ## 2. DNS
@@ -132,7 +151,7 @@ dig +short tirocinium.sasellab.com      # the Elastic IP, and nothing else
 
 ## 3. Provision the host
 
-SSH in, then:
+SSH in with `ssh -i ~/.ssh/tiro_key.pem ubuntu@tirocinium.sasellab.com`, then:
 
 ```bash
 sudo apt-get update && sudo apt-get install -y git git-lfs
@@ -317,7 +336,8 @@ Move the figure bytes, then the shard:
 
 ```bash
 aws s3 sync <old imports bucket> s3://tirocinium-imports
-scp /tmp/bree216-export/1.db ubuntu@tirocinium.sasellab.com:/tmp/
+scp -i ~/.ssh/tiro_key.pem /tmp/bree216-export/1.db \
+  ubuntu@tirocinium.sasellab.com:/tmp/
 ```
 
 On the host:
