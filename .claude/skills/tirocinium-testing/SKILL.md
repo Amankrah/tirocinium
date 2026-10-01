@@ -143,7 +143,7 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 577 collected and 573 passing with 4 skipped (21 course pack (decisions 0077, 0081, 0089), 54 marketplace (Phase 10: pricing and quote arithmetic,
+Python suite, 580 collected and 576 passing with 4 skipped (21 course pack (decisions 0077, 0081, 0089), 54 marketplace (Phase 10: pricing and quote arithmetic,
 the surfaces end to end), 25 data layer + 9 backup verification (9.4), 4 load
 (9.1), 37 security (9.2, incl. 3 on the raise-only redemption ceiling),
 16 case studies/concepts/courses,
@@ -212,7 +212,7 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (553 Vitest tests across 65 files: the token contract with its
+Web suite (554 Vitest tests across 65 files: the token contract with its
 computed-contrast assertion, the primitives, the API clients, the upload flow's
 pre-checks, orchestration controller, SSE processing model, and transcription
 preview, the PDF import upload, controller, and processing checklist (decision

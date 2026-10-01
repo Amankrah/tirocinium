@@ -11,7 +11,7 @@ export type LoginResult =
 
 export type SignupResult =
   | { ok: true; auth: Schemas["AuthOut"] }
-  | { ok: false; reason: "exists" | "invalid" | "unavailable" };
+  | { ok: false; reason: "exists" | "invalid" | "closed" | "unavailable" };
 
 // Login failure is the backend's one generic outcome (401, unknown email and
 // wrong password indistinguishable in body and timing); a backend outage is
@@ -60,6 +60,10 @@ export async function professorSignup(
     const auth = (await response.json()) as Schemas["AuthOut"];
     return { ok: true, auth };
   }
+  // A deployment that is not open for new accounts (decision 0091). Said
+  // as itself rather than folded into "unavailable", which would blame the
+  // connection for a deliberate setting.
+  if (response.status === 403) return { ok: false, reason: "closed" };
   if (response.status === 409) return { ok: false, reason: "exists" };
   if (response.status === 422) return { ok: false, reason: "invalid" };
   return { ok: false, reason: "unavailable" };

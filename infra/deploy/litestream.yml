@@ -1,0 +1,32 @@
+# Continuous replication of every course shard to S3 (backend guide section 3).
+#
+# Two standing rules travel with this file. Never run
+# `PRAGMA wal_checkpoint(TRUNCATE)` on a replicated shard: it breaks the shadow
+# WAL and the replica silently stops being restorable (decision 0008). And the
+# only sanctioned way to take a copy by hand is `VACUUM INTO` through
+# app.db.backup.snapshot_shard, which is what the restore drill exercises.
+access-key-id: ${TIRO_S3_ACCESS_KEY}
+secret-access-key: ${TIRO_S3_SECRET_KEY}
+
+dbs:
+  # The directory: users, courses, seats, and the catalogue pins. Small, and
+  # the one database whose loss would orphan every shard.
+  - path: /var/lib/tirocinium/data/directory.db
+    replicas:
+      - type: s3
+        bucket: tirocinium-backups
+        path: directory
+        region: ca-central-1
+        retention: 720h
+
+  # One course shard per file. Litestream takes a glob, so a course added
+  # later is replicated without editing this file: that matters because a new
+  # course appearing unbacked is exactly what verify_snapshots exists to catch,
+  # and it should never be able to happen in the first place.
+  - path: /var/lib/tirocinium/data/courses/*.db
+    replicas:
+      - type: s3
+        bucket: tirocinium-backups
+        path: courses
+        region: ca-central-1
+        retention: 720h

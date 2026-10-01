@@ -39,6 +39,11 @@ export const strings = {
     mismatch: "Those passwords do not match.",
     exists: "An account with this email already exists.",
     invalid: "Check the email and password and try again.",
+    // A closed deployment (decision 0091). Names the situation and points
+    // at the door that does work, because the person here is far more
+    // likely to already have an account than to have been locked out.
+    closed:
+      "This Tirocinium is not open for new accounts. If you already have one, sign in instead.",
     unavailable: "That did not work. Check your connection and try again.",
   },
   dashboard: {

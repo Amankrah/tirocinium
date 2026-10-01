@@ -171,3 +171,77 @@ def test_role_gates() -> None:
     with pytest.raises(HTTPException) as exc:
         require_admin(prof)
     assert exc.value.status_code == 403
+
+
+# decision 0091: a single-course deployment should not leave an open signup
+# page on a public hostname. The allowlist is configuration, so the same build
+# serves an open deployment and a closed one.
+def test_signup_is_open_when_no_allowlist_is_configured(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The default has to stay open, or every existing deployment and this
+    whole suite would change behaviour because of a setting nobody made."""
+    monkeypatch.delenv("TIRO_SIGNUP_ALLOWLIST", raising=False)
+    r = client.post(
+        "/api/v1/auth/signup",
+        json={"email": "anyone@example.edu", "password": "a-long-enough-password"},
+    )
+    assert r.status_code == 201, r.text
+
+
+def test_an_allowlist_admits_only_the_named_address(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("TIRO_SIGNUP_ALLOWLIST", "Ebenezer.Kwofie@McGill.CA")
+    refused = client.post(
+        "/api/v1/auth/signup",
+        json={"email": "someone.else@example.edu", "password": "a-long-enough-password"},
+    )
+    assert refused.status_code == 403, refused.text
+    assert "not open" in refused.json()["detail"]
+
+    # Case and surrounding space are not an access control: the address is
+    # compared lowercased and stripped on both sides.
+    allowed = client.post(
+        "/api/v1/auth/signup",
+        json={"email": "ebenezer.kwofie@mcgill.ca", "password": "a-long-enough-password"},
+    )
+    assert allowed.status_code == 201, allowed.text
+
+
+def test_a_closed_deployment_still_lets_the_existing_account_sign_in(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Closing the door is not revoking a key. An account that already exists
+    keeps working on its own credentials, whatever the list later says."""
+    monkeypatch.delenv("TIRO_SIGNUP_ALLOWLIST", raising=False)
+    created = client.post(
+        "/api/v1/auth/signup",
+        json={"email": "prof@example.edu", "password": "a-long-enough-password"},
+    )
+    assert created.status_code == 201
+
+    monkeypatch.setenv("TIRO_SIGNUP_ALLOWLIST", "someone.entirely.different@example.edu")
+    signed_in = client.post(
+        "/api/v1/auth/login",
+        json={"email": "prof@example.edu", "password": "a-long-enough-password"},
+    )
+    assert signed_in.status_code == 200, signed_in.text
+
+
+def test_a_refused_signup_writes_nothing_and_hashes_nothing(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The check runs before the Argon2id hash, so a closed deployment cannot
+    be made to burn CPU by anyone who can reach the endpoint."""
+    monkeypatch.setenv("TIRO_SIGNUP_ALLOWLIST", "only.me@example.edu")
+    r = client.post(
+        "/api/v1/auth/signup",
+        json={"email": "flood@example.edu", "password": "a-long-enough-password"},
+    )
+    assert r.status_code == 403
+    # And the address really was not created: it cannot now sign in.
+    assert client.post(
+        "/api/v1/auth/login",
+        json={"email": "flood@example.edu", "password": "a-long-enough-password"},
+    ).status_code == 401

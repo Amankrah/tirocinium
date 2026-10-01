@@ -1,0 +1,26 @@
+[Unit]
+Description=Tirocinium background worker
+After=network-online.target redis-server.service
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=tirocinium
+Group=tirocinium
+WorkingDirectory=/opt/tirocinium/app/apps/api
+EnvironmentFile=/etc/tirocinium/tirocinium.env
+ExecStart=/opt/tirocinium/app/apps/api/.venv/bin/arq app.worker.WorkerSettings
+Restart=always
+RestartSec=10
+# A pool fill can legitimately run for hours (decision 0090), so systemd must
+# not be the thing that decides it has hung. The per-function timeouts in
+# WorkerSettings are the real ceiling.
+TimeoutStopSec=120
+ReadWritePaths=/var/lib/tirocinium
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

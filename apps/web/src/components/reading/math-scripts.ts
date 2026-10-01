@@ -79,8 +79,8 @@ export function rehypeNativeScripts() {
     const walk = (node: HastNode) => {
       if (classList(node).includes("msupsub")) {
         const scripts = scriptsIn(node);
-        if (scripts.length === 1) {
-          const [script] = scripts;
+        const [script] = scripts;
+        if (scripts.length === 1 && script !== undefined) {
           node.tagName = script.kind;
           node.properties = {};
           node.children = [{ type: "text", value: script.text }];

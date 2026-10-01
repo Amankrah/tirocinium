@@ -48,6 +48,7 @@ export function SignUpForm() {
       }
       if (result.reason === "exists") setError(strings.signUp.exists);
       else if (result.reason === "invalid") setError(strings.signUp.invalid);
+      else if (result.reason === "closed") setError(strings.signUp.closed);
       else setError(strings.signUp.unavailable);
     } finally {
       setPending(false);

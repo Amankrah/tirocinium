@@ -107,6 +107,31 @@ prices and the band a struck price falls in, never a seat's own price, and a
 reviewed quotation is labelled by seat number joined in Python from the
 directory, exactly as the submission review does it.
 
+Deployment is one host, and the data layer decides that rather than taste
+(decision 0091). Shards are SQLite files with one writer each behind a
+serialized queue, Litestream ships their WAL, the worker holds jobs for hours,
+pdfium binds once per process, and the defence is a long-lived WebSocket: none
+of that survives a serverless host. `infra/deploy/` holds the units, the
+Caddyfile, the Litestream config, a provisioning script and the runbook. Run
+exactly one API process; a second races the writer and doubles the in-memory
+seat-redemption ceiling. Scale by putting courses on separate instances.
+
+Two traps there are worth carrying. `API_BASE_URL` is read both by the
+server-side fetches and by `lib/api/defence.ts`, which derives the defence
+WebSocket URL from it and hands that to the *browser*, so it must be the public
+origin and never the loopback. And `git lfs pull` is part of deploying, because
+an unfetched pointer reaching pdfium raises `PdfiumLibraryInternalError`, which
+reads like a decode bug and is not.
+
+Who may create an account is configuration: `TIRO_SIGNUP_ALLOWLIST`, empty
+meaning open so no existing deployment or test changes behaviour. The check
+runs before the Argon2id hash so a closed deployment cannot be made to burn
+cycles, the refusal is identical for every address not listed so it reports
+nothing about who exists, and closing the door never revokes a key: an existing
+account keeps signing in, because an operator editing a list must not silently
+lock one out. The account is still made through the product's own signup, which
+keeps decision 0077's "one way to make an account" intact.
+
 Variant generation is constrained, not asked (decision 0087). Both seams pass
 `output_config={"format": {"type": "json_schema", ...}}`; without it the
 current models answer a "return a single JSON object" prompt with a worked

@@ -1,0 +1,28 @@
+[Unit]
+Description=Tirocinium API
+After=network-online.target redis-server.service
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=tirocinium
+Group=tirocinium
+WorkingDirectory=/opt/tirocinium/app/apps/api
+EnvironmentFile=/etc/tirocinium/tirocinium.env
+# One process, deliberately. The shard layer keeps one writer per course and
+# the seat-redemption limiter counts in memory, so a second worker would both
+# race the writer and multiply the 10-per-hour ceiling by the worker count.
+# Scale by putting courses on separate instances, never by adding workers here.
+ExecStart=/opt/tirocinium/app/apps/api/.venv/bin/uvicorn app.main:create_app \
+  --factory --host 127.0.0.1 --port 8000 --workers 1
+Restart=always
+RestartSec=5
+# The data directory is the only thing this writes to.
+ReadWritePaths=/var/lib/tirocinium
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

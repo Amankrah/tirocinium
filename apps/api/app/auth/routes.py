@@ -13,6 +13,7 @@ from pydantic import BaseModel, EmailStr, Field
 from app.auth.deps import current_identity, get_shards
 from app.auth.models import AuthOut, Identity, ProfessorOut, Role
 from app.auth.passwords import DUMMY_HASH, hash_password, verify_password
+from app.auth.signup_policy import may_sign_up
 from app.auth.tokens import issue_token
 from app.db.shards import ShardManager
 from app.problems import Problem
@@ -51,7 +52,7 @@ def _issue(request: Request, user_id: int, email: str) -> AuthOut:
     "/signup",
     status_code=201,
     response_model=AuthOut,
-    responses={409: {"model": Problem}},
+    responses={403: {"model": Problem}, 409: {"model": Problem}},
 )
 async def signup(
     body: SignupIn,
@@ -59,6 +60,15 @@ async def signup(
     shards: Annotated[ShardManager, Depends(get_shards)],
 ) -> AuthOut:
     email = body.email.lower()
+    # Checked before anything is hashed or written, so a closed deployment
+    # spends nothing on a request it will refuse (decision 0091). The answer
+    # is the same for every address that is not on the list, so it says what
+    # it means without reporting whether an account happens to exist.
+    if not may_sign_up(email):
+        raise HTTPException(
+            status_code=403,
+            detail="This deployment is not open for new accounts.",
+        )
     password_hash = await asyncio.to_thread(hash_password, body.password)
     now = int(time.time())
 
