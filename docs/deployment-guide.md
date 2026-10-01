@@ -18,8 +18,9 @@ Budget about ninety minutes the first time, most of it waiting on builds.
 Have these in hand. Stopping halfway to find an API key is how a deploy ends
 up half configured.
 
-- An AWS account, and the ability to create S3 buckets, an IAM user, and an
-  EC2 instance.
+- An AWS account, and the ability to create S3 buckets and an IAM user, to
+  allocate an Elastic IP, and to attach a volume to the running instance.
+  The `aws` CLI configured locally, or the console and some patience.
 - Control of DNS for `sasellab.com`.
 - An Anthropic API key. The tutor, the handwriting reader and variant
   generation all need it.
@@ -27,6 +28,12 @@ up half configured.
 - The email address that will hold the only account: `ebenezer.kwofie@mcgill.ca`.
 - The machine that currently holds BREE 216's data, if you are moving the
   existing variant pool rather than regenerating it.
+
+The EC2 instance is already running (`i-0323067f24bbf4f3d`, `ca-central-1`), so
+step 1 verifies and repairs a host rather than creating one. The buckets in 1.1
+and 1.2 can be done whenever, but 1.3 is first on the host itself: the keypair
+the instance was launched with was briefly public, and nothing else there is
+worth doing until it is replaced.
 
 Optional, and fine to add later: Deepgram and Cartesia keys for spoken
 defences. Without them a defence runs as a typed session with caption replies,
@@ -81,61 +88,165 @@ aws iam create-access-key --user-name tirocinium-litestream
 **Keep the output.** The secret is shown once. It goes into the env file in
 step 4.
 
-### 1.3 The instance
+### 1.3 Rotate the key, before anything else
 
-- **Type:** `t3.small` is enough for one course. Choose `t3.medium` if you
-  expect the worker to generate variants while students are working.
-  `t4g.small` also works: pdfium has an arm64 build and the Rust extension
-  compiles from source, so ARM is supported, it just builds more slowly.
-- **Image:** Ubuntu 24.04 LTS.
-- **Storage:** the default root volume, plus a **20 GB gp3** volume. The second
-  volume is the only thing on the box whose loss matters.
-- **Security group:** inbound 80 and 443 from anywhere, 22 from your address
-  only. Nothing else. The API, Next and Redis all listen on loopback and are
-  reached only through Caddy.
-- **Elastic IP:** allocate one and associate it. Without it the address changes
-  on every stop and your DNS goes stale.
-- **Instance role:** optional but preferred, with read and write on the three
-  non-backup buckets. If you use one, leave the application's S3 keys empty in
-  step 4 and boto3 will find the role.
+`tiro_key` reached a public commit, and this instance is running with that key's
+public half in `~/.ssh/authorized_keys`. It is an open door until you replace
+it, and no other step in this guide is worth doing while that is true. Decision
+0092 has the reasoning.
 
-Mount the data volume:
+Make a new key on your laptop:
 
 ```bash
-sudo mkfs.ext4 /dev/nvme1n1          # confirm the device with lsblk first
+ssh-keygen -t ed25519 -f ~/.ssh/tiro_key_new -C tirocinium
+chmod 600 ~/.ssh/tiro_key_new
+```
+
+Install it using the old key, which still works:
+
+```bash
+ssh -i ~/.ssh/tiro_key.pem ubuntu@15.223.224.192 \
+  "cat >> ~/.ssh/authorized_keys" < ~/.ssh/tiro_key_new.pub
+```
+
+**Leave that terminal open.** In a second one, prove the new key works:
+
+```bash
+ssh -i ~/.ssh/tiro_key_new ubuntu@15.223.224.192 'echo in'
+```
+
+Only once that prints `in`, drop the leaked key's line:
+
+```bash
+ssh -i ~/.ssh/tiro_key_new ubuntu@15.223.224.192 \
+  "grep -v 'tiro_key' ~/.ssh/authorized_keys > /tmp/ak && mv /tmp/ak ~/.ssh/authorized_keys"
+```
+
+Editing the only file that grants you access, over the connection it grants, is
+the one step here that can lock you out of your own instance. The open session
+is the way back in if it goes wrong.
+
+**Check:** the old key is refused and the new one still works.
+
+```bash
+ssh -o BatchMode=yes -i ~/.ssh/tiro_key.pem ubuntu@<address> 'echo in'   # Permission denied
+ssh -o BatchMode=yes -i ~/.ssh/tiro_key_new ubuntu@<address> 'echo in'   # in
+```
+
+Then `rm ~/.ssh/tiro_key.pem`, and delete the `tiro_key` keypair in the EC2
+console so nothing can be launched with it again.
+
+Finally, read who has been in. The key was public for a window while this
+instance was already running:
+
+```bash
+ssh -i ~/.ssh/tiro_key_new ubuntu@<address> \
+  'last -F; sudo grep -i "Accepted" /var/log/auth.log'
+```
+
+**Expected:** your own logins, from your own address, and nothing else. If you
+find anything you cannot account for, terminate this instance and launch a
+replacement rather than cleaning it, because you cannot prove what was changed
+on a host someone else may have held. It carries nothing of value yet, which is
+what makes that cheap today and expensive after the course is loaded.
+
+Every `ssh` and `scp` from here on uses `-i ~/.ssh/tiro_key_new`.
+
+### 1.4 The instance
+
+It already exists, launched 1 October 2026. Its facts, which later steps refer
+back to:
+
+| | |
+|---|---|
+| Name | `tirocinium` |
+| Instance | `i-0323067f24bbf4f3d`, `t3.medium`, Ubuntu 24.04 |
+| Region and zone | `ca-central-1`, `ca-central-1b` |
+| Public IPv4 | `15.223.224.192`, auto-assigned (see below) |
+| Keypair | `tiro_key` |
+| Security group | `launch-wizard-11` |
+| IMDSv2 | required, which is the setting you want |
+
+A `t3.medium` is comfortable for one course, with room for the worker to
+generate variants while students are working.
+
+Four things were not settled at launch. Run these from your laptop with the AWS
+CLI, or do the equivalent in the console.
+
+**An Elastic IP.** The instance has an auto-assigned address, which it loses the
+first time it stops and starts. Two things downstream need the address to hold
+still: the DNS record, and the certificate Caddy gets for the name.
+
+```bash
+ALLOC=$(aws ec2 allocate-address --domain vpc --query AllocationId --output text)
+aws ec2 associate-address --instance-id i-0323067f24bbf4f3d --allocation-id "$ALLOC"
+aws ec2 describe-instances --instance-ids i-0323067f24bbf4f3d \
+  --query 'Reservations[].Instances[].PublicIpAddress' --output text
+```
+
+That last command prints the address the instance now answers on, and it will
+**not** be `15.223.224.192`: associating an Elastic IP replaces the auto-assigned
+address rather than promoting it. Use the printed address everywhere below, and
+expect your current SSH session to drop when it changes.
+
+**The security group.** `launch-wizard-11` is whatever the wizard made. It needs
+exactly three inbound rules: 80 and 443 from anywhere, and 22 from your address
+alone. The API, Next and Redis all listen on loopback and are reached only
+through Caddy, so nothing else has any reason to be open.
+
+```bash
+SG=$(aws ec2 describe-instances --instance-ids i-0323067f24bbf4f3d \
+  --query 'Reservations[].Instances[].SecurityGroups[].GroupId' --output text)
+aws ec2 describe-security-group-rules --filters Name=group-id,Values=$SG \
+  --query 'SecurityGroupRules[?!IsEgress].{port:FromPort,cidr:CidrIpv4}' --output table
+```
+
+**Check:** nothing inbound beyond 80, 443 and 22. If 22 stands open to
+`0.0.0.0/0`, narrow it now, because the key that opens it was briefly public.
+
+**An instance role, or explicit keys.** The instance has no IAM role attached.
+Either attach one with read and write on the three non-backup buckets, which is
+tidier and avoids long-lived secrets on the box, or leave it as is and put
+explicit S3 credentials in the env file at step 4. Choose one deliberately: with
+neither, every upload fails the same unhelpful way.
+
+**The data volume.** Shards live under `/var/lib/tirocinium`, and that must be a
+separate volume rather than the root disk, because the root disk dies with the
+instance. See what is actually attached:
+
+```bash
+ssh -i ~/.ssh/tiro_key_new ubuntu@<address> lsblk
+```
+
+If only the root device is there, create and attach one:
+
+```bash
+VOL=$(aws ec2 create-volume --size 20 --volume-type gp3 \
+  --availability-zone ca-central-1b --query VolumeId --output text)
+aws ec2 attach-volume --instance-id i-0323067f24bbf4f3d \
+  --volume-id "$VOL" --device /dev/sdf
+```
+
+Then, on the host:
+
+```bash
+lsblk                                  # confirm the device name before formatting
+sudo mkfs.ext4 /dev/nvme1n1
 sudo mkdir -p /var/lib/tirocinium
 echo "/dev/nvme1n1 /var/lib/tirocinium ext4 defaults,nofail 0 2" | sudo tee -a /etc/fstab
 sudo mount -a
 ```
 
-**Check:** `df -h /var/lib/tirocinium` shows the new volume, not the root one.
-Getting this wrong means the shards live on the root volume and are lost with
-the instance.
-
-### 1.4 The keypair
-
-Create the keypair when you launch the instance and download the `.pem`. Move it
-out of wherever your browser put it, straight to `~/.ssh`, and never into a
-checkout of this repository:
-
-```bash
-mv ~/Downloads/tiro_key.pem ~/.ssh/tiro_key.pem
-chmod 600 ~/.ssh/tiro_key.pem
-```
-
-SSH refuses a key that is group- or world-readable, so the `chmod` is not
-optional. Every `ssh` and `scp` in this guide takes `-i ~/.ssh/tiro_key.pem`.
-
-A key that has ever been public is compromised, and rewriting the history that
-carried it does not undo that: anything public is assumed captured the moment it
-lands. The remedy is a new keypair, never a cleaner history. Decision 0092 has
-the reasoning and the `.gitignore` rules that keep a key out of the tree.
+**Check:** `df -h /var/lib/tirocinium` names the new volume, not the root one.
+Getting this wrong puts every shard on a disk that is lost with the instance.
 
 ---
 
 ## 2. DNS
 
-Point `tirocinium.sasellab.com` at the Elastic IP with an A record.
+Point `tirocinium.sasellab.com` at the Elastic IP from step 1.3 with an A
+record. Use the Elastic IP, not `15.223.224.192`, which the instance stops
+answering on the moment the Elastic IP is associated.
 
 **Do this before step 6.** Caddy requests a certificate on first start, and if
 the name does not resolve yet the challenge fails and Caddy backs off for a
@@ -151,7 +262,7 @@ dig +short tirocinium.sasellab.com      # the Elastic IP, and nothing else
 
 ## 3. Provision the host
 
-SSH in with `ssh -i ~/.ssh/tiro_key.pem ubuntu@tirocinium.sasellab.com`, then:
+SSH in with `ssh -i ~/.ssh/tiro_key_new ubuntu@tirocinium.sasellab.com`, then:
 
 ```bash
 sudo apt-get update && sudo apt-get install -y git git-lfs
@@ -336,7 +447,7 @@ Move the figure bytes, then the shard:
 
 ```bash
 aws s3 sync <old imports bucket> s3://tirocinium-imports
-scp -i ~/.ssh/tiro_key.pem /tmp/bree216-export/1.db \
+scp -i ~/.ssh/tiro_key_new /tmp/bree216-export/1.db \
   ubuntu@tirocinium.sasellab.com:/tmp/
 ```
 
