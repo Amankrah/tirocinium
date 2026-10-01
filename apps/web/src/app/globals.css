@@ -31,9 +31,25 @@ body {
 
 /* Tabular lining figures shift KaTeX's own metrics: $N_A$ and $V_C$ then
    sit on the baseline as "NA" / "VC". Math keeps the fonts and figures
-   KaTeX shipped. */
+   KaTeX shipped. After KaTeX parses the TeX, native <sub>/<sup> carry the
+   scripts so a two-pixel vlist shift cannot be read as ANb. */
 .katex {
   font-variant-numeric: normal;
+  font-feature-settings: normal;
+}
+.reading-body .katex sub,
+.reading-body .katex sup {
+  font-family: inherit;
+  font-size: 0.7em;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+.reading-body .katex sub {
+  bottom: -0.35em;
+}
+.reading-body .katex sup {
+  top: -0.45em;
 }
 
 /* The reading body: the typeset case study (guide 3.2, 4.1). Hairline rhythm

@@ -10,6 +10,7 @@ import remarkMath from "remark-math";
 import { rehypeBreakDisplayChains } from "./display-math";
 import { FIG_PREFIX, type FigureMap } from "./figure";
 import { FigureImage } from "./figure-image";
+import { rehypeNativeScripts } from "./math-scripts";
 
 // The client twin of ProblemBody (decision 0014), for swapping a practice
 // variant in place without a navigation. It is lazy-loaded, so react-markdown
@@ -48,7 +49,12 @@ export function ClientProblemBody({
         // side and not the other is the server/client drift decision 0068
         // warns about, showing as a table that reformats itself mid-session.
         remarkPlugins={[remarkMath, remarkGfm]}
-        rehypePlugins={[rehypeShiftHeadings, rehypeBreakDisplayChains, rehypeKatex]}
+        rehypePlugins={[
+          rehypeShiftHeadings,
+          rehypeBreakDisplayChains,
+          rehypeKatex,
+          rehypeNativeScripts,
+        ]}
         urlTransform={(url) =>
           url.startsWith(FIG_PREFIX) ? url : defaultUrlTransform(url)
         }

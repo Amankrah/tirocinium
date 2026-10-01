@@ -8,6 +8,7 @@ import remarkMath from "remark-math";
 import { rehypeBreakDisplayChains } from "./display-math";
 import { FIG_PREFIX, type FigureMap } from "./figure";
 import { FigureImage } from "./figure-image";
+import { rehypeNativeScripts } from "./math-scripts";
 
 // The figure content model lives in `figure.ts` (decision 0066); re-exported
 // here because this is where the reading surfaces reach for it.
@@ -61,7 +62,12 @@ export function ProblemBody({
         // GFM sees the underscore first it can treat it as emphasis and the
         // letters land on the baseline as "NA" / "AV".
         remarkPlugins={[remarkMath, remarkGfm]}
-        rehypePlugins={[rehypeShiftHeadings, rehypeBreakDisplayChains, rehypeKatex]}
+        rehypePlugins={[
+          rehypeShiftHeadings,
+          rehypeBreakDisplayChains,
+          rehypeKatex,
+          rehypeNativeScripts,
+        ]}
         // Preserve the fig:// scheme (sanitized away by default), but keep the
         // default sanitizer for every other URL: a case study body can carry
         // untrusted transcribed text, and a javascript: link must never survive.

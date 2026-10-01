@@ -47,18 +47,31 @@ describe("ProblemBody", () => {
       <ProblemBody
         body={[
           "- Atomic mass $A_{\\mathrm{V}} = 50.94\\ \\mathrm{g/mol}$",
+          "- Atomic mass $A_{\\mathrm{Nb}} = 92.91\\ \\mathrm{g/mol}$",
           "- Avogadro's number $N_A = 6.023\\times10^{23}\\ \\mathrm{atoms/mol}$",
+          "where $V_C$ is the cell volume",
         ].join("\n")}
       />,
     );
     expect(container.querySelector(".katex-error")).toBeNull();
-    const subscripts = container.querySelectorAll(".msupsub");
-    expect(subscripts.length).toBeGreaterThanOrEqual(2);
+    const scripts = [...container.querySelectorAll("sub")].map(
+      (node) => node.textContent ?? "",
+    );
+    expect(scripts).toContain("V");
+    expect(scripts).toContain("Nb");
+    expect(scripts).toContain("A");
+    expect(scripts).toContain("C");
     const tex = [...container.querySelectorAll("annotation")]
       .map((node) => node.textContent ?? "")
       .join(" ");
     expect(tex).toContain("A_{\\mathrm{V}}");
     expect(tex).toMatch(/N_A/);
+  });
+
+  it("keeps a power as a superscript, not a dropped letter", () => {
+    const { container } = render(<ProblemBody body={"The edge is $a^3$."} />);
+    expect(container.querySelector(".katex-error")).toBeNull();
+    expect(container.querySelector("sup")?.textContent).toBe("3");
   });
 
   it("resolves a fig:// token to an image at its stored dimensions", () => {
