@@ -153,7 +153,7 @@ async def generate_variant(
     bases = {
         name: parameter.base for name, parameter in spec.parameters.items()
     }
-    generation_prompt = load_prompt("variant-generation", "v4")
+    generation_prompt = load_prompt("variant-generation", "v5")
     document = generation_document(
         body,
         authored_solution,

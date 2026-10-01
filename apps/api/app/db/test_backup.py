@@ -127,10 +127,20 @@ def test_empty_s3_credentials_mean_the_ambient_ones(monkeypatch: pytest.MonkeyPa
     assert _configured("TIRO_S3_SECRET_KEY", "tirocinium-dev") is None
 
 
-def test_real_s3_endpoint_drops_path_style_addressing(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_real_s3_endpoint_drops_path_style_addressing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """MinIO needs path-style addressing; AWS has been deprecating it. An
     empty endpoint means real AWS, so it must reach boto3 as None and leave
-    the addressing style alone; only a custom endpoint selects path-style."""
+    the addressing style alone; only a custom endpoint selects path-style.
+
+    The ambient AWS variables stand in for the instance role. They are set
+    here rather than left to the environment because an empty TIRO_S3 key is
+    precisely the instruction to go and resolve credentials elsewhere, and a
+    test that does that reads whatever the machine running it happens to have
+    configured."""
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "ambient")
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "ambient-secret")
     monkeypatch.setenv("TIRO_S3_ENDPOINT", "")
     monkeypatch.setenv("TIRO_S3_REGION", "ca-central-1")
     monkeypatch.setenv("TIRO_S3_ACCESS_KEY", "")
@@ -141,3 +151,17 @@ def test_real_s3_endpoint_drops_path_style_addressing(monkeypatch: pytest.Monkey
     client = cast(Any, s3_client_from_env())
     assert client.meta.region_name == "ca-central-1"
     assert client.meta.config.s3 in (None, {})
+    assert "amazonaws.com" in client.meta.endpoint_url
+    # The empty TIRO_S3 keys sent boto3 to the ambient credentials rather than
+    # signing with an empty string, which is the whole point of the change.
+    assert client._request_signer._credentials.access_key == "ambient"
+
+
+def test_custom_endpoint_keeps_path_style_for_minio(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The compose MinIO is reached by a custom endpoint and cannot serve
+    virtual-hosted requests, so that is the case that keeps path-style."""
+    monkeypatch.setenv("TIRO_S3_ENDPOINT", "http://localhost:9000")
+    client = cast(Any, s3_client_from_env())
+    assert client.meta.config.s3 == {"addressing_style": "path"}

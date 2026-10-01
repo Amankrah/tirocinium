@@ -121,6 +121,45 @@ describe("openFractionDenominators", () => {
     // Depth covers the drop and the inner fraction's own downward growth.
     expect(styleOf(holding.depth, "height")).toBeCloseTo(2.5);
   });
+
+  it("grows the parentheses with the fraction they enclose", () => {
+    const inner = fraction({
+      denomTop: -2,
+      numerTop: -4,
+      height: 1,
+      depth: 0.5,
+      denom: [span(undefined, undefined)],
+      numer: [span(undefined, undefined)],
+    });
+    const minner = span(["minner"], undefined, [
+      span(["mopen", "delimcenter"], "top:0em", [
+        span(["delimsizing", "size2"], undefined),
+      ]),
+      inner,
+      span(["mclose", "delimcenter"], "top:0em", [
+        span(["delimsizing", "size2"], undefined),
+      ]),
+    ]);
+    const outer = fraction({
+      denomTop: -2,
+      numerTop: -4,
+      height: 1.2,
+      depth: 1,
+      denom: [minner],
+      numer: [span(undefined, undefined)],
+    });
+    openFractionDenominators(outer);
+
+    const glyphs = [minner.children[0]?.children[0], minner.children[2]?.children[0]];
+    for (const glyph of glyphs) {
+      const style = glyph?.properties.style ?? "";
+      expect(style).toContain("display:inline-block");
+      expect(style).toContain("transform-origin:center");
+      // The fraction was 1.5em and grew by 0.9em; the bracket goes a little past that.
+      const scale = Number(/scaleY\(([\d.]+)\)/.exec(style)?.[1]);
+      expect(scale).toBeCloseTo((2.4 / 1.5) * 1.12, 2);
+    }
+  });
 });
 
 function denomTop(root: ParentNode): number {

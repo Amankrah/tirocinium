@@ -277,7 +277,7 @@ async def test_an_agreeing_variant_is_verified_with_full_provenance(
         )
     finally:
         conn.close()
-    assert str(row[8]) == "variant-generation/v4"
+    assert str(row[8]) == "variant-generation/v5"
     assert str(row[9]) == "variant-verification/v4"
     # The verifier saw the figures as pixels and only the variant's question.
     assert verifier.images == [[FIGURE_BYTES]]

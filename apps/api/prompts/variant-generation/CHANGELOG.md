@@ -73,3 +73,23 @@ sentence there was never going to match anything anyway.
 
 v4: a number with its unit, or a short standard name in its shortest form, and
 no entry at all for a part that asks why.
+
+## v5
+
+States that quantities belong in LaTeX. v4 never said so, and its own example
+of naming a unit was written as ordinary prose ("in nm", "in m^-3"), which the
+model reasonably copied: a question generated under v4 could end "Report your
+answer in g/cm^3 to four significant figures", and those nine characters are
+what the student sees, caret included. The base pack writes its quantities in
+math, so most variants inherited the right style from the content rather than
+from the prompt, which is why this surfaced only once v3 and v4 started asking
+the question to name its own units.
+
+v5 gives the rule and writes its examples in the notation it is asking for,
+since an example in the wrong notation outweighs a sentence in the right one.
+It also states the exception in the same breath: `final_answers` stays plain
+text, because the comparer reads digits rather than LaTeX and a dollar sign
+there is a mismatch rather than typography.
+
+No change to the generation contract, the figure rule, the answer-stated-once
+rule, or the hostile-text rule; those are v4's, word for word.

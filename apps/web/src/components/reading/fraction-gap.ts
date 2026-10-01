@@ -32,6 +32,12 @@ const DENOM_EM = 0.6;
 // the next line is drawn through the denominator.
 export const NESTED_FRACTION_EXTRA_DEPTH_EM = 2 * INNER_EM + DENOM_EM;
 
+// \left( \right) is sized before this clearance is added, so the parenthesis
+// then stops short of the numerator and the denominator. The glyph is scaled
+// to the fraction's new height, and a little past it: a bracket should clear
+// what it encloses.
+const DELIM_TIP = 0.12;
+
 type Growth = { up: number; down: number };
 
 const NONE: Growth = { up: 0, down: 0 };
@@ -139,25 +145,57 @@ function containsClass(node: HastNode, name: string): boolean {
 }
 
 // Returns how far this node's box grew above and below its previous edges.
-function grow(node: HastNode, insideFraction: boolean): Growth {
-  if (hasClass(node, "mfrac")) return open(node, insideFraction);
+function grow(node: HastNode, insideFraction: boolean, ancestors: HastNode[]): Growth {
+  if (hasClass(node, "mfrac")) return open(node, insideFraction, ancestors);
   let up = 0;
   let down = 0;
   for (const child of node.children ?? []) {
-    const grew = grow(child, insideFraction);
+    const grew = grow(child, insideFraction, [...ancestors, node]);
     up = Math.max(up, grew.up);
     down = Math.max(down, grew.down);
   }
   return { up, down };
 }
 
-function open(frac: HastNode, insideFraction: boolean): Growth {
+function delimiterGlyph(delim: HastNode): HastNode | null {
+  const walk = (node: HastNode): HastNode | null => {
+    if (hasClass(node, "delimsizing") || hasClass(node, "svg-align")) return node;
+    for (const child of node.children ?? []) {
+      const found = walk(child);
+      if (found) return found;
+    }
+    return null;
+  };
+  return walk(delim);
+}
+
+// The parenthesis KaTeX chose for the unopened fraction. Scaling the glyph
+// keeps the tips centred on the bar while the fraction grows past them.
+function stretchDelimiters(ancestors: HastNode[], grown: number, original: number) {
+  if (!(original > 0) || grown <= original) return;
+  const minner = [...ancestors].reverse().find((node) => hasClass(node, "minner"));
+  if (!minner) return;
+  const scale = (grown / original) * (1 + DELIM_TIP);
+  const rounded = Math.round(scale * 1000) / 1000;
+  for (const delim of elements(minner)) {
+    if (!hasClass(delim, "delimcenter")) continue;
+    const glyph = delimiterGlyph(delim);
+    if (!glyph) continue;
+    const styles = readStyle(glyph);
+    styles.set("display", "inline-block");
+    styles.set("transform", `scaleY(${rounded})`);
+    styles.set("transform-origin", "center");
+    writeStyle(glyph, styles);
+  }
+}
+
+function open(frac: HastNode, insideFraction: boolean, ancestors: HastNode[]): Growth {
   const parts = fractionParts(frac);
   if (!parts) return NONE;
 
-  const denomGrowth = grow(parts.denom, true);
-  const numerGrowth = grow(parts.numer, true);
-  if (parts.line) grow(parts.line, true);
+  const denomGrowth = grow(parts.denom, true, [...ancestors, frac]);
+  const numerGrowth = grow(parts.numer, true, [...ancestors, frac]);
+  if (parts.line) grow(parts.line, true, [...ancestors, frac]);
 
   // The denominator's contents may already have grown toward the bar. Drop the
   // whole denominator by that much so the original clearance survives, then
@@ -177,11 +215,15 @@ function open(frac: HastNode, insideFraction: boolean): Growth {
   addEm(parts.vlist, "height", heightGrow);
   if (parts.depth) addEm(parts.depth, "height", depthGrow);
 
+  const height = parseEm(readStyle(parts.vlist).get("height")) ?? 0;
+  const depth = parts.depth ? parseEm(readStyle(parts.depth).get("height")) ?? 0 : 0;
+  stretchDelimiters(ancestors, height + depth, height + depth - heightGrow - depthGrow);
+
   return { up: heightGrow, down: depthGrow };
 }
 
 export function openFractionDenominators(tree: HastNode) {
-  grow(tree, false);
+  grow(tree, false, []);
 }
 
 export function rehypeOpenFractionDenominators() {
