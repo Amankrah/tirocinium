@@ -14,7 +14,7 @@ Tests always use the recorded implementations.
 import json
 import os
 from pathlib import Path
-from typing import Protocol
+from typing import Any, Protocol
 
 from pydantic import BaseModel, Field
 
@@ -54,6 +54,46 @@ class ReSolveResult(BaseModel, frozen=True):
     final_answers: list[str] = Field(default_factory=list)
     input_tokens: int = 0
     output_tokens: int = 0
+
+
+# The shape each pass must return, enforced by the API rather than asked for in
+# the prompt (decision 0087). Both prompts already say "return a single JSON
+# object and nothing else", and the current models answer with a worked
+# solution in prose anyway: the reply is a thinking block with no text followed
+# by markdown, and `json.loads` fails on the first character. `output_config`
+# constrains the response instead of requesting it, so the parse cannot fail.
+#
+# Token counts are deliberately absent: they come from the provider's usage
+# block, not from the model, and asking it to invent them would be asking it to
+# report its own billing.
+_GENERATED_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "body_md": {"type": "string"},
+        "solution_md": {"type": "string"},
+        "final_answers": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["body_md", "solution_md", "final_answers"],
+    "additionalProperties": False,
+}
+
+_RESOLVED_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "solution_md": {"type": "string"},
+        "final_answers": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["solution_md", "final_answers"],
+    "additionalProperties": False,
+}
+
+
+def _json_format(schema: dict[str, object]) -> Any:
+    """The `output_config` for one schema. Typed `Any` deliberately: the SDK's
+    OutputConfigParam is a TypedDict union that a plain literal cannot satisfy
+    without importing provider types into this module, and this seam already
+    keeps the anthropic import inside the methods that call it."""
+    return {"format": {"type": "json_schema", "schema": schema}}
 
 
 def parse_generated(text: str) -> GeneratedVariant:
@@ -106,6 +146,7 @@ class AnthropicVariantGenerator:
                     ],
                 }
             ],
+            output_config=_json_format(_GENERATED_SCHEMA),
         )
         generated = parse_generated(_text_of(message))
         usage = getattr(message, "usage", None)
@@ -155,6 +196,7 @@ class AnthropicVariantVerifier:
             model=model_id,
             max_tokens=8192,
             messages=[{"role": "user", "content": blocks}],
+            output_config=_json_format(_RESOLVED_SCHEMA),
         )
         resolved = parse_resolved(_text_of(message))
         usage = getattr(message, "usage", None)

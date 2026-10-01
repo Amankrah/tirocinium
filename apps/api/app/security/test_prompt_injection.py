@@ -189,9 +189,9 @@ def test_every_untrusted_reading_prompt_states_that_text_is_data() -> None:
         ("pdf-page-transcription", "v1"),
         ("segmentation", "v1"),
         ("working-assessment", "v1"),
-        ("auto-parameterize", "v1"),
-        ("variant-generation", "v1"),
-        ("variant-verification", "v1"),
+        ("auto-parameterize", "v2"),
+        ("variant-generation", "v4"),
+        ("variant-verification", "v4"),
         ("defense-tutor", "v2"),
         # defense-rubric is deliberately absent: it is never sent alone. The
         # closing call carries the session's whole system prompt, persona and

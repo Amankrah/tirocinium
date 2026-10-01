@@ -115,11 +115,24 @@ describe("the understanding unfold", () => {
     );
   });
 
-  it("says why a step cannot be discussed when there is no submission to read", () => {
-    setup(unfold(), { defenceHref: null });
+  it("says once why a step cannot be discussed when there is no submission to read", () => {
+    setup(
+      unfold({
+        steps_revealed: 3,
+        total_steps: 3,
+        steps: [
+          { number: 1, markdown: "One" },
+          { number: 2, markdown: "Two" },
+          { number: 3, markdown: "Three" },
+        ],
+      }),
+      { defenceHref: null },
+    );
     expect(
-      screen.getByText("Talking about a step needs a submission the tutor can read."),
-    ).toBeTruthy();
+      screen.getAllByText(
+        "You can ask about a step once your own working has been read.",
+      ).length,
+    ).toBe(1);
     expect(screen.queryByRole("link", { name: "Ask the tutor about this step" })).toBeNull();
   });
 

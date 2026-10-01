@@ -37,6 +37,7 @@ from app.variants.model import (
     VariantVerifier,
 )
 from app.variants.sampling import SampledValue, sample_values
+from app.variants.solution import base_solution
 
 # The comparer's tolerances: generation and verification both state numeric
 # answers to at least four significant figures (their prompts require it), so
@@ -138,23 +139,13 @@ async def generate_variant(
         spec = ParamSpec.model_validate_json(
             decompress_text(conn, "problem_text", bytes(row[1]))
         )
-        item = conn.execute(
-            "SELECT solution_z FROM import_items"
-            " WHERE case_study_id = ? AND state = 'confirmed'"
-            " ORDER BY id DESC LIMIT 1",
-            (case_study_id,),
-        ).fetchone()
-        solution = (
-            None
-            if item is None or item[0] is None
-            else decompress_text(conn, "problem_text", bytes(item[0]))
-        )
+        solution = base_solution(conn, case_study_id)
         return body, spec, solution, existing is not None
 
     loaded = await shards.course_reads(course_id).run(load)
     if loaded is None:
         return "no_spec"
-    body, spec, base_solution, exists = loaded
+    body, spec, authored_solution, exists = loaded
     if exists:
         return "exists"
 
@@ -162,10 +153,10 @@ async def generate_variant(
     bases = {
         name: parameter.base for name, parameter in spec.parameters.items()
     }
-    generation_prompt = load_prompt("variant-generation", "v1")
+    generation_prompt = load_prompt("variant-generation", "v4")
     document = generation_document(
         body,
-        base_solution,
+        authored_solution,
         values,
         bases,
         spec.invariants,
@@ -178,7 +169,7 @@ async def generate_variant(
     # Deterministic fidelity checks before spending the verify call. A variant
     # that altered the figure tokens contradicts figures-are-pixels; one with
     # no final answers cannot be verified. Both flag, neither serves.
-    verification_prompt = load_prompt("variant-verification", "v1")
+    verification_prompt = load_prompt("variant-verification", "v4")
     flag_reason: str | None = None
     verify_solution: str | None = None
     verify_model_used: str | None = None

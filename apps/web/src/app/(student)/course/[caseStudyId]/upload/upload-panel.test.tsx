@@ -174,8 +174,11 @@ describe("UploadPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: "Send 1 page" }));
 
     await waitFor(() =>
-      expect(screen.getByText("Sent. We are reading your pages now.")).toBeDefined(),
+      expect(screen.getByRole("heading", { name: "Marking your solution" })).toBeDefined(),
     );
+    expect(screen.queryByText(/Write your solution here/)).toBeNull();
+    expect(screen.getByText("Checking the pages can be read")).toBeDefined();
+    expect(screen.getByText("Comparing your working with the solution")).toBeDefined();
     expect(create).toHaveBeenCalledWith(
       9,
       [{ content_type: "image/jpeg", size_bytes: 4 }],
@@ -206,7 +209,9 @@ describe("UploadPanel", () => {
       ),
     );
 
-    expect(screen.getByText("We have read all your pages.")).toBeDefined();
+    await waitFor(() =>
+      expect(screen.getByText("We have read all your pages.")).toBeDefined(),
+    );
     expect(screen.getByText("Page 1 read")).toBeDefined();
     expect(screen.getByRole("button", { name: "Start a new upload" })).toBeDefined();
   });
@@ -228,9 +233,11 @@ describe("UploadPanel", () => {
         processingState({ status: "processed", done: true, terminalStatus: "processed" }),
       ),
     );
-    expect(
-      screen.getByRole("link", { name: "Talk it through" }).getAttribute("href"),
-    ).toBe("/course/3/defence/42");
+    await waitFor(() =>
+      expect(
+        screen.getByRole("link", { name: "Talk it through" }).getAttribute("href"),
+      ).toBe("/course/3/defence/42"),
+    );
   });
 
   it("does not offer the defence when pages need a retake", async () => {

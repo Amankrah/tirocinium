@@ -7,6 +7,7 @@ import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 
+import { rehypeBreakDisplayChains } from "./display-math";
 import { FIG_PREFIX, type FigureMap } from "./figure";
 import { FigureImage } from "./figure-image";
 
@@ -46,8 +47,8 @@ export function ClientProblemBody({
         // same professor's markdown after a swap, and a plugin present on one
         // side and not the other is the server/client drift decision 0068
         // warns about, showing as a table that reformats itself mid-session.
-        remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeShiftHeadings, rehypeKatex]}
+        remarkPlugins={[remarkMath, remarkGfm]}
+        rehypePlugins={[rehypeShiftHeadings, rehypeBreakDisplayChains, rehypeKatex]}
         urlTransform={(url) =>
           url.startsWith(FIG_PREFIX) ? url : defaultUrlTransform(url)
         }

@@ -145,8 +145,8 @@ def seed_variant(
             " solution_z, verification, flag_reason, model_id, verify_model_id,"
             " generation_prompt_version, verification_prompt_version,"
             " verify_solution_z, created_at)"
-            " VALUES (?, ?, ?, ?, ?, ?, ?, 'm', 'm2', 'variant-generation/v1',"
-            " 'variant-verification/v1', ?, 0)",
+            " VALUES (?, ?, ?, ?, ?, ?, ?, 'm', 'm2', 'variant-generation/v4',"
+            " 'variant-verification/v4', ?, 0)",
             (
                 case_study_id,
                 seed,
@@ -266,7 +266,7 @@ def test_the_detail_read_serves_the_flagged_diff(
     assert body["verify_solution"] == "A different working."  # the re-solve's
     assert body["final_answers"] == ["2.553 mA"]
     assert body["values"] == {"rate": 0.06}
-    assert body["generation_prompt_version"] == "variant-generation/v1"
+    assert body["generation_prompt_version"] == "variant-generation/v4"
     assert body["verify_model_id"] == "m2"
 
 

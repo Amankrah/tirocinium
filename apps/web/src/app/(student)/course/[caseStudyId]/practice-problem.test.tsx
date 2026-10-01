@@ -22,6 +22,7 @@ function renderProblem(
     started_at: 1_700_000_000,
   })),
   pricesMaterials = false,
+  openSolution = vi.fn(async () => true),
 ) {
   // The swap hands back the variant with its figures already resolved
   // (decision 0066), since the resolve needs the seat token.
@@ -36,11 +37,12 @@ function renderProblem(
       pricesMaterials={pricesMaterials}
       swap={swap as never}
       startAttempt={startAttempt as never}
+      openSolution={openSolution}
     >
       <div>the first variant</div>
     </PracticeProblem>,
   );
-  return { swap, startAttempt };
+  return { swap, startAttempt, openSolution };
 }
 
 afterEach(() => {
@@ -49,42 +51,74 @@ afterEach(() => {
 });
 
 describe("PracticeProblem", () => {
-  it("shows the first variant and an upload link carrying its variant id", () => {
+  it("shows the first variant and one way in, which is start working", () => {
     renderProblem(12);
     expect(screen.getByText("the first variant")).toBeDefined();
-    const upload = screen.getByRole("link", { name: "Upload solution" });
-    expect(upload.getAttribute("href")).toBe("/course/2/upload?variant=12");
+    expect(screen.getByRole("button", { name: "Start working" })).toBeDefined();
+    expect(screen.queryByRole("link", { name: "Upload solution" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Upload solution" })).toBeNull();
+    expect(screen.getByRole("button", { name: "See the solution" })).toBeDefined();
   });
 
-  it("swaps in a new variant from the pool, excluding the current one", async () => {
-    const { swap } = renderProblem(12);
-    fireEvent.click(screen.getByRole("button", { name: "New variant" }));
-    await waitFor(() => expect(swap).toHaveBeenCalledWith(2, 12));
-    // The new body replaces the first, and upload now points at the new variant.
-    expect(await screen.findByText("a fresh variant")).toBeDefined();
+  it("opens the whole worked solution for the variant on screen", async () => {
+    const { openSolution } = renderProblem(12);
+    fireEvent.click(screen.getByRole("button", { name: "See the solution" }));
+    await waitFor(() => expect(openSolution).toHaveBeenCalledWith(12));
     await waitFor(() =>
-      expect(
-        screen.getByRole("link", { name: "Upload solution" }).getAttribute("href"),
-      ).toBe("/course/2/upload?variant=20"),
+      expect(push).toHaveBeenCalledWith("/course/2/solution/12"),
     );
   });
 
-  it("disables upload when there is no variant to file against", () => {
+  it("follows a swapped variant into its solution", async () => {
+    const { openSolution } = renderProblem(12);
+    fireEvent.click(screen.getByRole("button", { name: "New variant" }));
+    expect(await screen.findByText("a fresh variant")).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: "See the solution" }));
+    await waitFor(() => expect(openSolution).toHaveBeenCalledWith(20));
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/course/2/solution/20"),
+    );
+  });
+
+  it("says so when the solution does not open", async () => {
+    renderProblem(12, undefined, false, vi.fn(async () => false));
+    fireEvent.click(screen.getByRole("button", { name: "See the solution" }));
+    expect(
+      await screen.findByText("The solution did not open. Try again."),
+    ).toBeDefined();
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("swaps in a new variant from the pool, excluding the current one", async () => {
+    const { swap, startAttempt } = renderProblem(12);
+    fireEvent.click(screen.getByRole("button", { name: "New variant" }));
+    await waitFor(() => expect(swap).toHaveBeenCalledWith(2, 12));
+    // The new body replaces the first, and starting now files against it.
+    expect(await screen.findByText("a fresh variant")).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: "Start working" }));
+    await waitFor(() => expect(startAttempt).toHaveBeenCalledWith(20));
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/course/2/upload?variant=20&attempt=77"),
+    );
+  });
+
+  it("says why work cannot start when there is no variant to file against", () => {
     renderProblem(null);
+    expect(screen.queryByRole("button", { name: "Start working" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "See the solution" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Upload solution" })).toBeNull();
     expect(
-      screen.getByRole("button", { name: "Upload solution" }).hasAttribute("disabled"),
-    ).toBe(true);
+      screen.getByText(
+        "Uploading opens once your professor publishes a variant of this problem.",
+      ),
+    ).toBeDefined();
   });
 
   // The attempt span (guide 4.2, decision 0058). The start is an explicit act,
-  // the server holds the clock, and none of it ever gates uploading.
+  // the server holds the clock, and a failed start still opens the page.
   describe("the start-attempt moment", () => {
-    it("records a start and carries the attempt into the upload", async () => {
+    it("records a start and opens the writing page with that attempt", async () => {
       const { startAttempt } = renderProblem(12);
-      expect(screen.getByRole("link", { name: "Upload solution" }).getAttribute("href")).toBe(
-        "/course/2/upload?variant=12",
-      );
 
       fireEvent.click(screen.getByRole("button", { name: "Start working" }));
       await waitFor(() => expect(startAttempt).toHaveBeenCalledWith(12));
@@ -115,21 +149,20 @@ describe("PracticeProblem", () => {
     });
 
     it("drops the attempt when the student swaps to a fresh variant", async () => {
-      renderProblem(12);
+      const { startAttempt } = renderProblem(12);
       fireEvent.click(screen.getByRole("button", { name: "Start working" }));
       await waitFor(() =>
-        expect(
-          screen.getByRole("link", { name: "Upload solution" }).getAttribute("href"),
-        ).toBe("/course/2/upload?variant=12&attempt=77"),
+        expect(screen.queryByRole("button", { name: "Start working" })).toBeNull(),
       );
 
       fireEvent.click(screen.getByRole("button", { name: "New variant" }));
       // A new problem is a new attempt; time spent on the old one is not
-      // quietly credited to it.
+      // quietly credited to it. Starting again files against the new variant.
+      const again = await screen.findByRole("button", { name: "Start working" });
+      fireEvent.click(again);
+      await waitFor(() => expect(startAttempt).toHaveBeenLastCalledWith(20));
       await waitFor(() =>
-        expect(
-          screen.getByRole("link", { name: "Upload solution" }).getAttribute("href"),
-        ).toBe("/course/2/upload?variant=20"),
+        expect(push).toHaveBeenCalledWith("/course/2/upload?variant=20&attempt=77"),
       );
     });
   });
@@ -146,5 +179,55 @@ describe("PracticeProblem", () => {
     expect(
       screen.getByRole("link", { name: "Price your materials" }).getAttribute("href"),
     ).toBe("/course/2/marketplace?variant=12");
+  });
+});
+
+// decision 0088: a dry pool answers with the base problem and a null variant
+// id (the 5.4 pool invariant: never make the student wait). Swapping that in
+// would replace the problem with identical text and drop the variant id, which
+// hides "Start working" and leaves the student with a control that appears to
+// have broken the page.
+describe("PracticeProblem when the pool has nothing else to give", () => {
+  function renderDry() {
+    const swap = vi.fn(async () => ({
+      variant: { variant_id: null, body: "the base problem, unchanged" },
+      figures: {},
+    }));
+    render(
+      <PracticeProblem
+        caseStudyId={2}
+        initialVariantId={12}
+        pricesMaterials={false}
+        swap={swap as never}
+        startAttempt={vi.fn() as never}
+        openSolution={vi.fn(async () => true)}
+      >
+        <div>the first variant</div>
+      </PracticeProblem>,
+    );
+    return { swap };
+  }
+
+  it("keeps the problem and says why nothing changed", async () => {
+    const { swap } = renderDry();
+    fireEvent.click(screen.getByRole("button", { name: "New variant" }));
+    await waitFor(() => expect(swap).toHaveBeenCalledWith(2, 12));
+    expect(
+      await screen.findByText(/only version of this problem/i),
+    ).toBeDefined();
+    // What was on screen stays on screen rather than being replaced by the
+    // identical base text.
+    expect(screen.getByText("the first variant")).toBeDefined();
+  });
+
+  it("leaves the way into the work where it was", async () => {
+    const { swap } = renderDry();
+    expect(screen.getByRole("button", { name: "Start working" })).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: "New variant" }));
+    await waitFor(() => expect(swap).toHaveBeenCalled());
+    // Asking for another version must not cost the student the one control
+    // that starts the attempt.
+    expect(screen.getByRole("button", { name: "Start working" })).toBeDefined();
+    expect(screen.queryByText(/Uploading opens once/i)).toBeNull();
   });
 });

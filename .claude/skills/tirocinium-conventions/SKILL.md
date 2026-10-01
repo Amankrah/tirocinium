@@ -107,6 +107,35 @@ prices and the band a struck price falls in, never a seat's own price, and a
 reviewed quotation is labelled by seat number joined in Python from the
 directory, exactly as the submission review does it.
 
+Variant generation is constrained, not asked (decision 0087). Both seams pass
+`output_config={"format": {"type": "json_schema", ...}}`; without it the
+current models answer a "return a single JSON object" prompt with a worked
+solution in prose and every call dies in `json.loads`. The prompts are at v4
+each, and the three revisions after v1 are all about making two independent
+passes agree: state each result once (v2), let the *question* name the unit and
+letter its parts so both passes read the same instruction (v3), and keep prose
+out of `final_answers` entirely, since a part asking "why" has no comparable
+answer and answer_match only ever reads numbers (v4). Flag rate across those:
+every variant, a third, a few percent, none. If you add a pass that must agree
+with another, put what they agree about where both can see it.
+
+Worker jobs carry per-function timeouts (decision 0090). arq's default is 300
+seconds and `WorkerSettings` never set one, so a pool fill (one variant at a
+time by design, up to three times its target) was cancelled mid-fill and the
+pool could never reach the shipped default of twenty. It fails quietly: the
+shortfall reads as flagging rather than truncation. The four jobs have
+different shapes and different ceilings; do not collapse them to one global
+value.
+
+A parameter spec is pack content (decision 0089), validated at parse against
+the same ParamSpec the editor uses. Without it a pack loads a complete-looking
+course that silently never pre-generates anything, because publish enqueues a
+fill only when `param_spec_z` is set. And when authoring specs: never pair an
+identity with separately sampled numbers describing it. The sampler draws each
+number independently, so no draw describes a real material, and the generator
+resolves the contradiction by ignoring the seed. Let the identity be a choice
+and carry its own properties.
+
 The course pack (decision 0077) is the third way content reaches a course, beside
 the authoring UI and the PDF import pipeline, and it exists because a whole
 course arriving at once from a folder of tutorials and lecture decks is neither

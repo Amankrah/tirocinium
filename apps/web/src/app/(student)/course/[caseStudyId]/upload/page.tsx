@@ -67,7 +67,6 @@ export default async function UploadPage({
           <h1 className="font-display text-3xl">{caseStudy.title}</h1>
           <ProblemBody body={body} figures={figures} />
         </section>
-        <h2 className="font-display text-4xl">{strings.upload.title}</h2>
         <UploadPanel
           variantId={variantId}
           caseStudyId={caseId}

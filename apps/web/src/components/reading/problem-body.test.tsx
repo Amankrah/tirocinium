@@ -15,11 +15,50 @@ describe("ProblemBody", () => {
     expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
   });
 
+  it("breaks a display chain into lines instead of printing the TeX", () => {
+    const { container } = render(
+      <ProblemBody
+        body={[
+          "The cell volume is",
+          "",
+          "$$V_C = a^3 = \\frac{64R^3}{3\\sqrt{3}}$$",
+          "",
+          "The density of a crystal is",
+        ].join("\n")}
+      />,
+    );
+    const visible = container.querySelector(".katex-html")?.textContent ?? "";
+    const ann = container.querySelector("annotation")?.textContent ?? "";
+    expect(container.querySelector(".katex-error")).toBeNull();
+    expect(visible).not.toContain("aligned");
+    expect(ann).toContain("\\begin{aligned}");
+    expect(container.querySelector(".mtable")).not.toBeNull();
+  });
+
   it("typesets math via KaTeX on the server", () => {
     const { container } = render(
       <ProblemBody body={"Euler said $e^{i\\pi} + 1 = 0$."} />,
     );
     expect(container.querySelector(".katex")).not.toBeNull();
+  });
+
+  it("keeps the subscript on atomic mass and Avogadro's number", () => {
+    const { container } = render(
+      <ProblemBody
+        body={[
+          "- Atomic mass $A_{\\mathrm{V}} = 50.94\\ \\mathrm{g/mol}$",
+          "- Avogadro's number $N_A = 6.023\\times10^{23}\\ \\mathrm{atoms/mol}$",
+        ].join("\n")}
+      />,
+    );
+    expect(container.querySelector(".katex-error")).toBeNull();
+    const subscripts = container.querySelectorAll(".msupsub");
+    expect(subscripts.length).toBeGreaterThanOrEqual(2);
+    const tex = [...container.querySelectorAll("annotation")]
+      .map((node) => node.textContent ?? "")
+      .join(" ");
+    expect(tex).toContain("A_{\\mathrm{V}}");
+    expect(tex).toMatch(/N_A/);
   });
 
   it("resolves a fig:// token to an image at its stored dimensions", () => {

@@ -8,6 +8,7 @@ import { startAttempt } from "@/lib/api/attempts";
 import type { Schemas } from "@/lib/api/client";
 import { resolveFigures } from "@/lib/api/figures";
 import { getPracticeVariant } from "@/lib/api/practice";
+import { revealThrough } from "@/lib/api/unfold";
 import { requireSeat } from "@/lib/seat-session";
 
 // The swapped variant travels with its figures already resolved, because the
@@ -45,4 +46,14 @@ export async function startAttemptAction(
 ): Promise<Schemas["AttemptOut"] | null> {
   const { token } = await requireSeat();
   return startAttempt(token, variantId);
+}
+
+// Temporary (decision 0085). The reveal target is the API's own ceiling, and
+// the server clamps it to the last step, so one call opens the whole worked
+// solution. A first open without a submission still records giving up, which
+// is the unfold's existing rule and carries no mastery penalty.
+export async function openWholeSolutionAction(variantId: number): Promise<boolean> {
+  const { token, seat } = await requireSeat();
+  const unfold = await revealThrough(token, seat.course_id, variantId, 1000);
+  return unfold !== null;
 }

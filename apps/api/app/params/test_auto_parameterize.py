@@ -242,7 +242,7 @@ def test_a_proposal_returns_a_draft_spec_with_annotations(
         "Keeps the decision from flipping unintentionally."
     ]
     assert body["frozen"] == []
-    assert body["provenance"]["prompt_version"] == "auto-parameterize/v1"
+    assert body["provenance"]["prompt_version"] == "auto-parameterize/v2"
     # The proposal is stored with provenance, compressed.
     conn = connect(tmp_path / "courses" / f"{course_id}.db")
     try:
@@ -256,7 +256,7 @@ def test_a_proposal_returns_a_draft_spec_with_annotations(
         assert "discount_rate" in decompress_text(
             conn, "problem_text", bytes(row[0])
         )
-        assert str(row[2]) == "auto-parameterize/v1"
+        assert str(row[2]) == "auto-parameterize/v2"
     finally:
         conn.close()
     # Nothing was saved as the spec: the proposal is a draft, the professor

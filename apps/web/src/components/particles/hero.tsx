@@ -16,7 +16,27 @@ const ParticleField = dynamic(
   { ssr: false },
 );
 
-export function ParticleHero({ children }: { children: ReactNode }) {
+// `behind` is the landing: the field fills the hero and the copy sits on it.
+// `end` is the course greeting, which is one line of text: the same field sits
+// in a box beside that line, so the curve does not cross the letters.
+export function ParticleHero({
+  align = "behind",
+  children,
+}: {
+  align?: "behind" | "end";
+  children: ReactNode;
+}) {
+  if (align === "end") {
+    return (
+      <div className="flex items-center gap-6 py-6">
+        <div className="min-w-0 flex-1">{children}</div>
+        <div className="relative isolate h-24 w-28 shrink-0 overflow-hidden sm:h-28 sm:w-44">
+          <ParticleField />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative isolate">
       <ParticleField />

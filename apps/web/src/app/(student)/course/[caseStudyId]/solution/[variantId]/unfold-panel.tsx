@@ -78,6 +78,10 @@ export function UnfoldPanel({
         {s.progress(unfold.steps_revealed, unfold.total_steps)}
       </p>
 
+      {defenceHref ? null : (
+        <p className="text-sm text-ink-muted">{s.askUnavailable}</p>
+      )}
+
       <ol className="flex flex-col gap-6">
         {unfold.steps.map((step) => (
           <li key={step.number} className="flex flex-col gap-2">
@@ -96,9 +100,7 @@ export function UnfoldPanel({
               >
                 {s.ask}
               </Link>
-            ) : (
-              <span className="text-xs text-ink-muted">{s.askUnavailable}</span>
-            )}
+            ) : null}
           </li>
         ))}
       </ol>

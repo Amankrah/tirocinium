@@ -50,6 +50,7 @@ from app.params.schema import ParamSpec
 from app.problems import Problem
 from app.prompts import load_prompt
 from app.storage import ObjectStorage, get_object_storage
+from app.variants.solution import base_solution
 
 router = APIRouter(
     prefix="/api/v1/courses/{course_id}/case-studies/{case_study_id}",
@@ -244,17 +245,7 @@ async def auto_parameterize(
         # The confirmed item this case study was born from holds the solution;
         # a hand-authored case study has none. Confirmed content only: staged
         # items never feed a proposal.
-        item = conn.execute(
-            "SELECT solution_z FROM import_items"
-            " WHERE case_study_id = ? AND state = 'confirmed'"
-            " ORDER BY id DESC LIMIT 1",
-            (case_study_id,),
-        ).fetchone()
-        solution = (
-            None
-            if item is None or item[0] is None
-            else decompress_text(conn, "problem_text", bytes(item[0]))
-        )
+        solution = base_solution(conn, case_study_id)
         return body, solution
 
     content = await shards.course_reads(course_id).run(load_content)
@@ -305,7 +296,7 @@ async def auto_parameterize(
             if value not in frozen_values:
                 frozen_values.append(value)
 
-    prompt = load_prompt("auto-parameterize", "v1")
+    prompt = load_prompt("auto-parameterize", "v2")
     document = proposal_document(body, solution, frozen_values)
     proposal = await proposer.propose(
         document, prompt.text, model_id=DEFAULT_PROPOSAL_MODEL

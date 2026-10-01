@@ -9,7 +9,11 @@ import { getPracticeVariant } from "@/lib/api/practice";
 import { requireSeat } from "@/lib/seat-session";
 import { StudentShell } from "../../student-shell";
 import { strings } from "../../strings";
-import { getPracticeVariantAction, startAttemptAction } from "./actions";
+import {
+  getPracticeVariantAction,
+  openWholeSolutionAction,
+  startAttemptAction,
+} from "./actions";
 import { PracticeProblem } from "./practice-problem";
 
 // The problem view (guide 4.1): the current pooled variant typeset in the reading
@@ -93,6 +97,7 @@ export default async function ProblemViewPage({
           pricesMaterials={pricesMaterials}
           swap={getPracticeVariantAction}
           startAttempt={startAttemptAction}
+          openSolution={openWholeSolutionAction}
         >
           <ProblemBody body={body} figures={figures} />
         </PracticeProblem>

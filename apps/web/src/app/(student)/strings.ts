@@ -21,7 +21,25 @@ export const strings = {
     greeting: (seatNumber: string, courseTitle: string) =>
       `Seat ${seatNumber}, welcome to ${courseTitle}.`,
     empty: "Your case studies will appear here as your professor publishes them.",
-    notAttempted: "Not attempted yet",
+    heading: "Problems",
+    count: (count: number) => (count === 1 ? "1 problem" : `${count} problems`),
+    countInTopic: (count: number, topic: string) =>
+      count === 1 ? `1 problem in ${topic}` : `${count} problems in ${topic}`,
+    countOf: (count: number, catalogue: number) => `${count} of ${catalogue}`,
+    searchLabel: "Find a problem",
+    searchPlaceholder: "Title or topic",
+    searchAction: "Search",
+    clearSearch: "Clear search",
+    topicsLabel: "Topics",
+    allTopics: "All topics",
+    noTopic: "No topic",
+    noMatches: "Nothing matched that. Try another topic, or a broader search.",
+    also: (names: string) => `Also ${names}`,
+    range: (from: number, to: number, total: number) => `${from} to ${to} of ${total}`,
+    pageStatus: (page: number, pages: number) => `Page ${page} of ${pages}`,
+    previous: "Previous",
+    next: "Next",
+    pagination: "Problem pages",
   },
   // The mastery picture (mastery spec 4.5 and 9). A label is never shown bare:
   // it always resolves, on tap, to the plain-language evidence trail the model
@@ -53,23 +71,33 @@ export const strings = {
   problem: {
     backToCourse: "Back to course",
     concepts: "Concepts",
-    // The action rail (guide 4.1): a fresh pooled variant, or upload a solution
-    // for the current one. Upload needs a variant to file against, which the
-    // pool provides once a case study is parameterized and published.
+    // The action rail (guide 4.1, decision 0084): a fresh pooled variant, or
+    // start working on the current one. Starting opens the page where the
+    // solution is written or added, so that page is not also a second button.
+    // It needs a variant to file against, which the pool provides once a case
+    // study is parameterized and published.
     newVariant: "New variant",
+    // Asking for another version when the pool has none to give (decision 0088).
+    // Said plainly, because the alternative is a button that appears to do
+    // nothing: the problem is unchanged and the student is owed the reason.
+    onlyVariant:
+      "This is the only version of this problem so far. Your professor's others are still being prepared.",
     // The "start attempt" moment (guide 4.2, decision 0058). Honest about what
     // it does and what it is for: the record is the student's own, and it is
     // what makes their effort visible rather than a stopwatch judging them.
     startAttempt: "Start working",
     attemptStarted:
       "We noted when you started. Your work will show the time you spent on it.",
-    upload: "Upload solution",
     uploadNeedsVariant:
       "Uploading opens once your professor publishes a variant of this problem.",
     // The marketplace entry (Phase 10). Shown only when the course prices
     // materials, because most courses do not, and an always-present link to a
     // surface that answers "not here" would be a worse answer than silence.
     price: "Price your materials",
+    // Temporary (decision 0085): opens the whole worked solution in one step,
+    // so the author can check a problem while testing. Remove with that decision.
+    seeSolution: "See the solution",
+    seeSolutionFailed: "The solution did not open. Try again.",
   },
   // The materials marketplace (decision 0076). Prices are struck for this
   // student's own problem, which the copy says plainly in one place rather than
@@ -171,6 +199,14 @@ export const strings = {
   // refusal.
   upload: {
     title: "Upload your solution",
+    sendingTitle: "Sending your solution",
+    // Once the pages are in, the worker checks they can be read, reads the
+    // handwriting, then compares the working with the solution (pipeline, then
+    // evidence emission). The heading names that, so the upload instructions
+    // do not stay on screen as if nothing had been sent.
+    markingTitle: "Marking your solution",
+    // The result of that read. The outcome sentence under it says which.
+    resultTitle: "Your solution",
     back: "Back to the problem",
     question: "The problem",
     intro:
@@ -209,6 +245,12 @@ export const strings = {
     statusUploading: "Sending your pages…",
     statusFailed: "Some pages did not send. Retry them, then send again.",
     statusProcessing: "Sent. We are reading your pages now.",
+    // The four things that actually happen after send, in order. Shown as a
+    // list with the current one named, not as a single "reading" line.
+    stepSent: "Pages sent",
+    stepChecking: "Checking the pages can be read",
+    stepReading: "Reading your handwriting",
+    stepComparing: "Comparing your working with the solution",
     statusError: "That did not go through. Check your connection and try again.",
     // The processing stream (guide 4.1, step 4): per-page progress, then the
     // outcome. A rejected page's message is worded to read after "Page N".
@@ -247,9 +289,12 @@ export const strings = {
     stepLabel: (n: number) => `Step ${n}`,
     next: "Show the next step",
     complete: "That is the whole solution.",
-    // Guide 4.2: a revealed step goes straight into the conversation.
+    // Guide 4.2: a revealed step goes straight into the conversation, and only
+    // once this seat has a processed submission for the variant. Said once for
+    // the whole solution: repeating it under every step reads as a comment on
+    // the mathematics.
     ask: "Ask the tutor about this step",
-    askUnavailable: "Talking about a step needs a submission the tutor can read.",
+    askUnavailable: "You can ask about a step once your own working has been read.",
     failed: "That did not open. Try again.",
     unavailable: "This solution is not available.",
   },

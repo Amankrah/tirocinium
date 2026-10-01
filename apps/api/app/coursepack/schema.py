@@ -25,7 +25,7 @@ import json
 import re
 from functools import cache
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -122,6 +122,21 @@ class PackQuestion(BaseModel):
     # narrows and never restricts: a student may still quote any line in the
     # catalogue, because deciding a material is wrong is the exercise.
     shortlist: list[str] = Field(default_factory=list)
+    # The reviewed parameter specification (milestone 5.1), if this question is
+    # parameterized. It belongs in the pack for the same reason the worked
+    # solution does: it is content the professor disposed of, and without it a
+    # pack loaded on another machine is a course with no variant pool at all.
+    # Validated against the real ParamSpec at parse time, so a spec the
+    # param-spec PUT would refuse never reaches a shard.
+    param_spec: dict[str, Any] | None = None
+
+    @model_validator(mode="after")
+    def _param_spec_is_valid(self) -> "PackQuestion":
+        if self.param_spec is not None:
+            from app.params.schema import ParamSpec
+
+            ParamSpec.model_validate(self.param_spec)
+        return self
 
     @model_validator(mode="after")
     def _figures_match_the_tokens(self) -> "PackQuestion":

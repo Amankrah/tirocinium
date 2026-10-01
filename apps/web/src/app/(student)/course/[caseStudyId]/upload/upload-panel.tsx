@@ -81,6 +81,50 @@ function rejectionLine(r: Rejection): string {
   return s.rejectedEmpty(r.name);
 }
 
+// What the worker is doing, in the order it actually does it. "sent" is done
+// the moment the pages have left the device. Checking is the preprocess pass,
+// reading is the transcription, and comparing is the answer and working check
+// that runs once the pages have been read.
+type MarkingStep = "checking" | "reading" | "comparing";
+
+const MARKING_STEPS: { id: "sent" | MarkingStep; label: string }[] = [
+  { id: "sent", label: s.stepSent },
+  { id: "checking", label: s.stepChecking },
+  { id: "reading", label: s.stepReading },
+  { id: "comparing", label: s.stepComparing },
+];
+
+function markingStep(processing: ProcessingState | null): MarkingStep {
+  if (processing?.terminalStatus === "processed") return "comparing";
+  if (processing && processing.pages.length > 0) return "reading";
+  return "checking";
+}
+
+function MarkingSteps({ current }: { current: MarkingStep }) {
+  const order = ["sent", "checking", "reading", "comparing"] as const;
+  const currentAt = order.indexOf(current);
+  return (
+    <section aria-live="polite" aria-busy="true" className="flex flex-col gap-3">
+      <ol className="flex flex-col gap-2">
+        {MARKING_STEPS.map((step, index) => {
+          const state = index < currentAt ? "done" : index === currentAt ? "current" : "waiting";
+          return (
+            <li
+              key={step.id}
+              aria-current={state === "current" ? "step" : undefined}
+              className={
+                state === "current" ? "text-sm font-medium text-ink" : "text-sm text-ink-muted"
+              }
+            >
+              {step.label}
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+}
+
 export function UploadPanel({
   variantId,
   caseStudyId,
@@ -113,6 +157,10 @@ export function UploadPanel({
   const [processing, setProcessing] = useState<ProcessingState | null>(null);
   const [transcription, setTranscription] =
     useState<Schemas["TranscriptionOut"] | null>(null);
+  // The read is back, whether or not a transcription came with it. Until then
+  // the comparing step stays current: that is when the worker checks the
+  // answer and the working, after the pages have been read.
+  const [markingSettled, setMarkingSettled] = useState(false);
   const controllerRef = useRef<UploadController | null>(null);
   const subscriptionRef = useRef<ProcessingSubscription | null>(null);
 
@@ -215,6 +263,7 @@ export function UploadPanel({
         if (state.terminalStatus === "processed") {
           void fetchTranscription(submissionId).then((result) => {
             if (result) setTranscription(result);
+            setMarkingSettled(true);
           });
         }
       });
@@ -228,6 +277,7 @@ export function UploadPanel({
     setUpload(null);
     setProcessing(null);
     setTranscription(null);
+    setMarkingSettled(false);
     setRejections([]);
     setPages([]);
   };
@@ -235,9 +285,8 @@ export function UploadPanel({
   // While uploading, the upload phase drives the line; once sent, the worker's
   // stream does.
   const statusLine = useMemo(() => {
-    if (processing) return null;
+    if (processing || upload?.phase === "submitted") return null;
     if (!upload) return null;
-    if (upload.phase === "submitted") return s.statusProcessing;
     if (upload.phase === "error")
       return upload.pages.some((p) => p.status === "failed")
         ? s.statusFailed
@@ -245,12 +294,30 @@ export function UploadPanel({
     return s.statusUploading;
   }, [upload, processing]);
 
+  const sent = upload?.phase === "submitted";
+  const showingResult =
+    processing !== null &&
+    (processing.error ||
+      (processing.done &&
+        (processing.terminalStatus !== "processed" || markingSettled)));
+  const marking =
+    (sent || processing !== null) && !showingResult && upload?.phase !== "error";
+  const sending = locked && !sent && upload?.phase !== "error";
+  const heading = sending
+    ? s.sendingTitle
+    : marking
+      ? s.markingTitle
+      : showingResult
+        ? s.resultTitle
+        : s.title;
+
   const progressFor = (index: number) =>
     upload?.pages.find((p) => p.index === index);
 
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-ink-muted">{s.intro}</p>
+      <h2 className="font-display text-4xl">{heading}</h2>
+      {!locked ? <p className="text-ink-muted">{s.intro}</p> : null}
 
       {!locked ? (
         <div className="flex flex-col gap-4">
@@ -333,9 +400,9 @@ export function UploadPanel({
         </ul>
       ) : null}
 
-      {pages.length === 0 ? (
+      {pages.length === 0 && !locked ? (
         <p className="text-sm text-ink-muted">{s.empty}</p>
-      ) : (
+      ) : pages.length === 0 ? null : (
         <ol className="flex flex-col gap-3">
           {pages.map((page, index) => {
             const prog = progressFor(index);
@@ -361,7 +428,7 @@ export function UploadPanel({
                   {page.blurry && !prog ? (
                     <span className="text-xs text-flag-amber">{s.blurry}</span>
                   ) : null}
-                  {prog ? (
+                  {prog && !sent ? (
                     <progress
                       value={prog.fraction}
                       max={1}
@@ -414,12 +481,17 @@ export function UploadPanel({
         </ol>
       )}
 
-      <div aria-live="polite" className="min-h-6 text-sm text-ink-muted">
-        {statusLine}
-      </div>
+      {statusLine ? (
+        <div aria-live="polite" className="text-sm text-ink-muted">
+          {statusLine}
+        </div>
+      ) : null}
+
+      {marking ? <MarkingSteps current={markingStep(processing)} /> : null}
 
       {processing ? (
         <section aria-live="polite" className="flex flex-col gap-3">
+          {showingResult ? (
           <p className="text-sm text-ink">
             {processing.terminalStatus === "processed"
               ? s.processed
@@ -429,8 +501,9 @@ export function UploadPanel({
                   ? s.processFailed
                   : processing.error
                     ? s.streamLost
-                    : s.reading}
+                    : null}
           </p>
+          ) : null}
           {processing.pages.length > 0 ? (
             <ul className="flex flex-col gap-1">
               {processing.pages.map((p) => (
@@ -450,16 +523,19 @@ export function UploadPanel({
               ))}
             </ul>
           ) : null}
-          {transcription ? (
+          {showingResult && transcription ? (
             <TranscriptionPreview
               pages={transcription.pages}
               thumbnails={pages.map((p) => p.previewUrl)}
             />
           ) : null}
+          {showingResult ? (
           <div className="flex flex-wrap gap-3">
             {/* The defence is offered once the work has been read, and never
                 gates the submission (guide 4.2): the scan stands on its own. */}
-            {processing.terminalStatus === "processed" && submissionId !== null ? (
+            {processing.terminalStatus === "processed" &&
+            markingSettled &&
+            submissionId !== null ? (
               <Link
                 href={`/course/${caseStudyId}/defence/${submissionId}`}
                 className="inline-flex items-center justify-center rounded-md bg-accent px-4 py-2 font-medium text-on-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
@@ -473,6 +549,7 @@ export function UploadPanel({
               </Button>
             ) : null}
           </div>
+          ) : null}
         </section>
       ) : null}
 

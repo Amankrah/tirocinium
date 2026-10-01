@@ -436,3 +436,46 @@ states 32.6 wt% B where an independent solve of its own two lever rules gives
 32.2. The L4 brass curve carries its answers as printed annotations because no
 clean copy exists. The L6 tacticity question has a prose reference rather than a
 drawn one.
+
+## Parameterization
+
+Sixty of the seventy questions carry a reviewed parameter spec and a
+pre-generated variant pool (decisions 0087 and 0089). The other ten have
+nothing to vary: the two Miller-indices questions whose answer is in the
+figure, the Hume-Rothery table, the eight-alloy phases question, the tacticity
+sketch, the polyester question, and the three selection questions whose answer
+is an argument rather than a number. They serve their base question, which is
+what the pool read falls back to.
+
+The specs came from the platform's own auto-parameterization pass and were
+reviewed before any of them was saved. Two were rejected outright: the brass
+stress-strain question, because only one parameter survived the figure-frozen
+check and the figure already prints two of its four answers, and the first
+hypothetical-eutectic question, because its stated answer could not be
+reproduced from its own lever rules and every variant would have been verified
+against a method that disagrees with the source.
+
+Eleven more were rewritten rather than accepted. Each had paired an identity
+with numbers describing it: a metal alongside a separately sampled density and
+atomic weight, a compound alongside its own ionic radii. The sampler draws
+each number independently, so no draw describes a real material, and the
+generator resolved the contradiction by ignoring the seed and emitting a real
+element instead. One such variant came back as a verbatim duplicate of another
+question in this pack. In every case the fix was the same: let the identity
+carry its own properties, as a choice the sampler picks and the generator
+looks up.
+
+Where an identity drives the variation, the option list is what bounds how
+many distinct variants exist. Five lists were extended for that reason. Two
+were deliberately left short: `l2-ti-6al-4v-density` at five alloy
+designations and `l4-titanium-maximum-length` at four, because extending them
+means inventing titanium alloys, and a fictional alloy in a materials course
+is worse than a smaller pool.
+
+Fifty-four questions reached the target of ten servable variants. Six did not
+and are listed here honestly rather than quietly: the activation energy and
+the eutectic-solder questions at eight, the CsI structure at seven, and the
+poly(methyl methacrylate), magnesium-lead cooling and half-melted-solder
+questions at one or two, which simply had not come up before the run was
+stopped. Seven or eight distinct variants is a usable pool; one is the base
+question only.

@@ -5,6 +5,7 @@ import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 
+import { rehypeBreakDisplayChains } from "./display-math";
 import { FIG_PREFIX, type FigureMap } from "./figure";
 import { FigureImage } from "./figure-image";
 
@@ -56,8 +57,11 @@ export function ProblemBody({
           react-markdown's default sanitizer on every non-fig URL, which is
           what a body carrying transcribed student text depends on. */}
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeShiftHeadings, rehypeKatex]}
+        // Math before GFM: $N_A$ and $A_{\mathrm{V}}$ are TeX subscripts. If
+        // GFM sees the underscore first it can treat it as emphasis and the
+        // letters land on the baseline as "NA" / "AV".
+        remarkPlugins={[remarkMath, remarkGfm]}
+        rehypePlugins={[rehypeShiftHeadings, rehypeBreakDisplayChains, rehypeKatex]}
         // Preserve the fig:// scheme (sanitized away by default), but keep the
         // default sanitizer for every other URL: a case study body can carry
         // untrusted transcribed text, and a javascript: link must never survive.

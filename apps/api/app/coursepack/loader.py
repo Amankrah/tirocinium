@@ -206,6 +206,18 @@ def _sync_question(
             (case_study_id, figure_ids[figure_key]),
         )
 
+    # The parameter spec, if the pack carries one. Written straight to the
+    # column the 5.1 PUT writes, because the pack is the reviewed artifact and
+    # the figure-frozen check already ran when the spec was accepted into it.
+    if question.param_spec is not None:
+        conn.execute(
+            "UPDATE case_studies SET param_spec_z = ? WHERE id = ?",
+            (
+                compress_text(conn, "problem_text", json.dumps(question.param_spec)),
+                case_study_id,
+            ),
+        )
+
     # The marketplace shortlist (course migration 0021, decision 0081).
     # Replaced rather than merged, like the concept mappings and the figures.
     conn.execute(

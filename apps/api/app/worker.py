@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any, ClassVar
 
 from arq.connections import RedisSettings
+from arq.worker import func as arq_func
 
 from app.db.shards import ShardManager
 from app.e2e import e2e_assessor, e2e_embedder, e2e_transcriber
@@ -272,14 +273,39 @@ async def _fill_variant_pool(
     )
 
 
+# How long one job may run before arq cancels it. arq's default is 300
+# seconds, which is the wrong order of magnitude for two of these four jobs
+# and silently truncates them (decision 0090).
+#
+# A pool fill generates variants one at a time, by design: that sequencing is
+# the generation concurrency cap made structural (milestone 5.4). Each variant
+# is a generation call and an independent re-solve, so roughly a minute, and
+# the fill may attempt three times its target before giving up. At the shipped
+# target of 20 that is an hour of honest work against a five-minute ceiling,
+# so the pool could never reach its own default target: the job was killed
+# mid-fill and the shortfall looked like a flagged-variant problem.
+#
+# A submission is bounded differently: at most 25 pages, each preprocessed and
+# read by a vision model, so tens of minutes is the realistic worst case.
+# An import decodes up to 200 pages and then segments them.
+#
+# These are ceilings on runaway work, not expected durations. They are set per
+# function rather than globally so a hung submission cannot hold a worker slot
+# for the hour a legitimate pool fill needs.
+POOL_FILL_TIMEOUT = 2 * 60 * 60
+SUBMISSION_TIMEOUT = 45 * 60
+IMPORT_TIMEOUT = 90 * 60
+VARIANT_TIMEOUT = 15 * 60
+
+
 class WorkerSettings:
     """arq entry point: `arq app.worker.WorkerSettings`."""
 
-    functions: ClassVar[list[Callable[..., Coroutine[Any, Any, Any]]]] = [
-        process_submission,
-        process_import,
-        generate_variant,
-        fill_variant_pool,
+    functions: ClassVar[list[Any]] = [
+        arq_func(process_submission, timeout=SUBMISSION_TIMEOUT),
+        arq_func(process_import, timeout=IMPORT_TIMEOUT),
+        arq_func(generate_variant, timeout=VARIANT_TIMEOUT),
+        arq_func(fill_variant_pool, timeout=POOL_FILL_TIMEOUT),
     ]
     on_startup = startup
     on_shutdown = shutdown

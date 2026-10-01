@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "katex/dist/katex.min.css";
 @import "../styles/tokens.css";
 
 /* Map the token layer into Tailwind v4 utilities. `inline` resolves the
@@ -26,6 +27,13 @@ body {
   color: var(--color-ink);
   font-family: var(--font-interface);
   font-variant-numeric: tabular-nums;
+}
+
+/* Tabular lining figures shift KaTeX's own metrics: $N_A$ and $V_C$ then
+   sit on the baseline as "NA" / "VC". Math keeps the fonts and figures
+   KaTeX shipped. */
+.katex {
+  font-variant-numeric: normal;
 }
 
 /* The reading body: the typeset case study (guide 3.2, 4.1). Hairline rhythm
@@ -97,11 +105,37 @@ body {
   border-block-end: 1px solid var(--color-ink-muted);
 }
 
-/* Display math scrolls rather than overflowing the reading column. */
+/* Markdown tables above use display:block and vertical-align:top. KaTeX
+   still builds some layouts as tables; those rules would pin a subscript
+   to the baseline so $N_A$ reads as NA. */
+.reading-body .katex table {
+  border-collapse: separate;
+  display: inline-table;
+  max-width: none;
+  overflow: visible;
+  width: auto;
+}
+.reading-body .katex th,
+.reading-body .katex td {
+  border: none;
+  padding: 0;
+  vertical-align: unset;
+}
+
+/* Display math scrolls rather than widening the reading column.
+   KaTeX centres a formula and paints superscripts outside the line box.
+   On a formula wider than the column, that centring puts the left half
+   where a scroll cannot reach, and a tight vertical clip slices the
+   powers off, so what is left can be read as a different equation.
+   The formula starts at the left, with room above and below. */
 .reading-body .katex-display {
   overflow-x: auto;
-  overflow-y: hidden;
-  padding-block: 0.25rem;
+  overflow-y: visible;
+  padding-block: 1em;
+  text-align: start;
+}
+.reading-body .katex-display > .katex {
+  text-align: start;
 }
 
 /* Subtle progress shimmer (guide 3.3): a hairline of accent sweeping the

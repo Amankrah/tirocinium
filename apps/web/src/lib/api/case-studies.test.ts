@@ -3,9 +3,21 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createCaseStudy,
   getCaseStudy,
+  listAllCaseStudies,
   listCaseStudies,
   setCaseStudyPublished,
 } from "./case-studies";
+
+function listed(id: number) {
+  return {
+    id,
+    title: `Case ${id}`,
+    status: "published",
+    concepts: [],
+    created_at: 0,
+    updated_at: 0,
+  };
+}
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -40,6 +52,58 @@ describe("listCaseStudies", () => {
       expect.stringContaining("/api/v1/courses/7/case-studies"),
       expect.objectContaining({ headers: { authorization: "Bearer seat_abc" } }),
     );
+  });
+});
+
+describe("listAllCaseStudies", () => {
+  it("follows next_cursor until every published problem is in hand", async () => {
+    const fetchSpy = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ items: [listed(1)], next_cursor: 1 }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ items: [listed(2)], next_cursor: null }),
+      });
+    vi.stubGlobal("fetch", fetchSpy);
+    expect(await listAllCaseStudies("seat_abc", 7)).toEqual([listed(1), listed(2)]);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    const firstUrl = String(fetchSpy.mock.calls[0]?.[0]);
+    const secondUrl = String(fetchSpy.mock.calls[1]?.[0]);
+    expect(firstUrl).toContain("limit=100");
+    expect(firstUrl).not.toContain("cursor=");
+    expect(secondUrl).toContain("cursor=1");
+  });
+
+  it("returns an empty list when the first page fails", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 500 }));
+    expect(await listAllCaseStudies("seat_abc", 7)).toEqual([]);
+  });
+
+  it("keeps earlier pages when a later page fails", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ items: [listed(1)], next_cursor: 1 }),
+        })
+        .mockResolvedValueOnce({ ok: false, status: 500 }),
+    );
+    expect(await listAllCaseStudies("seat_abc", 7)).toEqual([listed(1)]);
+  });
+
+  it("stops if a cursor does not advance", async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ items: [listed(5)], next_cursor: 5 }),
+    });
+    vi.stubGlobal("fetch", fetchSpy);
+    expect(await listAllCaseStudies("seat_abc", 7)).toEqual([listed(5)]);
+    expect(fetchSpy.mock.calls.length).toBeLessThan(5);
   });
 });
 

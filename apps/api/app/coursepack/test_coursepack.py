@@ -19,7 +19,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from app.compression import decompress_text
+from app.compression import compress_text, decompress_text
 from app.coursepack.loader import PACK_PROVENANCE, load_into_course, resolve_figure_tokens
 from app.coursepack.schema import PACK_ROOT, CoursePack, figure_keys_in, load_pack
 from app.db.connection import connect
@@ -428,5 +428,85 @@ def test_shortlists_load_in_the_order_the_pack_sets(
             "SELECT COUNT(DISTINCT case_study_id) FROM case_study_shortlist"
         ).fetchone()[0]
         assert total == len(shortlisted)
+    finally:
+        conn.close()
+
+
+def test_a_pack_questions_solution_is_reachable_for_parameterization(
+    tmp_path: Path, pack: CoursePack, storage: FakeObjectStorage
+) -> None:
+    """Auto-parameterization and the generation loop both need the professor's
+    worked solution: the question alone says what the numbers are, and only the
+    solution says which are inputs and which are derived. Both used to read it
+    from a confirmed import item, which a pack question does not have, so this
+    pins the fallback to the base variant the pack loaded."""
+    from app.variants.solution import base_solution
+
+    conn = _load(tmp_path, pack, storage, course_id=1)
+    try:
+        for question in pack.questions[:5]:
+            case_study_id = int(
+                conn.execute(
+                    "SELECT case_study_id FROM course_pack_items WHERE item_key = ?",
+                    (question.key,),
+                ).fetchone()[0]
+            )
+            found = base_solution(conn, case_study_id)
+            assert found == question.solution_md, question.key
+
+        # A case study from neither route has none, and says so rather than
+        # raising: a hand-authored case study is an ordinary thing to have.
+        conn.execute(
+            "INSERT INTO case_studies (id, author_id, title, body_z, status,"
+            " created_at, updated_at) VALUES (9999, 1, 'Hand authored', ?,"
+            " 'draft', 0, 0)",
+            (compress_text(conn, "problem_text", "Typed straight into the UI."),),
+        )
+        assert base_solution(conn, 9999) is None
+    finally:
+        conn.close()
+
+
+def test_the_pack_carries_its_parameter_specs(pack: CoursePack) -> None:
+    """A spec is reviewed content like the worked solution, and without it in
+    the pack a course loaded on another machine has no variant pool at all
+    (decision 0089). Parsing already validates each one against the real
+    ParamSpec, so reaching here means the param-spec PUT would accept it."""
+    specd = [q for q in pack.questions if q.param_spec is not None]
+    assert specd, "this revision parameterizes nothing"
+    for question in specd:
+        spec = question.param_spec
+        assert spec is not None and spec["parameters"], question.key
+
+
+def test_a_spec_the_param_spec_put_would_refuse_fails_the_pack() -> None:
+    """Mutation check: the pack validates specs with the same model the editor
+    does, so a bad one fails at parse rather than loading into a shard."""
+    raw = json.loads((PACK_ROOT / PACK_ID / "v1.json").read_text(encoding="utf-8"))
+    target = next(q for q in raw["questions"] if q.get("param_spec"))
+    # A capitalised name: exactly the rejection that cost 15 proposals.
+    params = target["param_spec"]["parameters"]
+    params["Temperature_C"] = params.pop(next(iter(params)))
+    with pytest.raises(ValueError):
+        CoursePack.model_validate(raw)
+
+
+def test_loading_writes_the_spec_the_pool_fill_reads(
+    tmp_path: Path, pack: CoursePack, storage: FakeObjectStorage
+) -> None:
+    """Publish enqueues a pool fill only when param_spec_z is set, so the
+    loader has to write it or a freshly loaded course silently never
+    pre-generates anything."""
+    conn = _load(tmp_path, pack, storage, course_id=1)
+    try:
+        for question in [q for q in pack.questions if q.param_spec is not None][:5]:
+            row = conn.execute(
+                "SELECT cs.param_spec_z FROM case_studies cs JOIN course_pack_items i"
+                " ON i.case_study_id = cs.id WHERE i.item_key = ?",
+                (question.key,),
+            ).fetchone()
+            assert row is not None and row[0] is not None, question.key
+            stored = json.loads(decompress_text(conn, "problem_text", bytes(row[0])))
+            assert stored == question.param_spec, question.key
     finally:
         conn.close()

@@ -246,7 +246,39 @@
       "final_answers": [
         "0.138 nm"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "metal": {
+            "type": "choice",
+            "base": "palladium",
+            "options": [
+              "palladium",
+              "aluminium",
+              "copper",
+              "nickel",
+              "silver",
+              "gold",
+              "platinum",
+              "lead",
+              "chromium",
+              "tungsten",
+              "molybdenum",
+              "vanadium",
+              "niobium"
+            ]
+          }
+        },
+        "invariants": [
+          "The density, atomic weight and crystal structure stated in the question must be the accepted tabulated values for the chosen metal; they are not free to vary independently of it.",
+          "The metal name, chemical symbol, and stated crystal structure must all correspond to the same real element with that actual lattice type.",
+          "The density and atomic weight must be the accepted tabulated values for the chosen metal, to about three significant figures.",
+          "The resulting atomic radius must fall between roughly 0.10 nm and 0.20 nm.",
+          "Only density, atomic weight, and crystal structure are given; Avogadro's number remains a constant the student supplies.",
+          "The question must ask for the atomic radius, with the answer expressible in both cm and nm."
+        ],
+        "solution_method": "Use the crystal density relation rho = nA/(V_C N_A) with the number of atoms per cubic unit cell and the cube edge expressed in terms of the atomic radius (FCC: n = 4, a = 2R(sqrt2), V_C = 16R^3(sqrt2); BCC: n = 2, a = 4R/sqrt3). Substitute the given density and atomic weight and solve the resulting cubic equation for R, then convert cm to nm."
+      }
     },
     {
       "key": "l1-nb-structure",
@@ -264,7 +296,39 @@
         "BCC",
         "8.57 g/cm3"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "metal": {
+            "type": "choice",
+            "base": "niobium",
+            "options": [
+              "niobium",
+              "aluminium",
+              "copper",
+              "nickel",
+              "silver",
+              "gold",
+              "platinum",
+              "lead",
+              "chromium",
+              "tungsten",
+              "molybdenum",
+              "vanadium",
+              "tantalum"
+            ]
+          }
+        },
+        "invariants": [
+          "The atomic radius and density stated in the question must be the accepted tabulated values for the chosen metal, and the structure the student deduces must be that metal's real structure.",
+          "The quoted density must equal the value computed from rho = nA/(a^3 N_A) for the element's actual structure (n = 2, a = 4R/sqrt(3) for BCC; n = 4, a = 2R*sqrt(2) for FCC), rounded to three significant figures.",
+          "The density predicted by the other candidate structure must differ from the quoted density by at least 5%.",
+          "The atomic radius, atomic weight and density used must all belong to the same real element and be mutually consistent with standard tabulated data.",
+          "The radius must be given in nm to four significant figures and the density in g/cm^3, so a unit conversion to cm is still required.",
+          "Exactly two candidate structures (FCC and BCC) are tested, and the answer is one of them."
+        ],
+        "solution_method": "Convert the atomic radius to cm, then for each candidate structure compute the theoretical density from rho = nA/(a^3 N_A) using n = 4 with a = 2R*sqrt(2) for FCC and n = 2 with a = 4R/sqrt(3) for BCC; the structure whose predicted density matches the measured value is the answer."
+      }
     },
     {
       "key": "l1-fe-bcc-fcc-volume-change",
@@ -282,7 +346,45 @@
         "-1.57%",
         "1.57% contraction"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "transformation_temperature_c": {
+            "type": "number",
+            "base": 910.0,
+            "range": [
+              900.0,
+              920.0
+            ],
+            "step": 1.0
+          },
+          "a_bcc_nm": {
+            "type": "number",
+            "base": 0.291,
+            "range": [
+              0.29,
+              0.292
+            ],
+            "step": 0.0002
+          },
+          "a_fcc_nm": {
+            "type": "number",
+            "base": 0.3647,
+            "range": [
+              0.363,
+              0.365
+            ],
+            "step": 0.0002
+          }
+        },
+        "invariants": [
+          "The FCC volume per atom (a_fcc^3/4) must be smaller than the BCC volume per atom (a_bcc^3/2), i.e. a_fcc < 2^(1/3) * a_bcc.",
+          "The magnitude of the fractional volume change should remain a few percent (roughly 0.3% to 4%).",
+          "The structures remain BCC (2 atoms per cell) and FCC (4 atoms per cell), with both lattice parameters quoted in nanometres to four decimal places.",
+          "The FCC lattice parameter must be clearly larger than the BCC lattice parameter."
+        ],
+        "solution_method": "Compute the volume per atom in each structure (a^3/2 for BCC with 2 atoms per cell, a^3/4 for FCC with 4 atoms per cell), then evaluate the fractional change (V_FCC - V_BCC)/V_BCC, which comes out negative, indicating a contraction."
+      }
     },
     {
       "key": "l1-ta-atomic-radius",
@@ -299,7 +401,38 @@
       "final_answers": [
         "0.143 nm"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "element": {
+            "type": "choice",
+            "base": "tantalum",
+            "options": [
+              "tantalum",
+              "chromium",
+              "tungsten",
+              "molybdenum",
+              "vanadium",
+              "niobium",
+              "aluminium",
+              "copper",
+              "nickel",
+              "silver",
+              "gold",
+              "platinum",
+              "lead"
+            ]
+          }
+        },
+        "invariants": [
+          "The density, atomic weight and crystal structure stated must be the accepted tabulated values for the chosen element.",
+          "The density, atomic weight and crystal structure must be mutually consistent with the named element's real properties (or at least physically plausible for a metal).",
+          "The computed atomic radius must fall in the physically reasonable range of roughly 0.10–0.25 nm.",
+          "Exactly one unknown (the atomic radius) is requested; density, atomic weight and structure are all given.",
+          "Units must stay as g/cm^3 for density and g/mol for atomic weight."
+        ],
+        "solution_method": "Express the cubic unit-cell volume in terms of the atomic radius (a = 4R/√3 with n = 2 for BCC; a = 2R√2 with n = 4 for FCC), substitute into ρ = nA/(V_C N_A), and solve the resulting cubic for R, converting the result from cm to nm."
+      }
     },
     {
       "key": "l1-rh-structure",
@@ -317,7 +450,33 @@
         "FCC",
         "12.41 g/cm3"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "metal_name": {
+            "type": "choice",
+            "base": "Rhodium",
+            "options": [
+              "Rhodium",
+              "Nickel",
+              "Palladium",
+              "Platinum",
+              "Iridium",
+              "Silver",
+              "Aluminum"
+            ]
+          }
+        },
+        "invariants": [
+          "The atomic radius and density stated in the question must be the accepted tabulated values for the chosen metal.",
+          "The atomic radius, density and (solution-side) atomic weight must all be the accepted values for the same real metal.",
+          "The given density must match the density computed from the stated radius for exactly one of the FCC or BCC assumptions, to within about 1%.",
+          "The FCC-assumed and BCC-assumed densities for the chosen metal must differ by at least about 5%.",
+          "Radius is quoted in nm (four significant figures) and density in g/cm^3 (four significant figures).",
+          "The question must continue to offer exactly the two candidate structures FCC and BCC."
+        ],
+        "solution_method": "Convert the atomic radius to cm, assume a structure (n = 4 with a = 2R√2 for FCC, n = 2 with a = 4R/√3 for BCC), compute the theoretical density from ρ = nA/(a³N_A), and compare with the given density to identify the crystal structure."
+      }
     },
     {
       "key": "l1-directions-indices",
@@ -368,7 +527,45 @@
       "final_answers": [
         "2.38 wt%"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "alloy_density": {
+            "type": "number",
+            "base": 2.47,
+            "range": [
+              2.4,
+              2.62
+            ],
+            "step": 0.01
+          },
+          "component_application": {
+            "type": "choice",
+            "base": "commercial aircraft skin material",
+            "options": [
+              "commercial aircraft skin material",
+              "commercial aircraft fuselage panel material",
+              "commercial aircraft wing panel material"
+            ]
+          },
+          "industry_framing": {
+            "type": "choice",
+            "base": "aircraft industry",
+            "options": [
+              "aircraft industry",
+              "aerospace industry",
+              "commercial aviation industry"
+            ]
+          }
+        },
+        "invariants": [
+          "The target alloy density must lie strictly between the density of lithium (0.534 g/cm^3) and that of aluminum (2.71 g/cm^3), and well below the Al value.",
+          "The computed lithium concentration must be positive and small (roughly 0.5-5 wt%), consistent with real Al-Li alloys.",
+          "The alloy must remain a two-component Al-Li system with the component densities unchanged (ρ_Li = 0.534 g/cm^3, ρ_Al = 2.71 g/cm^3).",
+          "The requested quantity must stay the lithium concentration expressed in weight percent."
+        ],
+        "solution_method": "Apply the two-component weight-percent density rule ρ_alloy = 100 / (C_Li/ρ_Li + C_Al/ρ_Al) with C_Al = 100 - C_Li, then solve algebraically for C_Li = 100 ρ_Li (ρ_Al - ρ_alloy) / [ρ_alloy (ρ_Al - ρ_Li)] and substitute the tabulated elemental densities."
+      }
     },
     {
       "key": "l2-ti-6al-4v-density",
@@ -385,7 +582,31 @@
       "final_answers": [
         "4.38 g/cm3"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "alloy_designation": {
+            "type": "choice",
+            "base": "Ti-6Al-4V",
+            "options": [
+              "Ti-6Al-4V",
+              "Ti-3Al-2.5V",
+              "Ti-8Al-4V",
+              "Ti-5Al-3V",
+              "Ti-4Al-2V"
+            ]
+          }
+        },
+        "invariants": [
+          "The weight percentages must be those of the named alloy designation and must sum to 100.",
+          "The three weight percentages must sum to exactly 100 wt%.",
+          "Titanium must remain the dominant constituent (at least ~85 wt%), with Al and V as minor alloying additions.",
+          "The numbers appearing in the alloy designation must equal the stated Al and V weight percents (e.g. Ti-xAl-yV).",
+          "Constituent densities must be the standard tabulated values (Ti 4.51, Al 2.71, V 6.1 g/cm^3) available to students.",
+          "The resulting average density must fall between about 4.2 and 4.6 g/cm^3."
+        ],
+        "solution_method": "Apply the rule-of-mixtures for density on a weight-percent basis: rho_avg = 100 / (C_Ti/rho_Ti + C_Al/rho_Al + C_V/rho_V), using tabulated elemental densities, and report the result to three significant figures in g/cm^3."
+      }
     },
     {
       "key": "l2-iron-vacancy-concentration",
@@ -403,7 +624,45 @@
         "1.18e24 m-3",
         "1.18 x 10^24 m^-3"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "temperature_c": {
+            "type": "number",
+            "base": 850.0,
+            "range": [
+              600.0,
+              900.0
+            ],
+            "step": 25.0
+          },
+          "vacancy_formation_energy_ev": {
+            "type": "number",
+            "base": 1.08,
+            "range": [
+              0.9,
+              1.3
+            ],
+            "step": 0.01
+          },
+          "density_g_cm3": {
+            "type": "number",
+            "base": 7.65,
+            "range": [
+              7.55,
+              7.87
+            ],
+            "step": 0.01
+          }
+        },
+        "invariants": [
+          "The metal must be iron, with its atomic weight (55.85 g/mol) consistent with the stated density.",
+          "The temperature must be given in degrees Celsius so the student must convert to kelvin.",
+          "The density must be given per cubic centimetre while the answer is requested per cubic metre.",
+          "The exponential argument Qv/kT must stay large enough that the vacancy fraction remains far below 1 (roughly 10^-7 to 10^-3)."
+        ],
+        "solution_method": "Compute the number of atomic sites per unit volume N = N_A·ρ/A, then multiply by the Boltzmann factor exp(−Qv/kT) with T in kelvin (T = T_C + 273) and k = 8.62×10^-5 eV/atom-K, finally converting the result from cm^-3 to m^-3."
+      }
     },
     {
       "key": "l2-lead-vacancy-fraction",
@@ -422,7 +681,37 @@
         "5.03e-10",
         "4.79e4"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "metal": {
+            "type": "choice",
+            "base": "lead",
+            "options": [
+              "lead",
+              "aluminum",
+              "silver",
+              "copper",
+              "gold",
+              "nickel",
+              "iron",
+              "zinc",
+              "magnesium",
+              "tin",
+              "platinum"
+            ]
+          }
+        },
+        "invariants": [
+          "The melting temperature and the vacancy formation energy stated must be the accepted values for the chosen metal, and the melting point must be given in degrees Celsius with its kelvin equivalent, so the conversion is still the student's to make.",
+          "The Celsius and Kelvin melting temperatures must be the same temperature (K ≈ °C + 273).",
+          "The melting temperature and vacancy formation energy must be realistic values for the named metal.",
+          "The melting temperature must be well above the room temperature used in part (b).",
+          "Both computed vacancy fractions must remain much less than 1 (dilute-vacancy regime), and their ratio must be several orders of magnitude.",
+          "Boltzmann's constant remains 8.62×10^-5 eV/atom-K."
+        ],
+        "solution_method": "Apply the equilibrium vacancy relation N_v/N = exp(−Q_v/kT) with k = 8.62×10^-5 eV/atom-K, evaluating it at the melting temperature and at room temperature, then divide the two fractions to obtain the ratio."
+      }
     },
     {
       "key": "l2-cu-zn-atom-percent",
@@ -440,7 +729,55 @@
         "70.6 at%",
         "29.4 at%"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "wt_minor": {
+            "type": "number",
+            "base": 30.0,
+            "range": [
+              10.0,
+              50.0
+            ],
+            "step": 5.0
+          },
+          "wt_major": {
+            "type": "number",
+            "base": 70.0,
+            "range": [
+              50.0,
+              90.0
+            ],
+            "step": 5.0
+          },
+          "minor_element": {
+            "type": "choice",
+            "base": "Zn",
+            "options": [
+              "Zn",
+              "Ni",
+              "Fe"
+            ]
+          },
+          "major_element": {
+            "type": "choice",
+            "base": "Cu",
+            "options": [
+              "Cu",
+              "Ni",
+              "Fe"
+            ]
+          }
+        },
+        "invariants": [
+          "The two weight percentages must sum to exactly 100 wt%.",
+          "The two elements must be different and must form a recognised binary alloy system.",
+          "Both weight percentages must stay strictly between 0 and 100, with neither component a trace amount.",
+          "The atomic weights of the two chosen elements must remain within roughly 15% of each other.",
+          "Standard atomic weights (e.g. 63.55 g/mol for Cu, 65.41 g/mol for Zn) must be used and stated in the solution."
+        ],
+        "solution_method": "Apply the binary weight-percent-to-atom-percent conversion C'_1 = C_1·A_2 / (C_1·A_2 + C_2·A_1) × 100 using standard atomic weights for one component, then obtain the second component by subtracting from 100 at%."
+      }
     },
     {
       "key": "l2-sn-pb-atom-percent",
@@ -458,7 +795,59 @@
         "72.5 at%",
         "27.5 at%"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "mass_metal_a": {
+            "type": "number",
+            "base": 98.0,
+            "range": [
+              20.0,
+              200.0
+            ],
+            "step": 1.0
+          },
+          "mass_metal_b": {
+            "type": "number",
+            "base": 65.0,
+            "range": [
+              20.0,
+              200.0
+            ],
+            "step": 1.0
+          },
+          "metal_a": {
+            "type": "choice",
+            "base": "tin",
+            "options": [
+              "tin",
+              "aluminum",
+              "magnesium",
+              "zinc",
+              "copper"
+            ]
+          },
+          "metal_b": {
+            "type": "choice",
+            "base": "lead",
+            "options": [
+              "lead",
+              "silver",
+              "gold",
+              "tungsten",
+              "nickel"
+            ]
+          }
+        },
+        "invariants": [
+          "Both masses must be strictly positive and of comparable magnitude (neither more than about 5x the other).",
+          "The two metals must be different elements with clearly different atomic weights (at least ~30% apart).",
+          "The second-named metal must have the larger atomic weight.",
+          "The answer must be reported as two atom percentages summing to 100.",
+          "Standard tabulated atomic weights (g/mol) must be used for whichever elements appear."
+        ],
+        "solution_method": "Convert each component mass to moles by dividing by its atomic weight, then compute each element's atom percent as its moles divided by the total moles times 100, obtaining the second percentage as 100 minus the first."
+      }
     },
     {
       "key": "l2-alloy-crystal-structure",
@@ -480,7 +869,82 @@
         "simple cubic",
         "1.00 atom/unit cell"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "wt_pct_a": {
+            "type": "number",
+            "base": 25.0,
+            "range": [
+              20.0,
+              35.0
+            ],
+            "step": 5.0
+          },
+          "wt_pct_b": {
+            "type": "number",
+            "base": 75.0,
+            "range": [
+              65.0,
+              80.0
+            ],
+            "step": 5.0
+          },
+          "density_a": {
+            "type": "number",
+            "base": 6.17,
+            "range": [
+              5.9,
+              6.6
+            ],
+            "step": 0.01
+          },
+          "density_b": {
+            "type": "number",
+            "base": 8.0,
+            "range": [
+              7.7,
+              8.3
+            ],
+            "step": 0.01
+          },
+          "atomic_weight_a": {
+            "type": "number",
+            "base": 171.3,
+            "range": [
+              166.0,
+              178.0
+            ],
+            "step": 0.1
+          },
+          "atomic_weight_b": {
+            "type": "number",
+            "base": 162.0,
+            "range": [
+              156.0,
+              168.0
+            ],
+            "step": 0.1
+          },
+          "edge_length_nm": {
+            "type": "number",
+            "base": 0.332,
+            "range": [
+              0.328,
+              0.336
+            ],
+            "step": 0.001
+          }
+        },
+        "invariants": [
+          "The two weight percentages must be positive and sum to exactly 100 wt%.",
+          "The computed atoms per unit cell n = rho_ave * a^3 * N_A / A_ave must fall within about 5% of a whole number that is 1, 2, or 4.",
+          "In the base-equivalent variant the answer should remain simple cubic (n ≈ 1) unless the professor deliberately retargets BCC or FCC by rescaling the edge length.",
+          "Densities must stay in the range of real dense metals (roughly 5–9 g/cm^3) and atomic weights in the range of real heavy elements (roughly 150–185 g/mol).",
+          "Units must stay as given: wt% for composition, g/cm^3 for density, g/mol for atomic weight, nm for the edge length."
+        ],
+        "solution_method": "Compute the alloy's average density and average atomic weight by the rule-of-mixtures (100 divided by the sum of C_i/rho_i and C_i/A_i), convert the cubic cell edge to cm, then solve rho_ave = n A_ave /(a^3 N_A) for n; n = 1, 2, or 4 identifies simple cubic, BCC, or FCC respectively."
+      }
     },
     {
       "key": "l2-copper-solid-solutions",
@@ -513,7 +977,36 @@
         "4.1e-3 kg",
         "4.1 x 10^-3 kg"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "metal": {
+            "type": "choice",
+            "base": "palladium",
+            "options": [
+              "palladium",
+              "nickel",
+              "iron",
+              "platinum",
+              "copper",
+              "silver",
+              "niobium",
+              "vanadium",
+              "tantalum",
+              "titanium"
+            ]
+          }
+        },
+        "invariants": [
+          "The diffusion coefficient, the plate thickness and the two surface concentrations must be physically plausible for hydrogen in the chosen metal at the stated temperature.",
+          "The concentration on the high-pressure side must exceed that on the low-pressure side by at least 1 kg/m^3.",
+          "Steady-state conditions and a constant diffusion coefficient must be stated in the question.",
+          "The time basis must remain one hour, converted to 3600 s in the solution.",
+          "Units must stay consistent: thickness in mm converted to metres, concentrations in kg/m^3, D in m^2/s.",
+          "Resulting mass per hour should remain a small but non-negligible quantity (roughly 10^-4 to 10^-1 kg)."
+        ],
+        "solution_method": "Apply Fick's first law at steady state, J = M/(At) = -D(ΔC/Δx), and rearrange to M = -D(ΔC/Δx)At, substituting the thickness in metres and 3600 s for one hour to obtain the mass of hydrogen diffusing per hour."
+      }
     },
     {
       "key": "l3-nitrogen-depth-in-steel",
@@ -531,7 +1024,82 @@
         "1 mm",
         "1e-3 m"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "sheet_thickness_mm": {
+            "type": "number",
+            "base": 1.5,
+            "range": [
+              1.2,
+              3.0
+            ],
+            "step": 0.1
+          },
+          "temperature_c": {
+            "type": "number",
+            "base": 1200.0,
+            "range": [
+              900.0,
+              1300.0
+            ],
+            "step": 50.0
+          },
+          "diffusion_coefficient_m2_s": {
+            "type": "number",
+            "base": 6e-11,
+            "range": [
+              4e-11,
+              9e-11
+            ],
+            "step": 1e-11
+          },
+          "diffusion_flux_kg_m2_s": {
+            "type": "number",
+            "base": 1.2e-07,
+            "range": [
+              1e-07,
+              2.4e-07
+            ],
+            "step": 1e-08
+          },
+          "surface_concentration_kg_m3": {
+            "type": "number",
+            "base": 4.0,
+            "range": [
+              3.0,
+              6.0
+            ],
+            "step": 0.5
+          },
+          "target_concentration_kg_m3": {
+            "type": "number",
+            "base": 2.0,
+            "range": [
+              1.0,
+              3.0
+            ],
+            "step": 0.5
+          },
+          "diffusing_species": {
+            "type": "choice",
+            "base": "nitrogen",
+            "options": [
+              "nitrogen",
+              "carbon",
+              "hydrogen"
+            ]
+          }
+        },
+        "invariants": [
+          "The target concentration must be strictly less than the surface concentration.",
+          "The computed depth D(C_A - C_B)/J must be strictly less than the sheet thickness, ideally no more than about two-thirds of it.",
+          "The computed depth should come out as a round, reportable figure in millimetres (roughly 0.3 to 2 mm).",
+          "All quantities stay in SI units: thickness in mm converted to m, D in m^2/s, J in kg/m^2-s, concentrations in kg/m^3.",
+          "The diffusion coefficient must remain given in the problem statement rather than requiring computation from an Arrhenius expression."
+        ],
+        "solution_method": "Apply Fick's first law for steady-state diffusion with a linear profile, J = -D(C_A - C_B)/(x_A - x_B), set x_A = 0 at the high-pressure surface, and solve for x_B = D(C_A - C_B)/J; then check that this depth lies within the sheet thickness."
+      }
     },
     {
       "key": "l3-diffusion-coefficient-in-bcc-iron",
@@ -552,7 +1120,63 @@
       "final_answers": [
         "3.96e-11 m2/s"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "thickness_mm": {
+            "type": "number",
+            "base": 1.0,
+            "range": [
+              0.5,
+              3.0
+            ],
+            "step": 0.5
+          },
+          "temperature_c": {
+            "type": "integer",
+            "base": 725,
+            "range": [
+              600,
+              850
+            ]
+          },
+          "conc_high_wtpct": {
+            "type": "number",
+            "base": 0.012,
+            "range": [
+              0.008,
+              0.02
+            ],
+            "step": 0.001
+          },
+          "conc_low_wtpct": {
+            "type": "number",
+            "base": 0.0075,
+            "range": [
+              0.003,
+              0.009
+            ],
+            "step": 0.0005
+          },
+          "flux": {
+            "type": "number",
+            "base": 1.4e-08,
+            "range": [
+              5e-09,
+              5e-08
+            ],
+            "step": 1e-09
+          }
+        },
+        "invariants": [
+          "The carburizing-side concentration must be strictly greater than the decarburizing-side concentration, with a difference of at least about 0.003 wt%.",
+          "Both surface concentrations must stay below roughly 0.022 wt% C so the iron remains single-phase BCC ferrite.",
+          "The temperature must remain below 912 °C.",
+          "The computed diffusion coefficient must come out in the 10^-12 to 10^-10 m^2/s range.",
+          "The densities used for carbon (2.25 g/cm^3) and iron (7.87 g/cm^3) stay fixed."
+        ],
+        "solution_method": "Convert each surface concentration from weight percent to kg C/m^3 using the mass-per-unit-volume relation with the carbon and iron densities, then rearrange Fick's first law, D = -J (x_A - x_B)/(C_A - C_B), and substitute the sheet thickness and the converted concentration difference."
+      }
     },
     {
       "key": "l3-decarburization-position",
@@ -570,7 +1194,55 @@
         "1.26 mm",
         "1.26e-3 m"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "c0_wt_pct": {
+            "type": "number",
+            "base": 0.35,
+            "range": [
+              0.2,
+              0.8
+            ],
+            "step": 0.05
+          },
+          "cx_wt_pct": {
+            "type": "number",
+            "base": 0.15,
+            "range": [
+              0.05,
+              0.6
+            ],
+            "step": 0.05
+          },
+          "time_h": {
+            "type": "number",
+            "base": 10.0,
+            "range": [
+              4.0,
+              24.0
+            ],
+            "step": 1.0
+          },
+          "diffusion_coefficient_m2_s": {
+            "type": "number",
+            "base": 6.9e-11,
+            "range": [
+              5.5e-11,
+              8.5e-11
+            ],
+            "step": 1e-12
+          }
+        },
+        "invariants": [
+          "The target carbon concentration must be strictly less than the initial bulk concentration and greater than the surface value of 0 wt% C.",
+          "The ratio Cx/C0 (which equals erf(z)) must lie roughly between 0.15 and 0.85.",
+          "The quoted diffusion coefficient must remain physically consistent with the stated temperature of 1400 K for carbon in FCC iron; if the temperature is edited, D must be recomputed.",
+          "The computed position should come out on the order of a fraction of a millimetre to a few millimetres.",
+          "The surface carbon concentration must stay at 0 wt% C (decarburizing, carbon-free atmosphere)."
+        ],
+        "solution_method": "Apply the error-function solution to Fick's second law with Cs = 0: (Cx - C0)/(Cs - C0) = 1 - erf(x/(2*sqrt(Dt))), so erf(z) = Cx/C0; interpolate the error-function table for z and solve x = 2z*sqrt(Dt) with t converted to seconds."
+      }
     },
     {
       "key": "l3-temperature-for-a-given-d",
@@ -588,7 +1260,36 @@
         "1152 K",
         "879 C"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "target_diffusion_coefficient": {
+            "type": "number",
+            "base": 6.5e-17,
+            "range": [
+              1e-18,
+              1e-14
+            ],
+            "step": null
+          },
+          "diffusion_couple": {
+            "type": "choice",
+            "base": "copper in nickel",
+            "options": [
+              "copper in nickel",
+              "zinc in copper",
+              "copper in aluminum"
+            ]
+          }
+        },
+        "invariants": [
+          "The values of D0 and Qd used in the solution must be the tabulated diffusion data for whichever diffusing species and host metal the variant names.",
+          "The specified diffusion coefficient must be smaller than D0 for the chosen couple, so that ln(D0/D) is positive and T is positive.",
+          "The resulting temperature must lie above about 500 K and below the melting point of the host metal.",
+          "The diffusion coefficient must be stated in m^2/s with scientific notation, and the answer reported in both kelvin and degrees Celsius."
+        ],
+        "solution_method": "Use the Arrhenius relation D = D0 exp(-Qd/RT) with the tabulated D0 and Qd for the given diffusion couple, rearrange to T = Qd / [R ln(D0/D)], substitute the given D with R = 8.314 J/mol·K, and convert the resulting temperature from kelvin to degrees Celsius."
+      }
     },
     {
       "key": "l3-activation-energy-from-two-temperatures",
@@ -607,7 +1308,75 @@
         "2.2e-5 m2/s",
         "5.4e-15 m2/s"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "diffusion_pair": {
+            "type": "entity",
+            "base": "iron in nickel",
+            "description": "A substitutional diffusion couple of a metallic solute in a metallic host (e.g. 'nickel in iron', 'chromium in nickel', 'copper in nickel') for which activation energies of order 200-300 kJ/mol are physically reasonable."
+          },
+          "temp_low_k": {
+            "type": "integer",
+            "base": 1273,
+            "range": [
+              1173,
+              1323
+            ]
+          },
+          "temp_high_k": {
+            "type": "integer",
+            "base": 1473,
+            "range": [
+              1423,
+              1573
+            ]
+          },
+          "d_low": {
+            "type": "number",
+            "base": 9.4e-16,
+            "range": [
+              5e-16,
+              2e-15
+            ],
+            "step": 1e-16
+          },
+          "d_high": {
+            "type": "number",
+            "base": 2.4e-14,
+            "range": [
+              1e-14,
+              5e-14
+            ],
+            "step": 1e-15
+          },
+          "target_temp_c": {
+            "type": "integer",
+            "base": 1100,
+            "range": [
+              950,
+              1250
+            ]
+          },
+          "target_temp_k": {
+            "type": "integer",
+            "base": 1373,
+            "range": [
+              1223,
+              1523
+            ]
+          }
+        },
+        "invariants": [
+          "The diffusivity at the higher temperature must be larger than at the lower temperature (d_high > d_low).",
+          "target_temp_k must equal target_temp_c + 273 (same rounding convention as the original).",
+          "The evaluation temperature must lie strictly between the two tabulated temperatures (temp_low_k < target_temp_k < temp_high_k).",
+          "temp_high_k must exceed temp_low_k by at least 150 K.",
+          "The computed activation energy should fall roughly in the range 150-350 kJ/mol and the pre-exponential D0 roughly in 10^-6 to 10^-3 m²/s.",
+          "Diffusivity values should be quoted with two significant figures in scientific notation."
+        ],
+        "solution_method": "Write the Arrhenius relation D = D0 exp(-Qd/RT) at both temperatures and take the ratio to eliminate D0, giving Qd = -R ln(D2/D1) / (1/T2 - 1/T1); back-substitute one data point to get D0, then evaluate D at the requested intermediate temperature."
+      }
     },
     {
       "key": "l3-silver-gold-diffusion-couple",
@@ -625,7 +1394,83 @@
         "3.31e5 s",
         "92 h"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "c_low_au": {
+            "type": "number",
+            "base": 2.0,
+            "range": [
+              1.0,
+              3.0
+            ],
+            "step": 0.5
+          },
+          "c_high_au": {
+            "type": "number",
+            "base": 5.0,
+            "range": [
+              4.0,
+              8.0
+            ],
+            "step": 0.5
+          },
+          "c_target_au": {
+            "type": "number",
+            "base": 2.5,
+            "range": [
+              2.2,
+              3.2
+            ],
+            "step": 0.1
+          },
+          "position_um": {
+            "type": "number",
+            "base": 50.0,
+            "range": [
+              20.0,
+              150.0
+            ],
+            "step": 10.0
+          },
+          "temperature_c": {
+            "type": "number",
+            "base": 750.0,
+            "range": [
+              700.0,
+              820.0
+            ],
+            "step": 10.0
+          },
+          "d0": {
+            "type": "number",
+            "base": 8.5e-05,
+            "range": [
+              5e-05,
+              0.00012
+            ],
+            "step": 5e-06
+          },
+          "qd": {
+            "type": "number",
+            "base": 202100.0,
+            "range": [
+              190000.0,
+              215000.0
+            ],
+            "step": 500.0
+          }
+        },
+        "invariants": [
+          "The high-gold composition must exceed the low-gold composition, and the target composition must lie strictly between the low-gold composition and the arithmetic mean of the two end compositions.",
+          "Each alloy must be stated as a balanced binary: wt% Ag equals 100 minus wt% Au.",
+          "The Kelvin temperature printed in parentheses must equal the Celsius temperature plus 273.",
+          "The resulting value of z must fall within the tabulated error-function range (roughly 0.1 to 1.5) so it can be obtained by interpolation.",
+          "The computed diffusion time must be positive and of laboratory scale (roughly 1 to 1000 hours).",
+          "Both halves remain dilute single-phase Ag-Au solid solutions at the anneal temperature."
+        ],
+        "solution_method": "Compute D at the anneal temperature from the Arrhenius relation D = D0 exp(-Qd/RT), invert the semi-infinite diffusion-couple expression Cx = (C1+C2)/2 - [(C1-C2)/2] erf(x/2sqrt(Dt)) to get the required erf value, interpolate an error-function table for z, then solve t = x^2/(4Dz^2) and convert to hours."
+      }
     },
     {
       "key": "l3-carburizing-time",
@@ -643,7 +1488,66 @@
         "113903 s",
         "31.6 hours"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "surface_concentration_wt_pct": {
+            "type": "number",
+            "base": 0.9,
+            "range": [
+              0.8,
+              1.2
+            ],
+            "step": 0.05
+          },
+          "initial_concentration_wt_pct": {
+            "type": "number",
+            "base": 0.1,
+            "range": [
+              0.05,
+              0.25
+            ],
+            "step": 0.05
+          },
+          "target_concentration_wt_pct": {
+            "type": "number",
+            "base": 0.3,
+            "range": [
+              0.25,
+              0.55
+            ],
+            "step": 0.05
+          },
+          "depth_mm": {
+            "type": "number",
+            "base": 4.0,
+            "range": [
+              1.5,
+              6.0
+            ],
+            "step": 0.5
+          },
+          "temperature_c": {
+            "type": "choice",
+            "base": "1100",
+            "options": [
+              "1000",
+              "1050",
+              "1100",
+              "1150",
+              "1200"
+            ]
+          }
+        },
+        "invariants": [
+          "The initial concentration must be strictly less than the target concentration, which must be strictly less than the surface concentration.",
+          "The resulting error-function argument z must fall roughly between 0.2 and 1.6 so it can be read or interpolated from a standard erf table.",
+          "The treatment temperature must lie in the austenite (gamma-Fe) stability range so the gamma-Fe diffusion data apply.",
+          "The computed carburizing time should be a practical process time, on the order of a few hours to a few tens of hours.",
+          "Concentrations stay below the solubility limit of carbon in austenite at the chosen temperature."
+        ],
+        "solution_method": "Apply the error-function solution to Fick's second law for a semi-infinite solid with constant surface concentration: compute (Cx - C0)/(Cs - C0) = 1 - erf(z), interpolate the erf table to get z = x/(2*sqrt(D t)), obtain D for carbon in gamma-Fe at the given temperature, and solve t = x^2/(4 D z^2), converting seconds to hours."
+      }
     },
     {
       "key": "l4-aluminium-elastic-strain",
@@ -660,7 +1564,55 @@
       "final_answers": [
         "4.1e-3"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "material": {
+            "type": "choice",
+            "base": "aluminum",
+            "options": [
+              "aluminum",
+              "copper",
+              "titanium",
+              "brass"
+            ]
+          },
+          "width_mm": {
+            "type": "number",
+            "base": 10.0,
+            "range": [
+              8.0,
+              15.0
+            ],
+            "step": 0.5
+          },
+          "thickness_mm": {
+            "type": "number",
+            "base": 12.7,
+            "range": [
+              10.0,
+              20.0
+            ],
+            "step": 0.1
+          },
+          "force_n": {
+            "type": "number",
+            "base": 35500.0,
+            "range": [
+              20000.0,
+              40000.0
+            ],
+            "step": 500.0
+          }
+        },
+        "invariants": [
+          "The cross-sectional area must be computed from the two stated rectangular dimensions, with no dimension smaller than about 5 mm.",
+          "The applied stress F/A0 must stay low enough (roughly under 300 MPa) that 'only elastic deformation' remains a defensible assumption for the named metal.",
+          "The resulting strain must remain dimensionless and of order 10^-3 (between about 1x10^-3 and 6x10^-3).",
+          "The elastic modulus used must be a standard tabulated value for the named metal and must be stated in the solution, not given in the question."
+        ],
+        "solution_method": "Compute the original cross-sectional area A0 from the rectangular dimensions (converted to m^2), look up the elastic modulus E for the named metal, then combine stress definition and Hooke's law as strain = F/(A0*E), checking that the result is dimensionless."
+      }
     },
     {
       "key": "l4-titanium-maximum-length",
@@ -678,7 +1630,29 @@
         "255 mm",
         "0.255 m"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "alloy_name": {
+            "type": "choice",
+            "base": "titanium alloy",
+            "options": [
+              "titanium alloy",
+              "brass alloy",
+              "bronze alloy",
+              "nickel alloy"
+            ]
+          }
+        },
+        "invariants": [
+          "The elastic modulus stated must be the accepted tabulated value for the chosen alloy.",
+          "Deformation must remain purely elastic: the computed stress F/A0 should stay below about 350 MPa and the strain Δl/l0 below about 0.005.",
+          "The resulting original length l0 should fall roughly between 100 mm and 500 mm.",
+          "The stated elastic modulus must be consistent with the named alloy (roughly 95–115 GPa for all options used).",
+          "All quantities stay positive and the specimen remains a solid cylinder loaded in simple tension."
+        ],
+        "solution_method": "Compute the cross-sectional area A0 = π(d0/2)², then combine σ = F/A0 with Hooke's law σ = Eε and ε = Δl/l0 to solve l0 = Δl·E·A0/F, substituting SI units."
+      }
     },
     {
       "key": "l4-aluminium-elongation-and-diameter",
@@ -697,7 +1671,45 @@
         "-1.6e-2 mm",
         "decrease"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "diameter_mm": {
+            "type": "number",
+            "base": 19.0,
+            "range": [
+              18.0,
+              24.0
+            ],
+            "step": 0.5
+          },
+          "length_mm": {
+            "type": "number",
+            "base": 200.0,
+            "range": [
+              150.0,
+              350.0
+            ],
+            "step": 25.0
+          },
+          "force_n": {
+            "type": "number",
+            "base": 48800.0,
+            "range": [
+              35000.0,
+              55000.0
+            ],
+            "step": 200.0
+          }
+        },
+        "invariants": [
+          "The resulting tensile stress F/(pi d^2/4) must stay below about 250 MPa so the deformation remains elastic for aluminium.",
+          "The material must remain aluminium, with tabulated E = 69 GPa and nu = 0.33.",
+          "The length must be at least several times the diameter so the specimen is a slender cylindrical bar in uniaxial tension.",
+          "The elongation should come out on the order of a few tenths of a millimetre and the diameter change one to two orders of magnitude smaller and negative."
+        ],
+        "solution_method": "Apply Hooke's law with the tabulated modulus: delta_l = 4*F*l0/(pi*d0^2*E) for the elongation, then use Poisson's ratio nu = -(delta_d/d0)/(delta_l/l0) to get delta_d = -nu*delta_l*d0/l0, which is negative, so the diameter decreases."
+      }
     },
     {
       "key": "l4-force-for-a-diameter-reduction",
@@ -714,7 +1726,46 @@
       "final_answers": [
         "16250 N"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "material": {
+            "type": "choice",
+            "base": "steel",
+            "options": [
+              "steel",
+              "brass",
+              "aluminum",
+              "titanium"
+            ]
+          },
+          "bar_diameter_mm": {
+            "type": "number",
+            "base": 10.0,
+            "range": [
+              6.0,
+              20.0
+            ],
+            "step": 1.0
+          },
+          "diameter_reduction_mm": {
+            "type": "number",
+            "base": 0.003,
+            "range": [
+              0.001,
+              0.004
+            ],
+            "step": 0.0005
+          }
+        },
+        "invariants": [
+          "The resulting axial strain must remain in the elastic regime (resulting stress below the material's yield strength).",
+          "The diameter reduction must be several orders of magnitude smaller than the bar diameter.",
+          "The chosen material must have standard tabulated values for both elastic modulus and Poisson's ratio.",
+          "The computed force must be a positive value of order kilonewtons to tens of kilonewtons."
+        ],
+        "solution_method": "Convert the given diameter reduction into lateral strain, divide by Poisson's ratio to get the axial strain, then multiply by the elastic modulus and the original cross-sectional area (πd²/4) to obtain the applied axial force."
+      }
     },
     {
       "key": "l4-candidate-materials-for-a-rod",
@@ -754,7 +1805,87 @@
         "524 kN",
         "523900 N"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "diameter_cm": {
+            "type": "number",
+            "base": 2.54,
+            "range": [
+              1.9,
+              3.8
+            ],
+            "step": 0.01
+          },
+          "length_m": {
+            "type": "number",
+            "base": 6.1,
+            "range": [
+              3.0,
+              10.0
+            ],
+            "step": 0.1
+          },
+          "youngs_modulus_gpa": {
+            "type": "number",
+            "base": 193.0,
+            "range": [
+              180.0,
+              215.0
+            ],
+            "step": 1.0
+          },
+          "tensile_strength_mpa": {
+            "type": "number",
+            "base": 1309.0,
+            "range": [
+              1100.0,
+              1600.0
+            ],
+            "step": 1.0
+          },
+          "yield_strength_mpa": {
+            "type": "number",
+            "base": 1034.0,
+            "range": [
+              850.0,
+              1250.0
+            ],
+            "step": 1.0
+          },
+          "ductility_pct_el": {
+            "type": "number",
+            "base": 15.0,
+            "range": [
+              8.0,
+              25.0
+            ],
+            "step": 1.0
+          },
+          "applied_load_kn": {
+            "type": "number",
+            "base": 334.0,
+            "range": [
+              200.0,
+              420.0
+            ],
+            "step": 1.0
+          },
+          "component_description": {
+            "type": "entity",
+            "base": "A structural component",
+            "description": "A generic load-bearing bar or rod made of the steel alloy (e.g. a tie rod, a suspension bar, a bridge hanger rod)"
+          }
+        },
+        "invariants": [
+          "The stress produced by the applied load must be less than the yield strength (ideally below about 80% of it).",
+          "Tensile strength must exceed yield strength.",
+          "The resulting elastic strain must remain small (on the order of a few tenths of a percent), so the stretched length differs only slightly from the original.",
+          "The yield load answer in part (b) must be larger than the applied load in part (a).",
+          "All property values must remain plausible for a high-strength steel alloy."
+        ],
+        "solution_method": "Compute the circular cross-sectional area from the diameter, divide the applied load by the area to get stress, confirm it is below the yield strength, use Hooke's law (strain = stress/E) and L = L0(1 + strain) for part (a); for part (b) multiply the area by the yield strength to get the load at which permanent deformation begins."
+      }
     },
     {
       "key": "l4-three-point-bending-ceramic",
@@ -776,7 +1907,74 @@
         "101 MPa",
         "9.4e-6 m"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "ceramic_material": {
+            "type": "choice",
+            "base": "\\mathrm{MgAl_2O_4}",
+            "options": [
+              "\\mathrm{MgAl_2O_4}",
+              "\\mathrm{Al_2O_3}",
+              "\\mathrm{SiC}",
+              "\\mathrm{Si_3N_4}"
+            ]
+          },
+          "specimen_height": {
+            "type": "number",
+            "base": 3.8,
+            "range": [
+              2.5,
+              6.0
+            ],
+            "step": 0.1
+          },
+          "specimen_width": {
+            "type": "number",
+            "base": 9.0,
+            "range": [
+              6.0,
+              14.0
+            ],
+            "step": 0.5
+          },
+          "support_span": {
+            "type": "number",
+            "base": 25.0,
+            "range": [
+              20.0,
+              45.0
+            ],
+            "step": 1.0
+          },
+          "fracture_load": {
+            "type": "number",
+            "base": 350.0,
+            "range": [
+              250.0,
+              600.0
+            ],
+            "step": 10.0
+          },
+          "deflection_load": {
+            "type": "number",
+            "base": 310.0,
+            "range": [
+              150.0,
+              560.0
+            ],
+            "step": 10.0
+          }
+        },
+        "invariants": [
+          "The load used in part (b) must be strictly less than the load at fracture in part (a), and ideally within about 60–95% of it.",
+          "The computed flexural strength must fall in the realistic range for a dense engineering ceramic (roughly 80–400 MPa).",
+          "The support span must be at least five times the specimen height, and the width must be of the same order as the height.",
+          "The resulting maximum deflection must remain on the order of micrometres (roughly 1–100 μm).",
+          "All lengths are quoted in millimetres in the question and must be converted to metres in the solution."
+        ],
+        "solution_method": "Apply the three-point bend flexural-strength formula σ_fs = 3F_f L / (2bd²) with SI-converted dimensions for part (a); for part (b) compute I = bd³/12, look up the modulus of elasticity for the named ceramic, and evaluate Δy = FL³/(48EI)."
+      }
     },
     {
       "key": "l4-brinell-hardness",
@@ -794,7 +1992,57 @@
         "200.48 HB",
         "1.45 mm"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "material_name": {
+            "type": "entity",
+            "base": "steel alloy",
+            "description": "A metallic engineering alloy whose Brinell hardness plausibly falls in the 100-400 HB range (e.g. brass alloy, aluminium alloy, cast iron, titanium alloy)"
+          },
+          "applied_load_a": {
+            "type": "integer",
+            "base": 1000,
+            "range": [
+              500,
+              3000
+            ]
+          },
+          "indentation_diameter": {
+            "type": "number",
+            "base": 2.5,
+            "range": [
+              2.0,
+              3.5
+            ],
+            "step": 0.1
+          },
+          "target_hardness": {
+            "type": "integer",
+            "base": 300,
+            "range": [
+              150,
+              450
+            ]
+          },
+          "applied_load_b": {
+            "type": "integer",
+            "base": 500,
+            "range": [
+              250,
+              1500
+            ]
+          }
+        },
+        "invariants": [
+          "The indentation diameter in part (a) must be strictly less than the indenter diameter, with d/D roughly between 0.24 and 0.6.",
+          "The hardness computed in part (a) must land in the plausible metal range of roughly 100-400 HB.",
+          "In part (b), the quantity D - 2P/(HB*pi*D) must be positive so the indentation diameter is a real number.",
+          "The part (b) indentation diameter should come out smaller than the part (a) indentation diameter.",
+          "Loads must be expressed in kg and diameters in mm, consistent with the HB formula used."
+        ],
+        "solution_method": "Apply the Brinell relation HB = 2P / [pi*D*(D - sqrt(D^2 - d^2))] with the given load, indenter diameter and indentation diameter for part (a); for part (b) rearrange the same relation to d = sqrt(D^2 - (D - 2P/(HB*pi*D))^2) and substitute the new load and target hardness."
+      }
     },
     {
       "key": "l4-copper-true-stress-at-fracture",
@@ -811,7 +2059,40 @@
       "final_answers": [
         "1304 MPa"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "metal": {
+            "type": "entity",
+            "base": "copper",
+            "description": "A ductile metal wire material that can neck substantially in a tensile test (e.g. copper, aluminium, annealed low-carbon steel, nickel)"
+          },
+          "nominal_strength_mpa": {
+            "type": "number",
+            "base": 300.0,
+            "range": [
+              150.0,
+              600.0
+            ],
+            "step": 25.0
+          },
+          "reduction_of_area_pct": {
+            "type": "integer",
+            "base": 77,
+            "range": [
+              50,
+              85
+            ]
+          }
+        },
+        "invariants": [
+          "The reduction of area must be strictly between 0 and 100 percent.",
+          "The true fracture stress must come out at least about twice the nominal strength.",
+          "The nominal strength and reduction of area must be a physically plausible pair for the named ductile metal.",
+          "No wire diameter or area is given; the original area must cancel in the solution."
+        ],
+        "solution_method": "Convert percent reduction of area into the final area, A_f = (1 - %RA/100)·A_0, note that the breaking load F = σ_nominal·A_0 is the same for both definitions, and divide to get σ_true = σ_nominal/(1 - %RA/100), with A_0 cancelling."
+      }
     },
     {
       "key": "l4-brass-stress-strain-curve",
@@ -854,7 +2135,45 @@
       ],
       "figures": [
         "l4-alloy-steel-stress-strain"
-      ]
+      ],
+      "param_spec": {
+        "parameters": {
+          "applied_load_n": {
+            "type": "number",
+            "base": 85000.0,
+            "range": [
+              60000.0,
+              110000.0
+            ],
+            "step": 5000.0
+          },
+          "diameter_mm": {
+            "type": "number",
+            "base": 15.0,
+            "range": [
+              14.0,
+              20.0
+            ],
+            "step": 1.0
+          },
+          "original_length_mm": {
+            "type": "number",
+            "base": 250.0,
+            "range": [
+              150.0,
+              400.0
+            ],
+            "step": 25.0
+          }
+        },
+        "invariants": [
+          "The computed applied stress must remain well below the yield strength read from the figure (about 1400 MPa), ideally under about 800 MPa.",
+          "The elastic modulus must still be read from the same unchanged figure inset, giving approximately 210 GPa for steel.",
+          "The resulting elongation must be a small but readable value, roughly between 0.2 mm and 2 mm.",
+          "The specimen remains a solid cylinder of the same steel alloy loaded in uniaxial tension."
+        ],
+        "solution_method": "Compute the engineering stress sigma = F/A0 with A0 = pi*(d/2)^2, compare it with the yield strength read from the stress-strain curve to confirm elastic-only deformation, then read the elastic modulus from the inset's linear region and apply Hooke's law (strain = sigma/E) to get the elongation delta_l = strain * l0."
+      }
     },
     {
       "key": "l5-cu-ni-nickel-to-add",
@@ -873,7 +2192,57 @@
       ],
       "figures": [
         "l5-cu-ni"
-      ]
+      ],
+      "param_spec": {
+        "parameters": {
+          "copper_mass_kg": {
+            "type": "number",
+            "base": 5.66,
+            "range": [
+              2.0,
+              20.0
+            ],
+            "step": 0.01
+          },
+          "facility_type": {
+            "type": "choice",
+            "base": "metal casting workshop",
+            "options": [
+              "metal casting workshop",
+              "alloy foundry",
+              "university materials processing lab",
+              "marine hardware foundry"
+            ]
+          },
+          "application": {
+            "type": "choice",
+            "base": "high-temperature industrial equipment",
+            "options": [
+              "high-temperature industrial equipment",
+              "seawater-resistant pump housings",
+              "heat exchanger tubing",
+              "condenser components for power plants"
+            ]
+          },
+          "vessel": {
+            "type": "choice",
+            "base": "crucible",
+            "options": [
+              "crucible",
+              "melting furnace",
+              "induction melt pot"
+            ]
+          }
+        },
+        "invariants": [
+          "The alloy system must remain copper-nickel, read against the same phase diagram figure.",
+          "The target condition must remain 'fully liquid', i.e. the composition read off the liquidus is the maximum allowable wt% Ni.",
+          "The copper mass must be a positive quantity with two or three significant figures, large enough that the required nickel mass is at least a few hundred grams.",
+          "Only the copper mass is given; the nickel mass must remain the unknown.",
+          "The computed nickel mass must come out to roughly a quarter of the copper mass (consistent with ~20 wt% Ni)."
+        ],
+        "solution_method": "Read the liquidus composition at the stated temperature off the Cu-Ni phase diagram (~20 wt% Ni), then set m_Ni/(m_Ni + m_Cu) equal to that weight fraction and solve algebraically for the nickel mass."
+      }
     },
     {
       "key": "l5-phases-and-compositions",
@@ -916,7 +2285,46 @@
       ],
       "figures": [
         "l5-mg-pb"
-      ]
+      ],
+      "param_spec": {
+        "parameters": {
+          "pb_wt_percent": {
+            "type": "number",
+            "base": 50.0,
+            "range": [
+              44.0,
+              64.0
+            ],
+            "step": 1.0
+          },
+          "mg_wt_percent": {
+            "type": "number",
+            "base": 50.0,
+            "range": [
+              36.0,
+              56.0
+            ],
+            "step": 1.0
+          },
+          "cooling_phrasing": {
+            "type": "choice",
+            "base": "slowly cooled",
+            "options": [
+              "slowly cooled",
+              "cooled very slowly",
+              "cooled under equilibrium conditions"
+            ]
+          }
+        },
+        "invariants": [
+          "The alloy Pb content must lie between the maximum solid solubility of Pb in α (~42 wt% Pb) and the eutectic composition (~67 wt% Pb).",
+          "The two stated weight percents must sum to 100 wt%.",
+          "The alloy must be fully liquid at the stated starting temperature and fully solid at the stated final temperature.",
+          "All answers must be obtainable by reading the supplied Mg-Pb diagram to roughly the nearest 5 °C and 1 wt%.",
+          "The question must keep the four-part structure: liquidus temperature, composition of first solid, solidus/eutectic temperature, composition of last liquid."
+        ],
+        "solution_method": "Draw a vertical line at the alloy composition on the Mg-Pb diagram: its intersection with the liquidus gives the temperature of first solid, a tie line there gives the α composition, the eutectic isotherm gives the temperature of complete solidification, and the last liquid has the eutectic composition."
+      }
     },
     {
       "key": "l5-solder-half-melted",
@@ -937,7 +2345,62 @@
       ],
       "figures": [
         "l5-pb-sn"
-      ]
+      ],
+      "param_spec": {
+        "parameters": {
+          "facility_type": {
+            "type": "choice",
+            "base": "soldering facility",
+            "options": [
+              "soldering facility",
+              "electronics assembly plant",
+              "plumbing fittings workshop"
+            ]
+          },
+          "batch_mass_kg": {
+            "type": "number",
+            "base": 1.5,
+            "range": [
+              0.5,
+              5.0
+            ],
+            "step": 0.1
+          },
+          "pb_wt_pct": {
+            "type": "integer",
+            "base": 90,
+            "range": [
+              85,
+              95
+            ]
+          },
+          "sn_wt_pct": {
+            "type": "integer",
+            "base": 10,
+            "range": [
+              5,
+              15
+            ]
+          },
+          "pot_temperature_c": {
+            "type": "integer",
+            "base": 250,
+            "range": [
+              200,
+              270
+            ]
+          }
+        },
+        "invariants": [
+          "The lead and tin weight percentages of the starting batch must sum to 100.",
+          "The starting alloy must be hypoeutectic (tin content well below the 61.9 wt% Sn eutectic) and lead-rich.",
+          "At the stated pot temperature the tie line in the alpha + L region must be readable from the figure, with the alpha and liquid compositions distinct.",
+          "The midpoint composition of the tie line at the pot temperature must exceed the starting tin content, so a positive mass of tin must be added.",
+          "The temperature that gives equal alpha and liquid fractions in part (a) must lie above the pot temperature and below the melting point of lead.",
+          "All compositions and temperatures must be readable from the given Pb-Sn phase diagram, which cannot change."
+        ],
+        "solution_method": "Use the lever rule on the Pb-Sn phase diagram: (a) move vertically at the alloy composition through the alpha + L field until the alloy composition sits at the midpoint of the tie line (equal mass fractions), reading off that temperature; (b) at the fixed temperature read the tie-line endpoints C_alpha and C_L, take their average as the required new composition C_0, then solve (initial Sn mass + m_Sn)/(initial batch mass + m_Sn) = C_0 for the tin to add."
+      }
     },
     {
       "key": "l5-volume-fractions-cu-zn",
@@ -957,7 +2420,55 @@
       ],
       "figures": [
         "l5-cu-zn"
-      ]
+      ],
+      "param_spec": {
+        "parameters": {
+          "zn_wt_pct": {
+            "type": "number",
+            "base": 90.0,
+            "range": [
+              88.0,
+              96.0
+            ],
+            "step": 1.0
+          },
+          "cu_wt_pct": {
+            "type": "number",
+            "base": 10.0,
+            "range": [
+              4.0,
+              12.0
+            ],
+            "step": 1.0
+          },
+          "rho_zn": {
+            "type": "number",
+            "base": 6.83,
+            "range": [
+              6.5,
+              7.2
+            ],
+            "step": 0.01
+          },
+          "rho_cu": {
+            "type": "number",
+            "base": 8.77,
+            "range": [
+              8.4,
+              9.1
+            ],
+            "step": 0.01
+          }
+        },
+        "invariants": [
+          "The two stated compositions must sum to 100 wt% (zinc plus copper).",
+          "The overall zinc content must lie strictly between the ε and η tie-line endpoints read from the diagram at 400 °C (about 87 and 97 wt% Zn), far enough inside that both phase fractions are at least about 0.1.",
+          "Both elemental densities must be positive and the zinc density must be smaller than the copper density.",
+          "The two phase densities must remain close enough that the volume fractions stay within a few percent of the mass fractions.",
+          "The temperature and all compositions read from the phase diagram must remain as printed in the figure."
+        ],
+        "solution_method": "Read the ε and η tie-line compositions at the stated temperature from the Cu-Zn diagram and apply the lever rule to get the mass fractions; compute each phase's density from its composition and the two elemental densities using the inverse-rule-of-mixtures, then convert mass fractions to volume fractions via (W/ρ) divided by the sum of (W/ρ)."
+      }
     },
     {
       "key": "l5-impossible-mg-pb-measurements",
@@ -978,7 +2489,65 @@
       ],
       "figures": [
         "l5-mg-pb"
-      ]
+      ],
+      "param_spec": {
+        "parameters": {
+          "temperature_c": {
+            "type": "number",
+            "base": 460.0,
+            "range": [
+              450.0,
+              465.0
+            ],
+            "step": 5.0
+          },
+          "sample_mass_kg": {
+            "type": "number",
+            "base": 6.7,
+            "range": [
+              6.4,
+              7.2
+            ],
+            "step": 0.05
+          },
+          "primary_alpha_mass_kg": {
+            "type": "number",
+            "base": 4.23,
+            "range": [
+              3.9,
+              4.5
+            ],
+            "step": 0.01
+          },
+          "total_alpha_mass_kg": {
+            "type": "number",
+            "base": 6.0,
+            "range": [
+              5.7,
+              6.2
+            ],
+            "step": 0.01
+          },
+          "facility_type": {
+            "type": "choice",
+            "base": "casting facility",
+            "options": [
+              "casting facility",
+              "foundry",
+              "alloy production plant",
+              "metals processing plant"
+            ]
+          }
+        },
+        "invariants": [
+          "The primary alpha mass must be less than the total alpha mass, and the total alpha mass must be less than the sample mass.",
+          "Both mass fractions must lie strictly inside their lever-rule limits, so each one yields a composition C0 strictly between C_alpha and C_eutectic (primary alpha) and between C_alpha and C_Mg2Pb (total alpha).",
+          "The two implied overall compositions must differ by at least about 2 wt% Pb.",
+          "The stated temperature must stay below the Mg-Pb eutectic temperature and inside the alpha + Mg2Pb field, so the microstructure is primary alpha plus eutectic.",
+          "All compositions needed (C_alpha, C_eutectic, C_Mg2Pb) must be readable from the phase diagram in fig://6 at the stated temperature."
+        ],
+        "solution_method": "Convert the primary-alpha and total-alpha masses to mass fractions of the sample, read C_alpha, C_eutectic and C_Mg2Pb off the Mg-Pb diagram at the stated temperature, then invert the lever rule twice to obtain the overall composition C0 implied by each measurement; the two values disagree, so the measurements are mutually inconsistent and the alloy as described is impossible."
+      }
     },
     {
       "key": "l5-hypothetical-eutectic-alpha",
@@ -1016,7 +2585,70 @@
       ],
       "figures": [
         "l5-pb-sn"
-      ]
+      ],
+      "param_spec": {
+        "parameters": {
+          "sn_wt_pct": {
+            "type": "number",
+            "base": 30.0,
+            "range": [
+              22.0,
+              55.0
+            ],
+            "step": 1.0
+          },
+          "pb_wt_pct": {
+            "type": "number",
+            "base": 70.0,
+            "range": [
+              45.0,
+              78.0
+            ],
+            "step": 1.0
+          },
+          "temperature_drop": {
+            "type": "integer",
+            "base": 1,
+            "range": [
+              1,
+              5
+            ]
+          },
+          "job_title": {
+            "type": "choice",
+            "base": "quality engineer",
+            "options": [
+              "quality engineer",
+              "process engineer",
+              "materials engineer",
+              "metallurgist"
+            ]
+          },
+          "workplace": {
+            "type": "entity",
+            "base": "solder manufacturing plant",
+            "description": "A manufacturing or research facility where lead-tin solder alloys would plausibly be developed (e.g. an electronics assembly plant, a solder paste supplier, an alloy foundry)"
+          },
+          "asker": {
+            "type": "choice",
+            "base": "Your supervisor",
+            "options": [
+              "Your supervisor",
+              "A process technician",
+              "The plant manager",
+              "A new intern"
+            ]
+          }
+        },
+        "invariants": [
+          "The lead and tin weight percentages must sum to exactly 100 wt%.",
+          "The tin content must be strictly greater than the alpha-phase solvus composition and strictly less than the eutectic composition shown on the figure, so the alloy is hypoeutectic and the vertical line meets the eutectic isotherm inside the alpha + L field.",
+          "The alloy must remain lead-tin and the eutectic temperature and composition must stay as printed on the supplied phase diagram.",
+          "The temperature drop must be small enough that the alloy stays just below the eutectic isotherm and well inside the alpha + beta field.",
+          "The question must continue to ask for phases present at the eutectic temperature, phases just below it, and the significance of that temperature."
+        ],
+        "solution_method": "Locate the alloy's vertical composition line on the Pb-Sn phase diagram relative to the eutectic point, read off the phases where it meets the eutectic isotherm (alpha + liquid, with tie-line end compositions), then apply the eutectic reaction L -> alpha + beta just below the isotherm and explain the three-phase invariant nature of the eutectic temperature."
+      }
     },
     {
       "key": "l5-austenite-1-15-carbon",
@@ -1037,7 +2669,36 @@
         "0.93 kg",
         "0.07 kg"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "carbon_content": {
+            "type": "number",
+            "base": 1.15,
+            "range": [
+              0.85,
+              2.0
+            ],
+            "step": 0.05
+          },
+          "alloy_mass": {
+            "type": "number",
+            "base": 1.0,
+            "range": [
+              0.5,
+              5.0
+            ],
+            "step": 0.5
+          }
+        },
+        "invariants": [
+          "The carbon content must be greater than the eutectoid composition of 0.76 wt% C and less than 2.14 wt% C.",
+          "The eutectoid temperature (727 °C), eutectoid composition (0.76 wt% C), maximum ferrite solubility (0.022 wt% C) and cementite composition (6.70 wt% C) must remain unchanged.",
+          "Total ferrite + total cementite must equal the stated total mass, and pearlite + proeutectoid cementite must equal the same total mass.",
+          "The carbon content should be stated to two decimal places so lever-rule results round sensibly to two significant figures."
+        ],
+        "solution_method": "Identify the alloy as hypereutectoid (C0 > 0.76 wt% C) so the proeutectoid phase is Fe3C; then apply the lever rule on the Fe–Fe3C diagram just below 727 °C using the tie line 0.022–6.70 wt% C for total ferrite and total cementite, and the tie line 0.76–6.70 wt% C for pearlite and proeutectoid cementite, multiplying each mass fraction by the total alloy mass."
+      }
     },
     {
       "key": "l5-hypothetical-eutectic-beta",
@@ -1055,7 +2716,83 @@
         "75 wt% B",
         "94 wt% B"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "reference_system": {
+            "type": "choice",
+            "base": "lead-tin",
+            "options": [
+              "lead-tin",
+              "copper-silver",
+              "aluminum-silicon",
+              "bismuth-cadmium"
+            ]
+          },
+          "eutectic_a_wt": {
+            "type": "number",
+            "base": 36.0,
+            "range": [
+              35.0,
+              40.0
+            ],
+            "step": 1.0
+          },
+          "eutectic_b_wt": {
+            "type": "number",
+            "base": 64.0,
+            "range": [
+              60.0,
+              65.0
+            ],
+            "step": 1.0
+          },
+          "alpha_a_wt": {
+            "type": "number",
+            "base": 88.0,
+            "range": [
+              84.0,
+              90.0
+            ],
+            "step": 1.0
+          },
+          "alpha_b_wt": {
+            "type": "number",
+            "base": 12.0,
+            "range": [
+              10.0,
+              16.0
+            ],
+            "step": 1.0
+          },
+          "primary_beta_fraction": {
+            "type": "number",
+            "base": 0.367,
+            "range": [
+              0.362,
+              0.372
+            ],
+            "step": 0.001
+          },
+          "total_beta_fraction": {
+            "type": "number",
+            "base": 0.768,
+            "range": [
+              0.765,
+              0.775
+            ],
+            "step": 0.001
+          }
+        },
+        "invariants": [
+          "The eutectic A and B weight percentages must sum to 100, and the alpha-phase A and B weight percentages must sum to 100.",
+          "The total beta mass fraction must be strictly greater than the primary beta mass fraction, with a difference of roughly 0.40.",
+          "The solved compositions must satisfy alpha composition < eutectic composition < alloy composition C0 < beta composition Cbeta <= 100 wt% B.",
+          "The alpha-phase B content must stay well below the eutectic B content.",
+          "Both given mass fractions must lie strictly between 0 and 1."
+        ],
+        "solution_method": "Write the lever rule twice in wt% B: total beta as (C0 - Calpha)/(Cbeta - Calpha) and primary beta as (C0 - Ceutectic)/(Cbeta - Ceutectic), then solve the two linear equations simultaneously for the unknown alloy composition C0 and beta-phase composition Cbeta."
+      }
     },
     {
       "key": "l5-proeutectoid-ferrite-and-pearlite",
@@ -1073,7 +2810,36 @@
         "0.44",
         "0.56"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "carbon_content": {
+            "type": "number",
+            "base": 0.35,
+            "range": [
+              0.1,
+              0.7
+            ],
+            "step": 0.01
+          },
+          "alloy_description": {
+            "type": "choice",
+            "base": "iron-carbon alloy",
+            "options": [
+              "iron-carbon alloy",
+              "plain carbon steel",
+              "iron-carbon steel"
+            ]
+          }
+        },
+        "invariants": [
+          "The carbon content must lie strictly between the maximum ferrite solubility (0.022 wt% C) and the eutectoid composition (0.76 wt% C).",
+          "The eutectoid composition (0.76 wt% C) and the ferrite solubility limit (0.022 wt% C) remain the standard Fe-Fe3C values.",
+          "The two computed mass fractions must sum to 1.",
+          "The carbon content should be stated to two decimal places so the resulting fractions round cleanly to two significant figures."
+        ],
+        "solution_method": "Identify the alloy as hypoeutectoid (C0 below 0.76 wt% C), then apply the lever rule just below the eutectoid temperature with tie-line endpoints 0.022 and 0.76 wt% C: W_pearlite = (C0 - 0.022)/0.738 and W_proeutectoid ferrite = (0.76 - C0)/0.738, checking that they sum to one."
+      }
     },
     {
       "key": "l5-composition-from-eutectoid-ferrite",
@@ -1091,7 +2857,27 @@
         "0.61 wt% C",
         "1.96 wt% C"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "eutectoid_ferrite_fraction": {
+            "type": "number",
+            "base": 0.71,
+            "range": [
+              0.7,
+              0.85
+            ],
+            "step": 0.01
+          }
+        },
+        "invariants": [
+          "The given eutectoid-ferrite mass fraction must lie strictly between the value obtained at the eutectoid composition (about 0.889) and the value obtained at the maximum hypereutectoid composition of 2.14 wt% C (about 0.683).",
+          "The hypoeutectoid solution must fall between 0.022 and 0.76 wt% C and the hypereutectoid solution between 0.76 and 2.14 wt% C.",
+          "The answer must remain non-unique, i.e. two distinct compositions are reported along with the statement that one extra piece of information would resolve it.",
+          "The phase-boundary compositions used (0.022 wt% C for ferrite, 0.76 wt% C eutectoid, 6.7 wt% C for cementite) must stay fixed."
+        ],
+        "solution_method": "Recognize that eutectoid ferrite occurs on both sides of the eutectoid, then apply the lever rule twice: for the hypoeutectoid case set total ferrite minus proeutectoid ferrite, (6.7-C0)/(6.7-0.022) - (0.76-C0)/(0.76-0.022), equal to the given fraction; for the hypereutectoid case set total ferrite (6.7-C0)/(6.7-0.022) equal to it. Solve each for C0 and conclude the composition is not uniquely determined."
+      }
     },
     {
       "key": "l6-styrene-butadiene-fractions",
@@ -1109,7 +2895,36 @@
         "0.32",
         "0.68"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "number_avg_molecular_weight": {
+            "type": "number",
+            "base": 350000.0,
+            "range": [
+              200000.0,
+              600000.0
+            ],
+            "step": 10000.0
+          },
+          "degree_of_polymerization": {
+            "type": "integer",
+            "base": 5000,
+            "range": [
+              3000,
+              8000
+            ]
+          }
+        },
+        "invariants": [
+          "The ratio M_n/DP must fall strictly between the butadiene repeat unit weight (54.09 g/mol) and the styrene repeat unit weight (104.14 g/mol).",
+          "The ratio M_n/DP should sit at least ~5 g/mol inside each bound, so both fractions land roughly between 0.10 and 0.90.",
+          "M_n/DP should be a reasonably round number (ideally an exact or near-exact integer g/mol).",
+          "The copolymer remains a random styrene-butadiene copolymer with the repeat unit formulas C8H8 and C4H6.",
+          "Molecular weight is stated in g/mol and DP is a dimensionless whole number."
+        ],
+        "solution_method": "Compute the repeat unit molecular weights of styrene (C8H8 = 104.14 g/mol) and butadiene (C4H6 = 54.09 g/mol), obtain the average repeat unit weight as M_n/DP, then solve the linear mixture equation m̄ = f_st·m_st + (1 − f_st)·m_bu for the styrene fraction and take f_bu = 1 − f_st."
+      }
     },
     {
       "key": "l6-acrylonitrile-butadiene-repeat-units",
@@ -1126,7 +2941,38 @@
       "final_answers": [
         "9333"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "number_average_mw": {
+            "type": "number",
+            "base": 1000000.0,
+            "range": [
+              200000.0,
+              2000000.0
+            ],
+            "step": 50000.0
+          },
+          "copolymer_pair": {
+            "type": "choice",
+            "base": "poly(acrylonitrile-butadiene)",
+            "options": [
+              "poly(acrylonitrile-butadiene)",
+              "poly(styrene-butadiene)",
+              "poly(acrylonitrile-isoprene)",
+              "poly(styrene-isoprene)",
+              "poly(vinyl chloride-butadiene)"
+            ]
+          }
+        },
+        "invariants": [
+          "The copolymer must be described as alternating, so the two repeat-unit types occur in a strict 1:1 ratio.",
+          "Both named comonomers must be common vinyl/diene monomers whose repeat-unit chemical formulas are standard and unambiguous.",
+          "The number-average molecular weight must be large enough that the resulting degree of polymerization is in the thousands.",
+          "The question must ask for the average number of each repeat unit per molecule, not the total number of repeat units."
+        ],
+        "solution_method": "Because the copolymer is alternating, treat one comonomer pair as a single repeat unit, compute its molar mass by summing atomic weights of the constituent atoms, then divide the number-average molecular weight by that mass to get the degree of polymerization, which equals the average number of each repeat unit per molecule."
+      }
     },
     {
       "key": "l6-repeat-unit-molecular-weights",
@@ -1146,7 +2992,63 @@
         "254.27 g/mol",
         "74.16 g/mol"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "polymer_a": {
+            "type": "choice",
+            "base": "poly(vinyl chloride)",
+            "options": [
+              "poly(vinyl chloride)",
+              "polyethylene",
+              "polypropylene",
+              "polystyrene",
+              "poly(tetrafluoroethylene)",
+              "poly(vinylidene chloride)"
+            ]
+          },
+          "polymer_b": {
+            "type": "choice",
+            "base": "poly(ethylene terephthalate)",
+            "options": [
+              "poly(ethylene terephthalate)",
+              "nylon 6,6",
+              "nylon 6",
+              "poly(methyl methacrylate)",
+              "poly(butylene terephthalate)"
+            ]
+          },
+          "polymer_c": {
+            "type": "choice",
+            "base": "polycarbonate",
+            "options": [
+              "polycarbonate",
+              "poly(phenylene oxide)",
+              "poly(phenylene sulfide)",
+              "polyetheretherketone",
+              "poly(ether sulfone)"
+            ]
+          },
+          "polymer_d": {
+            "type": "choice",
+            "base": "polydimethylsiloxane",
+            "options": [
+              "polydimethylsiloxane",
+              "poly(vinyl alcohol)",
+              "poly(vinyl acetate)",
+              "poly(acrylonitrile)",
+              "polyisoprene"
+            ]
+          }
+        },
+        "invariants": [
+          "All four polymers named in a variant must be distinct from one another.",
+          "Every named polymer must have a single, standard, unambiguous repeat unit structure available in the course text.",
+          "At least one of the four polymers must contain a heteroatom beyond C and H (e.g., O, N, Cl, F, S, Si).",
+          "Computed repeat unit molecular weights must be reported in g/mol using standard atomic weights to four significant figures."
+        ],
+        "solution_method": "For each polymer, write the repeat unit structure, count the atoms of each element, multiply each count by the element's atomic weight, and sum to obtain the repeat unit molecular weight in g/mol."
+      }
     },
     {
       "key": "l6-polypropylene-molecular-weights",
@@ -1165,7 +3067,137 @@
         "36240 g/mol",
         "785"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "polymer": {
+            "type": "choice",
+            "base": "polypropylene",
+            "options": [
+              "polypropylene",
+              "polyethylene",
+              "poly(vinyl chloride)",
+              "polystyrene"
+            ]
+          },
+          "x_frac_1": {
+            "type": "number",
+            "base": 0.05,
+            "range": [
+              0.02,
+              0.09
+            ],
+            "step": 0.01
+          },
+          "x_frac_2": {
+            "type": "number",
+            "base": 0.16,
+            "range": [
+              0.1,
+              0.22
+            ],
+            "step": 0.01
+          },
+          "x_frac_3": {
+            "type": "number",
+            "base": 0.24,
+            "range": [
+              0.18,
+              0.3
+            ],
+            "step": 0.01
+          },
+          "x_frac_4": {
+            "type": "number",
+            "base": 0.28,
+            "range": [
+              0.22,
+              0.34
+            ],
+            "step": 0.01
+          },
+          "x_frac_5": {
+            "type": "number",
+            "base": 0.2,
+            "range": [
+              0.14,
+              0.26
+            ],
+            "step": 0.01
+          },
+          "x_frac_6": {
+            "type": "number",
+            "base": 0.07,
+            "range": [
+              0.03,
+              0.12
+            ],
+            "step": 0.01
+          },
+          "w_frac_1": {
+            "type": "number",
+            "base": 0.02,
+            "range": [
+              0.01,
+              0.05
+            ],
+            "step": 0.01
+          },
+          "w_frac_2": {
+            "type": "number",
+            "base": 0.1,
+            "range": [
+              0.05,
+              0.15
+            ],
+            "step": 0.01
+          },
+          "w_frac_3": {
+            "type": "number",
+            "base": 0.2,
+            "range": [
+              0.14,
+              0.26
+            ],
+            "step": 0.01
+          },
+          "w_frac_4": {
+            "type": "number",
+            "base": 0.3,
+            "range": [
+              0.24,
+              0.36
+            ],
+            "step": 0.01
+          },
+          "w_frac_5": {
+            "type": "number",
+            "base": 0.27,
+            "range": [
+              0.2,
+              0.33
+            ],
+            "step": 0.01
+          },
+          "w_frac_6": {
+            "type": "number",
+            "base": 0.11,
+            "range": [
+              0.06,
+              0.16
+            ],
+            "step": 0.01
+          }
+        },
+        "invariants": [
+          "The six x_i values must sum to exactly 1.00, and the six w_i values must sum to exactly 1.00.",
+          "Each fraction must be strictly positive and reported to two decimal places.",
+          "The molecular weight bins must remain six contiguous, equal-width ranges so each bin mean is its midpoint.",
+          "The weight fractions must be shifted toward the higher molecular-weight bins relative to the number fractions, so that the weight-average molecular weight exceeds the number-average.",
+          "The resulting number-average molecular weight must be large enough that the degree of polymerization is in the hundreds and rounds to a whole number."
+        ],
+        "solution_method": "Replace each molecular weight range by its midpoint M_i, then compute the number-average as the sum of x_i*M_i and the weight-average as the sum of w_i*M_i; finally divide the number-average by the repeat-unit molecular weight (from the monomer's atomic weights) to obtain the degree of polymerization."
+      }
     },
     {
       "key": "l6-pmma-degree-of-polymerization-check",
@@ -1183,7 +3215,146 @@
         "not possible",
         "477"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "polymer_name": {
+            "type": "choice",
+            "base": "poly(methyl methacrylate)",
+            "options": [
+              "poly(methyl methacrylate)",
+              "polystyrene",
+              "polytetrafluoroethylene"
+            ]
+          },
+          "claimed_dp": {
+            "type": "integer",
+            "base": 527,
+            "range": [
+              500,
+              600
+            ]
+          },
+          "w_1": {
+            "type": "number",
+            "base": 0.02,
+            "range": [
+              0.01,
+              0.04
+            ],
+            "step": 0.01
+          },
+          "w_2": {
+            "type": "number",
+            "base": 0.08,
+            "range": [
+              0.05,
+              0.12
+            ],
+            "step": 0.01
+          },
+          "w_3": {
+            "type": "number",
+            "base": 0.17,
+            "range": [
+              0.12,
+              0.22
+            ],
+            "step": 0.01
+          },
+          "w_4": {
+            "type": "number",
+            "base": 0.29,
+            "range": [
+              0.22,
+              0.34
+            ],
+            "step": 0.01
+          },
+          "w_5": {
+            "type": "number",
+            "base": 0.23,
+            "range": [
+              0.18,
+              0.28
+            ],
+            "step": 0.01
+          },
+          "w_6": {
+            "type": "number",
+            "base": 0.16,
+            "range": [
+              0.1,
+              0.2
+            ],
+            "step": 0.01
+          },
+          "x_2": {
+            "type": "number",
+            "base": 0.15,
+            "range": [
+              0.1,
+              0.2
+            ],
+            "step": 0.01
+          },
+          "x_3": {
+            "type": "number",
+            "base": 0.21,
+            "range": [
+              0.15,
+              0.25
+            ],
+            "step": 0.01
+          },
+          "x_4": {
+            "type": "number",
+            "base": 0.28,
+            "range": [
+              0.22,
+              0.33
+            ],
+            "step": 0.01
+          },
+          "x_5": {
+            "type": "number",
+            "base": 0.18,
+            "range": [
+              0.13,
+              0.23
+            ],
+            "step": 0.01
+          },
+          "x_6": {
+            "type": "number",
+            "base": 0.1,
+            "range": [
+              0.06,
+              0.14
+            ],
+            "step": 0.01
+          },
+          "x_7": {
+            "type": "number",
+            "base": 0.03,
+            "range": [
+              0.01,
+              0.05
+            ],
+            "step": 0.01
+          }
+        },
+        "invariants": [
+          "The number-fraction column must sum to exactly 1.00.",
+          "The weight-fraction column must sum to exactly 1.00.",
+          "The weight fractions must remain approximately consistent with the number fractions (w_i roughly proportional to x_i M_i), so the weight distribution is shifted toward higher molecular weights than the number distribution.",
+          "Both columns must stay unimodal with the peak in an interior molecular-weight bin.",
+          "The number-average molecular weight implied by the data must fall roughly between 40,000 and 60,000 g/mol.",
+          "The stated degree of polymerization must exceed the value implied by the data by at least about 5%, and must not coincide with it.",
+          "The polymer named must be a homopolymer with a well-defined repeat unit whose molar mass the student can compute from atomic weights."
+        ],
+        "solution_method": "Compute the number-average molecular weight as the sum of each bin's midpoint weighted by its number fraction x_i, divide by the molar mass of the polymer's repeat unit to get the degree of polymerization, and compare that value with the claimed one to judge whether the data and claim are consistent."
+      }
     },
     {
       "key": "l6-chlorinated-polyethylene",
@@ -1200,7 +3371,37 @@
       "final_answers": [
         "20.3 wt%"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "substitution_percent": {
+            "type": "number",
+            "base": 5.0,
+            "range": [
+              2.0,
+              20.0
+            ],
+            "step": 1.0
+          },
+          "polyethylene_grade": {
+            "type": "choice",
+            "base": "High-density polyethylene",
+            "options": [
+              "High-density polyethylene",
+              "Low-density polyethylene",
+              "Linear low-density polyethylene"
+            ]
+          }
+        },
+        "invariants": [
+          "The repeat unit of the starting polymer must be C2H4 (two carbons, four hydrogens).",
+          "The substitution percentage must give a whole number of substituted hydrogen atoms on a basis of 100 repeat units (i.e. a multiple of 0.25%).",
+          "The resulting chlorine concentration must come out well below 56.8 wt% (the chlorine content of PVC) yet high enough to be a noticeable fraction of the mass.",
+          "The substituting species must remain chlorine and the comparison polymer poly(vinyl chloride).",
+          "Atomic weights used must be those of C (12.01), H (1.008) and Cl (35.45)."
+        ],
+        "solution_method": "Take a basis of 100 C2H4 repeat units (200 C, 400 H), convert the stated percentage of hydrogens into an equal number of chlorine atoms, compute the masses of C, remaining H and Cl from atomic weights, and express the Cl mass as a percentage of the total; then argue qualitatively that random substitution gives an irregular chain unlike the regular repeat structure of PVC."
+      }
     },
     {
       "key": "l6-ptfe-chain-length",
@@ -1218,7 +3419,38 @@
         "1254 nm",
         "15.4 nm"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "polymer": {
+            "type": "choice",
+            "base": "polytetrafluoroethylene",
+            "options": [
+              "polytetrafluoroethylene",
+              "polyethylene",
+              "polyvinyl chloride",
+              "polypropylene"
+            ]
+          },
+          "number_average_molecular_weight": {
+            "type": "number",
+            "base": 500000.0,
+            "range": [
+              100000.0,
+              1000000.0
+            ],
+            "step": 50000.0
+          }
+        },
+        "invariants": [
+          "The chosen polymer must be a linear vinyl-type polymer whose repeat unit contributes exactly two carbon backbone atoms, i.e. two chain bonds per repeat unit.",
+          "The number-average molecular weight must be large enough that the degree of polymerization is at least about 1000 repeat units.",
+          "The computed degree of polymerization should come out close to a round number when divided by the repeat-unit mass.",
+          "Single C-C backbone bonds with d = 0.154 nm and bond angle 109 degrees must remain the assumed geometry.",
+          "The extended length L must remain roughly two orders of magnitude larger than the end-to-end distance r."
+        ],
+        "solution_method": "Compute the repeat-unit molar mass from its atomic constituents, divide the number-average molecular weight by it to get the degree of polymerization, multiply by the number of chain bonds per repeat unit (two) to get N, then evaluate L = N d sin(theta/2) and r = d sqrt(N) with d = 0.154 nm and theta = 109 degrees."
+      }
     },
     {
       "key": "l6-polystyrene-tacticity",
@@ -1251,7 +3483,46 @@
         "1.12e5 g/mol",
         "112000 g/mol"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "butadiene_fraction": {
+            "type": "number",
+            "base": 0.3,
+            "range": [
+              0.15,
+              0.6
+            ],
+            "step": 0.05
+          },
+          "degree_of_polymerization": {
+            "type": "integer",
+            "base": 2100,
+            "range": [
+              1000,
+              5000
+            ]
+          },
+          "application": {
+            "type": "choice",
+            "base": "flexible agricultural tubing",
+            "options": [
+              "flexible agricultural tubing",
+              "flexible fuel-line hose",
+              "flexible hydraulic hose",
+              "flexible irrigation tubing"
+            ]
+          }
+        },
+        "invariants": [
+          "The copolymer must remain a random two-component poly(acrylonitrile-butadiene) system with repeat units C3H3N (53.06 g/mol) and C4H6 (54.09 g/mol).",
+          "The stated butadiene fraction and the implied acrylonitrile fraction must sum to exactly 1.",
+          "The butadiene fraction must be given as a decimal fraction strictly between 0 and 1, not as a weight percent.",
+          "The resulting number-average molecular weight must stay on the order of 10^4 to 10^5 g/mol.",
+          "The question must still ask both for the number-average molecular weight and for its qualitative effect on flexibility and environmental stress resistance."
+        ],
+        "solution_method": "Compute the molar mass of each repeat unit from its formula (acrylonitrile C3H3N, butadiene C4H6), take the composition-weighted average repeat unit mass using f_bu and f_ac = 1 - f_bu, then multiply by the degree of polymerization to get M_n; finish with a qualitative discussion linking chain length and acrylonitrile content to flexibility, strength and stress-crack/chemical resistance."
+      }
     },
     {
       "key": "l6-ethylene-propylene-mole-fractions",
@@ -1269,7 +3540,73 @@
         "0.69",
         "0.31"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "ethylene_wt_pct": {
+            "type": "integer",
+            "base": 60,
+            "range": [
+              30,
+              80
+            ]
+          },
+          "comonomer_wt_pct": {
+            "type": "integer",
+            "base": 40,
+            "range": [
+              20,
+              70
+            ]
+          },
+          "comonomer": {
+            "type": "choice",
+            "base": "propylene",
+            "options": [
+              "propylene",
+              "1-butene",
+              "isobutylene"
+            ]
+          },
+          "discipline": {
+            "type": "choice",
+            "base": "bioresource engineering",
+            "options": [
+              "bioresource engineering",
+              "agricultural engineering",
+              "environmental engineering"
+            ]
+          },
+          "application": {
+            "type": "choice",
+            "base": "irrigation systems",
+            "options": [
+              "irrigation systems",
+              "greenhouse ventilation systems",
+              "dairy processing equipment",
+              "grain handling machinery"
+            ]
+          },
+          "component_use": {
+            "type": "choice",
+            "base": "flexible seals",
+            "options": [
+              "flexible seals",
+              "gaskets",
+              "flexible hose liners",
+              "vibration-damping mounts"
+            ]
+          }
+        },
+        "invariants": [
+          "The two weight percentages must sum to exactly 100 wt%.",
+          "Both weight percentages must be strictly positive, with neither below about 20 wt%.",
+          "The two repeat units must have distinctly different molar masses, with ethylene the lighter one.",
+          "Both monomers must be simple hydrocarbon olefins whose repeat-unit formulas can be written from the monomer name.",
+          "The resulting copolymer must remain a plausible rubbery/elastomeric material for the stated application."
+        ],
+        "solution_method": "Write the repeat-unit formulas, compute each repeat unit's molar mass from atomic weights, take a 100 g basis so the weight percentages become grams, convert each mass to moles, and divide by the total moles to get the two mole fractions."
+      }
     },
     {
       "key": "l6-identify-the-alternating-repeat-unit",
@@ -1287,7 +3624,47 @@
         "vinyl chloride",
         "62.45 g/mol"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "number_average_mw": {
+            "type": "number",
+            "base": 100000.0,
+            "range": [
+              60000.0,
+              300000.0
+            ],
+            "step": 5000.0
+          },
+          "degree_of_polymerization": {
+            "type": "integer",
+            "base": 2210,
+            "range": [
+              1300,
+              6700
+            ]
+          },
+          "candidate_list": {
+            "type": "choice",
+            "base": "styrene, propylene, tetrafluoroethylene and vinyl chloride",
+            "options": [
+              "styrene, propylene, tetrafluoroethylene and vinyl chloride",
+              "styrene, vinyl chloride, propylene and tetrafluoroethylene",
+              "propylene, acrylonitrile, styrene and vinyl chloride",
+              "tetrafluoroethylene, isobutylene, methyl methacrylate and vinyl chloride"
+            ]
+          }
+        },
+        "invariants": [
+          "The copolymer must be described as alternating, so the mole fractions of both repeat units are fixed at 0.5 each.",
+          "Mn divided by DP must equal, to within about 0.1 g/mol, the arithmetic mean of the ethylene repeat-unit mass (28.05 g/mol) and the intended answer's repeat-unit mass.",
+          "Exactly one monomer in the candidate list may match the deduced repeat-unit mass (within about 1 g/mol); every other candidate must differ by at least 5 g/mol.",
+          "The candidate list must contain four distinct monomers, must include the correct one, and must not offer ethylene itself as a choice.",
+          "The deduced unknown repeat-unit mass must be a positive, chemically plausible value for a vinyl-type monomer (roughly 25-150 g/mol).",
+          "Mn should remain a round reportable figure and DP a whole number."
+        ],
+        "solution_method": "Compute the average repeat-unit mass as Mn/DP, then use the alternating-copolymer relation m-bar = 0.5*m1 + 0.5*m2 with the known ethylene repeat unit (28.05 g/mol) to solve for the unknown repeat-unit mass; compare that mass with the repeat-unit masses computed from atomic weights for each listed candidate and select the match."
+      }
     },
     {
       "key": "l6-polyester-thermoplastic-or-thermosetting",
@@ -1322,7 +3699,90 @@
         "rock salt",
         "NaCl"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "compound": {
+            "type": "choice",
+            "base": "FeO",
+            "options": [
+              "FeO",
+              "CaO"
+            ]
+          },
+          "fe2_radius": {
+            "type": "number",
+            "base": 0.077,
+            "range": [
+              0.062,
+              0.095
+            ],
+            "step": 0.001
+          },
+          "o2_radius": {
+            "type": "number",
+            "base": 0.14,
+            "range": [
+              0.138,
+              0.145
+            ],
+            "step": 0.001
+          },
+          "ca2_radius": {
+            "type": "number",
+            "base": 0.1,
+            "range": [
+              0.092,
+              0.1
+            ],
+            "step": 0.001
+          },
+          "al3_radius": {
+            "type": "number",
+            "base": 0.053,
+            "range": [
+              0.045,
+              0.06
+            ],
+            "step": 0.001
+          },
+          "fe3_radius": {
+            "type": "number",
+            "base": 0.069,
+            "range": [
+              0.062,
+              0.075
+            ],
+            "step": 0.001
+          },
+          "cl_radius": {
+            "type": "number",
+            "base": 0.181,
+            "range": [
+              0.172,
+              0.19
+            ],
+            "step": 0.001
+          },
+          "f_radius": {
+            "type": "number",
+            "base": 0.133,
+            "range": [
+              0.126,
+              0.137
+            ],
+            "step": 0.001
+          }
+        },
+        "invariants": [
+          "The cation of the asked-about compound must appear in the cation table and the anion (O2-) in the anion table.",
+          "The cation-to-anion radius ratio for the asked-about compound must lie strictly between 0.414 and 0.732.",
+          "The compound must have equal cation and anion charge magnitudes (1:1 stoichiometry).",
+          "The ratio must not fall within about 0.01 of either 0.414 or 0.732.",
+          "All listed radii must stay physically ordered: trivalent cations smaller than their divalent counterparts, and F- < O2- < Cl-."
+        ],
+        "solution_method": "Form the cation-to-anion radius ratio from the tabulated ionic radii, use the radius-ratio-to-coordination-number table to read off the coordination number (6 for 0.414-0.732), and combine that with the 1:1 charge balance to name the rock salt (NaCl) structure."
+      }
     },
     {
       "key": "l7-csi-crystal-structure",
@@ -1342,7 +3802,36 @@
         "CsCl",
         "cubic"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "r_cation": {
+            "type": "number",
+            "base": 0.17,
+            "range": [
+              0.17,
+              0.2
+            ],
+            "step": 0.005
+          },
+          "r_anion": {
+            "type": "number",
+            "base": 0.22,
+            "range": [
+              0.21,
+              0.23
+            ],
+            "step": 0.005
+          }
+        },
+        "invariants": [
+          "The ratio r_cation/r_anion must lie strictly between 0.732 and 1.0.",
+          "The anion radius must exceed the cation radius.",
+          "Both radii must be quoted in nanometres to three decimal places, as in the base question.",
+          "The ratio must not sit within 0.01 of the 0.732 or 1.0 boundaries."
+        ],
+        "solution_method": "Compute the cation-to-anion radius ratio, locate it in the standard coordination-number table, and name the corresponding structure (ratio 0.732-1.0 gives coordination number 8, the CsCl-type cubic structure)."
+      }
     },
     {
       "key": "l7-nacl-theoretical-density",
@@ -1359,7 +3848,34 @@
       "final_answers": [
         "2.14 g/cm3"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "compound": {
+            "type": "choice",
+            "base": "sodium chloride",
+            "options": [
+              "sodium chloride",
+              "potassium chloride",
+              "potassium bromide",
+              "lithium fluoride",
+              "magnesium oxide",
+              "calcium oxide",
+              "sodium bromide"
+            ]
+          }
+        },
+        "invariants": [
+          "The two ionic radii and the measured density quoted must be the accepted tabulated values for the chosen rock-salt compound, so that the computed density lands within a couple of percent of the measured one.",
+          "The compound must retain the rock-salt (NaCl) crystal structure, so n' = 4 formula units per cubic unit cell.",
+          "Ions touch along the cube face so that a = 2r_cation + 2r_anion.",
+          "The radius ratio r_cation/r_anion must stay between 0.414 and 0.732.",
+          "The quoted measured density must lie within about 3% of the theoretical density computed from the chosen radii, and remain slightly above it.",
+          "Atomic weights (22.99 and 35.45 g/mol) and Avogadro's number must remain the standard tabulated values for the chosen compound.",
+          "Radii must be stated in nm and the computed density in g/cm^3."
+        ],
+        "solution_method": "Use rho = n'(sum A_C + sum A_A)/(V_C N_A) with n' = 4 for the rock-salt cell, take a = 2r_cation + 2r_anion so V_C = a^3 (converting nm to cm), evaluate the theoretical density, and compare it as a percentage against the quoted measured density."
+      }
     },
     {
       "key": "l7-mgo-unit-cell-edge",
@@ -1377,7 +3893,37 @@
         "4.2e-8 cm",
         "0.42 nm"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "compound_name": {
+            "type": "choice",
+            "base": "Magnesium oxide",
+            "options": [
+              "Magnesium oxide",
+              "Sodium chloride",
+              "Calcium oxide",
+              "Manganese(II) oxide",
+              "Lithium fluoride",
+              "Potassium chloride",
+              "Potassium bromide",
+              "Sodium fluoride",
+              "Strontium oxide",
+              "Barium oxide",
+              "Sodium bromide",
+              "Lithium chloride"
+            ]
+          }
+        },
+        "invariants": [
+          "The density stated must be the accepted value for the chosen rock-salt compound, and its two constituent atomic weights must be the standard tabulated ones.",
+          "The stated density must be the physically correct (or near-correct) density of whichever rock-salt compound is named.",
+          "The crystal structure named must remain rock salt (FCC anion sublattice), so that there are exactly 4 formula units per unit cell.",
+          "The resulting unit cell edge length must come out in the range roughly 0.3–0.7 nm, i.e. on the order of 10^-8 cm.",
+          "Only the density is given; atomic weights and Avogadro's number remain values the student must supply from tables/constants."
+        ],
+        "solution_method": "Count 4 formula units per rock-salt unit cell (8 corner anions × 1/8 + 6 face anions × 1/2), then invert the density relation ρ = n'(A_cation + A_anion)/(a³N_A) to get a³ = n'(ΣA)/(ρN_A) and take the cube root, converting cm to nm."
+      }
     },
     {
       "key": "l7-mgo-minimum-radius-bending",
@@ -1394,7 +3940,57 @@
       "final_answers": [
         "4 mm"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "ceramic_material": {
+            "type": "choice",
+            "base": "MgO",
+            "options": [
+              "MgO",
+              "Al2O3",
+              "SiC",
+              "Si3N4",
+              "spinel (MgAl2O4)"
+            ]
+          },
+          "applied_load": {
+            "type": "number",
+            "base": 425.0,
+            "range": [
+              200.0,
+              800.0
+            ],
+            "step": 25.0
+          },
+          "flexural_strength": {
+            "type": "number",
+            "base": 105.0,
+            "range": [
+              60.0,
+              300.0
+            ],
+            "step": 5.0
+          },
+          "support_separation": {
+            "type": "number",
+            "base": 50.0,
+            "range": [
+              30.0,
+              80.0
+            ],
+            "step": 5.0
+          }
+        },
+        "invariants": [
+          "The cross-section must remain circular and the loading mode must remain 3-point bending.",
+          "The quoted flexural strength must be a plausible value for the named ceramic (roughly 60-400 MPa).",
+          "The resulting minimum radius must fall between about 2 mm and 10 mm, i.e. well below the support separation.",
+          "Load is given in N, strength in MPa, and span in mm, so the student must convert units before solving.",
+          "The question must ask for the minimum radius that survives, i.e. the radius at which applied stress exactly equals the flexural strength."
+        ],
+        "solution_method": "Set the 3-point bending stress for a circular cross-section, sigma_fs = F*L/(pi*R^3), equal to the flexural strength, convert load, span and strength to SI units, then solve R = (F*L/(pi*sigma_fs))^(1/3) and report the minimum radius in mm."
+      }
     },
     {
       "key": "l8-aramid-epoxy-possible",
@@ -1413,7 +4009,55 @@
         "0.248",
         "0.351"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "longitudinal_modulus_gpa": {
+            "type": "number",
+            "base": 35.0,
+            "range": [
+              30.0,
+              45.0
+            ],
+            "step": 0.5
+          },
+          "transverse_modulus_gpa": {
+            "type": "number",
+            "base": 5.17,
+            "range": [
+              4.8,
+              6.2
+            ],
+            "step": 0.01
+          },
+          "matrix_modulus_gpa": {
+            "type": "number",
+            "base": 3.4,
+            "range": [
+              2.8,
+              4.0
+            ],
+            "step": 0.1
+          },
+          "fiber_modulus_gpa": {
+            "type": "number",
+            "base": 131.0,
+            "range": [
+              110.0,
+              145.0
+            ],
+            "step": 1.0
+          }
+        },
+        "invariants": [
+          "The fibre modulus must be at least 20 times the matrix modulus.",
+          "The target longitudinal modulus must lie strictly between the matrix and fibre moduli, giving a fibre volume fraction between 0.05 and 0.95.",
+          "The target transverse modulus must lie strictly between the matrix and fibre moduli, giving a fibre volume fraction between 0.05 and 0.95.",
+          "The two fibre volume fractions implied by the longitudinal and transverse requirements must differ by at least 0.05.",
+          "All moduli are quoted in GPa with at most two decimal places."
+        ],
+        "solution_method": "Solve the longitudinal rule of mixtures E_cl = E_m(1 - V_f) + E_f V_f for V_f, then solve the transverse (inverse rule of mixtures) relation E_ct = E_m E_f / [(1 - V_f)E_f + V_f E_m] for V_f; since the two required fibre volume fractions disagree, conclude the composite cannot be made."
+      }
     },
     {
       "key": "l8-specific-longitudinal-strengths",
@@ -1436,7 +4080,137 @@
         "775 MPa",
         "986 MPa"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "fiber_volume_fraction": {
+            "type": "number",
+            "base": 0.6,
+            "range": [
+              0.5,
+              0.7
+            ],
+            "step": 0.05
+          },
+          "sg_glass": {
+            "type": "number",
+            "base": 2.1,
+            "range": [
+              1.9,
+              2.3
+            ],
+            "step": 0.1
+          },
+          "sg_carbon": {
+            "type": "number",
+            "base": 1.6,
+            "range": [
+              1.5,
+              1.7
+            ],
+            "step": 0.1
+          },
+          "sg_aramid": {
+            "type": "number",
+            "base": 1.4,
+            "range": [
+              1.3,
+              1.5
+            ],
+            "step": 0.1
+          },
+          "strength_long_glass": {
+            "type": "number",
+            "base": 1020.0,
+            "range": [
+              900.0,
+              1100.0
+            ],
+            "step": 10.0
+          },
+          "strength_long_carbon": {
+            "type": "number",
+            "base": 1240.0,
+            "range": [
+              1150.0,
+              1300.0
+            ],
+            "step": 10.0
+          },
+          "strength_long_aramid": {
+            "type": "number",
+            "base": 1380.0,
+            "range": [
+              1350.0,
+              1500.0
+            ],
+            "step": 10.0
+          },
+          "modulus_long_glass": {
+            "type": "number",
+            "base": 45.0,
+            "range": [
+              35.0,
+              55.0
+            ],
+            "step": 5.0
+          },
+          "modulus_long_carbon": {
+            "type": "number",
+            "base": 145.0,
+            "range": [
+              130.0,
+              170.0
+            ],
+            "step": 5.0
+          },
+          "modulus_long_aramid": {
+            "type": "number",
+            "base": 76.0,
+            "range": [
+              65.0,
+              90.0
+            ],
+            "step": 1.0
+          },
+          "strength_trans_glass": {
+            "type": "number",
+            "base": 40.0,
+            "range": [
+              30.0,
+              50.0
+            ],
+            "step": 1.0
+          },
+          "strength_trans_carbon": {
+            "type": "number",
+            "base": 41.0,
+            "range": [
+              30.0,
+              50.0
+            ],
+            "step": 1.0
+          },
+          "strength_trans_aramid": {
+            "type": "number",
+            "base": 30.0,
+            "range": [
+              20.0,
+              40.0
+            ],
+            "step": 1.0
+          }
+        },
+        "invariants": [
+          "Specific gravities must satisfy glass > carbon > aramid.",
+          "Longitudinal tensile strengths must satisfy aramid > carbon > glass.",
+          "Computed specific strengths must rank aramid > carbon > glass with clear separation (at least ~10 percent between neighbours).",
+          "Carbon must retain the highest longitudinal modulus of the three materials.",
+          "Transverse moduli and strengths must stay far below their longitudinal counterparts for each material.",
+          "All property values must remain in the physically plausible range for continuous-fiber epoxy composites at the stated fiber volume fraction."
+        ],
+        "solution_method": "For each composite, divide the longitudinal tensile strength (MPa) by the specific gravity to obtain the specific strength, then compare the three results and comment on the ranking relative to density and modulus."
+      }
     },
     {
       "key": "l8-tungsten-copper-specific-stiffness",
@@ -1456,7 +4230,74 @@
         "19.65 GPa",
         "18.47 GPa"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "particle_volume_fraction": {
+            "type": "number",
+            "base": 0.7,
+            "range": [
+              0.4,
+              0.85
+            ],
+            "step": 0.05
+          },
+          "matrix_volume_fraction": {
+            "type": "number",
+            "base": 0.3,
+            "range": [
+              0.15,
+              0.6
+            ],
+            "step": 0.05
+          },
+          "matrix_modulus_gpa": {
+            "type": "number",
+            "base": 110.0,
+            "range": [
+              95.0,
+              130.0
+            ],
+            "step": 1.0
+          },
+          "matrix_specific_gravity": {
+            "type": "number",
+            "base": 8.9,
+            "range": [
+              8.5,
+              9.1
+            ],
+            "step": 0.1
+          },
+          "particle_modulus_gpa": {
+            "type": "number",
+            "base": 407.0,
+            "range": [
+              370.0,
+              420.0
+            ],
+            "step": 1.0
+          },
+          "particle_specific_gravity": {
+            "type": "number",
+            "base": 19.3,
+            "range": [
+              18.8,
+              19.6
+            ],
+            "step": 0.1
+          }
+        },
+        "invariants": [
+          "The two volume fractions must sum to exactly 1.00.",
+          "The particle phase must be both stiffer and denser than the matrix phase.",
+          "All moduli, specific gravities, and volume fractions must be strictly positive.",
+          "The resulting composite specific stiffness must remain a modest positive number of order 10-30 GPa.",
+          "Property values must stay physically plausible for the named materials (copper matrix, tungsten particles) as listed in the table.",
+          "The upper-bound (ratio-of-averages) result and the average-of-ratios result must remain numerically distinct."
+        ],
+        "solution_method": "Apply the upper-bound (isostrain) rule of mixtures to get E_c(u) = E_m V_m + E_p V_p, compute the composite specific gravity as the volume-weighted average of the constituent specific gravities, then divide the composite modulus by the composite specific gravity to obtain the specific stiffness; optionally contrast with the volume-weighted average of the individual specific stiffnesses."
+      }
     },
     {
       "key": "l8-hemp-pla-biocomposite",
@@ -1474,7 +4315,26 @@
         "231.5 MPa",
         "23.5 GPa"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "fiber_material": {
+            "type": "entity",
+            "base": "hemp",
+            "description": "A natural, plant-derived reinforcing fiber with a high modulus relative to a polymer matrix (e.g. flax, jute, sisal, kenaf, bamboo); the name appears in the prose and in the property table row."
+          }
+        },
+        "invariants": [
+          "The fibre and matrix moduli and tensile strengths stated must be plausible published values for the chosen fibre and matrix pair, and the matrix stress at fibre failure must be below the matrix tensile strength.",
+          "Fiber and matrix volume percentages must sum to 100%.",
+          "The matrix stress at fiber failure must be strictly less than the matrix tensile strength.",
+          "The matrix stress at fiber failure should be approximately equal to E_m x (fiber strength / fiber modulus), i.e. the matrix stress at the fiber's failure strain, within a few percent.",
+          "The fiber modulus must be at least an order of magnitude greater than the matrix modulus, and the fiber strength at least several times the matrix strength.",
+          "Both the computed longitudinal strength and longitudinal modulus must exceed the corresponding matrix-only property.",
+          "Loading remains continuous, aligned and longitudinal, with isostrain conditions and perfect fiber-matrix bonding."
+        ],
+        "solution_method": "Apply the longitudinal rule of mixtures twice: for strength use sigma_cl = sigma'_m (1 - Vf) + sigma*_f Vf, taking the matrix stress at fiber failure (not the matrix tensile strength); for stiffness use E_cl = E_m (1 - Vf) + E_f Vf."
+      }
     },
     {
       "key": "l8-carbon-epoxy-fibre-fraction-range",
@@ -1497,7 +4357,74 @@
         "0.273",
         "40.6"
       ],
-      "figures": []
+      "figures": [],
+      "param_spec": {
+        "parameters": {
+          "required_modulus": {
+            "type": "number",
+            "base": 69.0,
+            "range": [
+              60.0,
+              69.0
+            ],
+            "step": 1.0
+          },
+          "max_specific_gravity": {
+            "type": "number",
+            "base": 1.4,
+            "range": [
+              1.4,
+              1.46
+            ],
+            "step": 0.01
+          },
+          "fiber_modulus": {
+            "type": "number",
+            "base": 260.0,
+            "range": [
+              250.0,
+              320.0
+            ],
+            "step": 5.0
+          },
+          "matrix_modulus": {
+            "type": "number",
+            "base": 2.4,
+            "range": [
+              2.0,
+              3.5
+            ],
+            "step": 0.1
+          },
+          "fiber_specific_gravity": {
+            "type": "number",
+            "base": 1.8,
+            "range": [
+              1.7,
+              1.8
+            ],
+            "step": 0.01
+          },
+          "matrix_specific_gravity": {
+            "type": "number",
+            "base": 1.25,
+            "range": [
+              1.18,
+              1.25
+            ],
+            "step": 0.01
+          }
+        },
+        "invariants": [
+          "The fibre modulus must be far greater than the matrix modulus (at least a factor of 50).",
+          "The fibre specific gravity must exceed the matrix specific gravity.",
+          "The required composite modulus must lie strictly between the matrix and fibre moduli, and the maximum specific gravity strictly between the matrix and fibre specific gravities.",
+          "The volume-fraction window must be non-empty, i.e. (E_req − E_m)/(E_f − E_m) ≤ (SG_max − ρ_m)/(ρ_f − ρ_m).",
+          "The window should stay narrow, roughly 1–6 percentage points wide.",
+          "The fibre-to-matrix load ratio at the maximum fibre fraction must remain well above 10."
+        ],
+        "solution_method": "Apply the rule of mixtures for an aligned continuous-fibre composite: the longitudinal modulus condition E_m(1−V_f)+E_f V_f ≥ E_req gives a minimum fibre volume fraction, and the density condition ρ_m(1−V_f)+ρ_f V_f ≤ SG_max gives a maximum, defining the feasible window. Then, using equal strain in both phases, compute F_f/F_m = E_f V_f /(E_m V_m) at the maximum fibre fraction."
+      }
     },
     {
       "key": "l9-weighted-pugh-chart",
@@ -1521,7 +4448,92 @@
         "CPP-HDPE-100",
         "BSA-316-2B",
         "TFC-CSM-450"
-      ]
+      ],
+      "param_spec": {
+        "parameters": {
+          "datum_material": {
+            "type": "entity",
+            "base": "HDPE",
+            "description": "A commodity polymer used as the baseline material in a materials-selection chart (e.g. HDPE, PVC, polypropylene); it must be plausible as the incumbent/cheap, corrosion-resistant but lower-strength option, and the same name must be used in the prose and in the table header."
+          },
+          "candidate_metal": {
+            "type": "entity",
+            "base": "stainless steel 316",
+            "description": "A corrosion-resistant structural metal (e.g. stainless steel 316, duplex stainless 2205, titanium grade 2) that is stronger, longer-lived and more recyclable than the datum polymer but costlier and more energy-intensive; the short form used in the table header (SS 316) must be updated to match."
+          },
+          "candidate_composite": {
+            "type": "entity",
+            "base": "GFRP",
+            "description": "A fibre-reinforced polymer composite (e.g. GFRP, CFRP, vinyl-ester FRP) that is strong and durable but costly, energy-intensive, hard to recycle and harder to fabricate than the datum."
+          },
+          "weight_corrosion": {
+            "type": "integer",
+            "base": 5,
+            "range": [
+              3,
+              6
+            ]
+          },
+          "weight_strength": {
+            "type": "integer",
+            "base": 4,
+            "range": [
+              3,
+              6
+            ]
+          },
+          "weight_cost": {
+            "type": "integer",
+            "base": 4,
+            "range": [
+              3,
+              5
+            ]
+          },
+          "weight_life": {
+            "type": "integer",
+            "base": 5,
+            "range": [
+              4,
+              6
+            ]
+          },
+          "weight_energy": {
+            "type": "integer",
+            "base": 2,
+            "range": [
+              1,
+              3
+            ]
+          },
+          "weight_recyclability": {
+            "type": "integer",
+            "base": 2,
+            "range": [
+              1,
+              3
+            ]
+          },
+          "weight_fabrication": {
+            "type": "integer",
+            "base": 3,
+            "range": [
+              2,
+              4
+            ]
+          }
+        },
+        "invariants": [
+          "All seven criterion weights must be positive whole numbers, and no single weight may exceed the sum of all the others.",
+          "The weights must not all be equal; at least two distinct weight values must appear.",
+          "The datum column must be all zeros and the datum total must therefore be zero.",
+          "The metal candidate's weighted total must be clearly positive (at least +5) and must be the highest score.",
+          "The composite candidate's weighted total must be slightly negative (between -1 and -5 inclusive).",
+          "The rating pattern must keep the metal ahead on corrosion resistance, strength, service life and recyclability, and behind on initial cost and embodied energy; the composite must be behind on cost, embodied energy, recyclability and fabrication ease.",
+          "It must remain true that raising the cost and embodied-energy weights far enough would reverse the ranking."
+        ],
+        "solution_method": "Score each candidate column against the datum by mapping + to +1, 0 to 0 and - to -1, multiply each rating by its criterion weight, and sum the contributions per candidate; the datum totals zero by construction, and the candidate with the highest total (positive relative to the datum) is recommended."
+      }
     },
     {
       "key": "l9-pyrolysis-reactor-selection",
