@@ -70,6 +70,15 @@
 
   /* Structure: the reading column and the baseline rhythm. */
   --measure-reading: 68ch;
+
+  /* The app shell's header, which is sticky, so this is also how far the top
+     of the viewport is obscured. Anything scrolled to "the top" by the browser
+     (a keyboard queue moving its cursor, an anchor) lands underneath it unless
+     the scroll container is told, which is what scroll-padding-top in
+     globals.css uses this for. Tall enough for the professor shell, whose
+     sign-out button sets the height; the student shell holds text alone and
+     takes the same height so the two surfaces agree. */
+  --app-header-height: 4.25rem;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -22,6 +22,14 @@
   --font-mono: var(--font-mono);
 }
 
+/* The shell header is sticky, so the browser's idea of "scrolled to the top"
+   is behind it. scrollIntoView honours scroll-padding on the scroll container,
+   which is what keeps the professor's j/k queues from parking the row they
+   just selected underneath the header. */
+html {
+  scroll-padding-top: var(--app-header-height);
+}
+
 body {
   background: var(--color-ground);
   color: var(--color-ink);

@@ -8,6 +8,11 @@ import { strings } from "./strings";
 // shell, a sign-out control (decision 0012). The sign-out action is handed in
 // so this stays pure markup and the server-only cookie logic lives with the
 // route; the form posts to it with no client JavaScript.
+//
+// The header sticks, which costs the top --app-header-height of the viewport
+// on every scroll. The queues move their cursor with scrollIntoView, so
+// globals.css sets scroll-padding-top from the same token; without it, k into
+// the first rows hides the row it just selected.
 export function ProfessorShell({
   email,
   signOut,
@@ -19,7 +24,7 @@ export function ProfessorShell({
 }) {
   return (
     <div className="flex min-h-svh flex-col">
-      <header className="flex items-center justify-between border-b border-rule-line px-6 py-4">
+      <header className="sticky top-0 z-40 flex min-h-[var(--app-header-height)] items-center justify-between border-b border-rule-line bg-ground px-6 py-4">
         <span className="font-display text-lg">{strings.shell.wordmark}</span>
         <div className="flex items-center gap-4">
           <span className="text-sm text-ink-muted">{email}</span>
