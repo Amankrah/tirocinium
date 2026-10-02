@@ -12,7 +12,13 @@ export const strings = {
   },
   enter: {
     title: "Enter your course",
-    codeLabel: "Course code",
+    // The card the student is holding says "Your code is your seat, for the
+    // whole term", and the professor issues it per seat, not per course: one
+    // code admits one student, and a second person using it takes over the
+    // same seat rather than getting their own. Labelling it "Course code"
+    // invited a class to share the one code they saw on a slide.
+    codeLabel: "Seat code",
+    codeHint: "On the card from your professor. It is yours for the term.",
     action: "Enter course",
     failure: "That code did not work. Check it against the card from your professor.",
   },

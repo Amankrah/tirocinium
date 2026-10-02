@@ -25,7 +25,7 @@ test.describe("the defence conversation, on its typed path", () => {
 
   test("a seat opens a defence, answers by keyboard, and ends it", async ({ page }) => {
     await page.goto("/enter");
-    await page.getByLabel("Course code").fill(seatCode!);
+    await page.getByLabel("Seat code").fill(seatCode!);
     await page.getByRole("button", { name: "Enter course" }).click();
     await expect(page).toHaveURL(/\/course$/);
 
@@ -71,7 +71,7 @@ test.describe("the defence conversation, on its typed path", () => {
 
   test("the whole keyboard route works without a pointer", async ({ page }) => {
     await page.goto("/enter");
-    await page.getByLabel("Course code").fill(seatCode!);
+    await page.getByLabel("Seat code").fill(seatCode!);
     await page.getByRole("button", { name: "Enter course" }).click();
     // Wait for the redemption to land before navigating: the seat cookie is set
     // by that redirect, and leaving early lands back on /enter with nothing on

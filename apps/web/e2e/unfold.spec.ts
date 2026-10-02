@@ -38,7 +38,7 @@ test.describe("the understanding unfold", () => {
 
   test("a step unfolds typeset, and reads the same after a reload", async ({ page }) => {
     await page.goto("/enter");
-    await page.getByLabel("Course code").fill(seatCode!);
+    await page.getByLabel("Seat code").fill(seatCode!);
     await page.getByRole("button", { name: "Enter course" }).click();
     await expect(page).toHaveURL(/\/course$/);
 

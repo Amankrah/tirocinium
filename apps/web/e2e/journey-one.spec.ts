@@ -60,7 +60,7 @@ test.describe("journey one: author, publish, redeem, read", () => {
     const student = await studentContext.newPage();
     try {
       await student.goto("/enter");
-      await student.getByLabel("Course code").fill(seatCode!);
+      await student.getByLabel("Seat code").fill(seatCode!);
       await student.getByRole("button", { name: "Enter course" }).click();
 
       await expect(student).toHaveURL(/\/course$/);

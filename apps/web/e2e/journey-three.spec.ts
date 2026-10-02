@@ -30,7 +30,7 @@ test.describe("journey three: a blurry page is caught and retaken", () => {
 
   test("flags a blurry page, then clears once retaken", async ({ page }) => {
     await page.goto("/enter");
-    await page.getByLabel("Course code").fill(seatCode!);
+    await page.getByLabel("Seat code").fill(seatCode!);
     await page.getByRole("button", { name: "Enter course" }).click();
     await expect(page).toHaveURL(/\/course$/);
 

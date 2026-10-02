@@ -33,7 +33,7 @@ test.describe("journey two: upload a solution and see it read", () => {
     // budget is the whole journey's, not the worker's.
     test.setTimeout(120_000);
     await page.goto("/enter");
-    await page.getByLabel("Course code").fill(seatCode!);
+    await page.getByLabel("Seat code").fill(seatCode!);
     await page.getByRole("button", { name: "Enter course" }).click();
     await expect(page).toHaveURL(/\/course$/);
 

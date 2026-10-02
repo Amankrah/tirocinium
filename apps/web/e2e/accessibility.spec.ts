@@ -127,7 +127,7 @@ test.describe("reduced motion", () => {
     // Reduced motion removes motion, never information: the pages are whole.
     const { page, close } = await reducedMotionPage(browser);
     await page.goto("/enter");
-    await expect(page.getByLabel("Course code")).toBeVisible();
+    await expect(page.getByLabel("Seat code")).toBeVisible();
     await expect(page.getByRole("button", { name: "Enter course" })).toBeVisible();
     await close();
   });
@@ -140,7 +140,7 @@ test.describe("keyboard operability", () => {
     page,
   }) => {
     await page.goto("/enter");
-    const field = page.getByLabel("Course code");
+    const field = page.getByLabel("Seat code");
     await field.focus();
     await page.keyboard.type("ABCD1234ABCD1234");
     await page.keyboard.press("Tab");
@@ -149,7 +149,7 @@ test.describe("keyboard operability", () => {
 
   test("focus is visible where it lands, not suppressed", async ({ page }) => {
     await page.goto("/enter");
-    await page.getByLabel("Course code").focus();
+    await page.getByLabel("Seat code").focus();
     const outline = await page.evaluate(() => {
       const el = document.activeElement;
       if (!el) return null;

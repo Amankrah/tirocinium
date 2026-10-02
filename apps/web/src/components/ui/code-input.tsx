@@ -27,12 +27,17 @@ export function formatSeatCode(code: string): string {
 
 type CodeInputProps = {
   label: string;
+  // Where the code comes from. Tied to the field with aria-describedby rather
+  // than left as nearby text, so it is read out with the label instead of
+  // being something only a sighted student happens to notice.
+  hint?: string;
   value: string;
   onChange: (code: string) => void;
 };
 
-export function CodeInput({ label, value, onChange }: CodeInputProps) {
+export function CodeInput({ label, hint, value, onChange }: CodeInputProps) {
   const id = useId();
+  const hintId = `${id}-hint`;
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     onChange(normalizeSeatCode(event.target.value));
@@ -45,6 +50,7 @@ export function CodeInput({ label, value, onChange }: CodeInputProps) {
       </label>
       <input
         id={id}
+        aria-describedby={hint ? hintId : undefined}
         value={formatSeatCode(value)}
         onChange={handleChange}
         placeholder="XXXX-XXXX-XXXX-XXXX"
@@ -59,6 +65,11 @@ export function CodeInput({ label, value, onChange }: CodeInputProps) {
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         }
       />
+      {hint ? (
+        <p id={hintId} className="text-sm text-ink-muted">
+          {hint}
+        </p>
+      ) : null}
     </div>
   );
 }

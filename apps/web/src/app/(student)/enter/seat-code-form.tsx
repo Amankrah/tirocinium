@@ -54,6 +54,7 @@ export function SeatCodeForm() {
     <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-6">
       <CodeInput
         label={strings.enter.codeLabel}
+        hint={strings.enter.codeHint}
         value={code}
         onChange={handleCodeChange}
       />

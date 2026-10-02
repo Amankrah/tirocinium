@@ -11,14 +11,14 @@ const FAILURE =
 test.describe("seat entry", () => {
   test("shows the field and the single action, nothing else", async ({ page }) => {
     await page.goto("/enter");
-    await expect(page.getByLabel("Course code")).toBeVisible();
+    await expect(page.getByLabel("Seat code")).toBeVisible();
     await expect(page.getByRole("button", { name: "Enter course" })).toBeVisible();
     await expect(page.getByText(FAILURE)).toHaveCount(0);
   });
 
   test("a code that cannot redeem shows the one honest line", async ({ page }) => {
     await page.goto("/enter");
-    await page.getByLabel("Course code").fill("MK4T9RWFC2HPX6ZD");
+    await page.getByLabel("Seat code").fill("MK4T9RWFC2HPX6ZD");
     await page.getByRole("button", { name: "Enter course" }).click();
     await expect(page.getByRole("status")).toHaveText(FAILURE);
   });
