@@ -20,5 +20,14 @@ describe("PenPad", () => {
     expect(
       screen.getByRole("button", { name: "Clear" }).hasAttribute("disabled"),
     ).toBe(true);
+    expect(screen.getByRole("button", { name: "Pen" }).getAttribute("aria-pressed")).toBe(
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "Eraser" })).toBeDefined();
+    expect(screen.getByRole("radio", { name: "Medium" }).getAttribute("aria-checked")).toBe(
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "Undo" }).hasAttribute("disabled")).toBe(true);
+    expect(screen.getByRole("button", { name: "Redo" }).hasAttribute("disabled")).toBe(true);
   });
 });
