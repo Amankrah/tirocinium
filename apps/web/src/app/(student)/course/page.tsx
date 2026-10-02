@@ -9,6 +9,7 @@ import { strings } from "../strings";
 import { CaseStudyIndex } from "./case-study-index";
 import { buildIndexView } from "./index-view";
 import { MasteryPicture } from "./mastery-picture";
+import { OnboardingPanel } from "./onboarding-panel";
 import { RevisitQueue } from "./revisit-queue";
 
 // Course home (guide 4.1, 4.2b, decision 0083): the seat is greeted by number,
@@ -44,17 +45,28 @@ export default async function CourseHomePage({
             {strings.course.greeting(seat.seat_number, seat.course_title)}
           </h1>
         </ParticleHero>
+        {seat.onboarded ? null : <OnboardingPanel />}
         {revisit ? <RevisitQueue revisit={revisit} /> : null}
         <CaseStudyIndex view={view} />
         {mastery ? <MasteryPicture mastery={mastery} /> : null}
-        {/* The seat's own record, one quiet link rather than a nagging card
-            (guide 4.2b: calm is the feature). */}
-        <Link
-          href="/course/history"
-          className="self-start text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        >
-          {strings.history.link}
-        </Link>
+        {/* Two quiet links rather than nagging cards (guide 4.2b: calm is
+            the feature). How practice works stays reachable long after the
+            first-run panel is gone, because the week someone wonders how the
+            defence fits is rarely the week they arrived. */}
+        <div className="flex flex-wrap gap-4 self-start">
+          <Link
+            href="/course/how-it-works"
+            className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
+            {strings.onboarding.pageLink}
+          </Link>
+          <Link
+            href="/course/history"
+            className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
+            {strings.history.link}
+          </Link>
+        </div>
       </main>
     </StudentShell>
   );

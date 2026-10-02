@@ -1,0 +1,14 @@
+-- Whether a seat has been shown how practice works (guide 4.2).
+--
+-- The guide asks for the handwriting line to be presented "once", and once
+-- means once per student rather than once per browser: a student who reads it
+-- on a phone and then opens a laptop has already read it. A column on the seat
+-- is the only place that holds, because the seat is the student here; there is
+-- no account to hang it on and local storage would ask them again on every
+-- device they own.
+--
+-- Null is the honest default for every seat issued before this migration, and
+-- it reads as "has not seen it yet". A seat that is already practising will
+-- meet the panel once and dismiss it, which is a fair price for not pretending
+-- to know what they have read.
+ALTER TABLE seats ADD COLUMN onboarded_at INTEGER;

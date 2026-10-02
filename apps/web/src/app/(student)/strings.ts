@@ -22,6 +22,61 @@ export const strings = {
     action: "Enter course",
     failure: "That code did not work. Check it against the card from your professor.",
   },
+  // How practice works (guide 4.2). The guide fixes two things about this
+  // copy. The handwriting line is said once and said plainly, and it is not
+  // dressed up as settled neuroscience, because the audience is academic and
+  // will rightly distrust a hard claim: "tends to" is the honest strength of
+  // it. And the defence is framed as "talk it through", the reward for having
+  // done the work, never as a second test.
+  onboarding: {
+    panelTitle: "New here? This is how practice works",
+    panelDismiss: "Got it",
+    pageLink: "How practice works",
+    pageTitle: "How practice works",
+    intro:
+      "Four steps, and the loop closes on itself: what you cannot defend is " +
+      "what you practise next.",
+    steps: [
+      {
+        title: "Work it on paper",
+        body:
+          "Open a problem and solve it by hand, the way you would in an exam. " +
+          "Working a problem out on paper tends to bed the concept down more " +
+          "firmly than typing it does, which is why this platform is built " +
+          "around paper rather than fighting it. Press start when you begin, " +
+          "so the time you spent is part of your record.",
+      },
+      {
+        title: "Photograph what you wrote",
+        body:
+          "Take a photo of each page with your phone. Your handwriting is " +
+          "read back to you before anything else happens, so you can check it " +
+          "was understood. You can also write on screen, or upload a PDF from " +
+          "a tablet.",
+      },
+      {
+        title: "Talk it through",
+        body:
+          "Then explain your reasoning out loud to a tutor that has read your " +
+          "actual working. It is not marking you and it is not a second test: " +
+          "it asks why you set the problem up the way you did. Saying it out " +
+          "loud is where you find the steps you only half knew. You can type " +
+          "instead if you would rather, or if you are somewhere quiet.",
+      },
+      {
+        title: "Practise the gap",
+        body:
+          "The conversation ends by naming the one idea most worth returning " +
+          "to, and offers you a fresh version of the problem aimed at exactly " +
+          "that. Every problem has many versions, so practising again is never " +
+          "re-reading an answer you have already seen.",
+      },
+    ],
+    // Said last, because it is the thing a student most needs permission for.
+    reassurance:
+      "Nothing here is graded by a machine. Your professor sees your work; " +
+      "the tutor is there to help you find the gaps before they do.",
+  },
   course: {
     // The resolve-into-course greeting by seat number (guide 4.0).
     greeting: (seatNumber: string, courseTitle: string) =>

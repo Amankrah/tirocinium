@@ -1141,6 +1141,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/seats/me/onboarded": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Seat Onboarded
+         * @description The student has read how practice works. Idempotent, and it only ever
+         *     moves one way: dismissing twice keeps the first timestamp, because the
+         *     interesting fact is when they first saw it, and a second call is a retry
+         *     or a second tab rather than new information.
+         */
+        post: operations["seat_onboarded_api_v1_seats_me_onboarded_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/seats/redeem": {
         parameters: {
             query?: never;
@@ -3070,6 +3093,11 @@ export interface components {
             course_id: number;
             /** Course Title */
             course_title: string;
+            /**
+             * Onboarded
+             * @default false
+             */
+            onboarded: boolean;
             /** Seat Number */
             seat_number: string;
         };
@@ -7372,6 +7400,42 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SeatMeOut"];
                 };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    seat_onboarded_api_v1_seats_me_onboarded_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Unauthorized */
             401: {

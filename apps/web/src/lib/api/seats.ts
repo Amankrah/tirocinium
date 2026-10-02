@@ -49,6 +49,22 @@ export async function fetchSeatMe(
   return (await response.json()) as Schemas["SeatMeOut"];
 }
 
+// The student has read how practice works. Fire-and-forget by design: the
+// panel closing is the student's decision, and a failed write means they meet
+// it once more, which is a far better failure than a panel that refuses to
+// close because the network blinked.
+export async function markSeatOnboarded(token: string): Promise<void> {
+  try {
+    await fetch(`${apiBaseUrl()}/api/v1/seats/me/onboarded`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+  } catch {
+    // Deliberately swallowed; see above.
+  }
+}
+
 // Seat management for the professor course surface (the other side of backend
 // 7.1). Server-side only, carrying the professor JWT; the backend enforces
 // course ownership, so a professor only ever touches their own seats.

@@ -88,6 +88,10 @@ class SeatMeOut(BaseModel):
     seat_number: str
     course_id: int
     course_title: str
+    # Whether this seat has been shown how practice works. False for every
+    # seat issued before the panel existed, which is why it defaults rather
+    # than being required: an older seat meets it once and dismisses it.
+    onboarded: bool = False
 
 
 class ReissueOut(BaseModel):
@@ -357,8 +361,39 @@ async def seat_me(
             "SELECT title FROM courses WHERE id = ?", (identity.course_id,)
         ).fetchone()[0]
     )
+    onboarded_at = await shards.directory_reads.run(
+        lambda conn: conn.execute(
+            "SELECT onboarded_at FROM seats WHERE id = ?", (identity.seat_id,)
+        ).fetchone()[0]
+    )
     return SeatMeOut(
         seat_number=identity.seat_number,
         course_id=identity.course_id,
         course_title=str(title),
+        onboarded=onboarded_at is not None,
     )
+
+
+@router.post(
+    "/seats/me/onboarded",
+    status_code=204,
+    responses={401: {"model": Problem}, 403: {"model": Problem}},
+)
+async def seat_onboarded(
+    identity: Annotated[Identity, Depends(require_seat)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+) -> None:
+    """The student has read how practice works. Idempotent, and it only ever
+    moves one way: dismissing twice keeps the first timestamp, because the
+    interesting fact is when they first saw it, and a second call is a retry
+    or a second tab rather than new information."""
+    seat_id = identity.seat_id
+
+    def mark(conn: sqlite3.Connection) -> None:
+        conn.execute(
+            "UPDATE seats SET onboarded_at = ?"
+            " WHERE id = ? AND onboarded_at IS NULL",
+            (int(time.time()), seat_id),
+        )
+
+    await shards.directory.run(mark)

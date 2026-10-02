@@ -3,6 +3,8 @@ properties of backend 7.1, and the plaintext-exactly-once discipline."""
 
 import logging
 import re
+import sqlite3
+import time
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
@@ -454,3 +456,78 @@ def test_a_course_title_outside_latin1_still_issues_its_cards() -> None:
 
     pdf = build_pdf(title, [("S-001", "ABCD-EFGH-JKLM")])
     assert pdf.startswith(b"%PDF")
+
+
+# Onboarding (guide 4.2): the handwriting line is presented "once", and once
+# means once per student rather than once per browser, so the fact lives on the
+# seat. A seat is the student here; there is no account to hang it on.
+def test_a_new_seat_has_not_been_onboarded(
+    client: TestClient, storage: FakeObjectStorage
+) -> None:
+    headers = professor(client)
+    course_id = make_course(client, headers)
+    generate_seats(client, headers, course_id)
+    token = redeem(client, csv_codes(storage)["S-001"]).json()["token"]
+
+    me = client.get("/api/v1/seats/me", headers={"Authorization": f"Bearer {token}"})
+    assert me.json()["onboarded"] is False
+
+
+def test_dismissing_is_remembered_across_sessions(
+    client: TestClient, storage: FakeObjectStorage
+) -> None:
+    """Across sessions, because a student who reads it on a phone and opens a
+    laptop has already read it. That is the whole reason this is a column."""
+    headers = professor(client)
+    course_id = make_course(client, headers)
+    generate_seats(client, headers, course_id)
+    code = csv_codes(storage)["S-001"]
+    token = redeem(client, code).json()["token"]
+    auth = {"Authorization": f"Bearer {token}"}
+
+    assert client.post("/api/v1/seats/me/onboarded", headers=auth).status_code == 204
+    assert client.get("/api/v1/seats/me", headers=auth).json()["onboarded"] is True
+
+    # A second redemption is the same seat on another device.
+    second = redeem(client, code).json()["token"]
+    second_auth = {"Authorization": f"Bearer {second}"}
+    assert client.get("/api/v1/seats/me", headers=second_auth).json()["onboarded"] is True
+
+
+def test_dismissing_twice_keeps_the_first_time(
+    client: TestClient, storage: FakeObjectStorage, tmp_path: Path
+) -> None:
+    """Idempotent and one-way: a retry or a second tab is not new information,
+    and the interesting fact is when they first saw it. Read straight out of
+    the column, because the surface only exposes the boolean and a test
+    against that would pass however many times the timestamp was rewritten."""
+    headers = professor(client)
+    course_id = make_course(client, headers)
+    generate_seats(client, headers, course_id)
+    token = redeem(client, csv_codes(storage)["S-001"]).json()["token"]
+    auth = {"Authorization": f"Bearer {token}"}
+
+    def onboarded_at() -> object:
+        with sqlite3.connect(tmp_path / "directory.db") as conn:
+            return conn.execute(
+                "SELECT onboarded_at FROM seats WHERE seat_number = 'S-001'"
+            ).fetchone()[0]
+
+    assert onboarded_at() is None
+    assert client.post("/api/v1/seats/me/onboarded", headers=auth).status_code == 204
+    first = onboarded_at()
+    assert first is not None
+
+    time.sleep(1.1)  # the column is whole seconds, so a rewrite would show
+    assert client.post("/api/v1/seats/me/onboarded", headers=auth).status_code == 204
+    assert onboarded_at() == first
+
+
+def test_onboarding_is_seat_only(
+    client: TestClient, storage: FakeObjectStorage
+) -> None:
+    """A professor has no seat to mark, and the surface says so rather than
+    writing to whatever row a professor token happens to resolve to."""
+    headers = professor(client)
+    assert client.post("/api/v1/seats/me/onboarded", headers=headers).status_code == 403
+    assert client.post("/api/v1/seats/me/onboarded").status_code == 401

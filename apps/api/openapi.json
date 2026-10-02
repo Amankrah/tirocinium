@@ -4443,6 +4443,11 @@
             "title": "Course Title",
             "type": "string"
           },
+          "onboarded": {
+            "default": false,
+            "title": "Onboarded",
+            "type": "boolean"
+          },
           "seat_number": {
             "title": "Seat Number",
             "type": "string"
@@ -11626,6 +11631,46 @@
           }
         ],
         "summary": "Seat Me",
+        "tags": [
+          "seats"
+        ]
+      }
+    },
+    "/api/v1/seats/me/onboarded": {
+      "post": {
+        "description": "The student has read how practice works. Idempotent, and it only ever\nmoves one way: dismissing twice keeps the first timestamp, because the\ninteresting fact is when they first saw it, and a second call is a retry\nor a second tab rather than new information.",
+        "operationId": "seat_onboarded_api_v1_seats_me_onboarded_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Seat Onboarded",
         "tags": [
           "seats"
         ]
