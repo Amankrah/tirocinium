@@ -1,6 +1,7 @@
 "use client";
 
-// On-platform pen capture (decision 0042, mode C; tools in decision 0096).
+// On-platform pen capture (decision 0042, mode C; tools in decisions 0096
+// and 0097: the highlighter, the straight edge, the lasso, and zoom).
 // Stylus, touch, or mouse strokes export as an ordinary PNG that joins the
 // same page list as a photograph. The file modes stay the fallback for anyone
 // without a pointer. The pad has no animation.
@@ -10,21 +11,27 @@ import { Button } from "@/components/ui/button";
 import {
   EMPTY_INK,
   ERASER_WIDTH,
+  HIGHLIGHTER_WIDTH,
   PEN_WIDTH,
   clearInk,
   hasPenInk,
   pushInk,
   redoInk,
   rejectPointer,
+  removeStrokes,
+  replaceInk,
+  translateStrokes,
   undoInk,
   wantsEraserTip,
   type InkHistory,
   type InkPoint,
   type InkStroke,
   type InkTool,
+  type MarkTool,
   type PenWeight,
 } from "@/lib/upload/pen-ink";
-import { paintSheet, paintStroke } from "@/lib/upload/pen-render";
+import { paintLasso, paintSelection, paintSheet, paintStroke } from "@/lib/upload/pen-render";
+import { selectionBounds, strokesInLasso, withinBounds } from "@/lib/upload/pen-select";
 import { followPen } from "@/lib/upload/pen-scroll";
 import { strings } from "../../../strings";
 
@@ -33,6 +40,26 @@ const WIDTH = 1000;
 const HEIGHT = 1414;
 
 const s = strings.upload;
+
+// Zoom is why a student can write a subscript on a phone. The ink is stored in
+// page coordinates and the pointer is read through the canvas's own box, so
+// magnifying is purely a matter of how wide the canvas is drawn: nothing in
+// the model knows about it.
+const ZOOM_STEPS = [1, 1.5, 2, 3] as const;
+
+const TOOLS: { name: InkTool; label: string }[] = [
+  { name: "pen", label: s.pen },
+  { name: "highlighter", label: s.highlighter },
+  { name: "straight", label: s.straight },
+  { name: "eraser", label: s.eraser },
+  { name: "lasso", label: s.lasso },
+];
+
+function toolWidth(tool: MarkTool, weight: PenWeight): number {
+  if (tool === "eraser") return ERASER_WIDTH;
+  if (tool === "highlighter") return HIGHLIGHTER_WIDTH;
+  return PEN_WIDTH[weight];
+}
 
 export function PenPad({
   onCapture,
@@ -56,16 +83,39 @@ export function PenPad({
   const [ink, setInk] = useState<InkHistory>(EMPTY_INK);
   const [tool, setTool] = useState<InkTool>("pen");
   const [weight, setWeight] = useState<PenWeight>("medium");
+  const [zoom, setZoom] = useState(1);
+  const [chosen, setChosen] = useState<ReadonlySet<number>>(new Set());
+  // The loop being drawn, and the drag that moves what it caught. Refs rather
+  // than state: they change on every pointer sample, and re-rendering the
+  // toolbar sixty times a second to move a dashed box would be absurd.
+  const lassoRef = useRef<InkPoint[] | null>(null);
+  const chosenRef = useRef<ReadonlySet<number>>(new Set());
+  const dragRef = useRef<InkPoint | null>(null);
+  // The page as it was before a drag began, so the whole move undoes in one
+  // step rather than in however many pointer samples it happened to take.
+  const historyBeforeDragRef = useRef<InkHistory | null>(null);
 
   toolRef.current = tool;
   weightRef.current = weight;
+  chosenRef.current = chosen;
 
   // The whole sheet, from the beginning. Only for the moments that genuinely
   // change what is already down: undo, redo, clear, and a cancelled stroke.
-  const repaint = useCallback((history: InkHistory) => {
-    const g = canvasRef.current?.getContext("2d");
-    if (!g) return;
-    paintSheet(g, history.strokes, { width: WIDTH, height: HEIGHT });
+  const repaint = useCallback(
+    (history: InkHistory, held: ReadonlySet<number> = chosenRef.current) => {
+      const g = canvasRef.current?.getContext("2d");
+      if (!g) return;
+      paintSheet(g, history.strokes, { width: WIDTH, height: HEIGHT });
+      paintSelection(g, selectionBounds(history.strokes, held));
+      if (lassoRef.current) paintLasso(g, lassoRef.current);
+    },
+    [],
+  );
+
+  /** Give up the selection: any edit invalidates the indices it holds. */
+  const release = useCallback(() => {
+    chosenRef.current = new Set();
+    setChosen(new Set());
   }, []);
 
   // The part of the stroke in progress that is not on the canvas yet.
@@ -141,23 +191,40 @@ export function PenPad({
     ) {
       return;
     }
-    if (liveRef.current) return;
-    const eraser = toolRef.current === "eraser" || wantsEraserTip(event.button, event.buttons);
-    liveRef.current = {
-      tool: eraser ? "eraser" : "pen",
-      width: eraser ? ERASER_WIDTH : PEN_WIDTH[weightRef.current],
-      points: samples(event),
-    };
-    penDownRef.current = event.pointerType === "pen";
-    paintedRef.current = 0;
+    if (liveRef.current || lassoRef.current || dragRef.current) return;
     canvasRef.current?.setPointerCapture(event.pointerId);
     scrollRef.current?.focus({ preventScroll: true });
+    penDownRef.current = event.pointerType === "pen";
+
+    if (toolRef.current === "lasso") {
+      const start = pointOf(event);
+      const bounds = selectionBounds(inkRef.current.strokes, chosenRef.current);
+      // Landing on what is already held means "move this", not "start again".
+      // Circling a selection to pick it up a second time is the kind of step
+      // that makes a tool feel like it is arguing with you.
+      if (bounds && withinBounds(start, bounds)) {
+        dragRef.current = start;
+        historyBeforeDragRef.current = inkRef.current;
+        return;
+      }
+      lassoRef.current = [start];
+      release();
+      repaint(inkRef.current, new Set());
+      return;
+    }
+
+    const eraser = toolRef.current === "eraser" || wantsEraserTip(event.button, event.buttons);
+    const marker: MarkTool = eraser ? "eraser" : (toolRef.current as MarkTool);
+    liveRef.current = {
+      tool: marker,
+      width: toolWidth(marker, weightRef.current),
+      points: samples(event),
+    };
+    paintedRef.current = 0;
     paintLive(liveRef.current);
   }
 
   function onPointerMove(event: React.PointerEvent) {
-    const live = liveRef.current;
-    if (!live) return;
     if (
       rejectPointer({
         pointerType: event.pointerType,
@@ -168,12 +235,74 @@ export function PenPad({
     ) {
       return;
     }
+
+    const drag = dragRef.current;
+    if (drag) {
+      const now = pointOf(event);
+      const moved = translateStrokes(
+        inkRef.current.strokes,
+        chosenRef.current,
+        now.x - drag.x,
+        now.y - drag.y,
+      );
+      dragRef.current = now;
+      // Not committed to history yet: the whole move is one undo, so the
+      // history entry is written once when the pointer lifts.
+      inkRef.current = { ...inkRef.current, strokes: moved };
+      repaint(inkRef.current);
+      follow(event);
+      return;
+    }
+
+    const loop = lassoRef.current;
+    if (loop) {
+      loop.push(pointOf(event));
+      repaint(inkRef.current, new Set());
+      follow(event);
+      return;
+    }
+
+    const live = liveRef.current;
+    if (!live) return;
+    if (live.tool === "straight") {
+      // A ruled line is its two ends. Keeping only those means the preview
+      // follows the pointer instead of recording the wobble on the way.
+      const first = live.points[0];
+      if (first) live.points = [first, pointOf(event)];
+      repaint(inkRef.current);
+      const g = canvasRef.current?.getContext("2d");
+      if (g) paintStroke(g, live);
+      follow(event);
+      return;
+    }
     live.points.push(...samples(event));
     paintLive(live);
     follow(event);
   }
 
   function finishStroke() {
+    const drag = dragRef.current;
+    if (drag) {
+      dragRef.current = null;
+      penDownRef.current = false;
+      // One history entry for the whole drag, from where the strokes were
+      // before it started.
+      commit(replaceInk(historyBeforeDragRef.current ?? inkRef.current, inkRef.current.strokes));
+      historyBeforeDragRef.current = null;
+      return;
+    }
+
+    const loop = lassoRef.current;
+    if (loop) {
+      lassoRef.current = null;
+      penDownRef.current = false;
+      const caught = strokesInLasso(inkRef.current.strokes, loop);
+      chosenRef.current = caught;
+      setChosen(caught);
+      repaint(inkRef.current, caught);
+      return;
+    }
+
     const live = liveRef.current;
     liveRef.current = null;
     penDownRef.current = false;
@@ -182,23 +311,65 @@ export function PenPad({
     commit(pushInk(inkRef.current, live));
   }
 
+  // Every edit renumbers the strokes, so the selection cannot survive one: it
+  // holds indices, and the stroke at index 4 after an undo is not the stroke
+  // the student circled.
+  function undoStep() {
+    release();
+    restore(undoInk(inkRef.current));
+  }
+
+  function redoStep() {
+    release();
+    restore(redoInk(inkRef.current));
+  }
+
+  function clearSheet() {
+    release();
+    restore(clearInk(inkRef.current));
+  }
+
+  function deleteSelection() {
+    if (chosenRef.current.size === 0) return;
+    const kept = removeStrokes(inkRef.current.strokes, chosenRef.current);
+    release();
+    restore(replaceInk(inkRef.current, kept));
+  }
+
   // The system cancelled the pointer (a palm, a gesture). The stroke in
   // progress is not ink, so it is dropped and the page is painted again.
   function cancelStroke() {
     liveRef.current = null;
+    lassoRef.current = null;
+    dragRef.current = null;
+    historyBeforeDragRef.current = null;
     penDownRef.current = false;
     paintedRef.current = 0;
     repaint(inkRef.current);
   }
 
   function onKeyDown(event: React.KeyboardEvent) {
+    if (
+      (event.key === "Delete" || event.key === "Backspace") &&
+      chosenRef.current.size > 0
+    ) {
+      event.preventDefault();
+      deleteSelection();
+      return;
+    }
+    if (event.key === "Escape" && chosenRef.current.size > 0) {
+      event.preventDefault();
+      release();
+      repaint(inkRef.current, new Set());
+      return;
+    }
     if (!(event.ctrlKey || event.metaKey)) return;
     if (event.key === "z" && !event.shiftKey) {
       event.preventDefault();
-      restore(undoInk(inkRef.current));
+      undoStep();
     } else if ((event.key === "z" && event.shiftKey) || event.key === "y") {
       event.preventDefault();
-      restore(redoInk(inkRef.current));
+      redoStep();
     }
   }
 
@@ -212,6 +383,7 @@ export function PenPad({
       onCapture(new File([blob], `page-${makeId()}.png`, { type: "image/png" }));
       // The ink is now a page in the list. Undo must not bring that page back
       // onto the sheet, or the student would submit it twice.
+      release();
       restore(EMPTY_INK);
     }, "image/png");
   }
@@ -226,20 +398,22 @@ export function PenPad({
         aria-label={s.penTools}
         className="flex flex-wrap items-center gap-2"
       >
-        <Button
-          variant={tool === "pen" ? "primary" : "quiet"}
-          aria-pressed={tool === "pen"}
-          onClick={() => setTool("pen")}
-        >
-          {s.pen}
-        </Button>
-        <Button
-          variant={tool === "eraser" ? "primary" : "quiet"}
-          aria-pressed={tool === "eraser"}
-          onClick={() => setTool("eraser")}
-        >
-          {s.eraser}
-        </Button>
+        {TOOLS.map(({ name, label }) => (
+          <Button
+            key={name}
+            variant={tool === name ? "primary" : "quiet"}
+            aria-pressed={tool === name}
+            onClick={() => {
+              setTool(name);
+              if (name !== "lasso") {
+                release();
+                repaint(inkRef.current, new Set());
+              }
+            }}
+          >
+            {label}
+          </Button>
+        ))}
         <div role="radiogroup" aria-label={s.penWeight} className="flex gap-1">
           {(["fine", "medium", "broad"] as const).map((name) => (
             <Button
@@ -255,7 +429,7 @@ export function PenPad({
         </div>
         <Button
           variant="quiet"
-          onClick={() => restore(undoInk(inkRef.current))}
+          onClick={undoStep}
           disabled={ink.past.length === 0}
           aria-keyshortcuts="Control+Z"
         >
@@ -263,13 +437,53 @@ export function PenPad({
         </Button>
         <Button
           variant="quiet"
-          onClick={() => restore(redoInk(inkRef.current))}
+          onClick={redoStep}
           disabled={ink.future.length === 0}
           aria-keyshortcuts="Control+Shift+Z"
         >
           {s.penRedo}
         </Button>
+        {/* Zoom is what makes a subscript writable on a phone. The ink is kept
+            in page coordinates and the pointer is read through the canvas's
+            own box, so magnifying is only a question of how wide the canvas is
+            drawn: undo, export and the selection all carry on unchanged. */}
+        <div className="flex items-center gap-1" aria-label={s.penZoom} role="group">
+          <Button
+            variant="quiet"
+            onClick={() => setZoom((z) => ZOOM_STEPS[Math.max(0, ZOOM_STEPS.indexOf(z as 1) - 1)] ?? 1)}
+            disabled={zoom === ZOOM_STEPS[0]}
+            aria-label={s.penZoomOut}
+          >
+            &minus;
+          </Button>
+          <span className="font-mono text-sm tabular-nums text-ink-muted">
+            {s.penZoomLevel(zoom)}
+          </span>
+          <Button
+            variant="quiet"
+            onClick={() =>
+              setZoom(
+                (z) =>
+                  ZOOM_STEPS[Math.min(ZOOM_STEPS.length - 1, ZOOM_STEPS.indexOf(z as 1) + 1)] ?? z,
+              )
+            }
+            disabled={zoom === ZOOM_STEPS[ZOOM_STEPS.length - 1]}
+            aria-label={s.penZoomIn}
+          >
+            +
+          </Button>
+        </div>
+        {chosen.size > 0 ? (
+          <Button variant="quiet" onClick={deleteSelection} aria-keyshortcuts="Delete">
+            {s.penDelete}
+          </Button>
+        ) : null}
       </div>
+      {tool === "lasso" ? (
+        <p className="text-sm text-ink-muted">
+          {chosen.size > 0 ? s.penMove : s.lassoHint}
+        </p>
+      ) : null}
       {/* The page is taller than the space, so the student scrolls inside it
           to reach the rest of the sheet (decision 0080). touch-action stays
           none on the canvas itself so a stroke does not scroll mid-line;
@@ -281,9 +495,9 @@ export function PenPad({
         role="region"
         tabIndex={-1}
         aria-label={s.penScroll}
-        className="max-h-[min(32rem,60vh)] w-full overflow-y-scroll overscroll-contain rounded-md border border-field-border bg-white outline-none"
+        className="max-h-[min(32rem,60vh)] w-full overflow-auto overscroll-contain rounded-md border border-field-border bg-white outline-none"
       >
-        <div className="relative">
+        <div className="relative" style={{ width: `${zoom * 100}%` }}>
           <canvas
             ref={canvasRef}
             width={WIDTH}
@@ -310,7 +524,7 @@ export function PenPad({
         <Button onClick={addPage} disabled={!inked}>
           {s.penAdd}
         </Button>
-        <Button variant="quiet" onClick={() => restore(clearInk(inkRef.current))} disabled={!inked}>
+        <Button variant="quiet" onClick={clearSheet} disabled={!inked}>
           {s.penClear}
         </Button>
       </div>

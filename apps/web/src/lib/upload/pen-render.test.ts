@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import { PEN_WIDTH, type InkStroke } from "./pen-ink";
-import { INK, PAPER, paintSheet, paintStroke, type InkContext } from "./pen-render";
+import {
+  HIGHLIGHT,
+  INK,
+  PAPER,
+  paintSelection,
+  paintSheet,
+  paintStroke,
+  type InkContext,
+} from "./pen-render";
 
 // A context that records what it was asked to draw. The pad's drawing rules
 // were previously only observable by looking at a real browser, which meant
@@ -28,6 +36,9 @@ function recorder(): InkContext & { calls: Call[] } {
     fill: () => push("fill", []),
     fillRect: (x: number, y: number, w: number, h: number) =>
       push("fillRect", [x, y, w, h]),
+    setLineDash: (pattern: number[]) => push("setLineDash", pattern),
+    strokeRect: (x: number, y: number, w: number, h: number) =>
+      push("strokeRect", [x, y, w, h]),
   };
   function push(op: string, args: number[]) {
     calls.push({ op, args, width: g.lineWidth, colour: String(g.strokeStyle || g.fillStyle) });
@@ -113,5 +124,41 @@ describe("paintSheet", () => {
     expect(first.op).toBe("fillRect");
     expect(first.args).toEqual([0, 0, 1000, 1414]);
     expect(first.colour).toBe(PAPER);
+  });
+});
+
+describe("the highlighter", () => {
+  // A student highlights a line after writing it, so in stroke order the band
+  // would land on top and dim the reading. The page is read back by a
+  // transcriber: emphasis bought with legibility is a bad trade.
+  it("goes under the writing however late it was drawn", () => {
+    const g = recorder();
+    const pen: InkStroke = { ...line([0.5, 0.5]), tool: "pen" };
+    const band: InkStroke = { ...line([0.5, 0.5]), tool: "highlighter" };
+    paintSheet(g, [pen, band], { width: 1000, height: 1414 });
+
+    const colours = g.calls.filter((c) => c.op === "stroke").map((c) => c.colour);
+    expect(colours[0]).toBe(HIGHLIGHT);
+    expect(colours[1]).toBe(INK);
+  });
+
+  it("is translucent, so the ink still reads through it", () => {
+    expect(HIGHLIGHT).toMatch(/rgba\(/);
+  });
+});
+
+describe("the selection marks", () => {
+  it("boxes the selection with a dashed outline and puts the dash back", () => {
+    const g = recorder();
+    paintSelection(g, { minX: 10, minY: 20, maxX: 110, maxY: 60 });
+    expect(g.calls.some((c) => c.op === "strokeRect")).toBe(true);
+    expect(g.calls.at(-1)!.op).toBe("setLineDash");
+    expect(g.calls.at(-1)!.args).toEqual([]);
+  });
+
+  it("draws nothing when nothing is held", () => {
+    const g = recorder();
+    paintSelection(g, null);
+    expect(g.calls).toHaveLength(0);
   });
 });

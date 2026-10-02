@@ -1,14 +1,21 @@
-// The handwriting pad's ink (decision 0096). Strokes, not pixels: a mistake
+// The handwriting pad's ink (decisions 0096, 0097). Strokes, not pixels: a mistake
 // can be undone, and the eraser rubs out part of a line without leaving a grey
 // smear for the marker to read. Kept pure so the rules can be tested without
 // a canvas.
 
 export type InkPoint = { x: number; y: number; pressure: number };
 
-export type InkTool = "pen" | "eraser";
+// What the pointer is doing. Pen and eraser write; highlighter lays a wide
+// translucent band under the reading; straight draws a ruled line between
+// where the pointer went down and where it came up; lasso selects rather than
+// marking, so it never becomes a stroke.
+export type InkTool = "pen" | "eraser" | "highlighter" | "straight" | "lasso";
+
+/** The tools that leave something on the page. */
+export type MarkTool = Exclude<InkTool, "lasso">;
 
 export type InkStroke = {
-  tool: InkTool;
+  tool: MarkTool;
   /** Base width in canvas pixels, before pressure. */
   width: number;
   points: InkPoint[];
@@ -30,13 +37,62 @@ export type PenWeight = keyof typeof PEN_WIDTH;
 /** Wider than a letter, narrower than a word, so a rubber lifts a symbol. */
 export const ERASER_WIDTH = 28;
 
+/**
+ * Broad enough to cover a line of working in one pass. The highlighter is
+ * translucent and sits under the reading rather than over it, because the page
+ * is read back by a transcriber: a band that dimmed the ink would cost
+ * legibility to gain emphasis.
+ */
+export const HIGHLIGHTER_WIDTH = 26;
+
 const HISTORY_LIMIT = 40;
 
 /** A resting palm is a wide touch. A fingertip is not. Zero means unknown. */
 const PALM_SPAN = 40;
 
+/**
+ * Whether there is anything worth sending. Highlighter alone is not: a page of
+ * emphasis with no working on it is a blank answer, and the student would
+ * learn that only after it was marked.
+ */
 export function hasPenInk(strokes: InkStroke[]): boolean {
-  return strokes.some((stroke) => stroke.tool === "pen" && stroke.points.length > 0);
+  return strokes.some(
+    (stroke) =>
+      (stroke.tool === "pen" || stroke.tool === "straight") && stroke.points.length > 0,
+  );
+}
+
+/** Replace the whole stroke list, keeping the change undoable. */
+export function replaceInk(history: InkHistory, strokes: InkStroke[]): InkHistory {
+  const past = [...history.past, history.strokes].slice(-HISTORY_LIMIT);
+  return { strokes, past, future: [] };
+}
+
+/** Move strokes by index, for a selection the student has dragged. */
+export function translateStrokes(
+  strokes: InkStroke[],
+  chosen: ReadonlySet<number>,
+  dx: number,
+  dy: number,
+): InkStroke[] {
+  if (chosen.size === 0 || (dx === 0 && dy === 0)) return strokes;
+  return strokes.map((stroke, index) =>
+    chosen.has(index)
+      ? {
+          ...stroke,
+          points: stroke.points.map((point) => ({ ...point, x: point.x + dx, y: point.y + dy })),
+        }
+      : stroke,
+  );
+}
+
+/** Drop strokes by index, for a selection the student has deleted. */
+export function removeStrokes(
+  strokes: InkStroke[],
+  chosen: ReadonlySet<number>,
+): InkStroke[] {
+  if (chosen.size === 0) return strokes;
+  return strokes.filter((_, index) => !chosen.has(index));
 }
 
 export function pushInk(history: InkHistory, stroke: InkStroke): InkHistory {

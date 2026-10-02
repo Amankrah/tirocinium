@@ -12,7 +12,7 @@ import {
   undoInk,
   wantsEraserTip,
   type InkStroke,
-  type InkTool,
+  type MarkTool,
 } from "./pen-ink";
 
 const dot: InkStroke = {
@@ -78,7 +78,7 @@ describe("the pad's pointer rules", () => {
 });
 
 describe("strokeWidths", () => {
-  const stroke = (pressures: number[], tool: InkTool = "pen"): InkStroke => ({
+  const stroke = (pressures: number[], tool: MarkTool = "pen"): InkStroke => ({
     tool,
     width: 4,
     points: pressures.map((pressure, i) => ({ x: i, y: 0, pressure })),
