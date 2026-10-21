@@ -254,6 +254,35 @@ export const strings = {
         "These notes come from the catalogue's own application-engineering rules, not from a model.",
     },
   },
+  // The project marketplace (decision 0100): the same catalogue outside any
+  // case study, at list prices, with nothing saved. The copy says both plainly,
+  // because a student who has also quoted inside a problem has met moving
+  // prices there, and one who expects to come back to a basket would lose it.
+  project: {
+    link: "Materials for your project",
+    title: "Materials for your project",
+    back: "Back to your course",
+    lede: "Price the materials for a design project. These are the suppliers' list prices, the same for everyone, so a classmate quoting the same line gets the same figure.",
+    notSaved:
+      "Nothing here is saved. Print your quotation, or save it as a PDF, before you leave the page.",
+    basis: (title: string, version: number) => `List prices from ${title}, version ${version}`,
+    sortCatalogue: "Catalogue order",
+    briefs: "Project briefs",
+    briefsHint:
+      "The briefs this catalogue was written for. Search by SKU to find the lines a brief suggests quoting first.",
+    briefFactors: "What the choice has to survive",
+    briefFamilies: "Families in contention",
+    briefShortlist: "Worth quoting first",
+    quotation: "Your quotation",
+    reference: (reference: string) => `Quotation ${reference}`,
+    prepared: (date: string) => `Prepared ${date}`,
+    validUntil: (date: string) => `List prices valid until ${date}`,
+    print: "Print quotation",
+    pricing: "Pricing…",
+    clear: "Clear quotation",
+    printedNote:
+      "Prepared on request from the platform's catalogue at list prices. Not a binding offer, and not kept on file.",
+  },
   // The upload flow (guide 4.1): the most engineered student surface. Copy is
   // plain and honest; the client checks catch the obvious, and the server stays
   // the authority on a page's readability, so blur is a retake prompt, not a

@@ -8,7 +8,7 @@
 // A best cell is marked in text as well as in weight, because a marking that
 // exists only as boldness is a marking a screen reader cannot pass on.
 import type { Comparison } from "@/lib/api/marketplace";
-import { strings } from "../../../strings";
+import { strings } from "../strings";
 
 export function ComparisonTable({
   comparison,

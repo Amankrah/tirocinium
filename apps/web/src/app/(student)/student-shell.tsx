@@ -21,7 +21,9 @@ export function StudentShell({
 }) {
   return (
     <div className="flex min-h-svh flex-col">
-      <header className="sticky top-0 z-40 flex min-h-[var(--app-header-height)] items-center justify-between border-b border-rule-line bg-ground px-6 py-4">
+      {/* Not printed: a page a student prints (a project quotation) is the
+          document, and the seat chrome is not part of it. */}
+      <header className="sticky top-0 z-40 flex min-h-[var(--app-header-height)] items-center justify-between border-b border-rule-line bg-ground px-6 py-4 print:hidden">
         <span className="font-display text-lg">{strings.shell.wordmark}</span>
         <span className="font-mono text-sm tabular-nums text-ink-muted">
           {strings.shell.seat(seatNumber)}

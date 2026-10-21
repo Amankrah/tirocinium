@@ -15,7 +15,11 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { Rfq, RfqRequest } from "@/lib/api/marketplace";
-import { strings } from "../../../strings";
+import { strings } from "../strings";
+
+// Both marketplaces answer with the same advice; only the case-study one
+// stores the request and gives it a reference, and the panel reads neither.
+type Answer = { advice: Rfq["advice"] };
 
 const VOLUMES: [RfqRequest["volume"], string][] = [
   ["prototype", "Prototype, 1 to 5 pieces"],
@@ -49,7 +53,7 @@ export function RfqPanel({
 }: {
   sku: string | null;
   pending: boolean;
-  answer: Rfq | null;
+  answer: Answer | null;
   onSend: (request: RfqRequest) => void;
 }) {
   const s = strings.marketplace.rfq;

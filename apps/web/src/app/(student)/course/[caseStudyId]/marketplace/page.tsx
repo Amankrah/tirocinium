@@ -121,9 +121,10 @@ export default async function MarketplacePage({
           </section>
         ) : null}
 
+        {/* The actions are bound to the variant here, so the browser it
+            shares its catalogue with the project marketplace never sees an
+            id it could get wrong. */}
         <MarketplaceBrowser
-          variantId={variantId}
-          caseStudyId={caseId}
           categories={market.categories}
           suppliers={market.suppliers.map((entry) => ({
             id: entry.supplier.id,
@@ -132,13 +133,12 @@ export default async function MarketplacePage({
           shortlist={market.shortlist}
           initialLines={firstPage.ok ? firstPage.data : { items: [], next_cursor: null, total: 0 }}
           initialQuote={opened?.ok ? opened.data : null}
-          validityDays={market.quote_validity_days}
-          browse={listLinesAction}
-          compare={compareLinesAction}
-          save={saveQuoteAction}
+          browse={listLinesAction.bind(null, variantId)}
+          compare={compareLinesAction.bind(null, variantId)}
+          save={saveQuoteAction.bind(null, variantId)}
           issue={issueQuoteAction}
           discard={discardQuoteAction}
-          ask={submitRfqAction}
+          ask={submitRfqAction.bind(null, variantId)}
         />
       </div>
     </StudentShell>

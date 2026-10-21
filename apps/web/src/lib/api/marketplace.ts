@@ -137,3 +137,56 @@ export function offersMarketplace(
 ): boolean {
   return marketplace?.ok === true && marketplace.data.shortlist.length > 0;
 }
+
+// ---------------------------------------------------------------------------
+// The project marketplace (decision 0100): any seat, outside any case study, at
+// the catalogue's list prices. Nothing here is stored: the quotation is priced
+// on request and handed back for the student to print.
+// ---------------------------------------------------------------------------
+
+export type ProjectMarketplace = Schemas["ProjectMarketplaceOut"];
+export type ProjectQuotation = Schemas["ProjectQuotationOut"];
+export type ProjectRfq = Schemas["ProjectRfqOut"];
+export type Brief = Schemas["Brief"];
+
+function lineSearch(query: LineQuery): string {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== null && value !== undefined && value !== "") {
+      search.set(key, String(value));
+    }
+  }
+  return search.size > 0 ? `?${search}` : "";
+}
+
+export function getProjectMarketplace(token: string): Promise<Result<ProjectMarketplace>> {
+  return call(token, "/marketplace");
+}
+
+export function listProjectLines(
+  token: string,
+  query: LineQuery = {},
+): Promise<Result<LineList>> {
+  return call(token, `/marketplace/lines${lineSearch(query)}`);
+}
+
+export function compareProjectLines(
+  token: string,
+  skus: string[],
+): Promise<Result<Comparison>> {
+  return call(token, "/marketplace/compare", { method: "POST", body: { skus } });
+}
+
+export function prepareProjectQuotation(
+  token: string,
+  lines: QuoteLine[],
+): Promise<Result<ProjectQuotation>> {
+  return call(token, "/marketplace/quotation", { method: "POST", body: { lines } });
+}
+
+export function askProjectSupplier(
+  token: string,
+  request: RfqRequest,
+): Promise<Result<ProjectRfq>> {
+  return call(token, "/marketplace/rfq", { method: "POST", body: request });
+}

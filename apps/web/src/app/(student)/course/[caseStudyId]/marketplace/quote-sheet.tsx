@@ -1,16 +1,16 @@
 "use client";
 
 // The quotation the student is building, and then the one they issued
-// (decision 0076). Every figure on it comes from the server: the component
-// holds the quantities a student typed and nothing else, because a total the
-// client worked out is a total they could not defend.
+// (decision 0076). The lines and totals are the shared QuoteBody, the same one
+// the project marketplace prints; what is this surface's own is the number,
+// the validity, and the verbs that make a basket a record.
 //
 // Once issued, the sheet stops being editable and starts being a record. The
 // number and the validity are what make it an artifact worth citing, so they
 // lead.
 import { Button } from "@/components/ui/button";
 import type { Quote } from "@/lib/api/marketplace";
-import { lead, mass, money } from "@/lib/money";
+import { QuoteBody } from "../../../_marketplace/quote-body";
 import { strings } from "../../../strings";
 
 const DAY = new Intl.DateTimeFormat("en-CA", {
@@ -54,8 +54,6 @@ export function QuoteSheet({
     );
   }
 
-  const totals = quote.totals;
-
   return (
     <aside
       aria-labelledby="quote-heading"
@@ -72,108 +70,15 @@ export function QuoteSheet({
         ) : null}
       </header>
 
-      <ul className="flex flex-col divide-y divide-rule-line">
-        {quote.lines.map((line) => (
-          <li key={line.sku} className="flex flex-col gap-2 py-3">
-            <div className="flex items-baseline justify-between gap-3">
-              <span className="font-medium">{line.name}</span>
-              <span className="font-mono text-sm tabular-nums">
-                {money(line.extended_cents)}
-              </span>
-            </div>
-            <span className="text-xs text-ink-muted">{line.spec}</span>
-
-            {issued ? (
-              <span className="font-mono text-xs tabular-nums text-ink-muted">
-                {line.quantity} {line.unit_label} · {money(line.unit_price_cents)}
-                {line.break_percent > 0 ? ` · −${line.break_percent} %` : ""}
-              </span>
-            ) : (
-              <div className="flex flex-wrap items-center gap-3">
-                <label className="flex items-center gap-2 text-xs text-ink-muted">
-                  <span className="sr-only">{s.quantity(line.unit_label)}</span>
-                  <input
-                    type="number"
-                    min={0}
-                    step="any"
-                    defaultValue={line.quantity}
-                    aria-label={s.quantity(line.unit_label)}
-                    onBlur={(event) => {
-                      const next = Number(event.currentTarget.value);
-                      if (next > 0 && next !== line.quantity) {
-                        onQuantity(line.sku, next);
-                      }
-                    }}
-                    className="w-20 rounded-md border border-rule-line bg-transparent px-2 py-1 font-mono tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                  />
-                  <span>{line.unit_label}</span>
-                </label>
-
-                {line.cut_fee_cents > 0 || line.cut_to_length ? (
-                  <label className="flex items-center gap-2 text-xs text-ink-muted">
-                    <input
-                      type="checkbox"
-                      checked={line.cut_to_length}
-                      onChange={(event) => onCut(line.sku, event.currentTarget.checked)}
-                      className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                    />
-                    {s.cutToLength}
-                  </label>
-                ) : null}
-
-                <button
-                  type="button"
-                  onClick={() => onRemove(line.sku)}
-                  className="text-xs text-ink-muted underline hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                >
-                  {s.remove(line.name)}
-                </button>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
-
-      {quote.notices.length > 0 ? (
-        <section aria-label={s.notices} className="flex flex-col gap-1">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-ink-muted">
-            {s.notices}
-          </h3>
-          <ul className="flex flex-col gap-1 text-xs text-ink-muted">
-            {quote.notices.map((notice) => (
-              <li key={notice}>{notice}</li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      <dl className="flex flex-col gap-1 border-t border-rule-line pt-3 font-mono text-sm tabular-nums">
-        <Row label={s.goods} value={money(totals.goods_cents)} />
-        {totals.discount_cents > 0 ? (
-          <Row label={s.discount} value={`−${money(totals.discount_cents)}`} />
-        ) : null}
-        {totals.cut_fee_cents > 0 ? (
-          <Row label={s.cutting} value={money(totals.cut_fee_cents)} />
-        ) : null}
-        <Row label={s.freight} value={money(totals.freight_cents)} />
-        {totals.taxes.map((tax) => (
-          <Row key={tax.code} label={tax.code} value={money(tax.amount_cents)} />
-        ))}
-        <Row label={s.total} value={money(totals.total_cents)} emphatic />
-      </dl>
-
-      <dl className="flex flex-col gap-1 text-xs text-ink-muted">
-        <Row label={s.totalMass} value={mass(totals.total_mass_grams)} />
-        <Row label={s.longestLead} value={lead(totals.longest_lead_days)} />
-        <Row
-          label={s.costPerKilo}
-          value={
-            totals.cost_per_kg_cents === null
-              ? s.costPerKiloUnknown
-              : `${money(totals.cost_per_kg_cents)}/kg`
-          }
-        />
-      </dl>
+      <QuoteBody
+        lines={quote.lines}
+        totals={quote.totals}
+        notices={quote.notices}
+        editable={!issued}
+        onQuantity={onQuantity}
+        onCut={onCut}
+        onRemove={onRemove}
+      />
 
       {issued ? (
         <div className="flex flex-col gap-3 border-t border-rule-line pt-3">
@@ -193,26 +98,5 @@ export function QuoteSheet({
         </div>
       )}
     </aside>
-  );
-}
-
-function Row({
-  label,
-  value,
-  emphatic = false,
-}: {
-  label: string;
-  value: string;
-  emphatic?: boolean;
-}) {
-  return (
-    <div
-      className={`flex items-baseline justify-between gap-4 ${
-        emphatic ? "border-t border-rule-line pt-1 font-medium text-ink" : ""
-      }`}
-    >
-      <dt>{label}</dt>
-      <dd>{value}</dd>
-    </div>
   );
 }

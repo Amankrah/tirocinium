@@ -109,7 +109,7 @@ function renderBrowser(options: { shortlist?: LineSummary[] } = {}) {
       ],
     },
   }));
-  const save = vi.fn(async (_v: number, _q: number | null, lines: { quantity: number }[]) => ({
+  const save = vi.fn(async (_q: number | null, lines: { quantity: number }[]) => ({
     ok: true as const,
     data: pricedQuote(lines[0]?.quantity ?? 0),
   }));
@@ -140,8 +140,6 @@ function renderBrowser(options: { shortlist?: LineSummary[] } = {}) {
 
   render(
     <MarketplaceBrowser
-      variantId={3}
-      caseStudyId={2}
       categories={["Plate & sheet"]}
       suppliers={[{ id: "LMS", name: "Laurentide Metal Supply" }]}
       shortlist={options.shortlist ?? [line()]}
@@ -151,7 +149,6 @@ function renderBrowser(options: { shortlist?: LineSummary[] } = {}) {
         total: 1,
       }}
       initialQuote={null}
-      validityDays={14}
       browse={browse as never}
       compare={compare as never}
       save={save as never}
@@ -180,7 +177,7 @@ describe("MarketplaceBrowser", () => {
     const { save } = renderBrowser();
     fireEvent.click(at(screen.getAllByRole("button", { name: "Add to quote" }), 0));
     await waitFor(() =>
-      expect(save).toHaveBeenCalledWith(3, null, [
+      expect(save).toHaveBeenCalledWith(null, [
         { sku: "LMS-A36-PL06", quantity: 25, cut_to_length: false, cut_count: 1 },
       ]),
     );
@@ -190,7 +187,7 @@ describe("MarketplaceBrowser", () => {
     const { save } = renderBrowser();
     fireEvent.click(at(screen.getAllByRole("button", { name: "Add to quote" }), 0));
     await waitFor(() => expect(save).toHaveBeenCalled());
-    const [, , lines] = at(save.mock.calls, 0) as [number, number | null, object[]];
+    const [, lines] = at(save.mock.calls, 0) as [number | null, object[]];
     expect(Object.keys(at(lines, 0)).sort()).toEqual([
       "cut_count",
       "cut_to_length",
@@ -225,7 +222,6 @@ describe("MarketplaceBrowser", () => {
     fireEvent.keyDown(search, { key: "Enter" });
     await waitFor(() =>
       expect(browse).toHaveBeenCalledWith(
-        3,
         expect.objectContaining({ q: "stainless", cursor: 0 }),
       ),
     );
@@ -242,7 +238,7 @@ describe("MarketplaceBrowser", () => {
     const buttons = screen.getAllByRole("button", { name: "Compare" });
     fireEvent.click(at(buttons, 0));
     fireEvent.click(at(buttons, 1));
-    await waitFor(() => expect(compare).toHaveBeenCalledWith(3, expect.any(Array)));
+    await waitFor(() => expect(compare).toHaveBeenCalledWith(expect.any(Array)));
     expect(await screen.findByText("$5.20")).toBeDefined();
     expect(screen.getByText("(best)")).toBeDefined();
   });

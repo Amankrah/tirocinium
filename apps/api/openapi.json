@@ -3280,6 +3280,178 @@
         "title": "ProfessorOut",
         "type": "object"
       },
+      "ProjectMarketplaceOut": {
+        "description": "The front door: who trades here, the terms every quotation is struck\non, and the project briefs the catalogue was written for.",
+        "properties": {
+          "briefs": {
+            "items": {
+              "$ref": "#/components/schemas/Brief"
+            },
+            "title": "Briefs",
+            "type": "array"
+          },
+          "catalogue_id": {
+            "title": "Catalogue Id",
+            "type": "string"
+          },
+          "catalogue_version": {
+            "title": "Catalogue Version",
+            "type": "integer"
+          },
+          "categories": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Categories",
+            "type": "array"
+          },
+          "course_note": {
+            "title": "Course Note",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "freight": {
+            "$ref": "#/components/schemas/Freight"
+          },
+          "price_basis": {
+            "const": "list",
+            "title": "Price Basis",
+            "type": "string"
+          },
+          "quote_validity_days": {
+            "title": "Quote Validity Days",
+            "type": "integer"
+          },
+          "suppliers": {
+            "items": {
+              "$ref": "#/components/schemas/SupplierSummary"
+            },
+            "title": "Suppliers",
+            "type": "array"
+          },
+          "taxes": {
+            "items": {
+              "$ref": "#/components/schemas/Tax"
+            },
+            "title": "Taxes",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "catalogue_id",
+          "catalogue_version",
+          "title",
+          "course_note",
+          "currency",
+          "price_basis",
+          "quote_validity_days",
+          "taxes",
+          "freight",
+          "suppliers",
+          "categories",
+          "briefs"
+        ],
+        "title": "ProjectMarketplaceOut",
+        "type": "object"
+      },
+      "ProjectQuotationIn": {
+        "properties": {
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/QuoteLineIn"
+            },
+            "maxItems": 60,
+            "title": "Lines",
+            "type": "array"
+          }
+        },
+        "title": "ProjectQuotationIn",
+        "type": "object"
+      },
+      "ProjectQuotationOut": {
+        "description": "A quotation prepared on request and not stored. The reference is a\ndigest of the basket, the catalogue and the day, so the same basket\nprepared twice on one day prints the same reference: a student can cite it\nin a report and reproduce it, without the platform keeping anything.",
+        "properties": {
+          "catalogue_id": {
+            "title": "Catalogue Id",
+            "type": "string"
+          },
+          "catalogue_version": {
+            "title": "Catalogue Version",
+            "type": "integer"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/ComputedLine"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "notices": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notices",
+            "type": "array"
+          },
+          "prepared_at": {
+            "title": "Prepared At",
+            "type": "integer"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/QuoteTotals"
+          },
+          "valid_until": {
+            "title": "Valid Until",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "reference",
+          "catalogue_id",
+          "catalogue_version",
+          "prepared_at",
+          "valid_until",
+          "lines",
+          "totals",
+          "notices"
+        ],
+        "title": "ProjectQuotationOut",
+        "type": "object"
+      },
+      "ProjectRfqOut": {
+        "properties": {
+          "advice": {
+            "$ref": "#/components/schemas/RfqAdvice"
+          },
+          "request": {
+            "$ref": "#/components/schemas/RfqIn"
+          }
+        },
+        "required": [
+          "request",
+          "advice"
+        ],
+        "title": "ProjectRfqOut",
+        "type": "object"
+      },
       "ProposalOut": {
         "description": "The proposal response: the stored payload plus its row id, so a retry\ncan be recognised and the edit signal can point back at it.",
         "properties": {
@@ -11286,6 +11458,549 @@
         "summary": "Health",
         "tags": [
           "meta"
+        ]
+      }
+    },
+    "/api/v1/marketplace": {
+      "get": {
+        "description": "The supplier directory and the project briefs, at list prices.",
+        "operationId": "get_project_marketplace_api_v1_marketplace_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectMarketplaceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Project Marketplace",
+        "tags": [
+          "project-marketplace"
+        ]
+      }
+    },
+    "/api/v1/marketplace/compare": {
+      "post": {
+        "description": "Up to five lines side by side with the derived selection indices.",
+        "operationId": "compare_project_lines_api_v1_marketplace_compare_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompareIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompareOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Compare Project Lines",
+        "tags": [
+          "project-marketplace"
+        ]
+      }
+    },
+    "/api/v1/marketplace/lines": {
+      "get": {
+        "description": "Browse the catalogue at list prices. Relevance is the catalogue's own\norder: there is no case study here, so there is no professor's shortlist.",
+        "operationId": "list_project_lines_api_v1_marketplace_lines_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "supplier",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Supplier"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tag",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "relevance",
+              "pattern": "^(relevance|price_asc|price_desc|lead|name)$",
+              "title": "Sort",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Cursor",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 24,
+              "maximum": 96,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LineListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Project Lines",
+        "tags": [
+          "project-marketplace"
+        ]
+      }
+    },
+    "/api/v1/marketplace/lines/{sku}": {
+      "get": {
+        "operationId": "get_project_line_api_v1_marketplace_lines__sku__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sku",
+            "required": true,
+            "schema": {
+              "title": "Sku",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LineDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Project Line",
+        "tags": [
+          "project-marketplace"
+        ]
+      }
+    },
+    "/api/v1/marketplace/quotation": {
+      "post": {
+        "description": "Price a basket and hand the quotation back. Nothing is written: the\nclient sends quantities, never prices, and the server answers with the one\naccount of the money, the same arithmetic the case-study quotation uses.",
+        "operationId": "prepare_project_quotation_api_v1_marketplace_quotation_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectQuotationIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectQuotationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Prepare Project Quotation",
+        "tags": [
+          "project-marketplace"
+        ]
+      }
+    },
+    "/api/v1/marketplace/rfq": {
+      "post": {
+        "description": "The application-engineering notes for a request, from the catalogue's\nauthored rules (never a model, decision 0076). Not stored.",
+        "operationId": "project_rfq_api_v1_marketplace_rfq_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RfqIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectRfqOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Project Rfq",
+        "tags": [
+          "project-marketplace"
         ]
       }
     },

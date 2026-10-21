@@ -32,17 +32,22 @@ from app.marketplace.catalogue import (
     Catalogue,
     CatalogueLine,
     Freight,
-    MaterialProperties,
-    Supplier,
     Tax,
     load_catalogue,
 )
-from app.marketplace.indices import (
-    MAX_COMPARE,
-    STOCK_LABELS,
-    CompareOut,
-    compare,
-    price_per_kg_cents,
+from app.marketplace.indices import MAX_COMPARE, CompareOut, compare
+from app.marketplace.listing import (
+    DEFAULT_LIMIT,
+    MAX_LIMIT,
+    SORT_PATTERN,
+    LineDetail,
+    LineListOut,
+    LineSummary,
+    SupplierSummary,
+    line_detail,
+    line_summary,
+    select_lines,
+    supplier_summaries,
 )
 from app.marketplace.pricing import variant_prices
 from app.marketplace.quoting import (
@@ -58,8 +63,6 @@ from app.problems import Problem
 
 router = APIRouter(prefix="/api/v1", tags=["marketplace"])
 
-DEFAULT_LIMIT = 24
-MAX_LIMIT = 96
 MAX_DRAFTS = 12
 
 NO_CATALOGUE = (
@@ -70,53 +73,6 @@ NO_CATALOGUE = (
 # ---------------------------------------------------------------------------
 # Response models
 # ---------------------------------------------------------------------------
-
-
-class LineSummary(BaseModel):
-    """A catalogue line as a card: enough to compare on, not enough to
-    specify from."""
-
-    sku: str
-    supplier_id: str
-    supplier_name: str
-    category: str
-    name: str
-    spec: str
-    unit: str
-    unit_label: str
-    price_cents: int
-    price_per_kg_cents: float | None
-    moq: float
-    lead_days: int
-    stock: str
-    stock_label: str
-    cut_fee_cents: int
-    swatch: str
-    tags: list[str]
-    service: bool
-    shortlisted: bool
-
-
-class LineDetail(LineSummary):
-    description: str
-    fabrication: str
-    oversize: bool
-    properties: MaterialProperties
-    price_breaks: list[tuple[float, int]]
-    supplier: Supplier
-
-
-class LineListOut(BaseModel):
-    items: list[LineSummary]
-    next_cursor: int | None
-    total: int
-
-
-class SupplierSummary(BaseModel):
-    supplier: Supplier
-    line_count: int
-    categories: list[str]
-    from_price_cents: int
 
 
 class MarketplaceOut(BaseModel):
@@ -286,29 +242,7 @@ async def _context(
 
 
 def _summary(context: _Context, line: CatalogueLine) -> LineSummary:
-    supplier = context.catalogue.supplier(line.supplier)
-    price = context.prices[line.sku]
-    return LineSummary(
-        sku=line.sku,
-        supplier_id=line.supplier,
-        supplier_name=supplier.name if supplier else line.supplier,
-        category=line.category,
-        name=line.name,
-        spec=line.spec,
-        unit=line.unit,
-        unit_label=UNIT_LABELS.get(line.unit, line.unit),
-        price_cents=price,
-        price_per_kg_cents=price_per_kg_cents(line, price),
-        moq=line.moq,
-        lead_days=line.lead_days,
-        stock=line.stock,
-        stock_label=STOCK_LABELS.get(line.stock, line.stock),
-        cut_fee_cents=line.cut_fee_cents,
-        swatch=line.swatch,
-        tags=line.tags,
-        service=line.service,
-        shortlisted=line.sku in context.shortlist,
-    )
+    return line_summary(context.catalogue, context.prices, line, context.shortlist)
 
 
 # ---------------------------------------------------------------------------
@@ -331,16 +265,7 @@ async def get_marketplace(
     context = await _context(shards, identity, variant_id)
     catalogue = context.catalogue
 
-    suppliers = [
-        SupplierSummary(
-            supplier=supplier,
-            line_count=len(lines),
-            categories=catalogue.categories_for(supplier.id),
-            from_price_cents=min(context.prices[line.sku] for line in lines),
-        )
-        for supplier in catalogue.suppliers
-        if (lines := catalogue.lines_for(supplier.id))
-    ]
+    suppliers = supplier_summaries(catalogue, context.prices)
     shortlist = [
         _summary(context, line)
         for sku in context.shortlist
@@ -386,7 +311,7 @@ async def list_lines(
     tag: Annotated[str | None, Query()] = None,
     q: Annotated[str | None, Query(max_length=100)] = None,
     sort: Annotated[
-        str, Query(pattern="^(relevance|price_asc|price_desc|lead|name)$")
+        str, Query(pattern=SORT_PATTERN)
     ] = "relevance",
     cursor: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=MAX_LIMIT)] = DEFAULT_LIMIT,
@@ -395,45 +320,17 @@ async def list_lines(
     stays reachable, because deciding that a material is wrong is the
     exercise."""
     context = await _context(shards, identity, variant_id)
-    needle = (q or "").strip().casefold()
-
-    matched = [
-        line
-        for line in context.catalogue.lines
-        if (supplier is None or line.supplier == supplier)
-        and (category is None or line.category == category)
-        and (tag is None or tag in line.tags)
-        and (
-            not needle
-            or needle in line.name.casefold()
-            or needle in line.sku.casefold()
-            or needle in line.spec.casefold()
-            or needle in line.category.casefold()
-            or any(needle in item.casefold() for item in line.tags)
-        )
-    ]
-
-    if sort == "price_asc":
-        matched.sort(key=lambda line: context.prices[line.sku])
-    elif sort == "price_desc":
-        matched.sort(key=lambda line: context.prices[line.sku], reverse=True)
-    elif sort == "lead":
-        matched.sort(key=lambda line: line.lead_days)
-    elif sort == "name":
-        matched.sort(key=lambda line: line.name)
-    else:
-        # Relevance is the professor's shortlist in the order they put it in
-        # (that order is the point of authoring one), then the catalogue's own
-        # order for everything else.
-        rank = {sku: position for position, sku in enumerate(context.shortlist)}
-        matched.sort(key=lambda line: rank.get(line.sku, len(rank)))
-
-    window = matched[cursor : cursor + limit]
-    following = cursor + limit
-    return LineListOut(
-        items=[_summary(context, line) for line in window],
-        next_cursor=following if following < len(matched) else None,
-        total=len(matched),
+    return select_lines(
+        context.catalogue,
+        context.prices,
+        supplier=supplier,
+        category=category,
+        tag=tag,
+        q=q,
+        sort=sort,
+        cursor=cursor,
+        limit=limit,
+        shortlist=context.shortlist,
     )
 
 
@@ -449,21 +346,10 @@ async def get_line(
     shards: Annotated[ShardManager, Depends(get_shards)],
 ) -> LineDetail:
     context = await _context(shards, identity, variant_id)
-    line = context.catalogue.line(sku)
-    supplier = context.catalogue.supplier(line.supplier) if line else None
-    if line is None or supplier is None:
+    detail = line_detail(context.catalogue, context.prices, sku, context.shortlist)
+    if detail is None:
         raise HTTPException(status_code=404, detail="Line not found.")
-    return LineDetail(
-        **_summary(context, line).model_dump(),
-        description=line.description,
-        fabrication=line.fabrication,
-        oversize=line.oversize,
-        properties=line.properties,
-        price_breaks=(
-            [] if line.service else list(context.catalogue.price_breaks.get(line.unit, []))
-        ),
-        supplier=supplier,
-    )
+    return detail
 
 
 @router.post(

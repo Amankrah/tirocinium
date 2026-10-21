@@ -143,7 +143,12 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 627 collected and 623 passing with 4 skipped (33 math delimiters
+Python suite, 635 collected and 631 passing with 4 skipped (8 project
+marketplace in `app/marketplace/test_project_marketplace.py`, decision 0100:
+list prices, the same across courses, open to a course that does not price
+materials, seat-only, the case-study arithmetic at list prices, the reference
+following the basket, unknown lines as notices, and nothing stored; the
+marketplace fixtures now live in `app/marketplace/conftest.py`), 33 math delimiters
 (decision 0099: the shared case table, run twice for idempotence, plus
 exact pass-through; the 2 confirm tests that pin normalisation at confirmation
 live in `app/imports/test_confirm.py`, and 3 in `test_math_backfill.py` pin
@@ -217,7 +222,8 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (644 Vitest tests across 72 files, `markdown.test.ts` reading the
+Web suite (650 Vitest tests across 73 files, the project marketplace's 6 in
+`app/(student)/marketplace/project-marketplace.test.tsx`, `markdown.test.ts` reading the
 same `apps/api/tests/fixtures/math-delimiters.json` as the Python suite: the token contract with its
 computed-contrast assertion, the primitives, the API clients, the upload flow's
 pre-checks, orchestration controller, SSE processing model, and transcription

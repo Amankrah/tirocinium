@@ -107,6 +107,18 @@ prices and the band a struck price falls in, never a seat's own price, and a
 reviewed quotation is labelled by seat number joined in Python from the
 directory, exactly as the submission review does it.
 
+The project marketplace (decision 0100, `app/marketplace/project.py`, web
+`app/(student)/marketplace/`) is the one place a student quotes outside a case
+study, and it inverts three of the rules above on purpose. Any seat from any
+course may use it, whether or not the course prices materials. It prices at the
+catalogue's list prices, so every student sees the same figure; the case-study
+marketplace stays seeded and that is not a contradiction to "fix". And it
+stores nothing: the quotation is priced on request and printed, its reference a
+digest of catalogue, day and basket, and a test asserts no quote or RFQ row
+appears. Both surfaces share `app/marketplace/listing.py` (pure functions over
+catalogue and prices) and the web `app/(student)/_marketplace/` folder, so a
+change to how a line reads or filters lands on both.
+
 Deployment is one host, and the data layer decides that rather than taste
 (decision 0091). Shards are SQLite files with one writer each behind a
 serialized queue, Litestream ships their WAL, the worker holds jobs for hours,

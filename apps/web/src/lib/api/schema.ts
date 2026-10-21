@@ -1067,6 +1067,127 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/marketplace": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Project Marketplace
+         * @description The supplier directory and the project briefs, at list prices.
+         */
+        get: operations["get_project_marketplace_api_v1_marketplace_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/marketplace/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Compare Project Lines
+         * @description Up to five lines side by side with the derived selection indices.
+         */
+        post: operations["compare_project_lines_api_v1_marketplace_compare_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/marketplace/lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Project Lines
+         * @description Browse the catalogue at list prices. Relevance is the catalogue's own
+         *     order: there is no case study here, so there is no professor's shortlist.
+         */
+        get: operations["list_project_lines_api_v1_marketplace_lines_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/marketplace/lines/{sku}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Project Line */
+        get: operations["get_project_line_api_v1_marketplace_lines__sku__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/marketplace/quotation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Prepare Project Quotation
+         * @description Price a basket and hand the quotation back. Nothing is written: the
+         *     client sends quantities, never prices, and the server answers with the one
+         *     account of the money, the same arithmetic the case-study quotation uses.
+         */
+        post: operations["prepare_project_quotation_api_v1_marketplace_quotation_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/marketplace/rfq": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Project Rfq
+         * @description The application-engineering notes for a request, from the catalogue's
+         *     authored rules (never a model, decision 0076). Not stored.
+         */
+        post: operations["project_rfq_api_v1_marketplace_rfq_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/quotes/{quote_id}": {
         parameters: {
             query?: never;
@@ -2659,6 +2780,73 @@ export interface components {
             /** Id */
             id: number;
             role: components["schemas"]["Role"];
+        };
+        /**
+         * ProjectMarketplaceOut
+         * @description The front door: who trades here, the terms every quotation is struck
+         *     on, and the project briefs the catalogue was written for.
+         */
+        ProjectMarketplaceOut: {
+            /** Briefs */
+            briefs: components["schemas"]["Brief"][];
+            /** Catalogue Id */
+            catalogue_id: string;
+            /** Catalogue Version */
+            catalogue_version: number;
+            /** Categories */
+            categories: string[];
+            /** Course Note */
+            course_note: string;
+            /** Currency */
+            currency: string;
+            freight: components["schemas"]["Freight"];
+            /**
+             * Price Basis
+             * @constant
+             */
+            price_basis: "list";
+            /** Quote Validity Days */
+            quote_validity_days: number;
+            /** Suppliers */
+            suppliers: components["schemas"]["SupplierSummary"][];
+            /** Taxes */
+            taxes: components["schemas"]["Tax"][];
+            /** Title */
+            title: string;
+        };
+        /** ProjectQuotationIn */
+        ProjectQuotationIn: {
+            /** Lines */
+            lines?: components["schemas"]["QuoteLineIn"][];
+        };
+        /**
+         * ProjectQuotationOut
+         * @description A quotation prepared on request and not stored. The reference is a
+         *     digest of the basket, the catalogue and the day, so the same basket
+         *     prepared twice on one day prints the same reference: a student can cite it
+         *     in a report and reproduce it, without the platform keeping anything.
+         */
+        ProjectQuotationOut: {
+            /** Catalogue Id */
+            catalogue_id: string;
+            /** Catalogue Version */
+            catalogue_version: number;
+            /** Lines */
+            lines: components["schemas"]["ComputedLine"][];
+            /** Notices */
+            notices: string[];
+            /** Prepared At */
+            prepared_at: number;
+            /** Reference */
+            reference: string | null;
+            totals: components["schemas"]["QuoteTotals"];
+            /** Valid Until */
+            valid_until: number;
+        };
+        /** ProjectRfqOut */
+        ProjectRfqOut: {
+            advice: components["schemas"]["RfqAdvice"];
+            request: components["schemas"]["RfqIn"];
         };
         /**
          * ProposalOut
@@ -7154,6 +7342,364 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["app__main__HealthOut"];
+                };
+            };
+        };
+    };
+    get_project_marketplace_api_v1_marketplace_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectMarketplaceOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    compare_project_lines_api_v1_marketplace_compare_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompareIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompareOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    list_project_lines_api_v1_marketplace_lines_get: {
+        parameters: {
+            query?: {
+                supplier?: string | null;
+                category?: string | null;
+                tag?: string | null;
+                q?: string | null;
+                sort?: string;
+                cursor?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LineListOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    get_project_line_api_v1_marketplace_lines__sku__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sku: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LineDetail"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    prepare_project_quotation_api_v1_marketplace_quotation_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectQuotationIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectQuotationOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    project_rfq_api_v1_marketplace_rfq_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RfqIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectRfqOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
         };
