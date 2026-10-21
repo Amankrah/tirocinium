@@ -1,16 +1,19 @@
 "use client";
 
-// The quote (decisions 0100 and 0101): edit the basket, then read it as the
-// quotation that will print. Every figure is the server's pricing of the
-// basket at list prices; nothing is kept, so printing (or saving as PDF) and
-// copying as a table are how a student takes it into their report.
+// The quote (decisions 0100 and 0101, restyled in 0105): edit the basket,
+// then read it as the quotation that will print. Every figure is the server's
+// pricing of the basket at list prices; nothing is kept, so printing (or
+// saving as PDF) and copying as a table are how a student takes it into
+// their report.
 //
 // On paper only the quotation sheet appears: the editor, the buttons and the
 // whole marketplace frame are hidden from the printer.
-import Link from "next/link";
 import { useState } from "react";
 
-import { Button, buttonClassName } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Icon } from "@/components/ui/icon";
 import type { ProjectQuotation } from "@/lib/api/marketplace";
 import { lead, mass, money } from "@/lib/money";
 import { QuoteBody } from "../../_marketplace/quote-body";
@@ -40,17 +43,23 @@ export function QuoteView({
 
   if (basket.length === 0) {
     return (
-      <section className="flex flex-col gap-3">
-        <h1 className="font-display text-3xl">{p.quotation}</h1>
-        <p className="text-ink-muted">{p.emptyQuote}</p>
-        <div className="flex flex-wrap gap-3">
-          <Link href="/marketplace/briefs" className={buttonClassName("primary")}>
-            {p.startFromBrief}
-          </Link>
-          <Link href="/marketplace/search" className={buttonClassName("quiet")}>
-            {p.browseEverything}
-          </Link>
-        </div>
+      <section className="flex flex-col gap-6">
+        <h1 className="font-display text-4xl leading-[1.05]">{p.quotation}</h1>
+        <EmptyState
+          icon="file"
+          body={p.emptyQuote}
+          action={
+            <div className="flex flex-wrap justify-center gap-3">
+              <ButtonLink href="/marketplace/briefs">
+                {p.startFromBrief}
+                <Icon name="arrow-right" size={16} />
+              </ButtonLink>
+              <ButtonLink href="/marketplace/search" variant="secondary">
+                {p.browseEverything}
+              </ButtonLink>
+            </div>
+          }
+        />
       </section>
     );
   }
@@ -66,12 +75,15 @@ export function QuoteView({
 
   return (
     <>
-      <section aria-labelledby="editor" aria-busy={market.pending} className="flex flex-col gap-4 print:hidden">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h1 id="editor" className="font-display text-3xl">
+      <section aria-labelledby="editor" aria-busy={market.pending} className="flex flex-col gap-6 print:hidden">
+        <div className="flex flex-col gap-3">
+          <h1 id="editor" className="font-display text-4xl leading-[1.05]">
             {p.quotation}
           </h1>
-          <p className="text-sm text-ink-muted">{p.notSaved}</p>
+          <p className="flex max-w-[var(--measure-reading)] items-start gap-2 text-sm text-ink-muted">
+            <Icon name="lock" size={14} className="mt-0.5 shrink-0" />
+            {p.notSaved}
+          </p>
         </div>
         {market.failure ? (
           <p role="alert" className="text-sm text-flag-amber">
@@ -79,7 +91,7 @@ export function QuoteView({
           </p>
         ) : null}
         {quotation ? (
-          <div className="max-w-2xl rounded-lg border border-rule-line p-4">
+          <Card as="div" className="flex max-w-2xl flex-col gap-5">
             <QuoteBody
               lines={quotation.lines}
               totals={quotation.totals}
@@ -90,22 +102,23 @@ export function QuoteView({
               onCuts={market.setCuts}
               onRemove={market.remove}
             />
-          </div>
+          </Card>
         ) : (
           <p className="text-sm text-ink-muted">{p.pricing}</p>
         )}
         <div className="flex flex-wrap items-center gap-3">
           <Button onClick={() => window.print()} disabled={!quotation || market.pending}>
+            <Icon name="print" size={14} />
             {p.print}
           </Button>
           <Button
-            variant="quiet"
+            variant="secondary"
             onClick={() => quotation && copy(quotation)}
             disabled={!quotation || market.pending}
           >
             {p.copyTable}
           </Button>
-          <Button variant="quiet" onClick={market.clear} disabled={market.pending}>
+          <Button variant="quiet" className="text-ink-muted" onClick={market.clear} disabled={market.pending}>
             {p.clear}
           </Button>
           <p role="status" className="text-sm text-ink-muted">
@@ -127,6 +140,13 @@ export function QuoteView({
   );
 }
 
+// The quotation sheet's table, in the Table primitive's look (decision 0102)
+// on a structure the kit test reads, so the classes are the primitive's and
+// the elements stay a plain table.
+const TH =
+  "border-b border-rule-line bg-surface-sunken/60 px-3.5 py-2.5 text-xs font-medium tracking-wide text-ink-muted uppercase";
+const TD = "border-b border-rule-line px-3.5 py-3 align-top";
+
 /** The quotation as a document: what prints, and what a report cites. */
 export function QuotationSheet({
   quotation,
@@ -147,18 +167,19 @@ export function QuotationSheet({
   const involved = suppliers.filter((supplier) =>
     quotation.lines.some((line) => line.supplier_id === supplier.id),
   );
-  const cell = "border-b border-rule-line/60 px-2 py-1.5 align-top";
-  const num = `${cell} text-right font-mono tabular-nums`;
+  const num = `${TD} text-end font-mono tabular-nums`;
 
   return (
-    <article
+    <Card
+      as="article"
+      padded={false}
       aria-labelledby="sheet-reference"
-      className="flex flex-col gap-4 rounded-lg border border-rule-line bg-paper p-6 text-sm print:border-0 print:p-0"
+      className="flex flex-col gap-6 p-6 text-sm sm:p-8 print:rounded-none print:border-0 print:p-0 print:shadow-none"
     >
-      <header className="flex flex-wrap justify-between gap-4 border-b border-rule-line pb-4">
-        <div className="flex flex-col gap-1">
-          <p className="font-display text-lg">{title}</p>
-          <p className="text-xs text-ink-muted">{p.consolidated}</p>
+      <header className="flex flex-wrap justify-between gap-6 border-b border-rule-line pb-5">
+        <div className="flex flex-col gap-1.5">
+          <p className="font-display text-2xl leading-tight">{title}</p>
+          <p className="text-xs tracking-wide text-ink-muted uppercase">{p.consolidated}</p>
           <ul className="text-xs text-ink-muted">
             {involved.map((supplier) => (
               <li key={supplier.id}>
@@ -167,36 +188,40 @@ export function QuotationSheet({
             ))}
           </ul>
         </div>
-        <div className="flex flex-col gap-0.5 text-right text-xs">
-          <h2 id="sheet-reference" className="font-mono text-base">
+        <div className="flex flex-col gap-0.5 text-end text-xs text-ink-muted">
+          <h2 id="sheet-reference" className="font-mono text-base tabular-nums text-ink">
             {quotation.reference ? p.reference(quotation.reference) : p.quotation}
           </h2>
-          <span>{p.prepared(DAY.format(new Date(quotation.prepared_at * 1000)))}</span>
-          <span>{p.validUntil(DAY.format(new Date(quotation.valid_until * 1000)))}</span>
+          <span className="font-mono tabular-nums">
+            {p.prepared(DAY.format(new Date(quotation.prepared_at * 1000)))}
+          </span>
+          <span className="font-mono tabular-nums">
+            {p.validUntil(DAY.format(new Date(quotation.valid_until * 1000)))}
+          </span>
           <span>{p.currencyShort(currency)}</span>
           <span>{p.terms}</span>
         </div>
       </header>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-xs">
+      <div tabIndex={0} className="focus-ring overflow-x-auto rounded-lg border border-rule-line print:rounded-none print:border-0">
+        <table className="w-full border-collapse text-sm">
           <thead>
-            <tr className="border-b border-rule-line text-left text-ink-muted">
-              <th scope="col" className="px-2 py-1.5 font-medium">{p.colItem}</th>
-              <th scope="col" className="px-2 py-1.5 font-medium">{p.colDescription}</th>
-              <th scope="col" className="px-2 py-1.5 text-right font-medium">{p.colQuantity}</th>
-              <th scope="col" className="px-2 py-1.5 text-right font-medium">{p.unitPrice}</th>
-              <th scope="col" className="px-2 py-1.5 text-right font-medium">{p.colDiscount}</th>
-              <th scope="col" className="px-2 py-1.5 text-right font-medium">{p.colExtended}</th>
+            <tr>
+              <th scope="col" className={`${TH} text-start`}>{p.colItem}</th>
+              <th scope="col" className={`${TH} text-start`}>{p.colDescription}</th>
+              <th scope="col" className={`${TH} text-end`}>{p.colQuantity}</th>
+              <th scope="col" className={`${TH} text-end`}>{p.unitPrice}</th>
+              <th scope="col" className={`${TH} text-end`}>{p.colDiscount}</th>
+              <th scope="col" className={`${TH} text-end`}>{p.colExtended}</th>
             </tr>
           </thead>
           <tbody>
             {quotation.lines.map((line) => (
               <tr key={line.sku}>
-                <td className={`${cell} font-mono`}>{line.sku}</td>
-                <td className={cell}>
+                <td className={`${TD} font-mono text-xs tabular-nums`}>{line.sku}</td>
+                <td className={TD}>
                   <span className="font-medium">{line.name}</span>
-                  <span className="block text-ink-muted">
+                  <span className="block text-xs text-ink-muted">
                     {line.spec} · {line.supplier_name}
                     {line.cut_to_length ? ` · ${q.cutsFixed(line.cut_count)}` : ""}
                   </span>
@@ -210,7 +235,7 @@ export function QuotationSheet({
               </tr>
             ))}
           </tbody>
-          <tfoot>
+          <tfoot className="bg-surface-sunken/40">
             {/* goods_cents is already net of discount and includes cutting. */}
             <SheetRow label={p.subtotal} value={money(totals.goods_cents)} strong />
             <SheetRow label={p.freightOn(mass(totals.total_mass_grams))} value={money(totals.freight_cents)} />
@@ -221,12 +246,12 @@ export function QuotationSheet({
                 value={money(tax.amount_cents)}
               />
             ))}
-            <SheetRow label={p.grandTotal(currency)} value={money(totals.total_cents)} strong />
+            <SheetRow label={p.grandTotal(currency)} value={money(totals.total_cents)} strong last />
           </tfoot>
         </table>
       </div>
 
-      <dl className="flex flex-wrap gap-x-8 gap-y-2 text-xs">
+      <dl className="grid grid-cols-2 divide-rule-line rounded-lg border border-rule-line sm:grid-cols-3 sm:divide-x lg:grid-cols-5 print:rounded-none">
         <Stat label={q.totalMass} value={mass(totals.total_mass_grams)} />
         <Stat label={p.longestLead} value={lead(totals.longest_lead_days)} />
         <Stat label={p.lineItems} value={String(totals.line_count)} />
@@ -244,8 +269,8 @@ export function QuotationSheet({
         </ul>
       ) : null}
 
-      <footer className="flex flex-col gap-2 border-t border-rule-line pt-3 text-xs text-ink-muted">
-        <p>{basis}</p>
+      <footer className="flex flex-col gap-2 border-t border-rule-line pt-4 text-xs leading-relaxed text-ink-muted">
+        <p className="font-mono">{basis}</p>
         <p>
           <strong className="font-medium text-ink">{p.termsHeading}</strong> {TERMS.terms}
         </p>
@@ -253,26 +278,39 @@ export function QuotationSheet({
           <strong className="font-medium text-ink">{p.academicHeading}</strong> {TERMS.academic}
         </p>
       </footer>
-    </article>
+    </Card>
   );
 }
 
-function SheetRow({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
+function SheetRow({
+  label,
+  value,
+  strong = false,
+  last = false,
+}: {
+  label: string;
+  value: string;
+  strong?: boolean;
+  last?: boolean;
+}) {
+  const rule = last ? "" : "border-b border-rule-line";
   return (
-    <tr className={strong ? "font-medium" : ""}>
-      <td colSpan={5} className="border-b border-rule-line/60 px-2 py-1.5 text-right">
+    <tr className={strong ? "font-medium text-ink" : "text-ink-muted"}>
+      <td colSpan={5} className={`${rule} px-3.5 py-2.5 text-end`}>
         {label}
       </td>
-      <td className="border-b border-rule-line/60 px-2 py-1.5 text-right font-mono tabular-nums">{value}</td>
+      <td className={`${rule} px-3.5 py-2.5 text-end font-mono tabular-nums ${strong ? "text-base" : ""}`}>
+        {value}
+      </td>
     </tr>
   );
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col">
-      <dt className="text-ink-muted">{label}</dt>
-      <dd className="font-mono tabular-nums">{value}</dd>
+    <div className="flex flex-col gap-1 px-4 py-3">
+      <dt className="text-xs text-ink-muted">{label}</dt>
+      <dd className="font-mono text-base tabular-nums text-ink">{value}</dd>
     </div>
   );
 }

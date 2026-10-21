@@ -128,7 +128,7 @@ export function Icon({
   className,
 }: {
   name: IconName;
-  size?: 12 | 14 | 16 | 18 | 20 | 24 | 32;
+  size?: 12 | 14 | 15 | 16 | 18 | 20 | 24 | 32;
   className?: string;
 }) {
   return (

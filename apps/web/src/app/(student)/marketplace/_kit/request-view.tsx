@@ -1,14 +1,17 @@
 "use client";
 
-// Request a quotation (decision 0101): name the line, answer what a supplier
-// would need, and get the catalogue's application-engineering notes back.
-// The notes are authored rules, never a model (decision 0076), and nothing is
-// sent anywhere or kept. There is no name or group field, unlike the
-// prototype's form: a student here is a seat, and this is the one form that
-// would otherwise be tempted to collect a person.
+// Request a quotation (decision 0101, restyled in 0105): name the line,
+// answer what a supplier would need, and get the catalogue's
+// application-engineering notes back. The notes are authored rules, never a
+// model (decision 0076), and nothing is sent anywhere or kept. There is no
+// name or group field, unlike the prototype's form: a student here is a seat,
+// and this is the one form that would otherwise be tempted to collect a
+// person.
 import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Field, Input } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
 import type { LineSummary, ProjectRfq, Result, RfqRequest } from "@/lib/api/marketplace";
 import { RfqPanel } from "../../_marketplace/rfq-panel";
 import { strings } from "../../strings";
@@ -48,21 +51,25 @@ export function RequestView({
   const named = line && line.sku === sku.trim().toUpperCase() ? line : null;
 
   return (
-    <section className="flex flex-col gap-4">
-      <header className="flex flex-col gap-2">
-        <h1 className="font-display text-3xl">{p.requestTitle}</h1>
-        <p className="max-w-[var(--measure-reading)] text-ink-muted">{p.requestLede}</p>
-        <p className="max-w-[var(--measure-reading)] text-sm text-ink-muted">{p.requestNothingSent}</p>
+    <section className="flex flex-col gap-8">
+      <header className="flex flex-col gap-4">
+        <h1 className="max-w-[20ch] font-display text-4xl leading-[1.05]">{p.requestTitle}</h1>
+        <p className="max-w-[var(--measure-reading)] text-pretty text-ink-muted">{p.requestLede}</p>
+        <p className="flex max-w-[var(--measure-reading)] items-start gap-2 text-sm text-ink-muted">
+          <Icon name="lock" size={14} className="mt-0.5 shrink-0" />
+          {p.requestNothingSent}
+        </p>
       </header>
-      <label className="flex max-w-sm flex-col gap-1 text-sm">
-        {p.requestLine}
-        <input
+      <Field label={p.requestLine} className="max-w-sm">
+        <Input
           value={sku}
           onChange={(event) => setSku(event.currentTarget.value)}
           placeholder={p.requestLinePlaceholder}
-          className="rounded-md border border-field-border bg-transparent px-3 py-2 font-mono focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          autoCapitalize="characters"
+          spellCheck={false}
+          className="font-mono tabular-nums"
         />
-      </label>
+      </Field>
       {failure ? (
         <p role="alert" className="text-sm text-flag-amber">
           {failure}
@@ -75,6 +82,7 @@ export function RequestView({
             onClick={() => market.add({ sku: named.sku, moq: named.moq, name: named.name })}
             disabled={market.inBasket(named.sku)}
           >
+            {market.inBasket(named.sku) ? <Icon name="check" size={14} /> : <Icon name="plus" size={14} />}
             {market.inBasket(named.sku) ? s.added : p.addSkuToQuote(named.sku)}
           </Button>
         </div>

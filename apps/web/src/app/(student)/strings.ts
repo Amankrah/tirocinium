@@ -287,6 +287,10 @@ export const strings = {
     guide: "How to quote",
     sources: "Price sources",
     request: "Request a quote",
+    // The section strip (decision 0105): the places in the marketplace, as
+    // plain nouns, with the one the student is in marked.
+    browse: "Browse all",
+    sections: "Marketplace sections",
     search: "Search",
     searchPlaceholder: "Grade, form, SKU or property",
     quoteLink: (count: number) => (count === 0 ? "Your quote" : `Your quote (${count})`),
@@ -317,6 +321,7 @@ export const strings = {
     lineItems: "Line items",
     shipping: "Shipping",
     tradingTerms: "Trading terms, read before quoting.",
+    switchSupplier: "Other suppliers",
     filters: "Filter the catalogue",
     category: "Category",
     attribute: "Attribute",

@@ -1,13 +1,16 @@
 "use client";
 
 // The body of a quotation, shared by both marketplaces (decisions 0076 and
-// 0100): its lines, the server's notices about them, and the totals. Every
-// figure comes from the server; the component holds the quantities a student
-// typed and nothing else, because a total the client worked out is a total
-// they could not account for.
+// 0100, restyled in 0105): its lines, the server's notices about them, and
+// the totals. Every figure comes from the server; the component holds the
+// quantities a student typed and nothing else, because a total the client
+// worked out is a total they could not account for.
 //
 // Editable while the student is building it, fixed once it is a record: an
 // issued case-study quotation, or a project quotation on paper.
+import { Button, buttonClassName } from "@/components/ui/button";
+import { inputClassName } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
 import type { Quote } from "@/lib/api/marketplace";
 import { lead, mass, money } from "@/lib/money";
 import { strings } from "../strings";
@@ -18,10 +21,13 @@ function step(unit: string): number {
   return unit === "kg" ? 5 : 1;
 }
 
-const STEPPER =
-  "inline-flex min-h-6 min-w-6 items-center justify-center rounded border border-rule-line " +
-  "font-mono text-sm hover:bg-rule-line/40 " +
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
+// A stepper button: the secondary button at its small size, squared up and in
+// the mono face so the sign sits like a figure.
+const STEPPER = buttonClassName("secondary", "min-w-8 px-0 font-mono", "sm");
+const QUANTITY = inputClassName("w-20 px-2.5 py-1.5 text-sm font-mono tabular-nums");
+const CUTS = inputClassName("w-14 px-2.5 py-1.5 text-sm font-mono tabular-nums");
+const TICK =
+  "size-4 shrink-0 accent-(--color-accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
 export function QuoteBody({
   lines,
@@ -49,7 +55,7 @@ export function QuoteBody({
     <>
       <ul className="flex flex-col divide-y divide-rule-line">
         {lines.map((line) => (
-          <li key={line.sku} className="flex flex-col gap-2 py-3">
+          <li key={line.sku} className="flex flex-col gap-2 py-4 first:pt-0">
             <div className="flex items-baseline justify-between gap-3">
               <span className="font-medium">{line.name}</span>
               <span className="font-mono text-sm tabular-nums">
@@ -57,7 +63,7 @@ export function QuoteBody({
               </span>
             </div>
             <span className="text-xs text-ink-muted">
-              {line.spec} · {line.sku}
+              {line.spec} · <span className="font-mono">{line.sku}</span>
             </span>
 
             {!editable ? (
@@ -67,46 +73,46 @@ export function QuoteBody({
                 {line.cut_to_length ? ` · ${s.cutsFixed(line.cut_count)}` : ""}
               </span>
             ) : (
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-1 text-xs text-ink-muted">
-                <button
-                  type="button"
-                  aria-label={s.less(line.name)}
-                  disabled={line.quantity - step(line.unit) <= 0}
-                  onClick={() => onQuantity?.(line.sku, line.quantity - step(line.unit))}
-                  className={STEPPER}
-                >
-                  −
-                </button>
-                <label className="flex items-center gap-2">
-                  <span className="sr-only">{s.quantity(line.unit_label)}</span>
-                  <input
-                    // Keyed on the priced quantity, so a figure the server
-                    // raised to a minimum order replaces what was typed.
-                    key={`${line.sku}-${line.quantity}`}
-                    type="number"
-                    min={0}
-                    step="any"
-                    defaultValue={line.quantity}
-                    aria-label={s.quantity(line.unit_label)}
-                    onBlur={(event) => {
-                      const next = Number(event.currentTarget.value);
-                      if (next > 0 && next !== line.quantity) {
-                        onQuantity?.(line.sku, next);
-                      }
-                    }}
-                    className="w-20 rounded-md border border-rule-line bg-transparent px-2 py-1 font-mono tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                  />
-                  <span>{line.unit_label}</span>
-                </label>
-                <button
-                  type="button"
-                  aria-label={s.more(line.name)}
-                  onClick={() => onQuantity?.(line.sku, line.quantity + step(line.unit))}
-                  className={STEPPER}
-                >
-                  +
-                </button>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1">
+                <div className="flex items-center gap-1.5 text-xs text-ink-muted">
+                  <button
+                    type="button"
+                    aria-label={s.less(line.name)}
+                    disabled={line.quantity - step(line.unit) <= 0}
+                    onClick={() => onQuantity?.(line.sku, line.quantity - step(line.unit))}
+                    className={STEPPER}
+                  >
+                    −
+                  </button>
+                  <label className="flex items-center gap-2">
+                    <span className="sr-only">{s.quantity(line.unit_label)}</span>
+                    <input
+                      // Keyed on the priced quantity, so a figure the server
+                      // raised to a minimum order replaces what was typed.
+                      key={`${line.sku}-${line.quantity}`}
+                      type="number"
+                      min={0}
+                      step="any"
+                      defaultValue={line.quantity}
+                      aria-label={s.quantity(line.unit_label)}
+                      onBlur={(event) => {
+                        const next = Number(event.currentTarget.value);
+                        if (next > 0 && next !== line.quantity) {
+                          onQuantity?.(line.sku, next);
+                        }
+                      }}
+                      className={QUANTITY}
+                    />
+                    <span>{line.unit_label}</span>
+                  </label>
+                  <button
+                    type="button"
+                    aria-label={s.more(line.name)}
+                    onClick={() => onQuantity?.(line.sku, line.quantity + step(line.unit))}
+                    className={STEPPER}
+                  >
+                    +
+                  </button>
                 </div>
 
                 {line.cut_fee_cents > 0 || line.cut_to_length ? (
@@ -115,7 +121,7 @@ export function QuoteBody({
                       type="checkbox"
                       checked={line.cut_to_length}
                       onChange={(event) => onCut?.(line.sku, event.currentTarget.checked)}
-                      className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                      className={TICK}
                     />
                     {s.cutToLength}
                   </label>
@@ -134,18 +140,20 @@ export function QuoteBody({
                         const next = Math.round(Number(event.currentTarget.value));
                         if (next >= 1 && next !== line.cut_count) onCuts(line.sku, next);
                       }}
-                      className="w-14 rounded-md border border-rule-line bg-transparent px-2 py-1 font-mono tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                      className={CUTS}
                     />
                   </label>
                 ) : null}
 
-                <button
-                  type="button"
+                <Button
+                  variant="quiet"
+                  size="sm"
+                  className="ml-auto text-ink-muted"
                   onClick={() => onRemove?.(line.sku)}
-                  className="text-xs text-ink-muted underline hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
+                  <Icon name="x" size={14} />
                   {s.remove(line.name)}
-                </button>
+                </Button>
               </div>
             )}
           </li>
@@ -153,8 +161,8 @@ export function QuoteBody({
       </ul>
 
       {notices.length > 0 ? (
-        <section aria-label={s.notices} className="flex flex-col gap-1">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-ink-muted">
+        <section aria-label={s.notices} className="flex flex-col gap-1.5 rounded-lg bg-surface-sunken px-4 py-3">
+          <h3 className="text-xs font-medium tracking-wide text-ink-muted uppercase">
             {s.notices}
           </h3>
           <ul className="flex flex-col gap-1 text-xs text-ink-muted">
@@ -165,7 +173,7 @@ export function QuoteBody({
         </section>
       ) : null}
 
-      <dl className="flex flex-col gap-1 border-t border-rule-line pt-3 font-mono text-sm tabular-nums">
+      <dl className="flex flex-col divide-y divide-rule-line border-t border-rule-line font-mono text-sm tabular-nums">
         {/* The server's goods figure already has the volume discount taken
             off and the cutting charges added, so the rows below show it in
             those parts: materials net of discount, then cutting. The
@@ -214,12 +222,16 @@ function Row({
 }) {
   return (
     <div
-      className={`flex items-baseline justify-between gap-4 ${
-        emphatic ? "border-t border-rule-line pt-1 font-medium text-ink" : ""
-      } ${muted ? "text-xs text-ink-muted" : ""}`}
+      className={[
+        "flex items-baseline justify-between gap-4 py-1.5",
+        emphatic ? "font-medium text-ink" : "",
+        muted ? "text-xs text-ink-muted" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
-      <dt>{label}</dt>
-      <dd>{value}</dd>
+      <dt className={emphatic ? "" : "font-sans"}>{label}</dt>
+      <dd className={["font-mono tabular-nums", emphatic ? "text-base" : ""].filter(Boolean).join(" ")}>{value}</dd>
     </div>
   );
 }

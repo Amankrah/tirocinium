@@ -1,10 +1,10 @@
 "use client";
 
 // Browsing the catalogue, shared by both marketplaces (decisions 0076 and
-// 0100): the filters, the sort, the grid of lines, and paging. Each surface
-// supplies how it reaches the server (the case-study one prices against a
-// variant, the project one at list prices) and what adding or comparing a line
-// means to it; the browsing itself is the same.
+// 0100, restyled in 0105): the filters, the sort, the grid of lines, and
+// paging. Each surface supplies how it reaches the server (the case-study one
+// prices against a variant, the project one at list prices) and what adding
+// or comparing a line means to it; the browsing itself is the same.
 //
 // Filtering narrows and never restricts. Every line stays reachable however
 // the filters are set, because deciding that a material is wrong is the
@@ -14,16 +14,18 @@
 // would quietly stop at the page boundary.
 import { useCallback, useState, useTransition } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonClassName } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { inputClassName } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
 import type { LineList, LineQuery, LineSummary, Result } from "@/lib/api/marketplace";
 import { lead, money } from "@/lib/money";
 import { strings } from "../strings";
 
 const PAGE = 24;
 
-export const SELECT =
-  "rounded-md border border-rule-line bg-transparent px-3 py-2 text-sm " +
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
+export const SELECT = inputClassName("py-2 text-sm");
 
 type Supplier = { id: string; name: string };
 
@@ -122,14 +124,15 @@ export function CatalogueSection({
   ] as const;
 
   return (
-    <section aria-labelledby="catalogue" className="flex flex-col gap-4">
+    <section aria-labelledby="catalogue" className="flex flex-col gap-5">
       <h2 id="catalogue" className="font-display text-2xl">
         {s.title}
       </h2>
 
-      <div className="flex flex-wrap gap-3">
-        <label className="flex flex-1 flex-col gap-1 text-sm">
+      <div className="grid gap-3 sm:grid-cols-[minmax(12rem,1fr)_repeat(3,auto)]">
+        <label className="relative flex items-center text-sm">
           <span className="sr-only">{s.search}</span>
+          <Icon name="search" size={16} className="pointer-events-none absolute left-3 text-ink-muted" />
           <input
             type="search"
             value={search}
@@ -143,7 +146,7 @@ export function CatalogueSection({
                 refilter({});
               }
             }}
-            className="min-w-48 rounded-md border border-rule-line bg-transparent px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className={inputClassName("py-2 pl-9 text-sm")}
           />
         </label>
 
@@ -194,9 +197,9 @@ export function CatalogueSection({
       </p>
 
       {lines.items.length === 0 ? (
-        <p className="text-sm text-ink-muted">{s.noResults}</p>
+        <EmptyState icon="search" body={s.noResults} />
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <ul className="grid gap-4 sm:grid-cols-2">
           {lines.items.map((line) => (
             <LineCard
               key={line.sku}
@@ -212,8 +215,9 @@ export function CatalogueSection({
 
       {lines.next_cursor !== null ? (
         <div>
-          <Button variant="quiet" onClick={loadMore} disabled={pending}>
+          <Button variant="secondary" onClick={loadMore} disabled={pending}>
             {s.more}
+            <Icon name="chevron-down" size={14} />
           </Button>
         </div>
       ) : null}
@@ -221,6 +225,9 @@ export function CatalogueSection({
   );
 }
 
+// A catalogue line as a card, in the project marketplace's look (decision
+// 0105): the supplier and SKU as the quiet eyebrow, the name in the display
+// face, the price as the loudest figure, then the two verbs.
 export function LineCard({
   line,
   inBasket,
@@ -235,40 +242,58 @@ export function LineCard({
   onCompare: () => void;
 }) {
   const s = strings.marketplace;
+  const p = strings.project;
   return (
-    <li className="flex flex-col gap-2 rounded-lg border border-rule-line p-4">
-      <div className="flex flex-col gap-0.5">
-        <span className="font-medium">{line.name}</span>
+    <li className="flex flex-col gap-3 rounded-lg border border-rule-line bg-surface p-4 shadow-raised transition-[border-color,box-shadow] duration-(--motion-duration) ease-(--motion-ease) hover:border-ink hover:shadow-floating">
+      <div className="flex flex-col gap-1">
+        <span className="flex items-center justify-between gap-2 text-xs text-ink-muted">
+          <span className="truncate">{line.supplier_name}</span>
+          <span className="shrink-0 font-mono">{line.sku}</span>
+        </span>
+        <span className="font-display text-lg leading-snug text-ink">{line.name}</span>
         <span className="text-xs text-ink-muted">{line.spec}</span>
-        <span className="text-xs text-ink-muted">{line.supplier_name}</span>
       </div>
 
-      <div className="flex flex-col gap-0.5 font-mono text-sm tabular-nums">
-        <span>{s.perUnit(money(line.price_cents), line.unit_label)}</span>
-        {line.price_per_kg_cents !== null ? (
-          <span className="text-xs text-ink-muted">
-            {s.perKilo(money(Math.round(line.price_per_kg_cents)))}
+      {line.tags.length > 0 ? (
+        <ul className="flex flex-wrap gap-1" aria-label={p.attributes}>
+          {line.tags.slice(0, 3).map((tag) => (
+            <li key={tag}>
+              <Badge>{tag}</Badge>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      <div className="mt-auto flex flex-col gap-0.5 border-t border-rule-line pt-3">
+        <span className="font-mono text-base tabular-nums text-ink">
+          {s.perUnit(money(line.price_cents), line.unit_label)}
+        </span>
+        {line.price_per_kg_cents !== null && line.unit !== "kg" ? (
+          <span className="font-mono text-xs tabular-nums text-ink-muted">
+            ≈ {s.perKilo(money(Math.round(line.price_per_kg_cents)))}
           </span>
         ) : null}
-      </div>
-
-      <div className="flex flex-col gap-0.5 text-xs text-ink-muted">
-        <span>{s.minimumOrder(String(line.moq), line.unit_label)}</span>
-        <span>
-          {lead(line.lead_days)} · {line.stock_label}
+        <span className="mt-1 text-xs text-ink-muted">
+          {s.minimumOrder(String(line.moq), line.unit_label)} · {line.stock_label} · {lead(line.lead_days)}
         </span>
       </div>
 
-      <div className="mt-auto flex flex-wrap items-center gap-2 pt-2">
-        <Button onClick={onAdd} disabled={inBasket} className="text-sm">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" onClick={onAdd} disabled={inBasket}>
+          {inBasket ? <Icon name="check" size={14} /> : <Icon name="plus" size={14} />}
           {inBasket ? s.added : s.add}
         </Button>
         <button
           type="button"
           onClick={onCompare}
           aria-pressed={comparing}
-          className="rounded-md px-2 py-1 text-xs text-ink-muted underline hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className={buttonClassName(
+            comparing ? "secondary" : "quiet",
+            comparing ? "border-accent/40 bg-accent-soft text-accent-text" : "text-ink-muted",
+            "sm",
+          )}
         >
+          <Icon name="layers" size={14} />
           {s.compare}
         </button>
       </div>

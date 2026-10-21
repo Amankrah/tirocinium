@@ -8,8 +8,11 @@ import type { ReactNode, TdHTMLAttributes, ThHTMLAttributes } from "react";
 export function Table({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <div
+      // A frame that scrolls sideways on a narrow screen must be reachable
+      // by keyboard (WCAG 2.1.1); the focus ring is the shared one.
+      tabIndex={0}
       className={[
-        "overflow-x-auto rounded-lg border border-rule-line bg-surface",
+        "overflow-x-auto rounded-lg border border-rule-line bg-surface focus-ring",
         className,
       ]
         .filter(Boolean)
@@ -56,7 +59,7 @@ export function Td({
   return (
     <td
       className={[
-        "border-b border-rule-line px-3.5 py-3 align-top last:border-b-0",
+        "border-b border-rule-line px-3.5 py-3 align-top",
         justify === "end" ? "text-end" : "text-start",
         numeric ? "font-mono tabular-nums" : "",
         className,

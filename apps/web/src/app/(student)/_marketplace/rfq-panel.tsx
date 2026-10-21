@@ -1,8 +1,9 @@
 "use client";
 
-// The request for quotation (decision 0076). The student answers what a
-// supplier would need before putting a number on paper, and gets back
-// application-engineering notes from the catalogue's authored rules.
+// The request for quotation (decision 0076, restyled in 0105). The student
+// answers what a supplier would need before putting a number on paper, and
+// gets back application-engineering notes from the catalogue's authored
+// rules.
 //
 // The copy says the notes are rules and not a model, which matters in both
 // directions: a student who thought a machine wrote them would either trust
@@ -14,6 +15,9 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
 import type { Rfq, RfqRequest } from "@/lib/api/marketplace";
 import { strings } from "../strings";
 
@@ -67,7 +71,7 @@ export function RfqPanel({
   const [notes, setNotes] = useState("");
 
   return (
-    <section aria-labelledby="rfq" className="flex flex-col gap-4">
+    <section aria-labelledby="rfq" className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
         <h2 id="rfq" className="font-display text-2xl">
           {s.heading}
@@ -75,8 +79,9 @@ export function RfqPanel({
         <p className="max-w-[var(--measure-reading)] text-sm text-ink-muted">{s.hint}</p>
       </header>
 
-      <form
-        className="grid gap-4 sm:grid-cols-2"
+      <Card
+        as="form"
+        className="grid gap-5 sm:grid-cols-2"
         onSubmit={(event) => {
           event.preventDefault();
           onSend({
@@ -92,135 +97,109 @@ export function RfqPanel({
         }}
       >
         <Field label={s.component}>
-          <input
+          <Input
             value={component}
             onChange={(event) => setComponent(event.currentTarget.value)}
             maxLength={200}
-            className={INPUT}
           />
         </Field>
         <Field label={s.quantityLabel}>
-          <input
+          <Input
             value={quantity}
             onChange={(event) => setQuantity(event.currentTarget.value)}
             maxLength={80}
-            className={INPUT}
           />
         </Field>
         <Field label={s.volume}>
-          <select
+          <Select
             value={volume}
             onChange={(event) =>
               setVolume(event.currentTarget.value as RfqRequest["volume"])
             }
-            className={INPUT}
           >
             {VOLUMES.map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field label={s.environment}>
-          <select
+          <Select
             value={environment}
             onChange={(event) =>
               setEnvironment(event.currentTarget.value as RfqRequest["environment"])
             }
-            className={INPUT}
           >
             {ENVIRONMENTS.map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field label={s.certification}>
-          <select
+          <Select
             value={certification}
             onChange={(event) =>
               setCertification(event.currentTarget.value as RfqRequest["certification"])
             }
-            className={INPUT}
           >
             {CERTIFICATIONS.map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field label={s.tolerance}>
-          <input
+          <Input
             value={tolerance}
             onChange={(event) => setTolerance(event.currentTarget.value)}
             maxLength={300}
-            className={INPUT}
           />
         </Field>
-        <Field label={s.notes} wide>
-          <textarea
+        <Field label={s.notes} className="sm:col-span-2">
+          <Textarea
             value={notes}
             onChange={(event) => setNotes(event.currentTarget.value)}
             maxLength={1000}
             rows={3}
-            className={INPUT}
           />
         </Field>
         <div className="sm:col-span-2">
           <Button type="submit" disabled={pending}>
             {pending ? s.sending : s.send}
+            {pending ? null : <Icon name="arrow-right" size={14} />}
           </Button>
         </div>
-      </form>
+      </Card>
 
       {answer ? (
-        <section
-          aria-label={s.answer}
-          className="flex flex-col gap-3 rounded-lg border border-rule-line p-4"
-        >
-          <h3 className="font-display text-lg">{s.answer}</h3>
-          {answer.advice.missing.length > 0 ? (
-            <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium">{s.missing}</p>
-              <ul className="flex flex-col gap-0.5 text-sm text-ink-muted">
-                {answer.advice.missing.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          <ul className="flex flex-col gap-2 text-sm">
-            {answer.advice.notes.map((note) => (
-              <li key={note.rule}>{note.text}</li>
-            ))}
-          </ul>
+        <section aria-label={s.answer} className="flex flex-col gap-3">
+          <Card as="div" className="flex flex-col gap-4">
+            <h3 className="font-display text-xl">{s.answer}</h3>
+            {answer.advice.missing.length > 0 ? (
+              <div className="flex flex-col gap-1.5 rounded-lg bg-surface-sunken px-4 py-3">
+                <p className="text-sm font-medium">{s.missing}</p>
+                <ul className="flex list-disc flex-col gap-0.5 pl-5 text-sm text-ink-muted">
+                  {answer.advice.missing.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            <ul className="flex flex-col divide-y divide-rule-line text-sm leading-relaxed">
+              {answer.advice.notes.map((note) => (
+                <li key={note.rule} className="py-2 first:pt-0 last:pb-0">
+                  {note.text}
+                </li>
+              ))}
+            </ul>
+          </Card>
           <p className="text-xs text-ink-muted">{s.authored}</p>
         </section>
       ) : null}
     </section>
-  );
-}
-
-const INPUT =
-  "w-full rounded-md border border-rule-line bg-transparent px-3 py-2 " +
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
-
-function Field({
-  label,
-  wide = false,
-  children,
-}: {
-  label: string;
-  wide?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className={`flex flex-col gap-1.5 text-sm ${wide ? "sm:col-span-2" : ""}`}>
-      <span className="text-ink-muted">{label}</span>
-      {children}
-    </label>
   );
 }

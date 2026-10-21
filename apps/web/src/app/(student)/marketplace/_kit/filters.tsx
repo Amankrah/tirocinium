@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { strings } from "../../strings";
 
 // The filter column (decision 0101): ticked categories, ticked attributes and
@@ -51,18 +52,30 @@ export function Filters({
 }) {
   const p = strings.project;
   const filtered = chosenCategories.length > 0 || chosenTags.length > 0 || sort !== "relevance";
-  const box = "flex flex-col gap-1.5 rounded-lg border border-rule-line p-3";
-  const option = "flex items-center gap-2 text-sm";
-  const tick = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
+  // One sheet, the groups divided by hairlines (decision 0105).
+  const box = "flex flex-col gap-1 border-b border-rule-line px-4 py-3";
+  const option =
+    "flex min-h-7 items-center gap-2.5 rounded-sm text-sm text-ink hover:text-accent-text";
+  const tick =
+    "size-4 shrink-0 accent-(--color-accent) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
   return (
-    <form action={action} method="get" className="flex flex-col gap-3" aria-label={p.filters}>
+    <form
+      action={action}
+      method="get"
+      className="flex flex-col self-start overflow-hidden rounded-lg border border-rule-line bg-surface shadow-raised lg:sticky lg:top-[calc(var(--app-header-height)+1rem)]"
+      aria-label={p.filters}
+    >
+      <p className="flex items-center gap-2 border-b border-rule-line bg-surface-sunken/60 px-4 py-2.5 text-sm font-medium">
+        <Icon name="tag" size={14} className="text-ink-muted" />
+        {p.filters}
+      </p>
       {Object.entries(hidden).map(([name, value]) => (
         <input key={name} type="hidden" name={name} value={value} />
       ))}
       {categories.length > 0 ? (
         <fieldset className={box}>
-          <legend className="px-1 text-xs font-medium uppercase tracking-wide text-ink-muted">
+          <legend className="pb-1 text-xs font-medium tracking-wide text-ink-muted uppercase">
             {p.category}
           </legend>
           {categories.map((facet) => (
@@ -84,7 +97,7 @@ export function Filters({
       ) : null}
       {tags.length > 0 ? (
         <fieldset className={box}>
-          <legend className="px-1 text-xs font-medium uppercase tracking-wide text-ink-muted">
+          <legend className="pb-1 text-xs font-medium tracking-wide text-ink-muted uppercase">
             {p.attribute}
           </legend>
           {tags.map((facet) => (
@@ -102,7 +115,7 @@ export function Filters({
         </fieldset>
       ) : null}
       <fieldset className={box}>
-        <legend className="px-1 text-xs font-medium uppercase tracking-wide text-ink-muted">
+        <legend className="pb-1 text-xs font-medium tracking-wide text-ink-muted uppercase">
           {strings.marketplace.sort}
         </legend>
         {SORTS.map(([value, label]) => (
@@ -112,19 +125,23 @@ export function Filters({
           </label>
         ))}
       </fieldset>
-      <Button type="submit">{p.applyFilters}</Button>
-      {filtered ? (
-        <Link
-          href={
-            Object.keys(hidden).length > 0
-              ? `${action}?${new URLSearchParams(hidden).toString()}`
-              : action
-          }
-          className="text-center text-sm text-ink-muted underline hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        >
-          {p.clearFilters}
-        </Link>
-      ) : null}
+      <div className="flex flex-col gap-2 px-4 py-3">
+        <Button type="submit" size="sm" className="w-full">
+          {p.applyFilters}
+        </Button>
+        {filtered ? (
+          <Link
+            href={
+              Object.keys(hidden).length > 0
+                ? `${action}?${new URLSearchParams(hidden).toString()}`
+                : action
+            }
+            className="text-center text-sm text-link"
+          >
+            {p.clearFilters}
+          </Link>
+        ) : null}
+      </div>
     </form>
   );
 }

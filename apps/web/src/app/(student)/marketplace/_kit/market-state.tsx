@@ -217,13 +217,13 @@ function Announcer({
       {announcement ? (
         <p
           key={announcement.id}
-          className="pointer-events-auto flex items-center gap-3 rounded-md border border-rule-line bg-paper px-4 py-2 text-sm shadow-sm"
+          className="pointer-events-auto flex items-center gap-3 rounded-lg border border-rule-line bg-surface px-4 py-2.5 text-sm shadow-floating"
         >
           {announcement.text}
           {announcement.link ? (
             <Link
               href="/marketplace/quote"
-              className="text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className="font-medium text-link"
             >
               {strings.project.viewQuote}
             </Link>

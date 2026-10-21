@@ -1,16 +1,21 @@
 import Link from "next/link";
 
-import { buttonClassName } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
+import { PageHeader } from "@/components/ui/page-header";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { Table, Td, Th, Tr } from "@/components/ui/table";
 import { getProjectMarketplace } from "@/lib/api/marketplace";
 import { money } from "@/lib/money";
 import { requireSeat } from "@/lib/seat-session";
 import { strings } from "../../strings";
 import { CONTENT_CATALOGUE, GUIDE } from "../_kit/content";
 
-// How to build a quote a marker will believe (decision 0101). The worked
-// figures are pinned to the catalogue by the content test; the invoice rules
-// (freight, taxes, validity) are read from the catalogue itself, so this page
-// states what the quotation will actually do.
+// How to build a quote a marker will believe (decision 0101, restyled in
+// 0105). The worked figures are pinned to the catalogue by the content test;
+// the invoice rules (freight, taxes, validity) are read from the catalogue
+// itself, so this page states what the quotation will actually do.
 export default async function GuidePage() {
   const { token } = await requireSeat();
   const s = strings.marketplace;
@@ -21,9 +26,9 @@ export default async function GuidePage() {
   const freight = market.freight;
   const taxes = market.taxes.map((tax) => p.tax(tax.code, tax.rate * 100)).join(" + ");
   const totalRate = market.taxes.reduce((sum, tax) => sum + tax.rate, 0) * 100;
-  const card = "flex flex-col gap-3 rounded-lg border border-rule-line p-5";
-  const th = "border-b border-rule-line py-2 pr-4 text-left text-xs font-medium text-ink-muted";
-  const td = "border-b border-rule-line/60 py-2 pr-4 align-top";
+  // A row header sits in the same rhythm as a Td: the hairline, the padding,
+  // the top alignment; only the weight differs.
+  const rowHeader = "border-b border-rule-line px-3.5 py-3 text-start align-top";
 
   const invoice: [string, string, string][] = [
     [p.invoiceMoq, p.invoiceMoqHow, p.invoiceMoqWhy],
@@ -44,108 +49,94 @@ export default async function GuidePage() {
 
   return (
     <>
-      <nav aria-label={p.breadcrumb} className="text-sm text-ink-muted">
-        <Link href="/marketplace" className="underline hover:text-ink">
+      <nav aria-label={p.breadcrumb} className="flex flex-wrap items-center gap-1.5 text-sm text-ink-muted">
+        <Link
+          href="/marketplace"
+          className="rounded-sm transition-colors duration-(--motion-duration) ease-(--motion-ease) hover:text-ink focus-ring"
+        >
           {p.home}
-        </Link>{" "}
-        › {p.guide}
+        </Link>
+        <Icon name="chevron-right" size={14} />
+        <span className="text-ink">{p.guide}</span>
       </nav>
-      <header className="flex flex-col gap-2">
-        <h1 className="font-display text-4xl">{GUIDE.title}</h1>
-        <p className="max-w-[var(--measure-reading)] text-ink-muted">{GUIDE.lede}</p>
-      </header>
+      <PageHeader title={GUIDE.title} description={GUIDE.lede} />
 
       {market.catalogue_id === CONTENT_CATALOGUE ? (
-        <section className={card} aria-labelledby="function">
-          <h2 id="function" className="font-display text-xl">
-            {GUIDE.functionHeading}
-          </h2>
-          <p className="max-w-[var(--measure-reading)]">{GUIDE.functionBody}</p>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr>
-                  {GUIDE.functionColumns.map((column) => (
-                    <th key={column} scope="col" className={th}>
-                      {column}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {GUIDE.functionRows.map(([limit, index, example]) => (
-                  <tr key={limit}>
-                    <th scope="row" className={`${td} font-normal`}>
-                      {limit}
-                    </th>
-                    <td className={`${td} font-mono`}>{index}</td>
-                    <td className={td}>{example}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      ) : null}
-
-      <section className={card} aria-labelledby="invoice">
-        <h2 id="invoice" className="font-display text-xl">
-          {GUIDE.invoiceHeading}
-        </h2>
-        <p className="max-w-[var(--measure-reading)]">{GUIDE.invoiceBody}</p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <Card as="section" aria-labelledby="function" className="flex flex-col gap-4">
+          <SectionHeading id="function" title={GUIDE.functionHeading} rule={false} />
+          <p className="max-w-[var(--measure-reading)] text-pretty">{GUIDE.functionBody}</p>
+          <Table>
             <thead>
               <tr>
-                {GUIDE.invoiceColumns.map((column) => (
-                  <th key={column} scope="col" className={th}>
-                    {column}
-                  </th>
+                {GUIDE.functionColumns.map((column) => (
+                  <Th key={column}>{column}</Th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {invoice.map(([line, how, why]) => (
-                <tr key={line}>
-                  <th scope="row" className={`${td} font-medium`}>
-                    {line}
+              {GUIDE.functionRows.map(([limit, index, example]) => (
+                <Tr key={limit}>
+                  <th scope="row" className={`${rowHeader} font-normal`}>
+                    {limit}
                   </th>
-                  <td className={td}>{how}</td>
-                  <td className={td}>{why}</td>
-                </tr>
+                  <Td numeric>{index}</Td>
+                  <Td>{example}</Td>
+                </Tr>
               ))}
             </tbody>
-          </table>
-        </div>
-      </section>
+          </Table>
+        </Card>
+      ) : null}
 
-      <section className={card} aria-labelledby="dating">
-        <h2 id="dating" className="font-display text-xl">
-          {GUIDE.datingHeading}
-        </h2>
-        <p className="max-w-[var(--measure-reading)]">{GUIDE.datingBody}</p>
+      <Card as="section" aria-labelledby="invoice" className="flex flex-col gap-4">
+        <SectionHeading id="invoice" title={GUIDE.invoiceHeading} rule={false} />
+        <p className="max-w-[var(--measure-reading)] text-pretty">{GUIDE.invoiceBody}</p>
+        <Table>
+          <thead>
+            <tr>
+              {GUIDE.invoiceColumns.map((column) => (
+                <Th key={column}>{column}</Th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {invoice.map(([line, how, why]) => (
+              <Tr key={line}>
+                <th scope="row" className={`${rowHeader} font-medium`}>
+                  {line}
+                </th>
+                <Td>{how}</Td>
+                <Td>{why}</Td>
+              </Tr>
+            ))}
+          </tbody>
+        </Table>
+      </Card>
+
+      <Card as="section" aria-labelledby="dating" className="flex flex-col gap-4">
+        <SectionHeading id="dating" title={GUIDE.datingHeading} rule={false} />
+        <p className="max-w-[var(--measure-reading)] text-pretty">{GUIDE.datingBody}</p>
         <p className="max-w-[var(--measure-reading)] text-sm text-ink-muted">
           {p.validityNote(market.quote_validity_days)}
         </p>
         {market.catalogue_id === CONTENT_CATALOGUE ? (
-          <div className="rounded-lg border border-rule-line p-4 text-sm">
+          <Card tone="sunken" className="flex max-w-[var(--measure-reading)] flex-col gap-2 text-sm">
             <p>{GUIDE.citeLead}</p>
-            <p className="mt-2 font-mono text-xs">{GUIDE.citeExample("BREE-P-20261021-A67C48")}</p>
-          </div>
+            <p className="font-mono text-xs tabular-nums">{GUIDE.citeExample("BREE-P-20261021-A67C48")}</p>
+          </Card>
         ) : null}
-      </section>
+      </Card>
 
-      <section className={card} aria-labelledby="tradeoff">
-        <h2 id="tradeoff" className="font-display text-xl">
-          {GUIDE.tradeoffHeading}
-        </h2>
-        <p className="max-w-[var(--measure-reading)]">{GUIDE.tradeoffBody}</p>
+      <Card as="section" aria-labelledby="tradeoff" className="flex flex-col gap-4">
+        <SectionHeading id="tradeoff" title={GUIDE.tradeoffHeading} rule={false} />
+        <p className="max-w-[var(--measure-reading)] text-pretty">{GUIDE.tradeoffBody}</p>
         <div>
-          <Link href="/marketplace/briefs" className={buttonClassName("primary")}>
+          <ButtonLink href="/marketplace/briefs">
             {p.toBriefs}
-          </Link>
+            <Icon name="arrow-right" size={16} />
+          </ButtonLink>
         </div>
-      </section>
+      </Card>
     </>
   );
 }

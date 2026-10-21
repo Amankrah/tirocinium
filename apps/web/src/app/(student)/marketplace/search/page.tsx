@@ -1,16 +1,19 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Input } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
 import { allProjectLines } from "@/lib/api/marketplace";
 import { requireSeat } from "@/lib/seat-session";
 import { strings } from "../../strings";
 import { Filters, list, sortOf } from "../_kit/filters";
 import { LineGrid } from "../_kit/line-card";
 
-// Search across every supplier (decision 0101), with the same filter column
-// as a store. An empty query browses the whole catalogue, so this page is also
-// "everything", filtered. The server searches names, SKUs, specs, categories,
-// attributes, descriptions and supplier names.
+// Search across every supplier (decision 0101, restyled in 0105), with the
+// same filter column as a store. An empty query browses the whole catalogue,
+// so this page is also "everything", filtered. The server searches names,
+// SKUs, specs, categories, attributes, descriptions and supplier names.
 export default async function SearchPage({
   searchParams,
 }: {
@@ -42,28 +45,37 @@ export default async function SearchPage({
 
   return (
     <>
-      <nav aria-label={p.breadcrumb} className="text-sm text-ink-muted">
-        <Link href="/marketplace" className="underline hover:text-ink">
+      <nav aria-label={p.breadcrumb} className="flex flex-wrap items-center gap-1.5 text-sm text-ink-muted">
+        <Link
+          href="/marketplace"
+          className="rounded-sm transition-colors duration-(--motion-duration) ease-(--motion-ease) hover:text-ink focus-ring"
+        >
           {p.home}
-        </Link>{" "}
-        › {p.search}
+        </Link>
+        <Icon name="chevron-right" size={14} />
+        <span className="text-ink">{p.search}</span>
       </nav>
-      <header className="flex flex-col gap-3">
-        <h1 className="font-display text-3xl">
+
+      <header className="flex flex-col gap-5">
+        <h1 className="font-display text-3xl leading-tight sm:text-4xl">
           {q ? p.resultsFor(shown.data.total, q) : p.everything(shown.data.total)}
         </h1>
         <form action="/marketplace/search" role="search" className="flex max-w-xl gap-2">
-          <label htmlFor="search-page-q" className="sr-only">
-            {s.search}
-          </label>
-          <input
-            id="search-page-q"
-            name="q"
-            type="search"
-            defaultValue={q}
-            placeholder={p.searchPlaceholder}
-            className="flex-1 rounded-md border border-field-border bg-transparent px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          />
+          <div className="relative flex min-w-0 flex-1 items-center">
+            <label htmlFor="search-page-q" className="sr-only">
+              {s.search}
+            </label>
+            <Icon name="search" size={16} className="pointer-events-none absolute left-3 text-ink-muted" />
+            <Input
+              id="search-page-q"
+              name="q"
+              type="search"
+              defaultValue={q}
+              placeholder={p.searchPlaceholder}
+              enterKeyHint="search"
+              className="pl-9"
+            />
+          </div>
           <Button type="submit">{p.search}</Button>
         </form>
       </header>
@@ -82,7 +94,7 @@ export default async function SearchPage({
           {shown.data.items.length > 0 ? (
             <LineGrid lines={shown.data.items} />
           ) : (
-            <p className="max-w-[var(--measure-reading)] text-sm text-ink-muted">{p.noResults}</p>
+            <EmptyState icon="search" body={p.noResults} />
           )}
         </section>
       </div>

@@ -1,13 +1,16 @@
 "use client";
 
-// The comparison (decision 0101): the lines in the tray, side by side on every
-// row the catalogue carries, with the server marking the best cell of each row
-// on that criterion alone. No line wins every row, and the copy says so. From
-// here the whole set can go into the quote, print, or be copied as a table.
-import Link from "next/link";
+// The comparison (decision 0101, restyled in 0105): the lines in the tray,
+// side by side on every row the catalogue carries, with the server marking
+// the best cell of each row on that criterion alone. No line wins every row,
+// and the copy says so. From here the whole set can go into the quote, print,
+// or be copied as a table.
 import { useEffect, useState, useTransition } from "react";
 
-import { Button, buttonClassName } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Icon } from "@/components/ui/icon";
 import type { Comparison, LineList, LineQuery, Result } from "@/lib/api/marketplace";
 import { ComparisonTable } from "../../_marketplace/comparison-table";
 import { strings } from "../../strings";
@@ -58,14 +61,18 @@ export function CompareView({
 
   if (tray.length === 0) {
     return (
-      <section className="flex flex-col gap-3">
-        <h1 className="font-display text-3xl">{p.compareTitle}</h1>
-        <p className="max-w-[var(--measure-reading)] text-ink-muted">{p.compareEmpty}</p>
-        <div>
-          <Link href="/marketplace" className={buttonClassName("primary")}>
-            {p.home}
-          </Link>
-        </div>
+      <section className="flex flex-col gap-6">
+        <h1 className="font-display text-4xl leading-[1.05]">{p.compareTitle}</h1>
+        <EmptyState
+          icon="layers"
+          body={p.compareEmpty}
+          action={
+            <ButtonLink href="/marketplace">
+              {p.home}
+              <Icon name="arrow-right" size={16} />
+            </ButtonLink>
+          }
+        />
       </section>
     );
   }
@@ -83,11 +90,11 @@ export function CompareView({
   }
 
   return (
-    <section aria-busy={pending} className="flex flex-col gap-4">
-      <h1 className="font-display text-3xl">{p.compareHeading(tray.length)}</h1>
-      <p className="max-w-[var(--measure-reading)] rounded-lg border border-rule-line p-4 text-sm">
+    <section aria-busy={pending} className="flex flex-col gap-6">
+      <h1 className="font-display text-4xl leading-[1.05]">{p.compareHeading(tray.length)}</h1>
+      <Card as="div" tone="sunken" className="max-w-[var(--measure-reading)] text-sm leading-relaxed">
         {p.compareNotice}
-      </p>
+      </Card>
       {failure ? (
         <p role="alert" className="text-sm text-flag-amber">
           {failure}
@@ -98,9 +105,13 @@ export function CompareView({
       ) : (
         <p className="text-sm text-ink-muted">{s.comparing(tray.length)}</p>
       )}
-      <p className="max-w-[var(--measure-reading)] rounded-lg border border-rule-line p-4 text-sm text-ink-muted">
+      <Card
+        as="div"
+        tone="sunken"
+        className="max-w-[var(--measure-reading)] text-sm leading-relaxed text-ink-muted"
+      >
         {p.indicesReading}
-      </p>
+      </Card>
       <div className="flex flex-wrap items-center gap-3 print:hidden">
         <Button
           onClick={() =>
@@ -110,9 +121,11 @@ export function CompareView({
           }
           disabled={!lines || pending}
         >
+          <Icon name="plus" size={14} />
           {p.addAllToQuote(tray.length)}
         </Button>
-        <Button variant="quiet" onClick={() => window.print()} disabled={!comparison}>
+        <Button variant="secondary" onClick={() => window.print()} disabled={!comparison}>
+          <Icon name="print" size={14} />
           {p.printComparison}
         </Button>
         <Button variant="quiet" onClick={() => comparison && copy(comparison)} disabled={!comparison}>

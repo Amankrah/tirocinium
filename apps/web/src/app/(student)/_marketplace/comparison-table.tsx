@@ -1,13 +1,15 @@
 "use client";
 
-// The side-by-side comparison (decision 0076). The server decides which cell in
-// a row is best, and which rows have a best at all: "lower is better" is a
-// property of the property, not of the layout, and a table that worked it out
-// in the browser would be a second opinion.
+// The side-by-side comparison (decision 0076, restyled in 0105). The server
+// decides which cell in a row is best, and which rows have a best at all:
+// "lower is better" is a property of the property, not of the layout, and a
+// table that worked it out in the browser would be a second opinion.
 //
 // A best cell is marked in words, visibly, as well as in weight: boldness
 // alone is a marking a screen reader cannot pass on and, on a monospaced
 // figure, one a sighted reader barely sees (decision 0101).
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { Comparison } from "@/lib/api/marketplace";
 import { strings } from "../strings";
 
@@ -27,29 +29,29 @@ export function ComparisonTable({
   }
 
   return (
-    <section aria-labelledby="comparison" className="flex flex-col gap-3">
+    <section aria-labelledby="comparison" className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
         <h2 id="comparison" className="font-display text-2xl">
           {s.comparing(comparison.skus.length)}
         </h2>
-        <button
-          type="button"
-          onClick={onClear}
-          className="text-sm text-ink-muted underline hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        >
+        <Button variant="quiet" size="sm" className="text-ink-muted print:hidden" onClick={onClear}>
           {s.clearComparison}
-        </button>
+        </Button>
       </div>
 
-      <div className="overflow-x-auto">
+      <div tabIndex={0} className="focus-ring overflow-x-auto rounded-lg border border-rule-line bg-surface print:rounded-none print:border-0">
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr className="border-b border-rule-line text-left">
-              <th scope="col" className="py-2 pr-4 font-medium">
+            <tr>
+              <th scope="col" className="border-b border-rule-line px-3.5 py-3 text-start">
                 <span className="sr-only">{s.compare}</span>
               </th>
               {comparison.skus.map((sku) => (
-                <th key={sku} scope="col" className="py-2 pr-4 font-medium">
+                <th
+                  key={sku}
+                  scope="col"
+                  className="border-b border-rule-line px-3.5 py-3 text-start align-bottom font-display text-base font-normal leading-snug"
+                >
                   {names[sku] ?? sku}
                 </th>
               ))}
@@ -61,7 +63,7 @@ export function ComparisonTable({
                 <th
                   scope="colgroup"
                   colSpan={comparison.skus.length + 1}
-                  className="pt-5 pb-1 text-left text-xs font-medium uppercase tracking-wide text-ink-muted"
+                  className="border-y border-rule-line bg-surface-sunken/60 px-3.5 py-2 text-start text-xs font-medium tracking-wide text-ink-muted uppercase"
                 >
                   {section}
                 </th>
@@ -69,22 +71,28 @@ export function ComparisonTable({
               {comparison.rows
                 .filter((row) => row.section === section)
                 .map((row) => (
-                  <tr key={row.key} className="border-b border-rule-line/60">
-                    <th scope="row" className="py-1.5 pr-4 text-left font-normal text-ink-muted">
+                  <tr
+                    key={row.key}
+                    className="transition-colors duration-(--motion-duration) ease-(--motion-ease) hover:bg-surface-sunken/40"
+                  >
+                    <th
+                      scope="row"
+                      className="border-b border-rule-line/60 px-3.5 py-2.5 text-start align-top font-normal text-ink-muted"
+                    >
                       {row.label}
                     </th>
                     {row.cells.map((cell) => (
                       <td
                         key={cell.sku}
-                        className={`py-1.5 pr-4 font-mono tabular-nums ${
+                        className={`border-b border-rule-line/60 px-3.5 py-2.5 align-top font-mono tabular-nums ${
                           cell.best ? "font-semibold text-ink" : ""
                         }`}
                       >
                         {cell.display}
                         {cell.best ? (
-                          <span className="ml-1.5 rounded border border-ink/40 px-1 py-px align-middle font-sans text-[0.7rem] font-medium tracking-wide">
+                          <Badge tone="accent" className="ml-2 align-middle font-sans">
                             {s.best}
-                          </span>
+                          </Badge>
                         ) : null}
                       </td>
                     ))}

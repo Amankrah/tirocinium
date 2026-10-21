@@ -61,6 +61,24 @@ done
 
 **Check:** `aws s3 ls | grep tirocinium` lists four buckets.
 
+The browser PUTs a student page and a professor PDF straight at the bucket. A private bucket still refuses that cross-origin request until it names the site, and the failure shows up only in the browser: the API has already created the submission, and the page never arrives. Seat-code downloads are ordinary links, and Litestream does not come from a browser, so the artifacts and backups buckets do not get this rule.
+
+```bash
+for b in tirocinium-scans tirocinium-imports; do
+  aws s3api put-bucket-cors --bucket "$b" --region ca-central-1 --cors-configuration '{
+    "CORSRules": [{
+      "AllowedOrigins": ["https://tirocinium.sasellab.com"],
+      "AllowedMethods": ["GET", "PUT", "HEAD"],
+      "AllowedHeaders": ["*"],
+      "ExposeHeaders": ["ETag"],
+      "MaxAgeSeconds": 3600
+    }]
+  }'
+done
+```
+
+**Check:** an OPTIONS request to either bucket, with `Origin: https://tirocinium.sasellab.com` and `Access-Control-Request-Method: PUT`, returns `Access-Control-Allow-Origin: https://tirocinium.sasellab.com`. A different origin gets no such header.
+
 The first three hold student scans, imported PDFs and figures, and one-time
 download artifacts. The fourth holds the replicated databases, and is the one
 you would be glad of on the worst day.

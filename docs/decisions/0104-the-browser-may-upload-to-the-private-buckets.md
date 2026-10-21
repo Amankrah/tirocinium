@@ -1,0 +1,3 @@
+# 0104: the browser may upload to the private buckets
+
+The deployment guide created the four buckets private and never named an origin, so the first live submission reached the API and then died in the browser: S3 answered the preflight for `tirocinium-scans` with no `Access-Control-Allow-Origin`, the page never arrived, and the row stayed pending. A student page and a professor PDF are PUT straight from `https://tirocinium.sasellab.com`, so the scans and imports buckets now allow GET, PUT and HEAD from that origin, with any request header, and expose ETag. The rule does not make an object public. The signature still authorises the write. Seat-code files are ordinary links and Litestream is not a browser, so the artifacts and backups buckets stay without a browser rule.
