@@ -5,6 +5,12 @@
 // script with a native <sub> / <sup> after KaTeX has parsed the TeX keeps
 // the same letters and makes the position unmistakable (guide 2: the
 // typeset body is a rendering of the professor's source, not a rewrite).
+//
+// Only a script that is plain text is rewritten, because the rewrite keeps the
+// text and nothing else. A script with structure of its own (a fraction, a
+// root, a nested script, an accent, a bracket) stays as KaTeX drew it:
+// flattened, $e^{-\frac{Q}{RT}}$ read "e−RTQ" and $e^{x^2}$ read "ex2", which is
+// a different quantity rather than a clearer one (decision 0098).
 
 type HastNode = {
   type?: string;
@@ -42,17 +48,46 @@ function parseTopEm(node: HastNode): number | null {
   return match ? Number(match[1]) : null;
 }
 
+// Classes KaTeX uses for anything laid out rather than set as a run of
+// glyphs. A vlist-t is any stack: fractions, roots, scripts, accents, limits.
+const STRUCTURE = new Set([
+  "vlist-t",
+  "mfrac",
+  "sqrt",
+  "msupsub",
+  "minner",
+  "delimsizing",
+  "mtable",
+]);
+
+function hasStructure(node: HastNode): boolean {
+  return (node.children ?? []).some(
+    (child) =>
+      child.tagName === "svg" ||
+      classList(child).some((name) => STRUCTURE.has(name)) ||
+      hasStructure(child),
+  );
+}
+
 // Superscripts sit higher (more negative `top`) than subscripts. KaTeX's
 // own values are about -3.1em for a superscript and -2.55em for a subscript.
 const SUPERSCRIPT_TOP = -2.8;
 
 type Script = { kind: "sub" | "sup"; text: string };
 
-function scriptsIn(node: HastNode): Script[] {
+// The scripts of one msupsub, or null when any of them has structure, in which
+// case the whole group is left to KaTeX so its sub and sup stay one layout.
+function scriptsIn(node: HastNode): Script[] | null {
   const found: Script[] = [];
+  let structured = false;
   const walk = (current: HastNode) => {
+    if (structured) return;
     const top = parseTopEm(current);
     if (top !== null) {
+      if (hasStructure(current)) {
+        structured = true;
+        return;
+      }
       const text = textOf(current).replace(/\u200b/g, "").trim();
       if (text) {
         found.push({ kind: top <= SUPERSCRIPT_TOP ? "sup" : "sub", text });
@@ -62,7 +97,7 @@ function scriptsIn(node: HastNode): Script[] {
     current.children?.forEach(walk);
   };
   walk(node);
-  return found;
+  return structured ? null : found;
 }
 
 function scriptElement(tag: "sub" | "sup", text: string): HastNode {
@@ -79,6 +114,8 @@ export function rehypeNativeScripts() {
     const walk = (node: HastNode) => {
       if (classList(node).includes("msupsub")) {
         const scripts = scriptsIn(node);
+        // Structured scripts keep KaTeX's own layout, nested scripts and all.
+        if (scripts === null) return;
         const [script] = scripts;
         if (scripts.length === 1 && script !== undefined) {
           node.tagName = script.kind;

@@ -28,6 +28,7 @@ from app.db.shards import ShardManager
 from app.imports.figures import normalized_bbox
 from app.imports.metrics import edit_distance
 from app.imports.progress import ImportStage, import_stage
+from app.math_delimiters import normalize_math
 from app.problems import Problem
 from app.storage import (
     IMPORTS_BUCKET,
@@ -417,7 +418,12 @@ async def confirm_import_item(
         if confirmed.solution_md is not None:
             conn.execute(
                 "UPDATE import_items SET solution_z = ? WHERE id = ?",
-                (compress_text(conn, "problem_text", confirmed.solution_md), item_id),
+                (
+                    compress_text(
+                        conn, "problem_text", normalize_math(confirmed.solution_md)
+                    ),
+                    item_id,
+                ),
             )
         if state == "confirmed" and existing is not None:
             metric = conn.execute(
@@ -430,7 +436,26 @@ async def confirm_import_item(
         confirmed_body = (
             confirmed.question_md if confirmed.question_md is not None else extracted
         )
+        # Measured on the text as the professor left it: the delimiter rewrite
+        # below is ours, not an edit to the extraction (decision 0099).
         distance = edit_distance(extracted, confirmed_body)
+        # Confirmation is where model output becomes course content, so the
+        # transcription prompts' \( \) and \[ \] become the dollars every
+        # reader of course content expects; the confirmed item's solution, which
+        # base_solution hands to proposal and generation, moves with it.
+        confirmed_body = normalize_math(confirmed_body)
+        if confirmed.solution_md is None:
+            solution_row = conn.execute(
+                "SELECT solution_z FROM import_items WHERE id = ?", (item_id,)
+            ).fetchone()
+            if solution_row is not None and solution_row[0] is not None:
+                solution = decompress_text(conn, "problem_text", bytes(solution_row[0]))
+                normalized = normalize_math(solution)
+                if normalized != solution:
+                    conn.execute(
+                        "UPDATE import_items SET solution_z = ? WHERE id = ?",
+                        (compress_text(conn, "problem_text", normalized), item_id),
+                    )
         cursor = conn.execute(
             "INSERT INTO case_studies"
             " (author_id, title, body_z, status, created_at, updated_at)"

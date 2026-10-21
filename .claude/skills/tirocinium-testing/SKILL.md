@@ -143,7 +143,12 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 580 collected and 576 passing with 4 skipped (21 course pack (decisions 0077, 0081, 0089), 54 marketplace (Phase 10: pricing and quote arithmetic,
+Python suite, 627 collected and 623 passing with 4 skipped (33 math delimiters
+(decision 0099: the shared case table, run twice for idempotence, plus
+exact pass-through; the 2 confirm tests that pin normalisation at confirmation
+live in `app/imports/test_confirm.py`, and 3 in `test_math_backfill.py` pin
+the pre-0099 backfill: a dry run writes nothing, apply touches only confirmed
+import content, a second run finds nothing), 21 course pack (decisions 0077, 0081, 0089), 54 marketplace (Phase 10: pricing and quote arithmetic,
 the surfaces end to end), 25 data layer + 9 backup verification (9.4), 4 load
 (9.1), 37 security (9.2, incl. 3 on the raise-only redemption ceiling),
 16 case studies/concepts/courses,
@@ -212,7 +217,8 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (554 Vitest tests across 65 files: the token contract with its
+Web suite (644 Vitest tests across 72 files, `markdown.test.ts` reading the
+same `apps/api/tests/fixtures/math-delimiters.json` as the Python suite: the token contract with its
 computed-contrast assertion, the primitives, the API clients, the upload flow's
 pre-checks, orchestration controller, SSE processing model, and transcription
 preview, the PDF import upload, controller, and processing checklist (decision
@@ -1193,9 +1199,16 @@ The course pack (decision 0077), tests in `app/coursepack/test_coursepack.py`:
 `problem-body.test.tsx` also pins decision 0078: a GFM table renders as a real
 table with its column headers and cells, the client twin renders it identically
 (compare what a reader gets, never `innerHTML`, for the reason under 8.4), and a
-`javascript:` href is still sanitised now that autolink literals are on. If you
-add a remark or rehype plugin, add it to **both** renderers and to that
-comparison test, or the twin drifts silently.
+`javascript:` href is still sanitised now that autolink literals are on. Every
+markdown renderer takes its plugins, KaTeX options, and `normalizeMath` from
+`components/reading/markdown.ts` (decision 0098), so add a remark or rehype
+plugin there and nowhere else, and extend that comparison test. The same file's
+tests and `problem-body.test.tsx`'s "renders what the source says" block pin
+the math fixes: `\( \)` delimiters, structured scripts left to KaTeX, inline
+chains left whole, `\left( \right)` as a group, and the `maxSize` cap. Note
+that KaTeX 0.18 prefixes some classes (`katex-base`, `katex-strut`,
+`katex-rule`), and it is pinned by a pnpm override so rehype-katex cannot bring
+its own copy back.
 
 Start working opens the submission page and cites the attempt on the way
 (decision 0080). The page reads that same variant back with `variant_id` on

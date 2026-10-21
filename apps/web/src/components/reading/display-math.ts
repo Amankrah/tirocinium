@@ -18,18 +18,25 @@ type HastNode = {
   children?: HastNode[];
 };
 
+// \left( ... \right) is a group as much as braces are: an "&" inside it ends
+// the row before \right and KaTeX refuses the formula.
 function topLevelEquals(tex: string): number[] {
   const at: number[] = [];
   let depth = 0;
-  for (let i = 0; i < tex.length; i++) {
+  let i = 0;
+  while (i < tex.length) {
     const ch = tex[i];
     if (ch === "\\") {
-      i += 1;
+      const name = /^\\[a-zA-Z]+/.exec(tex.slice(i))?.[0];
+      if (name === "\\left") depth += 1;
+      else if (name === "\\right" && depth > 0) depth -= 1;
+      i += name ? name.length : 2;
       continue;
     }
     if (ch === "{") depth += 1;
     else if (ch === "}" && depth > 0) depth -= 1;
     else if (ch === "=" && depth === 0) at.push(i);
+    i += 1;
   }
   return at;
 }
@@ -71,58 +78,82 @@ function em(value: number): string {
   return `${rounded}em`;
 }
 
+// The commands KaTeX draws as a stacked fraction (an mfrac), which is what
+// the reading surface opens (decision 0094).
+const FRACTIONS = new Set([
+  "\\frac",
+  "\\dfrac",
+  "\\tfrac",
+  "\\cfrac",
+  "\\binom",
+  "\\dbinom",
+  "\\tbinom",
+]);
+
 // How many fractions are drawn inside another fraction. Sibling fractions in
 // a chain (\frac{a}{b} = \frac{c}{d}) are depth 0. The alloy rule, a fraction
 // over a sum of fractions, is depth 1.
 export function nestedFractionDepth(tex: string): number {
   let maxNested = 0;
   let depth = 0;
+  // Brace depths that are a fraction's argument.
   const fracOpen: number[] = [];
-  let pending = 0;
+  // Fractions still waiting for arguments, at the depth they were written.
+  const pending: { depth: number; remaining: number }[] = [];
+  // An argument is the next token at the fraction's own depth: a group, a
+  // command (\frac\alpha\beta), or a lone character (\frac12).
+  const takeArgument = (): boolean => {
+    const top = pending[pending.length - 1];
+    if (!top || top.depth !== depth) return false;
+    top.remaining -= 1;
+    if (top.remaining === 0) pending.pop();
+    return true;
+  };
   let i = 0;
   while (i < tex.length) {
-    if (tex[i] === "\\") {
-      const cmd = /^\\[a-zA-Z]+/.exec(tex.slice(i));
-      const name = cmd?.[0] ?? "";
-      if (name === "\\frac" || name === "\\dfrac" || name === "\\tfrac") {
-        if (fracOpen.length > 0) maxNested = Math.max(maxNested, fracOpen.length);
-        pending += 2;
-        i += name.length;
-        continue;
+    const ch = tex[i];
+    if (ch === "\\") {
+      const name = /^\\[a-zA-Z]+/.exec(tex.slice(i))?.[0];
+      takeArgument();
+      if (name && FRACTIONS.has(name)) {
+        maxNested = Math.max(maxNested, fracOpen.length);
+        pending.push({ depth, remaining: 2 });
       }
-      i += name.length > 0 ? name.length : 2;
+      i += name ? name.length : 2;
       continue;
     }
-    if (tex[i] === "{") {
+    if (ch === "{") {
+      const isArgument = takeArgument();
       depth += 1;
-      if (pending > 0) {
-        pending -= 1;
-        fracOpen.push(depth);
-      }
+      if (isArgument) fracOpen.push(depth);
       i += 1;
       continue;
     }
-    if (tex[i] === "}") {
+    if (ch === "}") {
       if (fracOpen[fracOpen.length - 1] === depth) fracOpen.pop();
+      // A fraction left short of its arguments inside this group is malformed;
+      // forget it rather than hand it the tokens after the group.
+      while (pending.length > 0 && (pending[pending.length - 1]?.depth ?? 0) >= depth) {
+        pending.pop();
+      }
       depth = Math.max(0, depth - 1);
       i += 1;
       continue;
     }
-    // A lone token can be a \frac argument (\frac12). A character inside a
-    // group is part of the group that already counted as the argument.
-    if (pending > 0 && depth === 0 && tex[i] !== " ") pending -= 1;
+    if (!/\s/.test(ch ?? "")) takeArgument();
     i += 1;
   }
   return maxNested;
 }
 
-function isMathElement(node: HastNode): boolean {
+// Display math only. remark-math gives inline formulas the language-math
+// class too, and an aligned block in the middle of a sentence is a 3.7em
+// interruption of the line it belongs to (decision 0086: inline math is left as
+// written).
+function isDisplayMath(node: HastNode): boolean {
   const names = node.properties?.className;
   const classes = typeof names === "string" ? names.split(" ") : names;
-  if (!classes) return false;
-  return classes.some(
-    (name) => name === "math-inline" || name === "math-display" || name === "language-math",
-  );
+  return classes?.includes("math-display") ?? false;
 }
 
 // Runs before rehype-katex. The formula's text is what KaTeX reads; changing
@@ -131,7 +162,7 @@ function isMathElement(node: HastNode): boolean {
 export function rehypeBreakDisplayChains() {
   return (tree: HastNode) => {
     const walk = (node: HastNode) => {
-      if (isMathElement(node)) {
+      if (isDisplayMath(node)) {
         for (const child of node.children ?? []) {
           if (child.type === "text" && typeof child.value === "string") {
             const aligned = alignDisplayChain(child.value);

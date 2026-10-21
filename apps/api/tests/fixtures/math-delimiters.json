@@ -1,0 +1,85 @@
+{
+  "_comment": "Shared by app/test_math_delimiters.py and apps/web/src/components/reading/markdown.test.ts (decision 0099): the Python and TypeScript normalisers must agree on every case.",
+  "cases": [
+    {
+      "name": "inline brackets become single dollars",
+      "source": "Mass \\(m_1 + m_2\\) here",
+      "expected": "Mass $m_1 + m_2$ here"
+    },
+    {
+      "name": "display brackets become a block on their own lines",
+      "source": "Then \\[ \\frac{a}{b} = c \\] so",
+      "expected": "Then\n\n$$\n\\frac{a}{b} = c\n$$\n\n so"
+    },
+    {
+      "name": "a display stays inside its list item",
+      "source": "1. Find \\[x = 1\\]",
+      "expected": "1. Find\n\n   $$\n   x = 1\n   $$\n\n"
+    },
+    {
+      "name": "a one-line $$ formula becomes a display block",
+      "source": "$$V_C = a^3$$",
+      "expected": "\n$$\nV_C = a^3\n$$\n"
+    },
+    {
+      "name": "a $$ formula mid-sentence stays inline",
+      "source": "The volume $$V = a^3$$ follows.",
+      "expected": "The volume $$V = a^3$$ follows."
+    },
+    {
+      "name": "a row gap inside a display block is not an opening",
+      "source": "$$\n\\begin{aligned} a &= b \\\\[1em] &= c \\end{aligned}\n$$",
+      "expected": "$$\n\\begin{aligned} a &= b \\\\[1em] &= c \\end{aligned}\n$$"
+    },
+    {
+      "name": "a row gap inside inline math is not an opening",
+      "source": "$\\begin{aligned} a \\\\[2em] b \\end{aligned}$",
+      "expected": "$\\begin{aligned} a \\\\[2em] b \\end{aligned}$"
+    },
+    {
+      "name": "fenced code is left alone",
+      "source": "```\n\\(not math\\)\n```",
+      "expected": "```\n\\(not math\\)\n```"
+    },
+    {
+      "name": "a code span is left alone",
+      "source": "Type `\\(x\\)` to write math.",
+      "expected": "Type `\\(x\\)` to write math."
+    },
+    {
+      "name": "an escaped backslash is left alone",
+      "source": "A literal \\\\(x\\\\) stays.",
+      "expected": "A literal \\\\(x\\\\) stays."
+    },
+    {
+      "name": "an unclosed bracket is left alone",
+      "source": "An \\( with no close",
+      "expected": "An \\( with no close"
+    },
+    {
+      "name": "a bracket never reaches across a paragraph break",
+      "source": "Open \\( here\n\nand close \\) there",
+      "expected": "Open \\( here\n\nand close \\) there"
+    },
+    {
+      "name": "a price beside a converted formula is escaped",
+      "source": "Length \\(L\\) costs $5 per metre.",
+      "expected": "Length $L$ costs \\$5 per metre."
+    },
+    {
+      "name": "a price with nothing converted is left alone",
+      "source": "It costs $5 per metre.",
+      "expected": "It costs $5 per metre."
+    },
+    {
+      "name": "dollar math already present passes through",
+      "source": "$a$ and \\(b\\)",
+      "expected": "$a$ and $b$"
+    },
+    {
+      "name": "a multi-line display block passes through",
+      "source": "$$\n\\(x\\)\n$$",
+      "expected": "$$\n\\(x\\)\n$$"
+    }
+  ]
+}

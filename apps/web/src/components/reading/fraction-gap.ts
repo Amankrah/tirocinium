@@ -182,6 +182,9 @@ function stretchDelimiters(ancestors: HastNode[], grown: number, original: numbe
     const glyph = delimiterGlyph(delim);
     if (!glyph) continue;
     const styles = readStyle(glyph);
+    // Sibling fractions share one pair of brackets; the tallest sets them.
+    const current = /scaleY\(([\d.]+)\)/.exec(styles.get("transform") ?? "");
+    if (current && Number(current[1]) >= rounded) continue;
     styles.set("display", "inline-block");
     styles.set("transform", `scaleY(${rounded})`);
     styles.set("transform-origin", "center");

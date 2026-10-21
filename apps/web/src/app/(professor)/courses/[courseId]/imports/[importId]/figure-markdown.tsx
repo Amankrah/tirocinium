@@ -2,10 +2,14 @@
 
 import "katex/dist/katex.min.css";
 
-import ReactMarkdown, { defaultUrlTransform } from "react-markdown";
-import rehypeKatex from "rehype-katex";
-import remarkMath from "remark-math";
+import ReactMarkdown from "react-markdown";
 
+import {
+  normalizeMath,
+  previewRehypePlugins,
+  remarkPlugins,
+  urlTransform,
+} from "@/components/reading/markdown";
 import type { Schemas } from "@/lib/api/client";
 
 // Renders an extracted item's markdown with its figures inline at their fig://
@@ -14,7 +18,8 @@ import type { Schemas } from "@/lib/api/client";
 // substituted). Lazy-loaded by the review surface so react-markdown and KaTeX
 // stay in their own chunk (guide 5). The markdown is untrusted model output, so
 // it renders through the default URL sanitiser (fig:// preserved) with no raw
-// HTML; math is the only transform.
+// HTML. The pipeline is the reading body's (decision 0098), so a professor
+// confirms the problem as the student will read it.
 const FIG = "fig://";
 
 export function FigureMarkdown({
@@ -28,9 +33,9 @@ export function FigureMarkdown({
   return (
     <div className="reading-body text-sm">
       <ReactMarkdown
-        remarkPlugins={[remarkMath]}
-        rehypePlugins={[rehypeKatex]}
-        urlTransform={(url) => (url.startsWith(FIG) ? url : defaultUrlTransform(url))}
+        remarkPlugins={remarkPlugins}
+        rehypePlugins={previewRehypePlugins}
+        urlTransform={urlTransform}
         components={{
           img: ({ src, alt }) => {
             const value = typeof src === "string" ? src : "";
@@ -61,7 +66,7 @@ export function FigureMarkdown({
           },
         }}
       >
-        {markdown}
+        {normalizeMath(markdown)}
       </ReactMarkdown>
     </div>
   );

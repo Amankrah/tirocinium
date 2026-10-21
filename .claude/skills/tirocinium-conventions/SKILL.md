@@ -699,7 +699,14 @@ the job to `confirmed` so the purge spares the item and its figures. Idempotent,
 professor-and-owner; `GET .../imports/{id}/items` lists the staged items. Nothing
 copies automatically (the AI proposes, the professor disposes); the confirmed
 item is kept because it holds the solution Phase 5 needs, and only the draft is
-student-facing. Confirm also takes the professor's edited text and a figure-
+student-facing. Confirmation also rewrites the question and the item's solution
+through `app/math_delimiters.normalize_math` (decision 0099): the transcription
+prompts write `\( \)` and `\[ \]`, every reader of course content expects
+dollars, and confirmation is where model output becomes course content. Only
+delimiters change, and the edit distance is measured before the rewrite. The
+web's `normalizeMath` is its twin for text that never passes confirmation; both
+run `tests/fixtures/math-delimiters.json`, so change them together or a test
+fails. Confirm also takes the professor's edited text and a figure-
 intervention count and logs the two extraction-accuracy metrics (4.5, decision
 0030): the Levenshtein `text_edit_distance` from the extraction and the
 interventions, in `import_item_metrics`, for the Phase 8 dashboards. Edit distance
@@ -862,12 +869,12 @@ a SKU the catalogue lacks fails the pack rather than loading a link to nothing.
 
 The reading surfaces render GFM tables (decision 0078), because a materials
 course states its data in them and CommonMark alone rendered a table as a run of
-pipe characters. `remark-gfm` is on both `ProblemBody` and `ClientProblemBody`,
-and **those two plugin lists must stay identical**: they are duplicated
-configuration on a server renderer and its lazy client twin, and a plugin on one
-side only shows as a table that reformats itself mid-session after a practice
-swap. A test renders the same table through both and compares what a reader
-gets. The cost is nearly nothing (the server path never ships the plugin; the
+pipe characters. Since decision 0098 every markdown renderer (both reading
+bodies and the two previews) takes its plugins, KaTeX options, and URL rule from
+`components/reading/markdown.ts`, so add a plugin there and nowhere else: a
+plugin on one side only would show as a table that reformats itself mid-session
+after a practice swap. A test renders the same table through both bodies and
+compares what a reader gets. The cost is nearly nothing (the server path never ships the plugin; the
 twin is already behind next/dynamic; the practice route went 114 to 117 kB), and
 GFM's autolink literals are safe only because `urlTransform` still hands every
 non-fig URL to react-markdown's default sanitizer, which a body carrying

@@ -3,9 +3,12 @@
 import "katex/dist/katex.min.css";
 
 import ReactMarkdown, { defaultUrlTransform } from "react-markdown";
-import rehypeKatex from "rehype-katex";
-import remarkMath from "remark-math";
 
+import {
+  normalizeMath,
+  previewRehypePlugins,
+  remarkPlugins,
+} from "@/components/reading/markdown";
 import type { Schemas } from "@/lib/api/client";
 import { strings } from "../../../strings";
 
@@ -15,7 +18,9 @@ import { strings } from "../../../strings";
 // keeping the upload route's initial JS lean. The recognised text is the
 // student's own handwriting and is untrusted model output, so it renders through
 // react-markdown's default URL sanitiser (a javascript: link never survives) and
-// no raw HTML; math is the only transform.
+// no raw HTML. The math pipeline is the reading body's (decision 0098), which
+// matters most here: this is where a student checks the reading of their own
+// subscripts, and the prompt writes \( \) delimiters only `normalizeMath` reads.
 const LOW_CONFIDENCE = 0.6;
 
 export function TranscriptionPreview({
@@ -51,14 +56,14 @@ export function TranscriptionPreview({
               </h3>
               <div className="reading-body text-sm">
                 <ReactMarkdown
-                  remarkPlugins={[remarkMath]}
-                  rehypePlugins={[rehypeKatex]}
+                  remarkPlugins={remarkPlugins}
+                  rehypePlugins={previewRehypePlugins}
                   urlTransform={defaultUrlTransform}
                   // No images in a handwriting transcription; drop any the model
                   // emitted rather than fetch an arbitrary URL.
                   components={{ img: () => null }}
                 >
-                  {page.markdown}
+                  {normalizeMath(page.markdown)}
                 </ReactMarkdown>
               </div>
               {uncertain.length > 0 ? (

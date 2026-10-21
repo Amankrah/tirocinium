@@ -19,6 +19,7 @@ from app.db.connection import connect
 from app.imports.purge import THIRTY_DAYS_SECONDS, purge_stale_imports
 from app.main import create_app
 from app.storage import get_object_storage
+from app.variants.solution import base_solution
 
 SECRET = "test-secret-not-for-production-0123"
 PASSWORD = "a sensible passphrase"
@@ -78,6 +79,7 @@ def seed_item(
     *,
     question: str = "Compute the NPV. ![f](fig://{fig})",
     title: str = "NPV",
+    solution: str = "I = V/R",
 ) -> tuple[int, int, int]:
     """Insert a ready import job with one pending item and one assigned figure."""
     conn = connect(tmp_path / "courses" / f"{course_id}.db")
@@ -101,7 +103,7 @@ def seed_item(
                 job_id,
                 title,
                 compress_text(conn, "problem_text", question.replace("{fig}", "1")),
-                compress_text(conn, "problem_text", "I = V/R"),
+                compress_text(conn, "problem_text", solution),
             ),
         )
         item_id = int(item.lastrowid or 0)
@@ -282,3 +284,75 @@ def test_confirm_requires_authentication(client: TestClient, tmp_path: Path) -> 
     _job, item_id, _fig = seed_item(tmp_path, course_id)
     r = client.post(f"/api/v1/courses/{course_id}/import-items/{item_id}/confirm")
     assert r.status_code == 401
+
+
+# Decision 0099: the transcription prompts write \\( \\) and \\[ \\], which no
+# reader of course content understands. Confirmation is where imported text
+# becomes course content, so the delimiters become dollars there, and what
+# auto-parameterization and generation read (the body and `base_solution`) is
+# what every surface renders.
+BRACKET_QUESTION = (
+    "A bar of length \\(L = 2\\ \\mathrm{m}\\) costs $5 per metre."
+    " ![f](fig://{fig})\n\n\\[ \\sigma = \\frac{F}{A} \\]"
+)
+BRACKET_SOLUTION = "Stress is \\(\\sigma = F/A\\), so\n\\[\\sigma = 10\\ \\mathrm{MPa}\\]"
+
+
+def _base_solution(tmp_path: Path, course_id: int, case_study_id: int) -> str | None:
+    conn = connect(tmp_path / "courses" / f"{course_id}.db")
+    try:
+        return base_solution(conn, case_study_id)
+    finally:
+        conn.close()
+
+
+def test_confirm_writes_dollar_delimiters_into_course_content(
+    client: TestClient, tmp_path: Path
+) -> None:
+    headers = professor(client)
+    course_id = make_course(client, headers)
+    ensure_shard(client, headers, course_id)
+    _job, item_id, _fig = seed_item(
+        tmp_path, course_id, question=BRACKET_QUESTION, solution=BRACKET_SOLUTION
+    )
+
+    r = client.post(
+        f"/api/v1/courses/{course_id}/import-items/{item_id}/confirm", headers=headers
+    )
+
+    assert r.status_code == 200, r.text
+    case_study_id = r.json()["case_study_id"]
+    _status, body = _case_study(tmp_path, course_id, case_study_id)
+    assert body == (
+        "A bar of length $L = 2\\ \\mathrm{m}$ costs \\$5 per metre. ![f](fig://1)"
+        "\n\n$$\n\\sigma = \\frac{F}{A}\n$$\n\n"
+    )
+    solution = _base_solution(tmp_path, course_id, case_study_id)
+    assert solution == "Stress is $\\sigma = F/A$, so\n\n$$\n\\sigma = 10\\ \\mathrm{MPa}\n$$\n\n"
+    for text in (body, solution):
+        assert "\\(" not in text and "\\[" not in text
+    # The delimiter rewrite is not the professor's edit.
+    assert r.json()["text_edit_distance"] == 0
+    assert _metric(tmp_path, course_id, item_id) == (0, 0)
+
+
+def test_confirm_normalizes_the_professors_edited_text_too(
+    client: TestClient, tmp_path: Path
+) -> None:
+    headers = professor(client)
+    course_id = make_course(client, headers)
+    ensure_shard(client, headers, course_id)
+    _job, item_id, _fig = seed_item(tmp_path, course_id, question="Find \\(x\\).")
+
+    r = client.post(
+        f"/api/v1/courses/{course_id}/import-items/{item_id}/confirm",
+        json={"question_md": "Find \\(y\\).", "solution_md": "So \\(y = 1\\)."},
+        headers=headers,
+    )
+
+    assert r.status_code == 200, r.text
+    # One character changed, measured on the professor's text as written.
+    assert r.json()["text_edit_distance"] == 1
+    case_study_id = r.json()["case_study_id"]
+    assert _case_study(tmp_path, course_id, case_study_id)[1] == "Find $y$."
+    assert _base_solution(tmp_path, course_id, case_study_id) == "So $y = 1$."

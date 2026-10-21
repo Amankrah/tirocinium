@@ -187,3 +187,79 @@ describe("ProblemBody", () => {
     expect(href).not.toContain("javascript:");
   });
 });
+
+// Decision 0098: each of these rendered as a different formula, or as source,
+// before the pipeline was shared and its passes narrowed.
+describe("ProblemBody renders what the source says", () => {
+  const renderBody = (body: string) => render(<ProblemBody body={body} />).container;
+  const texts = (container: HTMLElement, selector: string) =>
+    [...container.querySelectorAll(selector)].map((node) => node.textContent ?? "");
+
+  it("keeps a fraction in an exponent a fraction", () => {
+    const container = renderBody(String.raw`$$D = D_0 e^{-\frac{Q}{RT}}$$`);
+    expect(container.querySelector(".katex-error")).toBeNull();
+    expect(container.querySelector(".msupsub .mfrac")).not.toBeNull();
+    expect(texts(container, "sup")).not.toContain("−RTQ");
+    // The plain subscript beside it still becomes a native one.
+    expect(texts(container, "sub")).toContain("0");
+  });
+
+  it("keeps a nested script, a root, and a fraction subscript in KaTeX's layout", () => {
+    const container = renderBody(String.raw`$e^{x^2}$, $x^{\sqrt{2}}$, $x_{\frac{a}{b}}$`);
+    expect(container.querySelector(".msupsub .msupsub")).not.toBeNull();
+    expect(container.querySelector(".msupsub .sqrt")).not.toBeNull();
+    expect(container.querySelector(".msupsub .mfrac")).not.toBeNull();
+    expect(container.querySelector("sup")).toBeNull();
+    expect(container.querySelector("sub")).toBeNull();
+  });
+
+  it("leaves an inline chain on its line", () => {
+    const container = renderBody("Here $a = b + c = d$ inline.");
+    expect(container.querySelector(".katex")).not.toBeNull();
+    expect(container.querySelector(".mtable")).toBeNull();
+  });
+
+  it("breaks a chain whose first side carries \\left( \\right) without an error", () => {
+    const container = renderBody(String.raw`$$f\left(x = 1\right) = 2 = 3$$`);
+    expect(container.querySelector(".katex-error")).toBeNull();
+    expect(container.querySelector(".mtable")).not.toBeNull();
+  });
+
+  it("caps a size the source asks for", () => {
+    const container = renderBody(String.raw`$\rule{50em}{50em}$`);
+    const style = container.querySelector(".katex-rule")?.getAttribute("style") ?? "";
+    const widths = [...style.matchAll(/([\d.]+)em/g)].map((match) => Number(match[1]));
+    expect(widths.length).toBeGreaterThan(0);
+    expect(Math.max(...widths)).toBeLessThanOrEqual(10);
+  });
+
+  it("typesets \\( \\) and \\[ \\], the delimiters the transcription prompts write", () => {
+    const container = renderBody(
+      ["Mass \\(m_1 + m_2\\) and", "", "\\[ \\frac{a}{b} = c \\]"].join("\n"),
+    );
+    expect(container.querySelector(".katex-error")).toBeNull();
+    expect(container.querySelectorAll(".katex")).toHaveLength(2);
+    expect(container.querySelector(".katex-display")).not.toBeNull();
+    // The MathML annotation keeps the TeX by design; what must not appear is
+    // the source in the prose, as markdown left it.
+    expect(container.textContent).not.toContain("(m_1");
+  });
+
+  it("sets a one-line $$ formula as a display", () => {
+    const container = renderBody("$$V_C = a^3$$");
+    expect(container.querySelector(".katex-display")).not.toBeNull();
+  });
+
+  it("renders the bracket delimiters identically in the client twin", () => {
+    const body = "Mass \\(m_1\\) and \\[x = y = z\\]";
+    const server = render(<ProblemBody body={body} />).container;
+    const client = render(<ClientProblemBody body={body} />).container;
+    const read = (container: HTMLElement) => ({
+      math: container.querySelectorAll(".katex").length,
+      display: container.querySelectorAll(".katex-display").length,
+      tex: texts(container, "annotation").join(" | "),
+    });
+    expect(read(client)).toEqual(read(server));
+    expect(read(server).math).toBe(2);
+  });
+});

@@ -187,3 +187,22 @@ describe("the reading surface applies the gap", () => {
     expect(nestedView.container.querySelector(".katex-error")).toBeNull();
   });
 });
+
+// Sibling fractions inside one \left( \right) share its brackets, so the
+// tallest one sets their scale, whichever comes last (decision 0098).
+describe("brackets shared by sibling fractions", () => {
+  const bracketScale = (tex: string) => {
+    const { container } = render(<ProblemBody body={`$$${tex}$$`} />);
+    const style = container.querySelector(".delimcenter [style*='scaleY']")?.getAttribute("style") ?? "";
+    return Number(/scaleY\(([\d.]+)\)/.exec(style)?.[1] ?? Number.NaN);
+  };
+
+  it("are scaled to the tallest fraction, not the last", () => {
+    const tall = String.raw`\frac{1}{\frac{\frac{a}{b}}{c}}`;
+    const short = String.raw`\frac{1}{\frac{a}{b}}`;
+    const alone = bracketScale(String.raw`\left(${tall}\right)`);
+    const shared = bracketScale(String.raw`\left(${tall} + ${short}\right)`);
+    expect(alone).toBeGreaterThan(bracketScale(String.raw`\left(${short}\right)`));
+    expect(shared).toBe(alone);
+  });
+});

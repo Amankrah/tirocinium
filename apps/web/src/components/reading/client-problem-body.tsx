@@ -2,16 +2,16 @@
 
 import "katex/dist/katex.min.css";
 
-import ReactMarkdown, { defaultUrlTransform } from "react-markdown";
-import rehypeKatex from "rehype-katex";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
+import ReactMarkdown from "react-markdown";
 
-import { rehypeBreakDisplayChains } from "./display-math";
-import { FIG_PREFIX, type FigureMap } from "./figure";
+import { type FigureMap } from "./figure";
 import { FigureImage } from "./figure-image";
-import { rehypeOpenFractionDenominators } from "./fraction-gap";
-import { rehypeNativeScripts } from "./math-scripts";
+import {
+  normalizeMath,
+  readingRehypePlugins,
+  remarkPlugins,
+  urlTransform,
+} from "./markdown";
 
 // The client twin of ProblemBody (decision 0014), for swapping a practice
 // variant in place without a navigation. It is lazy-loaded, so react-markdown
@@ -20,21 +20,8 @@ import { rehypeNativeScripts } from "./math-scripts";
 // Same rules hold, and the figure renderer is literally the same component
 // (decision 0066): fig:// tokens resolve to the professor's pixels at their
 // position, other URLs are sanitised (a variant body is generated content), and
-// body headings nest beneath the page's single h1.
-type HastNode = { tagName?: string; children?: HastNode[] };
-
-function rehypeShiftHeadings() {
-  return (tree: HastNode) => {
-    const walk = (node: HastNode) => {
-      if (node.tagName && /^h[1-5]$/.test(node.tagName)) {
-        node.tagName = `h${Number(node.tagName[1]) + 1}`;
-      }
-      node.children?.forEach(walk);
-    };
-    walk(tree);
-  };
-}
-
+// body headings nest beneath the page's single h1. The plugin lists are the
+// same objects ProblemBody uses (decision 0098), so the twins cannot drift.
 export function ClientProblemBody({
   body,
   figures = {},
@@ -45,21 +32,9 @@ export function ClientProblemBody({
   return (
     <div className="reading-body">
       <ReactMarkdown
-        // Must stay identical to ProblemBody's list: this twin renders the
-        // same professor's markdown after a swap, and a plugin present on one
-        // side and not the other is the server/client drift decision 0068
-        // warns about, showing as a table that reformats itself mid-session.
-        remarkPlugins={[remarkMath, remarkGfm]}
-        rehypePlugins={[
-          rehypeShiftHeadings,
-          rehypeBreakDisplayChains,
-          rehypeKatex,
-          rehypeOpenFractionDenominators,
-          rehypeNativeScripts,
-        ]}
-        urlTransform={(url) =>
-          url.startsWith(FIG_PREFIX) ? url : defaultUrlTransform(url)
-        }
+        remarkPlugins={remarkPlugins}
+        rehypePlugins={readingRehypePlugins}
+        urlTransform={urlTransform}
         components={{
           img: ({ src, alt }) => (
             <FigureImage
@@ -70,7 +45,7 @@ export function ClientProblemBody({
           ),
         }}
       >
-        {body}
+        {normalizeMath(body)}
       </ReactMarkdown>
     </div>
   );

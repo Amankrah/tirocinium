@@ -66,3 +66,31 @@ describe("the row gap follows what the rows carry", () => {
     expect((aligned ?? "").split("\\\\[").length - 1).toBe(1);
   });
 });
+
+describe("what the chain break treats as a group", () => {
+  it("does not break inside \\left( \\right)", () => {
+    const aligned = alignDisplayChain(String.raw`f\left(x = 1\right) = 2 = 3`);
+    expect(aligned).toContain(String.raw`f\left(x = 1\right) &= 2`);
+    expect(aligned).toContain("&= 3");
+  });
+
+  it("does not mistake \\leftarrow for \\left", () => {
+    const aligned = alignDisplayChain(String.raw`a \leftarrow b = c = d`);
+    expect(aligned).toContain(String.raw`a \leftarrow b &= c`);
+  });
+});
+
+describe("nestedFractionDepth reads every way a fraction is written", () => {
+  it("counts a fraction written with bare tokens inside a group", () => {
+    expect(nestedFractionDepth(String.raw`\frac{1}{\frac12}`)).toBe(1);
+    expect(nestedFractionDepth(String.raw`\frac\alpha{\frac{a}{b}}`)).toBe(1);
+  });
+
+  it("does not hand a group after a bare-token fraction to it as an argument", () => {
+    expect(nestedFractionDepth(String.raw`{\frac12} + {\frac{a}{b}}`)).toBe(0);
+  });
+
+  it("counts the other stacked forms", () => {
+    expect(nestedFractionDepth(String.raw`\dfrac{1}{\cfrac{a}{b}}`)).toBe(1);
+  });
+});

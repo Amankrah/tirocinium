@@ -40,6 +40,20 @@ describe("TranscriptionPreview", () => {
     expect(container.querySelector(".katex")).not.toBeNull();
   });
 
+  // The handwriting prompt writes \( \); markdown alone reads that as an
+  // escaped bracket and prints "(m_1)" (decision 0098).
+  it("typesets the delimiters the transcription prompt writes", () => {
+    const { container } = render(
+      <TranscriptionPreview
+        pages={[page({ markdown: "The atomic mass \\(A_{\\mathrm{Nb}}\\) is known." })]}
+        thumbnails={["blob:page-0"]}
+      />,
+    );
+    expect(container.querySelector(".katex")).not.toBeNull();
+    expect(container.textContent).not.toContain("(A_{");
+    expect(container.querySelector("sub")?.textContent).toBe("Nb");
+  });
+
   it("surfaces low-confidence spans with the check prompt", () => {
     render(
       <TranscriptionPreview
