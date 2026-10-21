@@ -12,6 +12,17 @@ import type { Quote } from "@/lib/api/marketplace";
 import { lead, mass, money } from "@/lib/money";
 import { strings } from "../strings";
 
+// How far one press of − or + moves a quantity: a piece or an hour at a time,
+// five kilograms at a time, one of anything else.
+function step(unit: string): number {
+  return unit === "kg" ? 5 : 1;
+}
+
+const STEPPER =
+  "inline-flex min-h-6 min-w-6 items-center justify-center rounded border border-rule-line " +
+  "font-mono text-sm hover:bg-rule-line/40 " +
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
+
 export function QuoteBody({
   lines,
   totals,
@@ -19,6 +30,7 @@ export function QuoteBody({
   editable,
   onQuantity,
   onCut,
+  onCuts,
   onRemove,
 }: {
   lines: Quote["lines"];
@@ -27,6 +39,9 @@ export function QuoteBody({
   editable: boolean;
   onQuantity?: (sku: string, quantity: number) => void;
   onCut?: (sku: string, cutToLength: boolean) => void;
+  // How many cuts, when a surface lets the student say; without it a cut
+  // line is priced at one cut, as the case-study quote always has.
+  onCuts?: (sku: string, cuts: number) => void;
   onRemove?: (sku: string) => void;
 }) {
   const s = strings.marketplace.quote;
@@ -49,13 +64,26 @@ export function QuoteBody({
               <span className="font-mono text-xs tabular-nums text-ink-muted">
                 {line.quantity} {line.unit_label} · {money(line.unit_price_cents)}
                 {line.break_percent > 0 ? ` · −${line.break_percent} %` : ""}
-                {line.cut_to_length ? ` · ${s.cutToLength.toLowerCase()}` : ""}
+                {line.cut_to_length ? ` · ${s.cutsFixed(line.cut_count)}` : ""}
               </span>
             ) : (
               <div className="flex flex-wrap items-center gap-3">
-                <label className="flex items-center gap-2 text-xs text-ink-muted">
+                <div className="flex items-center gap-1 text-xs text-ink-muted">
+                <button
+                  type="button"
+                  aria-label={s.less(line.name)}
+                  disabled={line.quantity - step(line.unit) <= 0}
+                  onClick={() => onQuantity?.(line.sku, line.quantity - step(line.unit))}
+                  className={STEPPER}
+                >
+                  −
+                </button>
+                <label className="flex items-center gap-2">
                   <span className="sr-only">{s.quantity(line.unit_label)}</span>
                   <input
+                    // Keyed on the priced quantity, so a figure the server
+                    // raised to a minimum order replaces what was typed.
+                    key={`${line.sku}-${line.quantity}`}
                     type="number"
                     min={0}
                     step="any"
@@ -71,6 +99,15 @@ export function QuoteBody({
                   />
                   <span>{line.unit_label}</span>
                 </label>
+                <button
+                  type="button"
+                  aria-label={s.more(line.name)}
+                  onClick={() => onQuantity?.(line.sku, line.quantity + step(line.unit))}
+                  className={STEPPER}
+                >
+                  +
+                </button>
+                </div>
 
                 {line.cut_fee_cents > 0 || line.cut_to_length ? (
                   <label className="flex items-center gap-2 text-xs text-ink-muted">
@@ -81,6 +118,24 @@ export function QuoteBody({
                       className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                     />
                     {s.cutToLength}
+                  </label>
+                ) : null}
+
+                {line.cut_to_length && onCuts ? (
+                  <label className="flex items-center gap-2 text-xs text-ink-muted">
+                    {s.cuts}
+                    <input
+                      key={`${line.sku}-cuts-${line.cut_count}`}
+                      type="number"
+                      min={1}
+                      step={1}
+                      defaultValue={line.cut_count}
+                      onBlur={(event) => {
+                        const next = Math.round(Number(event.currentTarget.value));
+                        if (next >= 1 && next !== line.cut_count) onCuts(line.sku, next);
+                      }}
+                      className="w-14 rounded-md border border-rule-line bg-transparent px-2 py-1 font-mono tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    />
                   </label>
                 ) : null}
 
@@ -111,9 +166,14 @@ export function QuoteBody({
       ) : null}
 
       <dl className="flex flex-col gap-1 border-t border-rule-line pt-3 font-mono text-sm tabular-nums">
-        <Row label={s.goods} value={money(totals.goods_cents)} />
+        {/* The server's goods figure already has the volume discount taken
+            off and the cutting charges added, so the rows below show it in
+            those parts: materials net of discount, then cutting. The
+            discount is stated as already applied, never as a further line to
+            subtract, or a student adding the column up counts it twice. */}
+        <Row label={s.goods} value={money(totals.goods_cents - totals.cut_fee_cents)} />
         {totals.discount_cents > 0 ? (
-          <Row label={s.discount} value={`−${money(totals.discount_cents)}`} />
+          <Row label={s.discount} value={`−${money(totals.discount_cents)}`} muted />
         ) : null}
         {totals.cut_fee_cents > 0 ? (
           <Row label={s.cutting} value={money(totals.cut_fee_cents)} />
@@ -145,16 +205,18 @@ function Row({
   label,
   value,
   emphatic = false,
+  muted = false,
 }: {
   label: string;
   value: string;
   emphatic?: boolean;
+  muted?: boolean;
 }) {
   return (
     <div
       className={`flex items-baseline justify-between gap-4 ${
         emphatic ? "border-t border-rule-line pt-1 font-medium text-ink" : ""
-      }`}
+      } ${muted ? "text-xs text-ink-muted" : ""}`}
     >
       <dt>{label}</dt>
       <dd>{value}</dd>

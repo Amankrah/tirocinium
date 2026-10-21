@@ -1,139 +1,132 @@
 import Link from "next/link";
 
+import { buttonClassName } from "@/components/ui/button";
 import { getProjectMarketplace, listProjectLines } from "@/lib/api/marketplace";
 import { money } from "@/lib/money";
 import { requireSeat } from "@/lib/seat-session";
-import { StudentShell } from "../student-shell";
 import { strings } from "../strings";
-import { askAction, browseAction, compareAction, priceAction } from "./actions";
-import { ProjectMarketplace } from "./project-marketplace";
+import { CONTENT_CATALOGUE, FEATURED, PRESETS } from "./_kit/content";
+import { CompareSet } from "./_kit/controls";
+import { LineGrid } from "./_kit/line-card";
+import { PROPERTY_COUNT } from "./_kit/properties";
 
-// The project marketplace (decision 0100). A Server Component shell: it proves
-// the seat, reads the catalogue at list prices, and renders the supplier
-// directory and the project briefs as plain HTML (native disclosures, no
-// script), handing the working surface its actions and the first page of
-// lines so the grid is there on first paint.
-//
-// Any seat reaches it, whatever its course and whether or not that course
-// prices materials: a project is not a case study. Everything except the
-// printed quotation is hidden from the printer.
-export default async function ProjectMarketplacePage() {
-  const { token, seat } = await requireSeat();
+// The project marketplace's front page (decisions 0100 and 0101): what it is
+// for, who trades here, the lines projects most often start from, and three
+// comparisons worth making before committing. Server-rendered; the preset
+// comparisons are the only script.
+export default async function MarketplaceHome() {
+  const { token } = await requireSeat();
   const s = strings.marketplace;
   const p = strings.project;
-
-  const [front, firstPage] = await Promise.all([
-    getProjectMarketplace(token),
-    listProjectLines(token, { limit: 24 }),
-  ]);
+  const front = await getProjectMarketplace(token);
   if (!front.ok) throw new Error(s.offline);
   const market = front.data;
-  const basis = p.basis(market.title, market.catalogue_version);
+  const editorial = market.catalogue_id === CONTENT_CATALOGUE;
+  const featured = editorial
+    ? await listProjectLines(token, { sku: FEATURED, limit: FEATURED.length })
+    : null;
+  const lineCount = market.suppliers.reduce((sum, entry) => sum + entry.line_count, 0);
 
   return (
-    <StudentShell seatNumber={seat.seat_number} section="marketplace">
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12 print:max-w-none print:p-0">
-        <div className="flex flex-col gap-8 print:hidden">
-          <Link
-            href="/course"
-            className="self-start text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
-            {p.back}
+    <>
+      <header className="flex flex-col gap-4">
+        <h1 className="max-w-[24ch] font-display text-4xl">{p.title}</h1>
+        <p className="max-w-[var(--measure-reading)] text-ink-muted">{p.lede}</p>
+        <p className="max-w-[var(--measure-reading)] text-sm text-ink-muted">{p.notSaved}</p>
+        <div className="flex flex-wrap gap-3">
+          <Link href="/marketplace/briefs" className={buttonClassName("primary")}>
+            {p.startFromBrief}
           </Link>
+          <Link href="/marketplace/guide" className={buttonClassName("quiet")}>
+            {p.guideLink}
+          </Link>
+        </div>
+        <dl className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {[
+            [String(lineCount), p.kpiLines],
+            [String(market.suppliers.length), p.kpiSuppliers],
+            [String(market.briefs.length), p.kpiBriefs],
+            [String(PROPERTY_COUNT), p.kpiProperties],
+          ].map(([value, label]) => (
+            <div key={label} className="flex flex-col gap-0.5 border-l border-rule-line pl-3">
+              <dt className="order-2 text-xs text-ink-muted">{label}</dt>
+              <dd className="order-1 font-display text-2xl tabular-nums">{value}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="font-mono text-xs text-ink-muted">
+          {p.basis(market.title, market.catalogue_version)}
+        </p>
+      </header>
 
-          <header className="flex flex-col gap-3">
-            <h1 className="font-display text-4xl">{p.title}</h1>
-            <p className="max-w-[var(--measure-reading)] text-sm text-ink-muted">{p.lede}</p>
-            <p className="font-mono text-xs text-ink-muted">{basis}</p>
-          </header>
-
-          <section aria-labelledby="suppliers" className="flex flex-col gap-4">
-            <h2 id="suppliers" className="font-display text-2xl">
-              {s.suppliers}
-            </h2>
-            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {market.suppliers.map((entry) => (
-                <li
-                  key={entry.supplier.id}
-                  className="flex flex-col gap-1.5 rounded-lg border border-rule-line p-4"
-                >
-                  <span className="font-display text-lg">{entry.supplier.name}</span>
-                  <span className="text-sm text-ink-muted">{entry.supplier.tagline}</span>
-                  <span className="text-sm text-ink-muted">{entry.supplier.city}</span>
-                  <span className="mt-1 font-mono text-xs tabular-nums text-ink-muted">
-                    {s.supplierLines(entry.line_count)} ·{" "}
-                    {s.fromPrice(money(entry.from_price_cents))}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          {market.briefs.length > 0 ? (
-            <section aria-labelledby="briefs" className="flex flex-col gap-3">
-              <div className="flex flex-col gap-1">
-                <h2 id="briefs" className="font-display text-2xl">
-                  {p.briefs}
-                </h2>
-                <p className="text-sm text-ink-muted">{p.briefsHint}</p>
+      <section aria-labelledby="suppliers" className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1">
+          <h2 id="suppliers" className="font-display text-2xl">
+            {p.directory}
+          </h2>
+          <p className="max-w-[var(--measure-reading)] text-sm text-ink-muted">{p.directoryLede}</p>
+        </div>
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {market.suppliers.map(({ supplier, line_count, from_price_cents }) => (
+            <li key={supplier.id} className="flex flex-col gap-2 rounded-lg border border-rule-line p-4">
+              <div className="flex items-start gap-3">
+                <span aria-hidden="true" className="font-display text-2xl leading-none">
+                  {supplier.glyph}
+                </span>
+                <div className="flex flex-col">
+                  <Link
+                    href={`/marketplace/store/${supplier.id}`}
+                    className="font-display text-lg hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  >
+                    {supplier.name}
+                  </Link>
+                  <span className="text-sm text-ink-muted">{supplier.tagline}</span>
+                </div>
               </div>
-              <ul className="flex flex-col divide-y divide-rule-line rounded-lg border border-rule-line">
-                {market.briefs.map((brief) => (
-                  <li key={brief.id}>
-                    <details className="group px-4 py-3">
-                      <summary className="cursor-pointer font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
-                        {brief.title}
-                      </summary>
-                      <div className="mt-3 flex flex-col gap-3 text-sm">
-                        <div className="flex flex-col gap-1">
-                          <h3 className="text-xs font-medium uppercase tracking-wide text-ink-muted">
-                            {p.briefFactors}
-                          </h3>
-                          <ul className="flex list-disc flex-col gap-1 pl-5 text-ink-muted">
-                            {brief.selection_factors.map((factor) => (
-                              <li key={factor}>{factor}</li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <h3 className="text-xs font-medium uppercase tracking-wide text-ink-muted">
-                            {p.briefFamilies}
-                          </h3>
-                          <p className="text-ink-muted">{brief.candidate_families}</p>
-                        </div>
-                        {brief.shortlist.length > 0 ? (
-                          <div className="flex flex-col gap-1">
-                            <h3 className="text-xs font-medium uppercase tracking-wide text-ink-muted">
-                              {p.briefShortlist}
-                            </h3>
-                            <p className="font-mono text-xs text-ink-muted">
-                              {brief.shortlist.join(" · ")}
-                            </p>
-                          </div>
-                        ) : null}
-                      </div>
-                    </details>
+              <p className="text-sm text-ink-muted">{supplier.blurb}</p>
+              <ul className="flex flex-wrap gap-1" aria-label={p.categories}>
+                {supplier.categories.map((category) => (
+                  <li key={category} className="rounded border border-rule-line px-1.5 py-0.5 text-xs text-ink-muted">
+                    {category}
                   </li>
                 ))}
               </ul>
-            </section>
-          ) : null}
-        </div>
+              <p className="mt-auto font-mono text-xs tabular-nums text-ink-muted">
+                {s.supplierLines(line_count)} · {s.fromPrice(money(from_price_cents))} ·{" "}
+                {supplier.city}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
 
-        <ProjectMarketplace
-          basis={basis}
-          categories={market.categories}
-          suppliers={market.suppliers.map((entry) => ({
-            id: entry.supplier.id,
-            name: entry.supplier.name,
-          }))}
-          initialLines={firstPage.ok ? firstPage.data : { items: [], next_cursor: null, total: 0 }}
-          browse={browseAction}
-          compare={compareAction}
-          price={priceAction}
-          ask={askAction}
-        />
-      </main>
-    </StudentShell>
+      {featured?.ok && featured.data.items.length > 0 ? (
+        <section aria-labelledby="featured" className="flex flex-col gap-4">
+          <h2 id="featured" className="font-display text-2xl">
+            {p.featured}
+          </h2>
+          <LineGrid lines={featured.data.items} />
+        </section>
+      ) : null}
+
+      {editorial ? (
+        <section aria-labelledby="presets" className="flex flex-col gap-4 rounded-lg border border-rule-line p-5">
+          <h2 id="presets" className="font-display text-2xl">
+            {p.presets}
+          </h2>
+          <ul className="grid gap-6 sm:grid-cols-3">
+            {PRESETS.map((preset) => (
+              <li key={preset.title} className="flex flex-col gap-2">
+                <h3 className="font-medium">{preset.title}</h3>
+                <p className="text-sm text-ink-muted">{preset.body}</p>
+                <div className="mt-auto">
+                  <CompareSet skus={preset.skus} label={p.comparePreset(preset.skus.length)} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+    </>
   );
 }

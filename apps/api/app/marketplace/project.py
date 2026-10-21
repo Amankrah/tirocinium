@@ -190,15 +190,19 @@ async def list_project_lines(
     identity: Annotated[Identity, Depends(require_seat)],
     shards: Annotated[ShardManager, Depends(get_shards)],
     supplier: Annotated[str | None, Query()] = None,
-    category: Annotated[str | None, Query()] = None,
-    tag: Annotated[str | None, Query()] = None,
+    category: Annotated[list[str] | None, Query()] = None,
+    tag: Annotated[list[str] | None, Query()] = None,
     q: Annotated[str | None, Query(max_length=100)] = None,
     sort: Annotated[str, Query(pattern=SORT_PATTERN)] = "relevance",
     cursor: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=MAX_LIMIT)] = DEFAULT_LIMIT,
+    sku: Annotated[list[str] | None, Query(max_length=MAX_LIMIT)] = None,
 ) -> LineListOut:
     """Browse the catalogue at list prices. Relevance is the catalogue's own
-    order: there is no case study here, so there is no professor's shortlist."""
+    order: there is no case study here, so there is no professor's shortlist.
+    Repeating `sku` asks for exactly those lines in that order, which is how a
+    brief's candidates and the featured set are read; an unknown SKU is simply
+    absent from the answer."""
     catalogue = await _catalogue(shards, identity)
     return select_lines(
         catalogue,
@@ -210,6 +214,7 @@ async def list_project_lines(
         sort=sort,
         cursor=cursor,
         limit=limit,
+        skus=sku,
     )
 
 
@@ -238,7 +243,7 @@ async def compare_project_lines(
 ) -> CompareOut:
     """Up to five lines side by side with the derived selection indices."""
     catalogue = await _catalogue(shards, identity)
-    return compare(catalogue, list_prices(catalogue), body.skus)
+    return compare(catalogue, list_prices(catalogue), body.skus, price_label="List price")
 
 
 @router.post("/quotation", response_model=ProjectQuotationOut, responses=_ERRORS)

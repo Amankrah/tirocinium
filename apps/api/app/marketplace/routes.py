@@ -307,8 +307,8 @@ async def list_lines(
     identity: Annotated[Identity, Depends(require_seat)],
     shards: Annotated[ShardManager, Depends(get_shards)],
     supplier: Annotated[str | None, Query()] = None,
-    category: Annotated[str | None, Query()] = None,
-    tag: Annotated[str | None, Query()] = None,
+    category: Annotated[list[str] | None, Query()] = None,
+    tag: Annotated[list[str] | None, Query()] = None,
     q: Annotated[str | None, Query(max_length=100)] = None,
     sort: Annotated[
         str, Query(pattern=SORT_PATTERN)

@@ -380,10 +380,17 @@ ROWS: tuple[RowSpec, ...] = (
 )
 
 
-def compare(catalogue: Catalogue, prices: dict[str, int], skus: list[str]) -> CompareOut:
-    """Build the comparison table for up to five lines at this variant's
-    prices. An unknown SKU is dropped rather than raising, so a stale link
-    costs a column and never the comparison."""
+def compare(
+    catalogue: Catalogue,
+    prices: dict[str, int],
+    skus: list[str],
+    *,
+    price_label: str = "Your price",
+) -> CompareOut:
+    """Build the comparison table for up to five lines at these prices. An
+    unknown SKU is dropped rather than raising, so a stale link costs a column
+    and never the comparison. The first row is named for what the prices are:
+    a variant's own prices on a case study, list prices on a project."""
     seen: list[str] = []
     metrics: list[LineMetrics] = []
     for sku in skus:
@@ -396,6 +403,8 @@ def compare(catalogue: Catalogue, prices: dict[str, int], skus: list[str]) -> Co
             break
 
     rows = [_build_row(spec, metrics) for spec in ROWS]
+    if rows and rows[0].key == "price":
+        rows[0] = rows[0].model_copy(update={"label": price_label})
     return CompareOut(skus=seen, rows=rows)
 
 

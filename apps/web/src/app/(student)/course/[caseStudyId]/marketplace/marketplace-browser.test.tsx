@@ -240,7 +240,8 @@ describe("MarketplaceBrowser", () => {
     fireEvent.click(at(buttons, 1));
     await waitFor(() => expect(compare).toHaveBeenCalledWith(expect.any(Array)));
     expect(await screen.findByText("$5.20")).toBeDefined();
-    expect(screen.getByText("(best)")).toBeDefined();
+    // Marked in words, visibly, not only by weight (decision 0101).
+    expect(screen.getByText("best")).toBeDefined();
   });
 
   it("says the advice is authored rules rather than a model", async () => {

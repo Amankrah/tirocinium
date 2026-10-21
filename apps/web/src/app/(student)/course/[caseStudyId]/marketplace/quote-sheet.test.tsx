@@ -90,12 +90,47 @@ describe("QuoteSheet", () => {
     renderSheet(quote());
     const figure = (label: string) =>
       screen.getByText(label).parentElement?.querySelector("dd")?.textContent;
-    expect(figure("Materials")).toBe("$480.00");
-    expect(figure("Volume discount")).toBe("−$20.00");
+    expect(figure("Materials, after volume discount")).toBe("$480.00");
+    expect(figure("Volume discount, already taken off")).toBe("−$20.00");
     expect(figure("Freight")).toBe("$130.00");
     expect(figure("GST")).toBe("$30.50");
     expect(figure("QST")).toBe("$60.85");
     expect(figure("Total")).toBe("$701.35");
+  });
+
+  // The server's goods figure already has the discount taken off and the
+  // cutting added. Shown as materials, then cutting, the rows a student reads
+  // must add up to the total: listing the discount and the cutting on top of
+  // goods once counted both twice (decision 0101).
+  it("shows rows that add up to the total", () => {
+    renderSheet(
+      quote({
+        totals: {
+          ...quote().totals,
+          goods_cents: 48_000,
+          cut_fee_cents: 1_500,
+          freight_cents: 13_000,
+          tax_cents: 9_135,
+          total_cents: 70_135,
+        },
+      }),
+    );
+    const cents = (label: string) =>
+      Math.round(
+        Number(
+          (screen.getByText(label).parentElement?.querySelector("dd")?.textContent ?? "")
+            .replace(/[$,]/g, ""),
+        ) * 100,
+      );
+    expect(cents("Materials, after volume discount")).toBe(46_500);
+    expect(cents("Cutting")).toBe(1_500);
+    const parts =
+      cents("Materials, after volume discount") +
+      cents("Cutting") +
+      cents("Freight") +
+      cents("GST") +
+      cents("QST");
+    expect(parts).toBe(cents("Total"));
   });
 
   it("reports a basket with no mass as not applicable, never as zero", () => {

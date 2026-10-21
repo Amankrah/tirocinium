@@ -208,6 +208,7 @@ export const strings = {
     comparing: (count: number) => `Comparing ${count}`,
     compareFull: "You can compare five at a time.",
     clearComparison: "Clear",
+    best: "best",
     // The basket. Called a quote throughout, never a cart: the artifact the
     // student leaves with is a quotation, and naming it early teaches the word.
     quote: {
@@ -217,8 +218,11 @@ export const strings = {
       cutToLength: "Cut to length",
       cuts: "Cuts",
       remove: (name: string) => `Remove ${name}`,
-      goods: "Materials",
-      discount: "Volume discount",
+      less: (name: string) => `Less ${name}`,
+      more: (name: string) => `More ${name}`,
+      cutsFixed: (count: number) => (count === 1 ? "cut to length, 1 cut" : `cut to length, ${count} cuts`),
+      goods: "Materials, after volume discount",
+      discount: "Volume discount, already taken off",
       cutting: "Cutting",
       freight: "Freight",
       total: "Total",
@@ -260,33 +264,206 @@ export const strings = {
         "These notes come from the catalogue's own application-engineering rules, not from a model.",
     },
   },
-  // The project marketplace (decision 0100): the same catalogue outside any
-  // case study, at list prices, with nothing saved. The copy says both plainly,
-  // because a student who has also quoted inside a problem has met moving
-  // prices there, and one who expects to come back to a basket would lose it.
+  // The project marketplace (decisions 0100 and 0101): the same catalogue
+  // outside any case study, at list prices, with nothing saved. The copy says
+  // both plainly, because a student who has also quoted inside a problem has
+  // met moving prices there, and one who expects to come back to a basket
+  // would lose it.
   project: {
+    // Frame
     title: "Materials for your project",
-    back: "Back to your course",
-    lede: "Price the materials for a design project. These are the suppliers' list prices, the same for everyone, so a classmate quoting the same line gets the same figure.",
+    lede: "Six supplier catalogues built for design projects. Compare grades side by side, watch the cost move as you change form and quantity, then print a quotation you can cite in your material-selection report. These are list prices, the same for everyone.",
     notSaved:
-      "Nothing here is saved. Print your quotation, or save it as a PDF, before you leave the page.",
+      "Nothing here is saved. Print your quotation, or save it as a PDF, before you leave the marketplace.",
     basis: (title: string, version: number) => `List prices from ${title}, version ${version}`,
-    sortCatalogue: "Catalogue order",
+    nav: "Marketplace",
+    home: "Marketplace",
     briefs: "Project briefs",
-    briefsHint:
-      "The briefs this catalogue was written for. Search by SKU to find the lines a brief suggests quoting first.",
-    briefFactors: "What the choice has to survive",
-    briefFamilies: "Families in contention",
-    briefShortlist: "Worth quoting first",
+    guide: "How to quote",
+    sources: "Price sources",
+    request: "Request a quote",
+    search: "Search",
+    searchPlaceholder: "Grade, form, SKU or property",
+    quoteLink: (count: number) => (count === 0 ? "Your quote" : `Your quote (${count})`),
+    breadcrumb: "Where you are",
+    currency: (code: string) => `Prices in ${code}`,
+    currencyShort: (code: string) => `Currency ${code}`,
+    tax: (code: string, percent: number) =>
+      `${code} ${percent.toLocaleString("en-CA", { maximumFractionDigits: 3 })} %`,
+    validity: (days: number) => `List prices hold ${days} days`,
+    fictional: "Teaching catalogue: the suppliers are fictional",
+    // Home
+    startFromBrief: "Start from your project brief",
+    guideLink: "How to build a defensible quote",
+    kpiLines: "Priced line items",
+    kpiSuppliers: "Supplier catalogues",
+    kpiBriefs: "Project briefs mapped",
+    kpiProperties: "Properties per material",
+    directory: "Supplier directory",
+    directoryLede:
+      "Each supplier carries a different slice of the materials space, and several carry the same component in a different material or form. A 50 mm square tube, for example, is stocked in galvanised steel, aluminium and pultruded FRP. Those overlaps are deliberate: they are where the interesting selection arguments live.",
+    categories: "Categories",
+    featured: "Frequently specified",
+    presets: "Three comparisons worth making before you commit",
+    comparePreset: (count: number) => `Compare these ${count}`,
+    // Store, search and filters
+    supplierLine: (tagline: string, city: string, established: number) =>
+      `${tagline} · ${city} · established ${established}`,
+    lineItems: "Line items",
+    shipping: "Shipping",
+    tradingTerms: "Trading terms, read before quoting.",
+    filters: "Filter the catalogue",
+    category: "Category",
+    attribute: "Attribute",
+    attributes: "Attributes",
+    applyFilters: "Apply filters",
+    clearFilters: "Clear filters",
+    sortCatalogue: "Catalogue order",
+    sortPerKg: "Price per kg, low to high",
+    sortDensity: "Density, low to high",
+    sortYield: "Yield strength, high to low",
+    lineCount: (count: number) => (count === 1 ? "1 line item" : `${count} line items`),
+    trayHint: "Press Compare on any line to add it to the comparison tray.",
+    noneMatch: "Nothing matches those filters. Clear one to see more.",
+    results: "Results",
+    resultsFor: (count: number, query: string) =>
+      `${count === 1 ? "1 result" : `${count} results`} for “${query}”`,
+    everything: (count: number) => `Every line in the catalogue (${count})`,
+    noResults:
+      "No line matches that. Try a grade designation (316L, 6061, PE4710), a form (tube, sheet, plate) or a property (abrasion, food grade, insulating).",
+    browseEverything: "Browse every line",
+    // Line page
+    buy: "Price and terms",
+    perKgDetail: (perKg: string, kgPerUnit: string, unit: string) =>
+      `≈ ${perKg} per kg · ${kgPerUnit} kg per ${unit}`,
+    perLitre: (price: string) => `≈ ${price} per litre of material`,
+    ships: (days: string) => `ships in ${days}`,
+    cutFee: (fee: string) => `cut-to-length fee ${fee} per cut`,
+    breaks: "Volume price breaks",
+    orderAtLeast: "Order at least",
+    unitPrice: "Unit price",
+    askAboutLine: "Ask the supplier about this line",
+    fabrication: "Fabrication route.",
+    dataSheet: "Material data sheet",
+    indices: "Derived indices",
+    specificStrength: (value: string) => `Specific strength σy/ρ = ${value} kN·m/kg`,
+    specificStiffness: (value: string) => `Specific stiffness E/ρ = ${value} kN·m/kg`,
+    strengthPerDollar: (value: string) => `Strength per dollar σy/(ρ·$/kg) = ${value}`,
+    indicesNote:
+      "These are the axes of an Ashby chart. Use them, not raw strength, when mass or cost is part of the objective.",
+    processHeading: "This is a process, not a material.",
+    processBody:
+      "Price it into your cost model alongside the stock you intend to buy. A material is only as economical as it is to turn into a finished part.",
+    related: "Also considered for this application",
+    // Briefs
+    briefsLede:
+      "Every brief issued for the BREE 216 material-selection project, each mapped to the lines a credible shortlist would draw on. Open a brief to load its candidates into the comparison or the quote.",
+    briefNumber: (n: number) => `Brief ${String(n).padStart(2, "0")}`,
+    keyFunctions: "Key functions:",
+    challenge: "Material challenge:",
+    candidates: (lines: number, suppliers: number) =>
+      `${lines} candidate line items across ${suppliers === 1 ? "1 supplier" : `${suppliers} suppliers`}`,
+    notAnswersHeading: "These are candidates, not answers.",
+    notAnswersBody:
+      "The shortlist is what a competent engineer would put on the table. Which one wins depends on how you weight the criteria in your Pugh chart, and your report is marked on that justification, not on the choice itself.",
+    loadIntoComparison: (count: number) => `Compare the first ${count}`,
+    addEveryCandidate: "Add every candidate to the quote",
+    candidateMaterials: "Candidate materials",
+    processing: "Processing and finishing you must also cost",
+    processingLede:
+      "A material you cannot afford to fabricate is not a material choice. These are the process lines your cost model needs.",
+    // Guide
+    toBriefs: "Go to the project briefs",
+    validityNote: (days: number) =>
+      `List prices here hold for ${days} days from the date a quotation is prepared; the quotation says until when.`,
+    invoiceMoq: "Minimum order quantity",
+    invoiceMoqHow: "Quantities below the minimum are raised to it, and the quotation says so.",
+    invoiceMoqWhy:
+      "Needing 8 kg and buying 25 kg makes the effective cost of your prototype three times the catalogue price.",
+    invoiceBreaks: "Volume price break",
+    invoiceBreaksHow: "Tiered discounts by quantity, applied at the tier the quantity reaches.",
+    invoiceBreaksWhy:
+      "The material ranking can invert between prototype and production volume. Say which one you are costing.",
+    invoiceCutting: "Cut-to-length fee",
+    invoiceCuttingHow: "A flat charge per cut on bar, tube and pipe.",
+    invoiceCuttingWhy:
+      "Twenty short pieces cost twenty cutting fees. Designing to stock lengths is a real saving.",
+    invoiceProcessing: "Processing",
+    invoiceProcessingHow:
+      "Machining, welding, heat treatment and coating are priced as their own lines at Macdonald Fab Works.",
+    invoiceProcessingWhy:
+      "Aluminium cuts several times faster than steel. Finished-part cost often reverses the material-price ranking.",
+    invoiceFreight: "Freight",
+    invoiceFreightHow: (base: string, perKg: string, long: string) =>
+      `Estimated at ${base} plus ${perKg} per kg of consolidated mass, with ${long} more when any line is a long load.`,
+    invoiceFreightWhy:
+      "Mass-heavy choices carry a freight penalty that never appears on a price-per-kg comparison.",
+    invoiceTaxHow: (percent: string) => `Charged on goods and freight, ${percent} % in all.`,
+    invoiceTaxWhy:
+      "Quote your figures before tax and say so, or include it and say so, but be explicit.",
+    // Comparison
+    tray: "Comparison tray",
+    inTray: "In the comparison",
+    removeFromTray: (sku: string) => `Take ${sku} out of the comparison`,
+    compareTitle: "Compare materials",
+    compareEmpty:
+      "Nothing to compare yet. Press Compare on up to five lines, or open a project brief and load its candidates.",
+    compareHeading: (count: number) =>
+      count === 1 ? "Material comparison: 1 candidate" : `Material comparison: ${count} candidates`,
+    compareNotice:
+      "The best value in each row is marked on that criterion alone. No material wins every row, and that is the point: weight the rows your brief cares about, then build your Pugh chart from those.",
+    indicesReading:
+      "Strength per dollar is the index to maximise for a part limited by both strength and cost; it is the reciprocal of Ashby's ρ·Cm/σy, so higher is better. Cost per litre is the honest way to compare a dense material against a light one when the design fixes the volume rather than the mass, as it usually does for a panel, a liner or a pipe wall.",
+    addAllToQuote: (count: number) => `Add all ${count} to the quote`,
+    printComparison: "Print the comparison",
+    property: "Property",
+    bestMark: "(best)",
+    copiedComparison: "Comparison copied. Paste it into a spreadsheet or a document.",
+    // Quote
+    added: (name: string) => `${name} is in your quote.`,
+    addedMany: (count: number) =>
+      count === 1 ? "1 line added to your quote." : `${count} lines added to your quote.`,
+    viewQuote: "View the quote",
     quotation: "Your quotation",
+    emptyQuote:
+      "Nothing quoted yet. Add lines from any supplier, or load a whole shortlist from a project brief.",
+    pricing: "Pricing your quote…",
+    print: "Print or save as PDF",
+    copyTable: "Copy as a table",
+    copied: "Quotation copied. Paste it into a spreadsheet or a document.",
+    copyBlocked: "Your browser blocked copying. Print or save as PDF instead.",
+    clear: "Clear the quote",
+    consolidated: "Consolidated supplier quotation",
     reference: (reference: string) => `Quotation ${reference}`,
     prepared: (date: string) => `Prepared ${date}`,
     validUntil: (date: string) => `List prices valid until ${date}`,
-    print: "Print quotation",
-    pricing: "Pricing…",
-    clear: "Clear quotation",
-    printedNote:
-      "Prepared on request from the platform's catalogue at list prices. Not a binding offer, and not kept on file.",
+    terms: "Ex-works, list prices",
+    colItem: "Item",
+    colDescription: "Description",
+    colQuantity: "Quantity",
+    colUnit: "Unit",
+    colDiscount: "Discount",
+    colExtended: "Extended",
+    subtotal: "Subtotal, goods and services",
+    freight: "Freight",
+    freightOn: (mass: string) => `Estimated freight on ${mass} consolidated`,
+    grandTotal: (currency: string) => `Total, ${currency}`,
+    longestLead: "Longest lead time",
+    suppliersCount: "Suppliers",
+    deliveredPerKg: "Goods cost per kg",
+    termsHeading: "Terms.",
+    academicHeading: "Academic use.",
+    citation: (reference: string, prepared: string, valid: string) =>
+      `Quotation ${reference}, prepared ${prepared}, list prices valid until ${valid}`,
+    // Request a quote
+    requestTitle: "Request a formal quotation",
+    requestLede:
+      "Suppliers do not quote from a description alone. Everything asked below is something a real supplier would need before putting a number on paper, which is exactly why answering it is a useful exercise.",
+    requestNothingSent:
+      "Nothing is sent anywhere and nothing is kept. The reply is immediate and comes from the catalogue's authored rules.",
+    requestLine: "Line item (SKU)",
+    requestLinePlaceholder: "For example BSA-316L-2B",
+    addSkuToQuote: (sku: string) => `Add ${sku} to the quote`,
   },
   // The upload flow (guide 4.1): the most engineered student surface. Copy is
   // plain and honest; the client checks catch the obvious, and the server stays

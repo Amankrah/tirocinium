@@ -5,8 +5,9 @@
 // property of the property, not of the layout, and a table that worked it out
 // in the browser would be a second opinion.
 //
-// A best cell is marked in text as well as in weight, because a marking that
-// exists only as boldness is a marking a screen reader cannot pass on.
+// A best cell is marked in words, visibly, as well as in weight: boldness
+// alone is a marking a screen reader cannot pass on and, on a monospaced
+// figure, one a sighted reader barely sees (decision 0101).
 import type { Comparison } from "@/lib/api/marketplace";
 import { strings } from "../strings";
 
@@ -76,11 +77,15 @@ export function ComparisonTable({
                       <td
                         key={cell.sku}
                         className={`py-1.5 pr-4 font-mono tabular-nums ${
-                          cell.best ? "font-medium text-ink" : ""
+                          cell.best ? "font-semibold text-ink" : ""
                         }`}
                       >
                         {cell.display}
-                        {cell.best ? <span className="sr-only"> (best)</span> : null}
+                        {cell.best ? (
+                          <span className="ml-1.5 rounded border border-ink/40 px-1 py-px align-middle font-sans text-[0.7rem] font-medium tracking-wide">
+                            {s.best}
+                          </span>
+                        ) : null}
                       </td>
                     ))}
                   </tr>

@@ -143,8 +143,12 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 635 collected and 631 passing with 4 skipped (8 project
-marketplace in `app/marketplace/test_project_marketplace.py`, decision 0100:
+Python suite, 642 collected and 638 passing with 4 skipped (15 project
+marketplace in `app/marketplace/test_project_marketplace.py`, decisions 0100
+and 0101, the later seven pinning ticked filters as alternatives, a SKU list
+in its own order, search over descriptions and suppliers, the property sorts
+with missing figures last, related lines, the line's indices equal to the
+comparison's, and the comparison naming list prices;
 list prices, the same across courses, open to a course that does not price
 materials, seat-only, the case-study arithmetic at list prices, the reference
 following the basket, unknown lines as notices, and nothing stored; the
@@ -222,7 +226,11 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (652 Vitest tests across 73 files, `student-shell.test.tsx` pinning
+Web suite (666 Vitest tests across 74 files, the project marketplace's 19 in
+`marketplace/_kit/marketplace-kit.test.tsx` and 5 in `_kit/content.test.ts`
+(which reads `apps/api/catalogue/bree-216/v1.json` and fails when a figure the
+guide cites drifts), plus `quote-sheet.test.tsx` summing the quotation's rows
+to its total, `student-shell.test.tsx` pinning
 the header's Course and Marketplace links and which one is current, the project marketplace's 6 in
 `app/(student)/marketplace/project-marketplace.test.tsx`, `markdown.test.ts` reading the
 same `apps/api/tests/fixtures/math-delimiters.json` as the Python suite: the token contract with its

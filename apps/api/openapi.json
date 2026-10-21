@@ -2130,6 +2130,13 @@
             "title": "Fabrication",
             "type": "string"
           },
+          "indices": {
+            "$ref": "#/components/schemas/LineIndices"
+          },
+          "kg_per_unit": {
+            "title": "Kg Per Unit",
+            "type": "number"
+          },
           "lead_days": {
             "title": "Lead Days",
             "type": "integer"
@@ -2180,6 +2187,14 @@
           },
           "properties": {
             "$ref": "#/components/schemas/MaterialProperties"
+          },
+          "related": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/LineSummary"
+            },
+            "title": "Related",
+            "type": "array"
           },
           "service": {
             "title": "Service",
@@ -2256,6 +2271,8 @@
           "tags",
           "service",
           "shortlisted",
+          "kg_per_unit",
+          "indices",
           "description",
           "fabrication",
           "oversize",
@@ -2264,6 +2281,63 @@
           "supplier"
         ],
         "title": "LineDetail",
+        "type": "object"
+      },
+      "LineIndices": {
+        "description": "The derived selection indices for one line at these prices, from the\nsame functions the comparison uses, so the line page and the comparison\ncan never disagree. Each is None where the line has nothing to divide.",
+        "properties": {
+          "cost_per_litre_cents": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Per Litre Cents"
+          },
+          "specific_stiffness": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specific Stiffness"
+          },
+          "specific_strength": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specific Strength"
+          },
+          "strength_per_dollar": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Strength Per Dollar"
+          }
+        },
+        "required": [
+          "specific_strength",
+          "specific_stiffness",
+          "strength_per_dollar",
+          "cost_per_litre_cents"
+        ],
+        "title": "LineIndices",
         "type": "object"
       },
       "LineListOut": {
@@ -11597,7 +11671,7 @@
     },
     "/api/v1/marketplace/lines": {
       "get": {
-        "description": "Browse the catalogue at list prices. Relevance is the catalogue's own\norder: there is no case study here, so there is no professor's shortlist.",
+        "description": "Browse the catalogue at list prices. Relevance is the catalogue's own\norder: there is no case study here, so there is no professor's shortlist.\nRepeating `sku` asks for exactly those lines in that order, which is how a\nbrief's candidates and the featured set are read; an unknown SKU is simply\nabsent from the answer.",
         "operationId": "list_project_lines_api_v1_marketplace_lines_get",
         "parameters": [
           {
@@ -11623,7 +11697,10 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string"
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
                 },
                 {
                   "type": "null"
@@ -11639,7 +11716,10 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string"
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
                 },
                 {
                   "type": "null"
@@ -11671,7 +11751,7 @@
             "required": false,
             "schema": {
               "default": "relevance",
-              "pattern": "^(relevance|price_asc|price_desc|lead|name)$",
+              "pattern": "^(relevance|price_asc|price_desc|lead|name|per_kg_asc|density_asc|yield_desc)$",
               "title": "Sort",
               "type": "string"
             }
@@ -11697,6 +11777,26 @@
               "minimum": 1,
               "title": "Limit",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sku",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 96,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sku"
             }
           }
         ],
@@ -13204,7 +13304,10 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string"
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
                 },
                 {
                   "type": "null"
@@ -13220,7 +13323,10 @@
             "schema": {
               "anyOf": [
                 {
-                  "type": "string"
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
                 },
                 {
                   "type": "null"
@@ -13252,7 +13358,7 @@
             "required": false,
             "schema": {
               "default": "relevance",
-              "pattern": "^(relevance|price_asc|price_desc|lead|name)$",
+              "pattern": "^(relevance|price_asc|price_desc|lead|name|per_kg_asc|density_asc|yield_desc)$",
               "title": "Sort",
               "type": "string"
             }

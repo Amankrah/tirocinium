@@ -248,3 +248,143 @@ def test_nothing_is_stored(
     # And nothing about the seat comes back in what is handed to the student.
     for response in (quoted, asked, compared):
         assert world.token not in response.text
+
+
+# ---------------------------------------------------------------------------
+# Browsing the way the BREE 216 prototype browses (decision 0100): stores with
+# ticked categories and attributes, a brief's candidates by SKU, search over
+# what a buyer would type, and sorts on the properties a selection turns on.
+# ---------------------------------------------------------------------------
+
+
+def _items(client: TestClient, token: str, query: str) -> list[dict[str, object]]:
+    r = client.get(f"/api/v1/marketplace/lines?limit=96&{query}", headers=bearer(token))
+    assert r.status_code == 200, r.text
+    return r.json()["items"]  # type: ignore[no-any-return]
+
+
+def test_ticked_categories_and_attributes_are_alternatives_within_a_group(
+    client: TestClient, storage: FakeObjectStorage, tmp_data: Path
+) -> None:
+    world = build(client, storage, tmp_data)
+    lms = [line for line in CATALOGUE.lines if line.supplier == "LMS"]
+    two = sorted({line.category for line in lms})[:2]
+
+    both = _items(client, world.token, f"supplier=LMS&category={two[0]}&category={two[1]}")
+    assert {item["category"] for item in both} == set(two)
+    assert len(both) == sum(1 for line in lms if line.category in two)
+
+    tag = lms[0].tags[0]
+    tagged = _items(client, world.token, f"supplier=LMS&tag={tag}")
+    assert tagged and all(tag in item["tags"] for item in tagged)  # type: ignore[operator]
+
+
+def test_a_list_of_skus_comes_back_in_its_own_order(
+    client: TestClient, storage: FakeObjectStorage, tmp_data: Path
+) -> None:
+    world = build(client, storage, tmp_data)
+    brief = CATALOGUE.briefs[0]
+    asked = [*reversed(brief.shortlist), "NOPE-000"]
+
+    items = _items(client, world.token, "&".join(f"sku={sku}" for sku in asked))
+
+    assert [item["sku"] for item in items] == list(reversed(brief.shortlist))
+
+
+def test_search_reads_descriptions_and_supplier_names(
+    client: TestClient, storage: FakeObjectStorage, tmp_data: Path
+) -> None:
+    world = build(client, storage, tmp_data)
+    supplier = CATALOGUE.suppliers[0]
+
+    by_supplier = _items(client, world.token, f"q={supplier.name.split()[0]}")
+    assert {item["supplier_id"] for item in by_supplier} >= {supplier.id}
+    word = next(
+        token
+        for line in CATALOGUE.lines
+        for token in line.description.split()
+        if len(token) > 8 and token.isalpha()
+        and token.casefold() not in line.name.casefold()
+    )
+    assert _items(client, world.token, f"q={word}")
+
+
+def test_the_property_sorts_put_missing_figures_last(
+    client: TestClient, storage: FakeObjectStorage, tmp_data: Path
+) -> None:
+    world = build(client, storage, tmp_data)
+
+    def figures(sort: str, key: str) -> list[float | None]:
+        values: list[float | None] = []
+        for item in _items(client, world.token, f"sort={sort}"):
+            line = CATALOGUE.line(str(item["sku"]))
+            assert line is not None
+            values.append(getattr(line.properties, key))
+        return values
+
+    density = figures("density_asc", "density_kg_m3")
+    present = [value for value in density if value is not None]
+    assert present == sorted(present)
+    assert density[: len(present)] == present  # every missing figure after them
+
+    strength = [v for v in figures("yield_desc", "yield_strength_mpa") if v is not None]
+    assert strength == sorted(strength, reverse=True)
+
+    per_kg = [
+        item["price_per_kg_cents"]
+        for item in _items(client, world.token, "sort=per_kg_asc")
+        if item["price_per_kg_cents"] is not None
+    ]
+    assert per_kg == sorted(per_kg)  # type: ignore[type-var]
+
+
+def test_a_line_names_what_it_is_weighed_against(
+    client: TestClient, storage: FakeObjectStorage, tmp_data: Path
+) -> None:
+    world = build(client, storage, tmp_data)
+    line = CATALOGUE.line(PLATE)
+    assert line is not None
+
+    related = client.get(
+        f"/api/v1/marketplace/lines/{PLATE}", headers=bearer(world.token)
+    ).json()["related"]
+
+    assert 0 < len(related) <= 4
+    for item in related:
+        assert item["sku"] != PLATE
+        assert item["category"] == line.category or set(item["tags"]) & set(line.tags)
+
+
+def test_the_comparison_names_its_prices_for_what_they_are(
+    client: TestClient, storage: FakeObjectStorage, tmp_data: Path
+) -> None:
+    world = build(client, storage, tmp_data)
+    body = {"skus": [PLATE, STAINLESS]}
+
+    project = client.post("/api/v1/marketplace/compare", json=body, headers=bearer(world.token))
+    seeded = client.post(
+        f"/api/v1/variants/{world.variant_id}/marketplace/compare",
+        json=body,
+        headers=bearer(world.token),
+    )
+
+    assert project.json()["rows"][0]["label"] == "List price"
+    assert seeded.json()["rows"][0]["label"] == "Your price"
+
+
+def test_a_line_carries_the_comparison_s_own_indices(
+    client: TestClient, storage: FakeObjectStorage, tmp_data: Path
+) -> None:
+    world = build(client, storage, tmp_data)
+    detail = client.get(
+        f"/api/v1/marketplace/lines/{PLATE}", headers=bearer(world.token)
+    ).json()
+    compared = client.post(
+        "/api/v1/marketplace/compare", json={"skus": [PLATE]}, headers=bearer(world.token)
+    ).json()
+    row = {r["key"]: r["cells"][0]["value"] for r in compared["rows"]}
+
+    assert detail["indices"]["specific_strength"] == row["specific_strength"]
+    assert detail["indices"]["specific_stiffness"] == row["specific_stiffness"]
+    assert detail["indices"]["strength_per_dollar"] == row["strength_per_dollar"]
+    assert detail["kg_per_unit"] == CATALOGUE.line(PLATE).kg_per_unit  # type: ignore[union-attr]

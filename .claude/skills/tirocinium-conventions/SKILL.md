@@ -117,7 +117,17 @@ stores nothing: the quotation is priced on request and printed, its reference a
 digest of catalogue, day and basket, and a test asserts no quote or RFQ row
 appears. Both surfaces share `app/marketplace/listing.py` (pure functions over
 catalogue and prices) and the web `app/(student)/_marketplace/` folder, so a
-change to how a line reads or filters lands on both.
+change to how a line reads or filters lands on both. Decision 0101 brought it
+up to the BREE 216 prototype: server-rendered pages under `/marketplace`
+(supplier, line, briefs, search, guide, sources) with GET-form filters, and the
+basket and comparison tray held in the marketplace layout's provider
+(`_kit/market-state.tsx`) so they survive navigation and nothing else. The
+guide and sources are editorial content in `_kit/content.ts`, shown only for
+their catalogue and pinned to the shipped catalogue by `content.test.ts`; a
+cited figure that drifts fails that test. Never import a value from a
+`"use client"` module into a server page (it arrives as a reference, not the
+value): `TRAY_LIMIT` lives in the plain `_kit/limits.ts` for that reason. The
+prototype's name and group fields, named reviews and star ratings stay out.
 
 Deployment is one host, and the data layer decides that rather than taste
 (decision 0091). Shards are SQLite files with one writer each behind a

@@ -15,15 +15,29 @@ export type QuoteLine = Schemas["QuoteLineIn"];
 export type Rfq = Schemas["RfqOut"];
 export type RfqRequest = Schemas["RfqIn"];
 
+// A list filter (category, tag, sku) repeats its parameter; a single value is
+// still accepted, so a select box and a set of ticked boxes share one shape.
 export type LineQuery = {
   supplier?: string | null;
-  category?: string | null;
-  tag?: string | null;
+  category?: string | string[] | null;
+  tag?: string | string[] | null;
+  sku?: string[] | null;
   q?: string | null;
   sort?: string | null;
   cursor?: number;
   limit?: number;
 };
+
+function lineSearch(query: LineQuery): string {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (value === null || value === undefined || value === "") continue;
+    for (const item of Array.isArray(value) ? value : [value]) {
+      if (item !== "") search.append(key, String(item));
+    }
+  }
+  return search.size > 0 ? `?${search}` : "";
+}
 
 export function getMarketplace(
   token: string,
@@ -37,14 +51,7 @@ export function listLines(
   variantId: number,
   query: LineQuery = {},
 ): Promise<Result<LineList>> {
-  const search = new URLSearchParams();
-  for (const [key, value] of Object.entries(query)) {
-    if (value !== null && value !== undefined && value !== "") {
-      search.set(key, String(value));
-    }
-  }
-  const suffix = search.size > 0 ? `?${search}` : "";
-  return call(token, `/variants/${variantId}/marketplace/lines${suffix}`);
+  return call(token, `/variants/${variantId}/marketplace/lines${lineSearch(query)}`);
 }
 
 export function getLine(
@@ -149,16 +156,6 @@ export type ProjectQuotation = Schemas["ProjectQuotationOut"];
 export type ProjectRfq = Schemas["ProjectRfqOut"];
 export type Brief = Schemas["Brief"];
 
-function lineSearch(query: LineQuery): string {
-  const search = new URLSearchParams();
-  for (const [key, value] of Object.entries(query)) {
-    if (value !== null && value !== undefined && value !== "") {
-      search.set(key, String(value));
-    }
-  }
-  return search.size > 0 ? `?${search}` : "";
-}
-
 export function getProjectMarketplace(token: string): Promise<Result<ProjectMarketplace>> {
   return call(token, "/marketplace");
 }
@@ -168,6 +165,26 @@ export function listProjectLines(
   query: LineQuery = {},
 ): Promise<Result<LineList>> {
   return call(token, `/marketplace/lines${lineSearch(query)}`);
+}
+
+export function getProjectLine(token: string, sku: string): Promise<Result<LineDetail>> {
+  return call(token, `/marketplace/lines/${encodeURIComponent(sku)}`);
+}
+
+/** Every line in the catalogue, paging through the server's limit. */
+export async function allProjectLines(
+  token: string,
+  query: LineQuery = {},
+): Promise<Result<LineList>> {
+  const items: LineSummary[] = [];
+  let cursor: number | null = 0;
+  while (cursor !== null) {
+    const page: Result<LineList> = await listProjectLines(token, { ...query, cursor, limit: 96 });
+    if (!page.ok) return page;
+    items.push(...page.data.items);
+    cursor = page.data.next_cursor;
+  }
+  return { ok: true, data: { items, next_cursor: null, total: items.length } };
 }
 
 export function compareProjectLines(

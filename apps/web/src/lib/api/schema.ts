@@ -1118,6 +1118,9 @@ export interface paths {
          * List Project Lines
          * @description Browse the catalogue at list prices. Relevance is the catalogue's own
          *     order: there is no case study here, so there is no professor's shortlist.
+         *     Repeating `sku` asks for exactly those lines in that order, which is how a
+         *     brief's candidates and the featured set are read; an unknown SKU is simply
+         *     absent from the answer.
          */
         get: operations["list_project_lines_api_v1_marketplace_lines_get"];
         put?: never;
@@ -2397,6 +2400,9 @@ export interface components {
             description: string;
             /** Fabrication */
             fabrication: string;
+            indices: components["schemas"]["LineIndices"];
+            /** Kg Per Unit */
+            kg_per_unit: number;
             /** Lead Days */
             lead_days: number;
             /** Moq */
@@ -2415,6 +2421,11 @@ export interface components {
             /** Price Per Kg Cents */
             price_per_kg_cents: number | null;
             properties: components["schemas"]["MaterialProperties"];
+            /**
+             * Related
+             * @default []
+             */
+            related: components["schemas"]["LineSummary"][];
             /** Service */
             service: boolean;
             /** Shortlisted */
@@ -2440,6 +2451,22 @@ export interface components {
             unit: string;
             /** Unit Label */
             unit_label: string;
+        };
+        /**
+         * LineIndices
+         * @description The derived selection indices for one line at these prices, from the
+         *     same functions the comparison uses, so the line page and the comparison
+         *     can never disagree. Each is None where the line has nothing to divide.
+         */
+        LineIndices: {
+            /** Cost Per Litre Cents */
+            cost_per_litre_cents: number | null;
+            /** Specific Stiffness */
+            specific_stiffness: number | null;
+            /** Specific Strength */
+            specific_strength: number | null;
+            /** Strength Per Dollar */
+            strength_per_dollar: number | null;
         };
         /** LineListOut */
         LineListOut: {
@@ -7457,12 +7484,13 @@ export interface operations {
         parameters: {
             query?: {
                 supplier?: string | null;
-                category?: string | null;
-                tag?: string | null;
+                category?: string[] | null;
+                tag?: string[] | null;
                 q?: string | null;
                 sort?: string;
                 cursor?: number;
                 limit?: number;
+                sku?: string[] | null;
             };
             header?: never;
             path?: never;
@@ -8579,8 +8607,8 @@ export interface operations {
         parameters: {
             query?: {
                 supplier?: string | null;
-                category?: string | null;
-                tag?: string | null;
+                category?: string[] | null;
+                tag?: string[] | null;
                 q?: string | null;
                 sort?: string;
                 cursor?: number;
