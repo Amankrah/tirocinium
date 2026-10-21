@@ -7,7 +7,10 @@
 // their lock reasons. The professor accepts (loads it into the form to save) or
 // dismisses. Positions are [start, end) char offsets into the question markdown;
 // the highlight is on the source text, which is what the professor edits.
+// Highlights take the accent tint (a proposal is a live state); locks take the
+// amber of a recognition flag (decision 0102).
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import type { Schemas } from "@/lib/api/client";
 import { strings } from "../../../../strings";
 
@@ -45,7 +48,11 @@ export function segmentBody(
   return segments;
 }
 
-function rangeSummary(param: NonNullable<Schemas["ParamSpec"]["parameters"]>[string]): string {
+// One line for a parameter's range: the bounds, the number of choices, or
+// what an entity stands for. Shared with the panel's parameter rows.
+export function rangeSummary(
+  param: NonNullable<Schemas["ParamSpec"]["parameters"]>[string],
+): string {
   if (param.type === "number" || param.type === "integer") {
     return s.rangeNumber(param.range[0], param.range[1]);
   }
@@ -70,21 +77,24 @@ export function AutoOverlay({
   return (
     <section
       aria-label={s.proposalHeading}
-      className="flex flex-col gap-4 rounded-md border border-accent/40 bg-accent/5 p-4"
+      className="flex flex-col gap-4 rounded-lg border border-accent/30 bg-surface p-5 shadow-raised"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="font-display text-xl">{s.proposalHeading}</h3>
-        <span className="text-xs text-ink-muted">{s.aiProposed}</span>
+        <span className="inline-flex items-center gap-1.5 text-xs text-accent-text">
+          <Icon name="sparkle" size={14} />
+          {s.aiProposed}
+        </span>
       </div>
-      <p className="text-sm text-ink-muted">{s.proposalIntro}</p>
+      <p className="max-w-prose text-sm text-ink-muted">{s.proposalIntro}</p>
 
-      <p className="whitespace-pre-wrap rounded-md border border-rule-line bg-paper p-3 font-mono text-sm text-ink">
+      <p className="whitespace-pre-wrap rounded-md bg-surface-sunken p-4 font-mono text-sm leading-relaxed text-ink">
         {segments.map((seg, i) =>
           seg.param ? (
             <mark
               key={i}
               title={seg.param}
-              className="rounded bg-accent/20 px-0.5 text-ink"
+              className="rounded-sm bg-accent-soft px-0.5 text-accent-text ring-1 ring-accent/25"
             >
               {seg.text}
             </mark>
@@ -94,12 +104,14 @@ export function AutoOverlay({
         )}
       </p>
 
-      <ul className="flex flex-col gap-2">
+      <ul className="flex flex-col divide-y divide-rule-line">
         {parameters.map(([name, param]) => (
-          <li key={name} className="flex flex-col gap-0.5">
-            <span className="text-sm text-ink">
-              <span className="font-medium">{name}</span>{" "}
-              <span className="text-ink-muted">{rangeSummary(param)}</span>
+          <li key={name} className="flex flex-col gap-0.5 py-2 first:pt-0 last:pb-0">
+            <span className="flex flex-wrap items-baseline gap-x-3 text-sm text-ink">
+              <span className="font-mono font-medium">{name}</span>
+              <span className="font-mono text-xs tabular-nums text-ink-muted">
+                {rangeSummary(param)}
+              </span>
             </span>
             {proposal.annotations[name]?.rationale ? (
               <span className="text-xs text-ink-muted">
@@ -128,17 +140,26 @@ export function AutoOverlay({
       ) : null}
 
       {proposal.frozen.length > 0 ? (
-        <ul className="flex flex-col gap-1 rounded-md border border-flag-amber/40 p-3">
+        <ul className="flex flex-col gap-1.5 rounded-lg border border-flag-amber/40 bg-flag-amber-soft p-4">
           {proposal.frozen.map((f) => (
-            <li key={`${f.parameter}-${f.figure_id}`} className="text-sm text-flag-amber">
-              {s.lockedTo(f.value)}: {f.reason}
+            <li
+              key={`${f.parameter}-${f.figure_id}`}
+              className="flex items-start gap-2 text-sm text-flag-amber"
+            >
+              <Icon name="lock" size={14} className="mt-0.5" />
+              <span>
+                <span className="font-medium">{s.lockedTo(f.value)}</span>: {f.reason}
+              </span>
             </li>
           ))}
         </ul>
       ) : null}
 
       <div className="flex flex-wrap gap-3">
-        <Button onClick={onAccept}>{s.accept}</Button>
+        <Button onClick={onAccept}>
+          <Icon name="check" size={16} />
+          {s.accept}
+        </Button>
         <Button variant="quiet" onClick={onDismiss}>
           {s.dismiss}
         </Button>

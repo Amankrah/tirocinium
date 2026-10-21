@@ -40,6 +40,9 @@ test.describe("journey three: a blurry page is caught and retaken", () => {
     ).toBeVisible();
 
     // A blurry page is flagged in the browser, without an upload.
+    // The pad is the default mode (decision 0096); the photo inputs exist
+    // only once "Photos of paper" is chosen.
+    await page.getByRole("button", { name: "Photos of paper" }).click();
     await page.getByLabel("Choose photos").setInputFiles({
       name: "blurry.png",
       mimeType: "image/png",

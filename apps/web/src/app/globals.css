@@ -10,16 +10,27 @@
   --color-ink-muted: var(--color-ink-muted);
   --color-paper: var(--color-paper);
   --color-ground: var(--color-ground);
+  --color-surface: var(--color-surface);
+  --color-surface-sunken: var(--color-surface-sunken);
   --color-accent: var(--color-accent);
   --color-accent-text: var(--color-accent-text);
+  --color-accent-soft: var(--color-accent-soft);
   --color-rule-line: var(--color-rule-line);
   --color-field-border: var(--color-field-border);
   --color-verify-green: var(--color-verify-green);
+  --color-verify-green-soft: var(--color-verify-green-soft);
   --color-flag-amber: var(--color-flag-amber);
+  --color-flag-amber-soft: var(--color-flag-amber-soft);
   --color-on-accent: var(--color-on-accent);
   --font-display: var(--font-display);
   --font-interface: var(--font-interface);
   --font-mono: var(--font-mono);
+  --shadow-raised: var(--shadow-raised);
+  --shadow-floating: var(--shadow-floating);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
 }
 
 /* The shell header is sticky, so the browser's idea of "scrolled to the top"
@@ -35,6 +46,59 @@ body {
   color: var(--color-ink);
   font-family: var(--font-interface);
   font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The display face carries headings (guide 3.2). Fraunces wants a touch of
+   negative tracking at display sizes and balanced line breaks, so a heading
+   never ends on a one-word orphan. */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+.font-display {
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: var(--color-accent-soft);
+  color: var(--color-ink);
+}
+
+/* Graph paper (guide 3.2: the platform's world is the worked problem). A
+   faint hairline grid for the public thresholds (landing hero, the entry and
+   sign-in screens), fading toward the edges so it reads as a sheet on a desk
+   rather than a pattern. Decoration only; it inverts with the rule-line. */
+.graph-paper {
+  background-image:
+    linear-gradient(to right, var(--color-rule-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-rule-line) 1px, transparent 1px);
+  background-size: 2rem 2rem;
+  background-position: center top;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black 30%, transparent 100%);
+}
+
+/* The visible focus state, designed as part of the visual language (guide 6):
+   a two-pixel accent outline with offset, never the default ring. One
+   utility so every primitive and every hand-rolled link agree. */
+@utility focus-ring {
+  @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent;
+}
+
+/* Inline text links inside prose and quiet navigation: accent-as-text with
+   an underline that lifts on hover. */
+@utility text-link {
+  @apply text-accent-text underline decoration-accent-text/40 underline-offset-4 transition-colors duration-(--motion-duration) ease-(--motion-ease) hover:decoration-accent-text focus-ring;
+}
+
+/* A raised sheet on the paper (decision 0102). */
+@utility surface-raised {
+  background: var(--color-surface);
+  border: 1px solid var(--color-rule-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-raised);
 }
 
 /* Tabular lining figures shift KaTeX's own metrics: $N_A$ and $V_C$ then

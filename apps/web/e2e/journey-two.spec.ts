@@ -42,6 +42,9 @@ test.describe("journey two: upload a solution and see it read", () => {
       page.getByRole("heading", { level: 1, name: "Upload your solution" }),
     ).toBeVisible();
 
+    // The pad is the default mode (decision 0096); the photo inputs exist
+    // only once "Photos of paper" is chosen.
+    await page.getByRole("button", { name: "Photos of paper" }).click();
     await page.getByLabel("Choose photos").setInputFiles({
       name: "page-1.png",
       mimeType: "image/png",

@@ -1,6 +1,6 @@
-import Link from "next/link";
-
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
 import { strings } from "../strings";
 import { dismissOnboarding } from "./actions";
 
@@ -19,39 +19,44 @@ export function OnboardingPanel() {
   const s = strings.onboarding;
 
   return (
-    <section
+    <Card
+      as="section"
+      tone="raised"
       aria-labelledby="onboarding-title"
-      className="flex flex-col gap-4 rounded-lg border border-rule-line p-6"
+      className="flex flex-col gap-5"
     >
-      <h2 id="onboarding-title" className="font-display text-xl">
+      <h2 id="onboarding-title" className="font-display text-2xl">
         {s.panelTitle}
       </h2>
 
       {/* The short version: the four step titles as a sequence. The bodies
           live on the page, because this is an orientation and that is the
           explanation. */}
-      <ol className="flex flex-col gap-1 text-ink-muted">
+      <ol className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
         {s.steps.map((step, index) => (
-          <li key={step.title}>
-            <span className="font-mono text-sm tabular-nums">{index + 1}</span>{" "}
-            {step.title}
+          <li key={step.title} className="flex items-baseline gap-3">
+            <span
+              aria-hidden="true"
+              className="font-display text-2xl tabular-nums text-accent-text"
+            >
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <span className="text-ink">{step.title}</span>
           </li>
         ))}
       </ol>
 
-      <div className="flex flex-wrap items-center gap-4">
-        <Link
-          href="/course/how-it-works"
-          className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        >
+      <div className="flex flex-wrap items-center gap-3 border-t border-rule-line pt-5">
+        <ButtonLink href="/course/how-it-works" variant="secondary">
           {s.pageLink}
-        </Link>
+          <Icon name="arrow-right" size={14} className="text-ink-muted" />
+        </ButtonLink>
         <form action={dismissOnboarding}>
-          <Button variant="quiet" type="submit" className="text-sm">
+          <Button variant="quiet" type="submit">
             {s.panelDismiss}
           </Button>
         </form>
       </div>
-    </section>
+    </Card>
   );
 }

@@ -11,6 +11,7 @@ import {
   urlTransform,
 } from "@/components/reading/markdown";
 import type { Schemas } from "@/lib/api/client";
+import { strings } from "../../../../strings";
 
 // Renders an extracted item's markdown with its figures inline at their fig://
 // tokens (constraint: figures are pixels from the original, rendered at their
@@ -45,8 +46,8 @@ export function FigureMarkdown({
               // A token whose figure is not on the item is an error state, never
               // a silent omission (constraint: figures are never omitted).
               return (
-                <span className="inline-block rounded-md border border-flag-amber/40 px-3 py-2 text-sm text-flag-amber">
-                  Figure unavailable
+                <span className="inline-block rounded-md border border-flag-amber/40 bg-flag-amber-soft px-3 py-2 text-sm text-flag-amber">
+                  {strings.confirm.figureUnavailable}
                 </span>
               );
             }
@@ -58,7 +59,7 @@ export function FigureMarkdown({
                 height={figure.height_px}
                 alt={alt ?? figure.caption ?? ""}
                 className={
-                  "h-auto max-w-full rounded" +
+                  "h-auto max-w-full rounded-md" +
                   (figure.role === "decorative" ? " opacity-70" : "")
                 }
               />

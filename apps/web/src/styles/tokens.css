@@ -64,6 +64,33 @@
   --font-interface: var(--font-inter, ui-sans-serif, system-ui, sans-serif);
   --font-mono: var(--font-jetbrains-mono, ui-monospace, "Cascadia Mono", monospace);
 
+  /* Surfaces (the modern-UI pass, decision 0102). Paper is the ground; a
+     raised surface is the sheet laid on it (a card, a dialog, the editor
+     pane), one step lighter so hairlines and a soft warm shadow do the
+     lifting instead of heavy borders. Sunken is the recess a control sits in
+     (a segmented control's track, a code block, a thumbnail well). Neither is
+     a new hue: both are the paper at a different luminance. */
+  --color-surface: #FFFDF8;
+  --color-surface-sunken: #EFEBE1;
+  /* Tints: the accent and the two state colours as backgrounds for chips,
+     selected rows, and highlights. Text on a tint is always the solid token
+     of the same hue, which is what keeps every pair inside the audit. */
+  --color-accent-soft: #E7EBFA;
+  --color-verify-green-soft: #E2F0EA;
+  --color-flag-amber-soft: #F6EAD8;
+
+  /* Elevation: warm, low shadows, because this is paper on a desk and not
+     glass on a screen. Raised is a resting card; floating is a popover, a
+     sheet, or a dragged thumbnail. */
+  --shadow-raised: 0 1px 2px rgba(22, 26, 35, 0.05), 0 1px 3px rgba(22, 26, 35, 0.06);
+  --shadow-floating: 0 8px 24px rgba(22, 26, 35, 0.12), 0 2px 6px rgba(22, 26, 35, 0.06);
+
+  /* Radii: one scale, used by the primitives. */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
   /* Motion: functional micro-interaction only (guide 3.3). */
   --motion-duration: 175ms;
   --motion-ease: cubic-bezier(0.215, 0.61, 0.355, 1); /* ease-out */
@@ -107,6 +134,17 @@
        text. */
     --color-verify-green: #46AC8B;
     --color-flag-amber: #DB9435;
+
+    /* Surfaces invert with the ground: raised is one step lighter than the
+       dark ground, sunken one step darker, and the tints are the same hues
+       at a luminance that keeps the solid tokens readable on them. */
+    --color-surface: #1A1D25;
+    --color-surface-sunken: #0C0E13;
+    --color-accent-soft: #1E2745;
+    --color-verify-green-soft: #163229;
+    --color-flag-amber-soft: #3A2A12;
+    --shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-floating: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.35);
   }
 }
 

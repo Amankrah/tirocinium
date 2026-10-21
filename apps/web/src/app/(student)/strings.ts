@@ -27,6 +27,11 @@ export const strings = {
     codeHint: "On the card from your professor. It is yours for the term.",
     action: "Enter course",
     failure: "That code did not work. Check it against the card from your professor.",
+    // One line under the title and one under the sheet (decision 0102): what
+    // the screen is, and the quiet way out for a professor who landed here.
+    intro: "Type the code on your seat card. Your work is filed under that seat, never a name.",
+    teachLine: "Teaching a course?",
+    signIn: "Sign in",
   },
   // How practice works (guide 4.2). The guide fixes two things about this
   // copy. The handwriting line is said once and said plainly, and it is not
@@ -515,6 +520,15 @@ export const strings = {
     penRedo: "Redo",
     penAdd: "Add this page",
     penClear: "Clear",
+    // Opening a page already in the list on the pad again (decision 0103).
+    penSave: (label: string) => `Save changes to ${label.toLowerCase()}`,
+    penCancelEdit: "Cancel changes",
+    editPage: (index: number) => `Edit page ${index}`,
+    editingNow: (label: string) =>
+      `Editing ${label.toLowerCase()}. Save to replace it in the list, or cancel to keep it as it was.`,
+    editingTag: "Editing",
+    finishEditing: (label: string) =>
+      `Save or cancel your changes to ${label.toLowerCase()} before sending.`,
     dropPrompt: "Drag your pages here, or",
     choose: "Choose photos",
     capture: "Take a photo",

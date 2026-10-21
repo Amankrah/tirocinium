@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Field, Input, Textarea } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
+import { PageHeader } from "@/components/ui/page-header";
+import { SectionHeading } from "@/components/ui/section-heading";
 import { listCaseStudies } from "@/lib/api/case-studies";
 import { getCourse } from "@/lib/api/courses";
 import { requireProfessor } from "@/lib/professor-session";
@@ -12,7 +19,19 @@ import { createCaseStudyAction, setPublishedAction } from "./actions";
 
 // One course's authoring surface: its case studies with status, the publish
 // toggle, and the form that writes a new draft. A Server Component; the backend
-// returns drafts to the owner, so a professor sees everything they wrote.
+// returns drafts to the owner, so a professor sees everything they wrote. The
+// course rail in the shell carries the other sections (decision 0102), so the
+// page itself is the list and the form. Each case study stays a list item
+// with its publish control inside it, which is how the authoring journey finds
+// the row it just created.
+function formatDate(at: number): string {
+  return new Date(at * 1000).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 export default async function CoursePage({
   params,
 }: {
@@ -26,129 +45,87 @@ export default async function CoursePage({
   const course = await getCourse(token, id);
   if (!course) notFound();
   const cases = await listCaseStudies(token, id);
+  const s = strings.course;
 
   return (
-    <ProfessorShell email={email} signOut={signOut}>
-      <main className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6 py-12">
-        <div className="flex flex-col gap-2">
-          <Link
-            href="/dashboard"
-            className="text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
-            {strings.course.back}
-          </Link>
-          <h1 className="font-display text-4xl">{course.title}</h1>
-          <div className="flex flex-wrap gap-4">
-            <Link
-              href={`/courses/${id}/seats`}
-              className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
-              {strings.course.seatsLink}
-            </Link>
-            <Link
-              href={`/courses/${id}/import`}
-              className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
-              {strings.course.importLink}
-            </Link>
-            <Link
-              href={`/courses/${id}/mastery`}
-              className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
-              {strings.course.masteryLink}
-            </Link>
-            <Link
-              href={`/courses/${id}/submissions`}
-              className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
-              {strings.submissions.link}
-            </Link>
-            <Link
-              href={`/courses/${id}/reports`}
-              className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
-              {strings.reports.link}
-            </Link>
-            <Link
-              href={`/courses/${id}/materials`}
-              className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
-              {strings.course.materialsLink}
-            </Link>
-          </div>
-        </div>
+    <ProfessorShell
+      email={email}
+      signOut={signOut}
+      course={{ id, title: course.title, section: "overview" }}
+    >
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-10">
+        <PageHeader
+          title={course.title}
+          size="lg"
+          actions={
+            <ButtonLink href={`/courses/${id}/import`} variant="secondary">
+              <Icon name="file-import" size={16} />
+              {s.importLink}
+            </ButtonLink>
+          }
+        />
 
-        <section className="flex flex-col gap-4">
-          <h2 className="font-display text-2xl">{strings.course.heading}</h2>
+        <section aria-labelledby="case-studies-heading" className="flex flex-col gap-4">
+          <SectionHeading id="case-studies-heading" title={s.heading} count={cases.length} />
           {cases.length === 0 ? (
-            <p className="text-ink/70">{strings.course.empty}</p>
+            <EmptyState icon="layers" body={s.empty} />
           ) : (
-            <ul className="flex flex-col divide-y divide-rule-line">
+            <ul className="flex flex-col gap-3">
               {cases.map((cs) => {
                 const published = cs.status === "published";
                 return (
-                  <li
+                  <Card
                     key={cs.id}
-                    className="flex items-center justify-between gap-4 py-4"
+                    as="li"
+                    tone="flat"
+                    padded={false}
+                    className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-5 py-4 transition-colors duration-(--motion-duration) ease-(--motion-ease) hover:border-ink"
                   >
-                    <div className="flex flex-col gap-1">
+                    <div className="flex min-w-0 flex-col gap-1">
                       <Link
                         href={`/courses/${id}/case-studies/${cs.id}`}
-                        className="font-display text-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                        className="rounded-sm font-display text-lg leading-snug focus-ring"
                       >
                         {cs.title}
                       </Link>
-                      <span
-                        className={
-                          published
-                            ? "text-xs text-verify-green"
-                            : "text-xs text-ink-muted"
-                        }
-                      >
-                        {published
-                          ? strings.course.published
-                          : strings.course.draft}
+                      <span className="flex flex-wrap items-center gap-x-3 text-sm text-ink-muted">
+                        <span className="font-mono text-xs tabular-nums">
+                          {s.updated(formatDate(cs.updated_at))}
+                        </span>
+                        <span>{s.conceptCount(cs.concepts.length)}</span>
                       </span>
                     </div>
-                    <form action={setPublishedAction.bind(null, id, cs.id, !published)}>
-                      <Button variant="quiet" type="submit" className="text-sm">
-                        {published
-                          ? strings.course.unpublish
-                          : strings.course.publish}
-                      </Button>
-                    </form>
-                  </li>
+                    <div className="flex shrink-0 items-center gap-3">
+                      <Badge tone={published ? "green" : "neutral"}>
+                        {published ? s.published : s.draft}
+                      </Badge>
+                      <form action={setPublishedAction.bind(null, id, cs.id, !published)}>
+                        <Button variant="secondary" size="sm" type="submit">
+                          {published ? s.unpublish : s.publish}
+                        </Button>
+                      </form>
+                    </div>
+                  </Card>
                 );
               })}
             </ul>
           )}
         </section>
 
-        <form
-          action={createCaseStudyAction.bind(null, id)}
-          className="flex flex-col gap-3 border-t border-rule-line pt-6"
-        >
-          <label className="flex flex-col gap-2">
-            <span className="text-sm text-ink">{strings.course.newTitleLabel}</span>
-            <input
-              name="title"
-              required
-              className="rounded-md border border-field-border bg-paper px-4 py-3 text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            />
-          </label>
-          <label className="flex flex-col gap-2">
-            <span className="text-sm text-ink">{strings.course.newBodyLabel}</span>
-            <textarea
-              name="body"
-              required
-              rows={10}
-              className="rounded-md border border-field-border bg-paper px-4 py-3 font-mono text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            />
-          </label>
-          <div>
-            <Button type="submit">{strings.course.newAction}</Button>
-          </div>
-        </form>
+        <Card as="section" tone="flat" aria-labelledby="new-case-study-heading">
+          <form action={createCaseStudyAction.bind(null, id)} className="flex flex-col gap-5">
+            <SectionHeading id="new-case-study-heading" title={s.newHeading} rule={false} />
+            <Field label={s.newTitleLabel}>
+              <Input name="title" required />
+            </Field>
+            <Field label={s.newBodyLabel}>
+              <Textarea name="body" required rows={10} className="font-mono text-sm" />
+            </Field>
+            <div>
+              <Button type="submit">{s.newAction}</Button>
+            </div>
+          </form>
+        </Card>
       </main>
     </ProfessorShell>
   );

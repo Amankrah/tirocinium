@@ -40,29 +40,19 @@ export function ReissueSeat({
 
   return (
     <div className="flex flex-col items-end gap-2">
-      <Button
-        variant="quiet"
-        type="button"
-        onClick={onReissue}
-        disabled={pending}
-        className="text-sm"
-      >
+      <Button variant="quiet" size="sm" type="button" onClick={onReissue} disabled={pending}>
         {s.reissue}
       </Button>
       {state.code ? (
-        <div role="status" className="flex flex-col items-end gap-1">
+        <div role="status" className="flex flex-col items-end gap-1.5">
           <span className="text-xs text-ink-muted">{s.reissued(seatNumber)}</span>
           <div className="flex items-center gap-2">
-            <code className="rounded bg-rule-line/40 px-2 py-1 font-mono text-sm text-ink">
+            <code className="rounded-md border border-accent/20 bg-accent-soft px-2 py-1 font-mono text-sm tabular-nums text-accent-text">
               {state.code}
             </code>
-            <button
-              type="button"
-              onClick={copy}
-              className="text-xs text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
+            <Button variant="secondary" size="sm" type="button" onClick={copy}>
               {copied ? s.copied : s.copy}
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}

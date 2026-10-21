@@ -12,6 +12,8 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
 import { strings } from "../../../../strings";
 import type { OpenDefenceResult } from "./actions";
 import type { RevisitTarget } from "./defence-session";
@@ -62,11 +64,15 @@ export function DefencePanel({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-ink-muted">{s.intro}</p>
-      <p className="text-sm text-ink-muted">{s.privacy}</p>
+    <Card tone="raised" className="flex flex-col gap-5">
+      <p className="max-w-prose text-pretty text-ink">{s.intro}</p>
+      <p className="inline-flex items-center gap-2 text-sm text-ink-muted">
+        <Icon name="lock" size={14} />
+        {s.privacy}
+      </p>
       <div>
-        <Button onClick={() => void start()} disabled={phase === "opening"}>
+        <Button size="lg" onClick={() => void start()} disabled={phase === "opening"}>
+          <Icon name="mic" size={18} />
           {s.start}
         </Button>
       </div>
@@ -77,6 +83,6 @@ export function DefencePanel({
           failure
         ) : null}
       </p>
-    </div>
+    </Card>
   );
 }

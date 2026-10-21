@@ -11,11 +11,12 @@
 // and not a rewriting of it: the markdown sent into the conversation below is
 // still the server's, never the rendered result.
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { useState, type ReactNode } from "react";
 
 import type { FigureMap } from "@/components/reading/problem-body";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
 import type { Schemas } from "@/lib/api/client";
 import { strings } from "../../../../strings";
 
@@ -74,34 +75,42 @@ export function UnfoldPanel({
         <p className="text-sm text-ink-muted">{s.gaveUp}</p>
       ) : null}
 
-      <p aria-live="polite" className="text-sm text-ink-muted">
-        {s.progress(unfold.steps_revealed, unfold.total_steps)}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+        <p aria-live="polite" className="text-sm tabular-nums text-ink-muted">
+          {s.progress(unfold.steps_revealed, unfold.total_steps)}
+        </p>
+        {defenceHref ? null : (
+          <p className="text-sm text-ink-muted">{s.askUnavailable}</p>
+        )}
+      </div>
 
-      {defenceHref ? null : (
-        <p className="text-sm text-ink-muted">{s.askUnavailable}</p>
-      )}
-
-      <ol className="flex flex-col gap-6">
+      {/* Each step is a sheet of its own (decision 0102): the number in the
+          display face, the typeset step, and the one way to send it on. The
+          heading text stays exactly "Step n", which is how a reload is held
+          to the same step it revealed. */}
+      <ol className="flex flex-col gap-4">
         {unfold.steps.map((step) => (
-          <li key={step.number} className="flex flex-col gap-2">
-            <h2 className="text-xs uppercase tracking-widest text-ink-muted">
-              {s.stepLabel(step.number)}
-            </h2>
-            {initialRendered[step.number] ?? (
-              <ClientProblemBody body={step.markdown} figures={figures} />
-            )}
+          <Card key={step.number} as="li" tone="raised" className="flex flex-col gap-3">
+            <h2 className="font-display text-xl">{s.stepLabel(step.number)}</h2>
+            <div className="max-w-[var(--measure-reading)]">
+              {initialRendered[step.number] ?? (
+                <ClientProblemBody body={step.markdown} figures={figures} />
+              )}
+            </div>
             {defenceHref ? (
-              <Link
+              <ButtonLink
                 // The source the server sent, not what was rendered from it, so
                 // the student and the tutor discuss the same step.
                 href={`${defenceHref}?step=${encodeURIComponent(step.markdown)}`}
-                className="self-start text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                variant="quiet"
+                size="sm"
+                className="self-start"
               >
+                <Icon name="mic" size={14} className="text-ink-muted" />
                 {s.ask}
-              </Link>
+              </ButtonLink>
             ) : null}
-          </li>
+          </Card>
         ))}
       </ol>
 
@@ -112,10 +121,14 @@ export function UnfoldPanel({
       ) : null}
 
       {done ? (
-        <p className="text-sm text-ink-muted">{s.complete}</p>
+        <p className="inline-flex items-center gap-2 text-sm text-ink-muted">
+          <Icon name="check" size={14} />
+          {s.complete}
+        </p>
       ) : (
         <div>
-          <Button disabled={busy} onClick={() => void next()}>
+          <Button variant="secondary" disabled={busy} onClick={() => void next()}>
+            <Icon name="chevron-down" size={16} className="text-ink-muted" />
             {s.next}
           </Button>
         </div>

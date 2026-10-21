@@ -18,6 +18,22 @@ regenerate the spec in `apps/api` (`python scripts/export_openapi.py`), rerun
 `pnpm generate:client` here, commit both. The generated `schema.ts` is never
 hand-edited and is excluded from lint.
 
+## Design system
+
+The visual language lives in two places. `src/styles/tokens.css` holds every
+colour, surface, shadow, radius, type family and motion value as a CSS custom
+property (the guide 3.2 palette, refined in decisions 0062, 0074 and 0102),
+and `globals.css` maps them into Tailwind utilities plus four small utilities
+of its own (`focus-ring`, `text-link`, `surface-raised`, `graph-paper`).
+`src/components/ui` is the primitive set (decision 0102): button, field,
+card, badge, page header, section heading, empty state, segmented nav, table,
+stat, kbd, wordmark and an inline icon set, all Server Components with no
+client runtime. Surfaces compose these and never reach for a raw colour or a
+hand-rolled control; a new visual need is a new primitive or a new token, not
+a one-off class string. The two shells (`(student)/student-shell.tsx`,
+`(professor)/professor-shell.tsx`) frame every authenticated page; the
+professor shell takes a `course` prop and renders the course rail from it.
+
 ## Server-side API access
 
 Surfaces that carry a credential (seat redemption, professor sign-in, the

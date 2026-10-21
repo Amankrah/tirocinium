@@ -11,7 +11,11 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 
 import type { FigureMap } from "@/components/reading/problem-body";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
+import { SectionHeading } from "@/components/ui/section-heading";
 import type { Schemas } from "@/lib/api/client";
 import { strings } from "../../../../strings";
 
@@ -107,23 +111,26 @@ export function VariantPreview({
     setWorking(false);
   }
 
+  const reviewHref = `/courses/${courseId}/case-studies/${caseStudyId}/review`;
+
   return (
-    <section className="flex flex-col gap-4 border-t border-rule-line pt-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-2xl">{s.previewHeading}</h2>
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href={`/courses/${courseId}/case-studies/${caseStudyId}/review`}
-            className="inline-flex items-center text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
-            {s.reviewLink}
-          </Link>
-          <Button variant="quiet" onClick={() => void onGenerate()} disabled={working}>
-            {s.generate}
-          </Button>
-        </div>
-      </div>
-      <p className="max-w-prose text-sm text-ink-muted">{s.previewIntro}</p>
+    <section aria-labelledby="preview-heading" className="flex flex-col gap-5">
+      <SectionHeading
+        id="preview-heading"
+        title={s.previewHeading}
+        description={s.previewIntro}
+        actions={
+          <>
+            <ButtonLink href={reviewHref} variant="quiet">
+              {s.reviewLink}
+            </ButtonLink>
+            <Button variant="secondary" onClick={() => void onGenerate()} disabled={working}>
+              <Icon name="refresh" size={16} />
+              {s.generate}
+            </Button>
+          </>
+        }
+      />
 
       {error ? (
         <p role="alert" className="text-sm text-flag-amber">
@@ -134,24 +141,23 @@ export function VariantPreview({
       {previews.length > 0 ? (
         <ol className="grid gap-4 lg:grid-cols-3">
           {previews.map((preview) => (
-            <li
-              key={preview.seed}
-              className="flex flex-col gap-2 rounded-md border border-rule-line p-3"
-            >
-              <span className="text-xs text-ink-muted">{s.seedLabel(preview.seed)}</span>
+            <Card key={preview.seed} as="li" className="flex flex-col gap-3">
+              <div>
+                <Badge mono>{s.seedLabel(preview.seed)}</Badge>
+              </div>
               {preview.state === "pending" ? (
                 <p className="text-sm text-ink-muted">{s.generating}</p>
               ) : preview.state === "flagged" ? (
                 <Link
-                  href={`/courses/${courseId}/case-studies/${caseStudyId}/review`}
-                  className="text-sm text-flag-amber underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  href={reviewHref}
+                  className="inline-flex w-fit items-center gap-1.5 rounded-sm text-sm font-medium text-flag-amber underline decoration-flag-amber/40 underline-offset-4 focus-ring"
                 >
                   {s.flagged}
                 </Link>
               ) : (
                 <ClientProblemBody body={preview.body} figures={preview.figures} />
               )}
-            </li>
+            </Card>
           ))}
         </ol>
       ) : null}

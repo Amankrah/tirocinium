@@ -296,6 +296,23 @@ holds out by name. Reseeding under a running API pulls its shards away, so stop
 the processes first; a bare rerun of a destructive journey against an already
 consumed seed fails for reasons that look like product bugs and are not.
 
+Two more ways a local seeded run fails for reasons that are not the product
+(found during the UI pass of decision 0102). Every arq worker on the machine
+drains the same Redis queue, so a second worker started without the
+`TIRO_*` environment (a stale shell, another session) takes a share of the
+seeded submissions, runs them against `apps/api/data` with no recorded seam,
+and the journey waits for a read that never comes: check `pgrep -af arq`
+before a run. And `next dev` compiles each route on first visit, so a cold
+server fails the journeys at their first 5 s navigation while four of them
+compile in parallel; visit the routes once (or run the suite twice) before
+trusting a red. The upload journeys (two, three, mode C) were repaired in that
+pass to match the surface as it has been since the pad became the default
+mode: they choose "Photos of paper" before reaching for "Choose photos", and
+mode C scrolls the sheet into view before drawing, because `page.mouse` does
+not scroll. Journey five reaches the submissions queue through the course
+rail (`navigation "Course sections"`) and scopes its row lookup to the
+`Submissions queue` group.
+
 The restore drill (Phase 1 gate; needs MinIO, starts it itself if docker is
 available; runs containerized on hosts without a native litestream binary):
 
@@ -1239,6 +1256,15 @@ too short for a middle centres on the pen, and a window with nothing to scroll
 stays put. The stroke itself is a canvas API jsdom does not implement, so it is
 exercised in the mode-C journey, which is why the rule is a pure function and
 not a handler.
+
+Editing a page already in the list (decision 0103) is pinned in
+`upload/upload-panel-edit.test.tsx`, which stubs the pad with one that hands
+the panel a page and its strokes: only pad pages are editable, a page opens
+with its own strokes, saving replaces it in place and the edited bytes are what
+is sent, cancelling leaves it alone, Send waits while a page is open, and a
+failed send's retries are dropped once the list changes. The pad's half (save
+and cancel in place of add, no undo behind an opened page) is in
+`pen-pad.test.tsx`; the repaint itself still wants the mode-C journey.
 
 Two more course-pack tests cover decision 0081: a shortlisted SKU absent from
 the pinned catalogue fails the pack at parse time (mutation-checked against the

@@ -9,17 +9,29 @@
 // follow-up). A client island driving injected server actions.
 import { useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
+import { SectionHeading } from "@/components/ui/section-heading";
 import type { Schemas } from "@/lib/api/client";
 import type { SaveSpecResult } from "@/lib/api/params";
 import { strings } from "../../../../strings";
-import { AutoOverlay } from "./auto-overlay";
+import { AutoOverlay, rangeSummary } from "./auto-overlay";
 
 type Parameter = NonNullable<Schemas["ParamSpec"]["parameters"]>[string];
 type ParamType = Parameter["type"];
 type Row = { name: string; param: Parameter };
 
 const s = strings.params;
+
+const TYPE_LABEL: Record<ParamType, string> = {
+  number: s.typeNumber,
+  integer: s.typeInteger,
+  choice: s.typeChoice,
+  entity: s.typeEntity,
+};
 
 function defaultParam(type: ParamType): Parameter {
   switch (type) {
@@ -40,9 +52,6 @@ function toRows(spec: Schemas["ParamSpec"] | null): Row[] {
     param,
   }));
 }
-
-const field =
-  "rounded-md border border-field-border bg-paper px-3 py-2 text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
 export function ParamPanel({
   courseId,
@@ -146,14 +155,22 @@ export function ParamPanel({
   }
 
   return (
-    <section className="flex flex-col gap-5 border-t border-rule-line pt-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-2xl">{s.heading}</h2>
-        <Button variant="quiet" onClick={() => void onPropose()} disabled={proposing || busy}>
-          {s.autoParameterize}
-        </Button>
-      </div>
-      <p className="max-w-prose text-sm text-ink-muted">{s.intro}</p>
+    <Card as="section" aria-labelledby="params-heading" className="flex flex-col gap-5">
+      <SectionHeading
+        id="params-heading"
+        title={s.heading}
+        description={s.intro}
+        actions={
+          <Button
+            variant="secondary"
+            onClick={() => void onPropose()}
+            disabled={proposing || busy}
+          >
+            <Icon name="sparkle" size={16} />
+            {s.autoParameterize}
+          </Button>
+        }
+      />
       {proposing ? (
         <p role="status" className="text-sm text-ink-muted">
           {s.autoPending}
@@ -171,67 +188,69 @@ export function ParamPanel({
       {rows.length === 0 ? (
         <p className="text-sm text-ink-muted">{s.empty}</p>
       ) : (
-        <ul className="flex flex-col gap-4">
-          {rows.map((row, index) => (
-            <li
-              key={index}
-              className="flex flex-col gap-3 rounded-md border border-rule-line p-3"
-            >
-              <div className="flex flex-wrap gap-3">
-                <label className="flex flex-1 flex-col gap-1">
-                  <span className="text-xs text-ink-muted">{s.name}</span>
-                  <input
-                    value={row.name}
-                    onChange={(e) => setName(index, e.target.value)}
-                    className={field}
-                  />
-                </label>
-                <label className="flex flex-col gap-1">
-                  <span className="text-xs text-ink-muted">{s.type}</span>
-                  <select
-                    value={row.param.type}
-                    onChange={(e) =>
-                      setParam(index, defaultParam(e.target.value as ParamType))
-                    }
-                    className={field}
+        <ul className="flex flex-col gap-3">
+          {rows.map((row, index) => {
+            const summary = rangeSummary(row.param);
+            return (
+              <Card key={index} as="li" tone="flat" className="flex flex-col gap-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge tone="neutral">{TYPE_LABEL[row.param.type]}</Badge>
+                  {summary ? (
+                    <span className="font-mono text-xs tabular-nums text-ink-muted">{summary}</span>
+                  ) : null}
+                  <Button
+                    variant="quiet"
+                    size="sm"
+                    className="ml-auto"
+                    onClick={() => setRows((prev) => prev.filter((_, i) => i !== index))}
                   >
-                    <option value="number">{s.typeNumber}</option>
-                    <option value="integer">{s.typeInteger}</option>
-                    <option value="choice">{s.typeChoice}</option>
-                    <option value="entity">{s.typeEntity}</option>
-                  </select>
-                </label>
-              </div>
-              <ParamFields param={row.param} onChange={(p) => setParam(index, p)} />
-              <div>
-                <Button
-                  variant="quiet"
-                  onClick={() => setRows((prev) => prev.filter((_, i) => i !== index))}
-                >
-                  {s.remove}
-                </Button>
-              </div>
-            </li>
-          ))}
+                    <Icon name="x" size={14} />
+                    {s.remove}
+                  </Button>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                  <Field label={s.name}>
+                    <Input value={row.name} onChange={(e) => setName(index, e.target.value)} />
+                  </Field>
+                  <Field label={s.type}>
+                    <Select
+                      value={row.param.type}
+                      onChange={(e) =>
+                        setParam(index, defaultParam(e.target.value as ParamType))
+                      }
+                    >
+                      <option value="number">{s.typeNumber}</option>
+                      <option value="integer">{s.typeInteger}</option>
+                      <option value="choice">{s.typeChoice}</option>
+                      <option value="entity">{s.typeEntity}</option>
+                    </Select>
+                  </Field>
+                </div>
+                <ParamFields param={row.param} onChange={(p) => setParam(index, p)} />
+              </Card>
+            );
+          })}
         </ul>
       )}
 
       <div>
         <Button
-          variant="quiet"
+          variant="secondary"
+          size="sm"
           onClick={() =>
             setRows((prev) => [...prev, { name: "", param: defaultParam("number") }])
           }
         >
+          <Icon name="plus" size={14} />
           {s.add}
         </Button>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <h3 className="text-sm font-medium text-ink">{s.invariants}</h3>
+      <div className="flex flex-col gap-3 border-t border-rule-line pt-5">
+        <h3 className="font-display text-xl">{s.invariants}</h3>
         {invariants.map((value, index) => (
           <div key={index} className="flex gap-2">
-            <input
+            <Input
               value={value}
               placeholder={s.invariantPlaceholder}
               onChange={(e) =>
@@ -239,7 +258,7 @@ export function ParamPanel({
                   prev.map((v, i) => (i === index ? e.target.value : v)),
                 )
               }
-              className={`${field} flex-1`}
+              className="flex-1"
             />
             <Button
               variant="quiet"
@@ -252,25 +271,26 @@ export function ParamPanel({
           </div>
         ))}
         <div>
-          <Button variant="quiet" onClick={() => setInvariants((p) => [...p, ""])}>
+          <Button variant="secondary" size="sm" onClick={() => setInvariants((p) => [...p, ""])}>
+            <Icon name="plus" size={14} />
             {s.addInvariant}
           </Button>
         </div>
       </div>
 
-      <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium text-ink">{s.solutionMethod}</span>
-        <textarea
-          value={method}
-          onChange={(e) => setMethod(e.target.value)}
-          rows={2}
-          className={field}
-        />
-      </label>
+      <Field label={s.solutionMethod}>
+        <Textarea value={method} onChange={(e) => setMethod(e.target.value)} rows={2} />
+      </Field>
 
       {blocked.length > 0 ? (
-        <div role="alert" className="flex flex-col gap-2 rounded-md border border-flag-amber/40 p-3">
-          <p className="text-sm font-medium text-flag-amber">{s.blockedHeading}</p>
+        <div
+          role="alert"
+          className="flex flex-col gap-2 rounded-lg border border-flag-amber/40 bg-flag-amber-soft p-4"
+        >
+          <p className="flex items-center gap-2 text-sm font-medium text-flag-amber">
+            <Icon name="lock" size={14} />
+            {s.blockedHeading}
+          </p>
           <ul className="flex flex-col gap-1">
             {blocked.map((b) => (
               <li key={`${b.parameter}-${b.figure_id}`} className="text-sm text-ink">
@@ -300,7 +320,7 @@ export function ParamPanel({
           {s.clear}
         </Button>
       </div>
-    </section>
+    </Card>
   );
 }
 
@@ -337,37 +357,31 @@ function ParamFields({
   }
   if (param.type === "choice") {
     return (
-      <div className="flex flex-wrap gap-3">
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-ink-muted">{s.baseLabel}</span>
-          <input value={param.base} onChange={(e) => onChange({ ...param, base: e.target.value })} className={field} />
-        </label>
-        <label className="flex flex-1 flex-col gap-1">
-          <span className="text-xs text-ink-muted">{s.options}</span>
-          <textarea
+      <div className="grid gap-3 sm:grid-cols-[auto_1fr]">
+        <Field label={s.baseLabel}>
+          <Input value={param.base} onChange={(e) => onChange({ ...param, base: e.target.value })} />
+        </Field>
+        <Field label={s.options}>
+          <Textarea
             value={param.options.join("\n")}
             onChange={(e) => onChange({ ...param, options: e.target.value.split("\n") })}
             rows={3}
-            className={field}
           />
-        </label>
+        </Field>
       </div>
     );
   }
   return (
-    <div className="flex flex-wrap gap-3">
-      <label className="flex flex-col gap-1">
-        <span className="text-xs text-ink-muted">{s.baseLabel}</span>
-        <input value={param.base} onChange={(e) => onChange({ ...param, base: e.target.value })} className={field} />
-      </label>
-      <label className="flex flex-1 flex-col gap-1">
-        <span className="text-xs text-ink-muted">{s.description}</span>
-        <input
+    <div className="grid gap-3 sm:grid-cols-[auto_1fr]">
+      <Field label={s.baseLabel}>
+        <Input value={param.base} onChange={(e) => onChange({ ...param, base: e.target.value })} />
+      </Field>
+      <Field label={s.description}>
+        <Input
           value={param.description ?? ""}
           onChange={(e) => onChange({ ...param, description: e.target.value || null })}
-          className={field}
         />
-      </label>
+      </Field>
     </div>
   );
 }
@@ -382,14 +396,13 @@ function NumField({
   onChange: (value: number) => void;
 }) {
   return (
-    <label className="flex flex-col gap-1">
-      <span className="text-xs text-ink-muted">{label}</span>
-      <input
+    <Field label={label} className="w-32">
+      <Input
         type="number"
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className={`${field} w-28`}
+        className="font-mono tabular-nums"
       />
-    </label>
+    </Field>
   );
 }

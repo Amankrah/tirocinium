@@ -29,7 +29,11 @@ test.describe("journey five: grade a submission", () => {
     await expect(page).toHaveURL(/\/dashboard$/);
 
     await page.getByRole("link", { name: courseTitle! }).click();
-    await page.getByRole("link", { name: "Review submissions" }).click();
+    // The course rail (decision 0102) is where the sections live now.
+    await page
+      .getByRole("navigation", { name: "Course sections" })
+      .getByRole("link", { name: "Submissions" })
+      .click();
     await expect(
       page.getByRole("heading", { level: 1, name: "Submissions" }),
     ).toBeVisible();
@@ -37,7 +41,11 @@ test.describe("journey five: grade a submission", () => {
     await expectNoA11yViolations(page);
 
     // The queue is keyboard-driven: j moves, Enter opens (guide 4.4).
-    const firstRow = page.getByRole("link").filter({ hasText: "Seat" }).first();
+    const firstRow = page
+      .getByRole("group", { name: "Submissions queue" })
+      .getByRole("link")
+      .filter({ hasText: "Seat" })
+      .first();
     await expect(firstRow).toBeVisible();
     await firstRow.focus();
     await page.keyboard.press("Enter");

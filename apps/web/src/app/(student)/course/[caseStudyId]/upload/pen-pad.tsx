@@ -61,11 +61,23 @@ function toolWidth(tool: MarkTool, weight: PenWeight): number {
   return PEN_WIDTH[weight];
 }
 
+// A page already in the list, opened on the pad to change it (decision 0103).
+// The page keeps the strokes it was drawn from, so editing is the same ink
+// coming back, never a photograph of the export drawn over.
+export type PadEdit = { id: string; label: string; strokes: InkStroke[] };
+
 export function PenPad({
   onCapture,
+  editing = null,
+  onSave,
+  onCancelEdit,
   makeId = () => crypto.randomUUID(),
 }: {
-  onCapture: (file: File) => void;
+  // The new page as a PNG, and the strokes it was drawn from.
+  onCapture: (file: File, strokes: InkStroke[]) => void;
+  editing?: PadEdit | null;
+  onSave?: (id: string, file: File, strokes: InkStroke[]) => void;
+  onCancelEdit?: () => void;
   makeId?: () => string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -146,6 +158,19 @@ export function PenPad({
   useEffect(() => {
     repaint(EMPTY_INK);
   }, [repaint]);
+
+  // Opening a page puts its strokes on the sheet with no history behind them:
+  // undo cannot take the sheet back past the page as it was opened, so the
+  // first undo never blanks a page the student meant to change. Keyed on the
+  // page's id, so the same page re-rendered is not reloaded mid-edit.
+  const editingId = editing?.id ?? null;
+  const editingRef = useRef(editing);
+  editingRef.current = editing;
+  useEffect(() => {
+    const opened = editingRef.current;
+    release();
+    restore(opened ? { strokes: opened.strokes, past: [], future: [] } : EMPTY_INK);
+  }, [editingId, release, restore]);
 
   function pointOf(event: { clientX: number; clientY: number; pressure?: number }): InkPoint {
     const canvas = canvasRef.current!;
@@ -373,19 +398,39 @@ export function PenPad({
     }
   }
 
-  function addPage() {
+  // The sheet as a PNG, handed over with the strokes it came from.
+  function exportPage(done: (file: File, strokes: InkStroke[]) => void) {
     const canvas = canvasRef.current;
     if (!canvas || !hasPenInk(inkRef.current.strokes) || typeof canvas.toBlob !== "function") {
       return;
     }
+    // Paint without the selection box, which is a tool and not the page.
+    release();
+    repaint(inkRef.current, new Set());
+    const strokes = inkRef.current.strokes;
     canvas.toBlob((blob) => {
       if (!blob) return;
-      onCapture(new File([blob], `page-${makeId()}.png`, { type: "image/png" }));
+      done(new File([blob], `page-${makeId()}.png`, { type: "image/png" }), strokes);
       // The ink is now a page in the list. Undo must not bring that page back
       // onto the sheet, or the student would submit it twice.
-      release();
       restore(EMPTY_INK);
     }, "image/png");
+  }
+
+  function addPage() {
+    exportPage(onCapture);
+  }
+
+  function savePage() {
+    const opened = editingRef.current;
+    if (!opened) return;
+    exportPage((file, strokes) => onSave?.(opened.id, file, strokes));
+  }
+
+  function cancelEdit() {
+    release();
+    restore(EMPTY_INK);
+    onCancelEdit?.();
   }
 
   const inked = hasPenInk(ink.strokes);
@@ -401,7 +446,8 @@ export function PenPad({
         {TOOLS.map(({ name, label }) => (
           <Button
             key={name}
-            variant={tool === name ? "primary" : "quiet"}
+            variant={tool === name ? "secondary" : "quiet"}
+            size="sm"
             aria-pressed={tool === name}
             onClick={() => {
               setTool(name);
@@ -418,7 +464,8 @@ export function PenPad({
           {(["fine", "medium", "broad"] as const).map((name) => (
             <Button
               key={name}
-              variant={weight === name ? "primary" : "quiet"}
+              variant={weight === name ? "secondary" : "quiet"}
+              size="sm"
               role="radio"
               aria-checked={weight === name}
               onClick={() => setWeight(name)}
@@ -520,14 +567,27 @@ export function PenPad({
           />
         </div>
       </div>
-      <div className="flex gap-3">
-        <Button onClick={addPage} disabled={!inked}>
-          {s.penAdd}
-        </Button>
-        <Button variant="quiet" onClick={clearSheet} disabled={!inked}>
-          {s.penClear}
-        </Button>
-      </div>
+      {editing ? (
+        // Saving replaces the page where it sits in the list; cancelling
+        // leaves the page exactly as it was added.
+        <div className="flex flex-wrap gap-3">
+          <Button variant="secondary" onClick={savePage} disabled={!inked}>
+            {s.penSave(editing.label)}
+          </Button>
+          <Button variant="quiet" onClick={cancelEdit}>
+            {s.penCancelEdit}
+          </Button>
+        </div>
+      ) : (
+        <div className="flex gap-3">
+          <Button variant="secondary" onClick={addPage} disabled={!inked}>
+            {s.penAdd}
+          </Button>
+          <Button variant="quiet" onClick={clearSheet} disabled={!inked}>
+            {s.penClear}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

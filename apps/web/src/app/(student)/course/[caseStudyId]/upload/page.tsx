@@ -1,7 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ProblemBody } from "@/components/reading/problem-body";
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
 import { getCaseStudy } from "@/lib/api/case-studies";
 import { resolveFigures } from "@/lib/api/figures";
 import { getPracticeVariant } from "@/lib/api/practice";
@@ -53,20 +54,31 @@ export default async function UploadPage({
 
   return (
     <StudentShell seatNumber={seat.seat_number}>
-      <div className="mx-auto flex w-full max-w-[var(--measure-reading)] flex-col gap-6 px-6 py-12">
-        <Link
-          href={`/course/${caseId}`}
-          className="text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        >
-          {strings.upload.back}
-        </Link>
-        <section
+      <main className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-10 sm:px-6">
+        {/* The page is the task, so the task is the heading (guide 4.1, and
+            what the upload journeys look for); the problem's title sits above
+            it as the eyebrow. The panel takes the heading over only while it
+            is sending or marking, when the task has changed. */}
+        <PageHeader
+          back={{ href: `/course/${caseId}`, label: strings.upload.back }}
+          eyebrow={<span className="font-display text-base text-ink">{caseStudy.title}</span>}
+          title={strings.upload.title}
+        />
+        {/* The problem recap: a recess the student can scroll inside, so the
+            question stays within reach while the sheet below is the work. */}
+        <Card
+          as="section"
+          tone="sunken"
           aria-label={strings.upload.question}
-          className="flex max-h-[40vh] flex-col gap-4 overflow-y-auto rounded-md border border-rule-line px-5 py-5"
+          // A region that scrolls must be reachable by keyboard (WCAG 2.1.1);
+          // on a phone the recap overflows its 40vh and axe asks for this.
+          tabIndex={0}
+          className="max-h-[40vh] overflow-y-auto overscroll-contain focus-ring"
         >
-          <h1 className="font-display text-3xl">{caseStudy.title}</h1>
-          <ProblemBody body={body} figures={figures} />
-        </section>
+          <div className="max-w-[var(--measure-reading)]">
+            <ProblemBody body={body} figures={figures} />
+          </div>
+        </Card>
         <UploadPanel
           variantId={variantId}
           caseStudyId={caseId}
@@ -74,7 +86,7 @@ export default async function UploadPage({
           create={createSubmissionAction}
           complete={completeSubmissionAction}
         />
-      </div>
+      </main>
     </StudentShell>
   );
 }

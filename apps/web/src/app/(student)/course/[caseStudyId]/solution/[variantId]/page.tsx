@@ -1,8 +1,11 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { ProblemBody } from "@/components/reading/problem-body";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
+import { PageHeader } from "@/components/ui/page-header";
 import { getCaseStudy } from "@/lib/api/case-studies";
 import { resolveFiguresForBodies } from "@/lib/api/figures";
 import { getPracticeVariant } from "@/lib/api/practice";
@@ -83,14 +86,12 @@ export default async function SolutionPage({
 
   return (
     <StudentShell seatNumber={seat.seat_number}>
-      <div className="mx-auto flex w-full max-w-[var(--measure-reading)] flex-col gap-8 px-6 py-12">
-        <Link
-          href={`/course/${caseId}`}
-          className="text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        >
-          {s.back}
-        </Link>
-        <h1 className="font-display text-4xl">{s.title}</h1>
+      <main className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-10 sm:px-6">
+        <PageHeader
+          back={{ href: `/course/${caseId}`, label: s.back }}
+          title={s.title}
+          size="lg"
+        />
 
         {questionBody ? (
           <SolutionQuestion
@@ -109,24 +110,22 @@ export default async function SolutionPage({
             defenceHref={defenceHref}
           />
         ) : result.reason === "not_earned" ? (
-          <div className="flex flex-col gap-4">
-            <p className="text-ink-muted">{s.notEarned}</p>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href={`/course/${caseId}/upload?variant=${vid}`}
-                className="inline-flex items-center justify-center rounded-md bg-accent px-4 py-2 font-medium text-on-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-              >
+          <Card tone="raised" className="flex flex-col gap-5">
+            <p className="max-w-prose text-pretty text-ink-muted">{s.notEarned}</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <ButtonLink href={`/course/${caseId}/upload?variant=${vid}`}>
+                <Icon name="upload" size={16} />
                 {s.submitInstead}
-              </Link>
+              </ButtonLink>
               {/* Giving up is a choice the student makes deliberately, and the
                   first reveal without a submission is what records it. */}
               <GiveUpLink caseStudyId={caseId} variantId={vid} />
             </div>
-          </div>
+          </Card>
         ) : (
           <p className="text-ink-muted">{s.unavailable}</p>
         )}
-      </div>
+      </main>
     </StudentShell>
   );
 }
@@ -150,12 +149,9 @@ function GiveUpLink({
         redirect(`/course/${caseStudyId}/solution/${variantId}`);
       }}
     >
-      <button
-        type="submit"
-        className="inline-flex items-center justify-center rounded-md border border-rule-line px-4 py-2 font-medium text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-      >
+      <Button type="submit" variant="secondary">
         {strings.unfold.giveUp}
-      </button>
+      </Button>
     </form>
   );
 }

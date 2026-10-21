@@ -68,4 +68,42 @@ describe("PenPad", () => {
     fireEvent.click(screen.getByRole("button", { name: "Select" }));
     expect(screen.queryByRole("button", { name: "Delete selection" })).toBeNull();
   });
+
+  // Decision 0103: a page already in the list opens on the pad with its own
+  // strokes, and saving replaces it rather than adding another.
+  describe("editing a page from the list", () => {
+    const page = {
+      id: "p2",
+      label: "Page 2",
+      strokes: [
+        {
+          tool: "pen" as const,
+          width: 3.5,
+          points: [
+            { x: 10, y: 10, pressure: 0.5 },
+            { x: 40, y: 30, pressure: 0.5 },
+          ],
+        },
+      ],
+    };
+
+    it("offers save and cancel in place of add, with the page's ink ready to save", () => {
+      render(<PenPad onCapture={vi.fn()} editing={page} onSave={vi.fn()} onCancelEdit={vi.fn()} />);
+      expect(screen.queryByRole("button", { name: "Add this page" })).toBeNull();
+      expect(
+        screen.getByRole("button", { name: "Save changes to page 2" }).hasAttribute("disabled"),
+      ).toBe(false);
+      // Opened with no history behind it: the first undo cannot blank the page.
+      expect(screen.getByRole("button", { name: "Undo" }).hasAttribute("disabled")).toBe(true);
+    });
+
+    it("hands the page back untouched when the change is cancelled", () => {
+      const onCancelEdit = vi.fn();
+      const onSave = vi.fn();
+      render(<PenPad onCapture={vi.fn()} editing={page} onSave={onSave} onCancelEdit={onCancelEdit} />);
+      fireEvent.click(screen.getByRole("button", { name: "Cancel changes" }));
+      expect(onCancelEdit).toHaveBeenCalledTimes(1);
+      expect(onSave).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { PageHeader } from "@/components/ui/page-header";
 import { getCourse } from "@/lib/api/courses";
 import { requireProfessor } from "@/lib/professor-session";
 import { ProfessorShell } from "../../../professor-shell";
@@ -30,17 +30,13 @@ export default async function ImportPage({
   if (!course) notFound();
 
   return (
-    <ProfessorShell email={email} signOut={signOut}>
-      <main className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6 py-12">
-        <div className="flex flex-col gap-2">
-          <Link
-            href={`/courses/${id}`}
-            className="text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
-            {strings.import.back}
-          </Link>
-          <h1 className="font-display text-4xl">{strings.import.title}</h1>
-        </div>
+    <ProfessorShell
+      email={email}
+      signOut={signOut}
+      course={{ id, title: course.title, section: "import" }}
+    >
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-10">
+        <PageHeader title={strings.import.title} description={strings.import.intro} />
         <ImportPanel
           courseId={id}
           create={createImportAction}

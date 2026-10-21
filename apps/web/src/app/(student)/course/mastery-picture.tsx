@@ -1,3 +1,7 @@
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Icon } from "@/components/ui/icon";
+import { SectionHeading } from "@/components/ui/section-heading";
 import type { Schemas } from "@/lib/api/client";
 import { MasteryLabel } from "./mastery-label";
 import { strings } from "../strings";
@@ -14,32 +18,35 @@ export function MasteryPicture({
 }) {
   if (mastery.concepts.length === 0) {
     return (
-      <section className="flex flex-col gap-3">
-        <h2 className="font-display text-2xl">{s.heading}</h2>
-        <p className="text-sm text-ink-muted">{s.empty}</p>
+      <section className="flex flex-col gap-4" aria-labelledby="mastery-heading">
+        <SectionHeading id="mastery-heading" title={s.heading} />
+        <EmptyState icon="chart" body={s.empty} />
       </section>
     );
   }
 
   return (
-    <section className="flex flex-col gap-3">
-      <h2 className="font-display text-2xl">{s.heading}</h2>
+    <section className="flex flex-col gap-4" aria-labelledby="mastery-heading">
+      <SectionHeading id="mastery-heading" title={s.heading} />
       <ul className="flex flex-col divide-y divide-rule-line">
         {mastery.concepts.map((concept) => (
           <li
             key={concept.concept_id}
-            className="flex flex-wrap items-start justify-between gap-3 py-3"
+            className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2 py-4"
           >
-            <div className="flex flex-col gap-0.5">
-              <span className="text-ink">{concept.name}</span>
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <span className="font-display text-lg leading-snug">{concept.name}</span>
               {concept.description ? (
-                <span className="text-xs text-ink-muted">{concept.description}</span>
+                <span className="text-sm text-ink-muted">{concept.description}</span>
               ) : null}
             </div>
-            <div className="flex flex-col items-end gap-1">
+            <div className="flex flex-col items-end gap-1.5">
               <MasteryLabel label={concept.label} trail={concept.trail} />
               {concept.due_for_revisit ? (
-                <span className="text-xs text-ink-muted">{s.dueForRevisit}</span>
+                <Badge tone="accent">
+                  <Icon name="refresh" size={12} />
+                  {s.dueForRevisit}
+                </Badge>
               ) : null}
             </div>
           </li>

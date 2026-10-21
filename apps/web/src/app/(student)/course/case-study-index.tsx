@@ -1,6 +1,10 @@
 import Link from "next/link";
 
-import { Button, ButtonLink } from "@/components/ui/button";
+import { Button, ButtonLink, buttonClassName } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Field, Input } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
+import { SectionHeading } from "@/components/ui/section-heading";
 import type { Schemas } from "@/lib/api/client";
 import { strings } from "../strings";
 import { indexHref, type IndexView } from "./index-view";
@@ -9,12 +13,14 @@ import { indexHref, type IndexView } from "./index-view";
 // way a student looks a problem up, so the list is grouped under the concept a
 // problem is chiefly about, and a topic can be opened on its own. Paging is a
 // link, never an infinite scroll (guide 4.2b). Presentational: the page fetches
-// the whole published set and passes the view.
+// the whole published set and passes the view. Each problem is a flat card row
+// (decision 0102): title in the display face, the other concepts it carries as
+// a quiet meta line, and a chevron, with the row itself the link.
 const s = strings.course;
 
 export function CaseStudyIndex({ view }: { view: IndexView }) {
   if (view.emptyCourse) {
-    return <p className="text-ink/70">{s.empty}</p>;
+    return <EmptyState icon="book" body={s.empty} />;
   }
 
   const summary =
@@ -26,42 +32,49 @@ export function CaseStudyIndex({ view }: { view: IndexView }) {
 
   return (
     <section className="flex flex-col gap-6" aria-labelledby="problems-heading">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 id="problems-heading" className="font-display text-2xl">
-          {s.heading}
-        </h2>
-        <p className="flex flex-wrap gap-x-3 text-sm tabular-nums text-ink-muted">
-          <span>{summary}</span>
-          {view.pageCount > 1 ? <span>{s.pageStatus(view.page, view.pageCount)}</span> : null}
-        </p>
-      </div>
+      <SectionHeading
+        id="problems-heading"
+        title={s.heading}
+        count={
+          <>
+            <span>{summary}</span>
+            {view.pageCount > 1 ? (
+              <span className="ml-3">{s.pageStatus(view.page, view.pageCount)}</span>
+            ) : null}
+          </>
+        }
+      />
 
       <form method="get" action="/course" className="flex flex-col gap-3 sm:flex-row sm:items-end">
         {view.topicId !== null ? (
           <input type="hidden" name="topic" value={view.topicId} />
         ) : null}
-        <label className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <span className="text-sm text-ink">{s.searchLabel}</span>
-          <input
-            type="search"
-            name="q"
-            defaultValue={view.q}
-            placeholder={s.searchPlaceholder}
-            enterKeyHint="search"
-            className="rounded-md border border-field-border bg-paper px-3 py-2 text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          />
-        </label>
-        <div className="flex items-center gap-3">
-          <Button type="submit" variant="quiet">
+        <Field label={s.searchLabel} className="min-w-0 flex-1">
+          <span className="relative block">
+            <Icon
+              name="search"
+              size={16}
+              className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-ink-muted"
+            />
+            <Input
+              type="search"
+              name="q"
+              defaultValue={view.q}
+              placeholder={s.searchPlaceholder}
+              enterKeyHint="search"
+              className="pl-10"
+            />
+          </span>
+        </Field>
+        <div className="flex items-center gap-2">
+          <Button type="submit" variant="secondary">
             {s.searchAction}
           </Button>
           {view.q ? (
-            <Link
-              href={indexHref({ topic: view.topicId })}
-              className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
+            <ButtonLink href={indexHref({ topic: view.topicId })} variant="quiet">
+              <Icon name="x" size={14} className="text-ink-muted" />
               {s.clearSearch}
-            </Link>
+            </ButtonLink>
           ) : null}
         </div>
       </form>
@@ -92,21 +105,16 @@ export function CaseStudyIndex({ view }: { view: IndexView }) {
       ) : null}
 
       {view.total === 0 ? (
-        <p className="text-ink-muted">{s.noMatches}</p>
+        <EmptyState icon="search" body={s.noMatches} />
       ) : (
-        <div className="flex flex-col gap-12">
+        <div className="flex flex-col gap-10">
           {view.groups.map((group) => {
             const heading = headingFor(group, view);
             const count = view.topics.find((topic) => topic.conceptId === group.conceptId)?.count;
             return (
               <section key={group.conceptId ?? "untagged"} className="flex flex-col gap-3">
                 {heading ? (
-                  <div className="flex items-baseline justify-between gap-4 border-b-2 border-ink pb-2">
-                    <h3 className="font-display text-2xl">{heading}</h3>
-                    {count != null ? (
-                      <span className="text-sm tabular-nums text-ink-muted">{count}</span>
-                    ) : null}
-                  </div>
+                  <SectionHeading level={3} title={heading} count={count ?? undefined} />
                 ) : null}
                 <ul className="flex flex-col gap-2">
                   {group.items.map((item) => (
@@ -134,27 +142,37 @@ export function CaseStudyIndex({ view }: { view: IndexView }) {
             {view.page > 1 ? (
               <ButtonLink
                 href={indexHref({ page: view.page - 1, topic: view.topicId, q: view.q })}
-                variant="quiet"
-                className="text-sm"
+                variant="secondary"
+                size="sm"
               >
+                <Icon name="arrow-left" size={14} className="text-ink-muted" />
                 {s.previous}
               </ButtonLink>
             ) : (
-              <span className="px-4 py-2 text-sm text-ink-muted" aria-disabled="true">
+              <span
+                className={buttonClassName("secondary", "pointer-events-none opacity-50", "sm")}
+                aria-disabled="true"
+              >
+                <Icon name="arrow-left" size={14} className="text-ink-muted" />
                 {s.previous}
               </span>
             )}
             {view.page < view.pageCount ? (
               <ButtonLink
                 href={indexHref({ page: view.page + 1, topic: view.topicId, q: view.q })}
-                variant="quiet"
-                className="text-sm"
+                variant="secondary"
+                size="sm"
               >
                 {s.next}
+                <Icon name="arrow-right" size={14} className="text-ink-muted" />
               </ButtonLink>
             ) : (
-              <span className="px-4 py-2 text-sm text-ink-muted" aria-disabled="true">
+              <span
+                className={buttonClassName("secondary", "pointer-events-none opacity-50", "sm")}
+                aria-disabled="true"
+              >
                 {s.next}
+                <Icon name="arrow-right" size={14} className="text-ink-muted" />
               </span>
             )}
           </div>
@@ -173,6 +191,9 @@ function headingFor(group: IndexView["groups"][number], view: IndexView): string
   return null;
 }
 
+// A topic chip is a link with the choice in the URL. Hand-rolled rather than
+// the segmented nav because the index test pins aria-current="true" on the
+// open topic, and because topics wrap into rows rather than sit in one track.
 function TopicChip({
   href,
   current,
@@ -189,13 +210,17 @@ function TopicChip({
       href={href}
       aria-current={current ? "true" : undefined}
       className={
-        current
-          ? "inline-flex items-center gap-2 rounded-full border border-ink bg-ink px-3 py-1 text-sm text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          : "inline-flex items-center gap-2 rounded-full border border-field-border px-3 py-1 text-sm text-ink hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        "inline-flex min-h-8 items-center gap-2 rounded-full border px-3 text-sm " +
+        "transition-colors duration-(--motion-duration) ease-(--motion-ease) focus-ring " +
+        (current
+          ? "border-ink bg-ink font-medium text-paper"
+          : "border-rule-line bg-surface text-ink hover:border-ink")
       }
     >
       <span>{label}</span>
-      <span className="tabular-nums">{count}</span>
+      <span className={"tabular-nums text-xs " + (current ? "text-paper/70" : "text-ink-muted")}>
+        {count}
+      </span>
     </Link>
   );
 }
@@ -213,19 +238,19 @@ function ProblemLink({
   return (
     <Link
       href={`/course/${item.id}`}
-      className="group flex items-center justify-between gap-4 rounded-md border border-field-border bg-paper px-4 py-3.5 transition-colors duration-(--motion-duration) ease-(--motion-ease) hover:border-ink hover:bg-rule-line/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      className="group flex items-center justify-between gap-4 rounded-lg border border-rule-line bg-surface px-4 py-3.5 transition-colors duration-(--motion-duration) ease-(--motion-ease) hover:border-ink hover:bg-surface-sunken/40 focus-ring"
     >
       <span className="flex min-w-0 flex-col gap-1">
-        <span className="font-display text-lg leading-snug group-hover:text-accent-text">
-          {item.title}
-        </span>
+        <span className="font-display text-lg leading-snug">{item.title}</span>
         {also.length > 0 ? (
-          <span className="text-xs text-ink-muted">{s.also(also.join(", "))}</span>
+          <span className="text-sm text-ink-muted">{s.also(also.join(", "))}</span>
         ) : null}
       </span>
-      <span aria-hidden="true" className="shrink-0 font-display text-lg text-accent-text">
-        →
-      </span>
+      <Icon
+        name="chevron-right"
+        size={16}
+        className="text-ink-muted transition-colors duration-(--motion-duration) ease-(--motion-ease) group-hover:text-ink"
+      />
     </Link>
   );
 }

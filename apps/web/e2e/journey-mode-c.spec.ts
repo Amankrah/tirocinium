@@ -30,6 +30,9 @@ test.describe("mode C: write on the pad and submit", () => {
 
     // Draw a short stroke on the pad.
     const pad = page.getByRole("img", { name: "Handwriting page" });
+    // The sheet sits below the problem recap and the toolbar, so on a short
+    // viewport its top is off screen; a stroke drawn there lands on nothing.
+    await pad.scrollIntoViewIfNeeded();
     const box = await pad.boundingBox();
     if (box) {
       await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.3);

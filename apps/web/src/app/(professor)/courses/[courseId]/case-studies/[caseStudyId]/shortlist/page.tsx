@@ -1,7 +1,10 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ButtonLink } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
 import { getCaseStudy } from "@/lib/api/case-studies";
+import { getCourse } from "@/lib/api/courses";
 import {
   getAuthoringCatalogue,
   getShortlist,
@@ -32,53 +35,49 @@ export default async function ShortlistPage({
   if (!Number.isInteger(cid) || cid <= 0) notFound();
   if (!Number.isInteger(csid) || csid <= 0) notFound();
 
-  const caseStudy = await getCaseStudy(token, cid, csid);
-  if (!caseStudy) notFound();
+  const [course, caseStudy] = await Promise.all([
+    getCourse(token, cid),
+    getCaseStudy(token, cid, csid),
+  ]);
+  if (!course || !caseStudy) notFound();
 
   const s = strings.shortlist;
   const catalogue = await getAuthoringCatalogue(token, cid, csid);
 
   return (
-    <ProfessorShell email={email} signOut={signOut}>
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-12">
-        <div className="flex flex-col gap-2">
-          <Link
-            href={`/courses/${cid}/case-studies/${csid}`}
-            className="text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
-            {s.back}
-          </Link>
-          <h1 className="font-display text-4xl">{s.title}</h1>
-          <p className="text-ink-muted">{caseStudy.title}</p>
-        </div>
+    <ProfessorShell
+      email={email}
+      signOut={signOut}
+      course={{ id: cid, title: course.title, section: "overview" }}
+    >
+      <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-10">
+        <PageHeader
+          back={{ href: `/courses/${cid}/case-studies/${csid}`, label: s.back }}
+          eyebrow={<span>{caseStudy.title}</span>}
+          title={s.title}
+          description={catalogue.ok ? s.intro : undefined}
+        />
 
         {!catalogue.ok ? (
-          <div className="flex flex-col gap-3">
-            <p className="max-w-[var(--measure-reading)] text-ink-muted">
-              {catalogue.status === 409 ? s.unpinned : strings.materials.error}
-            </p>
-            <Link
-              href={`/courses/${cid}/materials`}
-              className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
-              {s.chooseCatalogue}
-            </Link>
-          </div>
+          <EmptyState
+            icon="store"
+            body={catalogue.status === 409 ? s.unpinned : strings.materials.error}
+            action={
+              <ButtonLink href={`/courses/${cid}/materials`} variant="secondary">
+                {s.chooseCatalogue}
+              </ButtonLink>
+            }
+          />
         ) : (
-          <>
-            <p className="max-w-[var(--measure-reading)] text-sm text-ink-muted">
-              {s.intro}
-            </p>
-            <ShortlistEditor
-              courseId={cid}
-              caseStudyId={csid}
-              catalogue={catalogue.data}
-              initial={await getShortlist(token, cid, csid).then((result) =>
-                result.ok ? result.data.skus : [],
-              )}
-              save={saveShortlistAction}
-            />
-          </>
+          <ShortlistEditor
+            courseId={cid}
+            caseStudyId={csid}
+            catalogue={catalogue.data}
+            initial={await getShortlist(token, cid, csid).then((result) =>
+              result.ok ? result.data.skus : [],
+            )}
+            save={saveShortlistAction}
+          />
         )}
       </main>
     </ProfessorShell>

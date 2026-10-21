@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { PageHeader } from "@/components/ui/page-header";
 import { getCourse } from "@/lib/api/courses";
 import { listSubmissions } from "@/lib/api/review";
 import { requireProfessor } from "@/lib/professor-session";
@@ -31,17 +31,13 @@ export default async function SubmissionsPage({
   const s = strings.submissions;
 
   return (
-    <ProfessorShell email={email} signOut={signOut}>
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-12">
-        <div className="flex flex-col gap-2">
-          <Link
-            href={`/courses/${cid}`}
-            className="text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
-            {s.back}
-          </Link>
-          <h1 className="font-display text-4xl">{s.heading}</h1>
-        </div>
+    <ProfessorShell
+      email={email}
+      signOut={signOut}
+      course={{ id: cid, title: course.title, section: "submissions" }}
+    >
+      <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-10">
+        <PageHeader title={s.heading} />
         <SubmissionQueue
           courseId={cid}
           initial={page}

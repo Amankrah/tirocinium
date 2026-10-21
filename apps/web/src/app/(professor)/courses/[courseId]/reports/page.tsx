@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { PageHeader } from "@/components/ui/page-header";
 import { getCourse } from "@/lib/api/courses";
 import {
   getActivity,
@@ -46,18 +46,13 @@ export default async function ReportsPage({
   const s = strings.reports;
 
   return (
-    <ProfessorShell email={email} signOut={signOut}>
-      <main className="mx-auto flex w-full max-w-4xl flex-col gap-12 px-6 py-12">
-        <div className="flex flex-col gap-2">
-          <Link
-            href={`/courses/${cid}`}
-            className="text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
-            {s.back}
-          </Link>
-          <h1 className="font-display text-4xl">{s.heading}</h1>
-          <p className="text-ink-muted">{course.title}</p>
-        </div>
+    <ProfessorShell
+      email={email}
+      signOut={signOut}
+      course={{ id: cid, title: course.title, section: "reports" }}
+    >
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-4 py-8 sm:px-6 lg:px-10">
+        <PageHeader title={s.heading} />
 
         {activity ? <ActivityReport activity={activity} /> : null}
         {usage ? <UsageReport usage={usage} /> : null}

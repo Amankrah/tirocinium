@@ -1,7 +1,9 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ProblemBody } from "@/components/reading/problem-body";
+import { Badge } from "@/components/ui/badge";
+import { Icon } from "@/components/ui/icon";
+import { PageHeader } from "@/components/ui/page-header";
 import { getCaseStudy } from "@/lib/api/case-studies";
 import { resolveFigures } from "@/lib/api/figures";
 import { getMarketplace, offersMarketplace } from "@/lib/api/marketplace";
@@ -64,32 +66,26 @@ export default async function ProblemViewPage({
 
   return (
     <StudentShell seatNumber={seat.seat_number}>
-      <article className="mx-auto flex w-full max-w-[var(--measure-reading)] flex-col gap-6 px-6 py-12">
-        <Link
-          href="/course"
-          className="text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        >
-          {strings.problem.backToCourse}
-        </Link>
-
-        <header className="flex flex-col gap-3">
-          <h1 className="font-display text-4xl">{caseStudy.title}</h1>
+      <main className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-10 sm:px-6">
+        <div className="flex flex-col gap-4">
+          <PageHeader
+            back={{ href: "/course", label: strings.problem.backToCourse }}
+            title={caseStudy.title}
+            size="lg"
+          />
           {caseStudy.concepts.length > 0 ? (
-            <ul
-              aria-label={strings.problem.concepts}
-              className="flex flex-wrap gap-2"
-            >
+            <ul aria-label={strings.problem.concepts} className="flex flex-wrap gap-2">
               {caseStudy.concepts.map((concept) => (
-                <li
-                  key={concept.concept_id}
-                  className="rounded-full border border-rule-line px-2.5 py-0.5 text-xs text-ink/70"
-                >
-                  {concept.name}
+                <li key={concept.concept_id}>
+                  <Badge tone="neutral">
+                    <Icon name="tag" size={12} />
+                    {concept.name}
+                  </Badge>
                 </li>
               ))}
             </ul>
           ) : null}
-        </header>
+        </div>
 
         <PracticeProblem
           caseStudyId={id}
@@ -101,7 +97,7 @@ export default async function ProblemViewPage({
         >
           <ProblemBody body={body} figures={figures} />
         </PracticeProblem>
-      </article>
+      </main>
     </StudentShell>
   );
 }

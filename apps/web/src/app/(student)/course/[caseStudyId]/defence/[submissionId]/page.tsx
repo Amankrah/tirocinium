@@ -1,7 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ProblemBody } from "@/components/reading/problem-body";
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
 import { getMastery, getRevisit } from "@/lib/api/mastery";
 import { getSubmission, getSubmissionTranscription } from "@/lib/api/submissions";
 import { requireSeat } from "@/lib/seat-session";
@@ -21,6 +22,10 @@ import type { RevisitTarget } from "./defence-session";
 // variant, which decision 0055 flags against frontend guide 2's rule that a
 // figure renders on every surface showing a problem. The student's
 // transcription is seat-readable and is what the conversation is about.
+//
+// Two columns on a wide screen (decision 0102): the conversation on the left,
+// the student's own work on the right where it stays in view while they talk
+// about it. On a phone the work follows the conversation.
 export default async function DefencePage({
   params,
   searchParams,
@@ -69,37 +74,53 @@ export default async function DefencePage({
   });
 
   const s = strings.defence;
+  const hasWork = Boolean(transcription && transcription.recognized_markdown);
 
   return (
     <StudentShell seatNumber={seat.seat_number}>
-      <div className="mx-auto flex w-full max-w-[var(--measure-reading)] flex-col gap-8 px-6 py-12">
-        <Link
-          href={`/course/${caseId}`}
-          className="text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-10 sm:px-6">
+        <PageHeader
+          back={{ href: `/course/${caseId}`, label: s.back }}
+          title={s.title}
+          size="lg"
+        />
+
+        <div
+          className={
+            hasWork
+              ? "grid gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start"
+              : "flex flex-col gap-8"
+          }
         >
-          {s.back}
-        </Link>
-        <h1 className="font-display text-4xl">{s.title}</h1>
+          <div className="flex min-w-0 flex-col gap-6">
+            {ready ? (
+              <DefencePanel
+                open={openDefenceAction.bind(null, id)}
+                revisit={targets}
+                initialQuestion={
+                  step ? `I do not understand this step: ${step}` : undefined
+                }
+              />
+            ) : (
+              <p className="text-ink-muted">{s.notReady}</p>
+            )}
+          </div>
 
-        {ready ? (
-          <DefencePanel
-            open={openDefenceAction.bind(null, id)}
-            revisit={targets}
-            initialQuestion={
-              step ? `I do not understand this step: ${step}` : undefined
-            }
-          />
-        ) : (
-          <p className="text-ink-muted">{s.notReady}</p>
-        )}
-
-        {transcription && transcription.recognized_markdown ? (
-          <section className="flex flex-col gap-3 border-t border-rule-line pt-6">
-            <h2 className="font-display text-xl">{s.yourWork}</h2>
-            <ProblemBody body={transcription.recognized_markdown} />
-          </section>
-        ) : null}
-      </div>
+          {transcription && transcription.recognized_markdown ? (
+            <Card
+              as="section"
+              tone="sunken"
+              aria-labelledby="your-work-heading"
+              className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-[calc(var(--app-header-height)+1.5rem)] lg:max-h-[calc(100svh-var(--app-header-height)-3rem)] lg:overflow-y-auto"
+            >
+              <h2 id="your-work-heading" className="font-display text-xl">
+                {s.yourWork}
+              </h2>
+              <ProblemBody body={transcription.recognized_markdown} />
+            </Card>
+          ) : null}
+        </div>
+      </main>
     </StudentShell>
   );
 }

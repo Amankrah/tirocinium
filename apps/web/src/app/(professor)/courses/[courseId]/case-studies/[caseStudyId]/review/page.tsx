@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { PageHeader } from "@/components/ui/page-header";
 import { getCourse } from "@/lib/api/courses";
 import { listVariants } from "@/lib/api/variants";
 import { requireProfessor } from "@/lib/professor-session";
@@ -18,7 +18,8 @@ import { ReviewQueue } from "./review-queue";
 
 // The flagged-variant review queue (guide 4.4). A Server Component shell: it
 // proves the professor owns the course, does the first flagged read server-side,
-// and hands the queue its data and verbs.
+// and hands the queue its data and verbs. The queue is the page's first list,
+// which the keyboard journey relies on to find it.
 export default async function ReviewPage({
   params,
 }: {
@@ -37,17 +38,19 @@ export default async function ReviewPage({
   if (!flagged) notFound();
 
   return (
-    <ProfessorShell email={email} signOut={signOut}>
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-12">
-        <div className="flex flex-col gap-2">
-          <Link
-            href={`/courses/${cid}/case-studies/${csid}`}
-            className="text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
-            {strings.variants.reviewBack}
-          </Link>
-          <h1 className="font-display text-4xl">{strings.variants.reviewTitle}</h1>
-        </div>
+    <ProfessorShell
+      email={email}
+      signOut={signOut}
+      course={{ id: cid, title: course.title, section: "overview" }}
+    >
+      <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-10">
+        <PageHeader
+          back={{
+            href: `/courses/${cid}/case-studies/${csid}`,
+            label: strings.variants.reviewBack,
+          }}
+          title={strings.variants.reviewTitle}
+        />
         <ReviewQueue
           courseId={cid}
           caseStudyId={csid}

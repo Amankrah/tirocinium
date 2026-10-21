@@ -1,7 +1,14 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Icon } from "@/components/ui/icon";
+import { PageHeader } from "@/components/ui/page-header";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { SegmentedNav } from "@/components/ui/segmented-nav";
+import { Table, Td, Th, Tr } from "@/components/ui/table";
 import { listCaseStudies } from "@/lib/api/case-studies";
 import { getCourse } from "@/lib/api/courses";
 import {
@@ -76,42 +83,41 @@ export default async function MaterialsPage({
   const titles = new Map(cases.map((entry) => [entry.id, entry.title]));
 
   return (
-    <ProfessorShell email={email} signOut={signOut}>
-      <main className="mx-auto flex w-full max-w-4xl flex-col gap-10 px-6 py-12">
-        <div className="flex flex-col gap-2">
-          <Link
-            href={`/courses/${id}`}
-            className="text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
-            {s.back}
-          </Link>
-          <h1 className="font-display text-4xl">{s.title}</h1>
-          <p className="max-w-[var(--measure-reading)] text-sm text-ink-muted">
-            {s.intro}
-          </p>
-        </div>
+    <ProfessorShell
+      email={email}
+      signOut={signOut}
+      course={{ id, title: course.title, section: "materials" }}
+    >
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-4 py-8 sm:px-6 lg:px-10">
+        <PageHeader title={s.title} description={s.intro} />
 
         <section aria-labelledby="catalogue" className="flex flex-col gap-4">
-          <h2 id="catalogue" className="font-display text-2xl">
-            {s.catalogueHeading}
-          </h2>
+          <SectionHeading id="catalogue" title={s.catalogueHeading} />
           {!catalogues.ok ? (
             <p role="alert" className="text-sm text-flag-amber">
               {s.error}
             </p>
           ) : catalogues.data.available.length === 0 ? (
-            <p className="text-ink-muted">{s.noCatalogues}</p>
+            <EmptyState icon="store" body={s.noCatalogues} />
           ) : (
             <>
-              {pinned === null ? <p className="text-ink-muted">{s.off}</p> : null}
-              <ul className="flex flex-col divide-y divide-rule-line">
+              {pinned === null ? (
+                <p className="max-w-prose text-sm text-ink-muted">{s.off}</p>
+              ) : null}
+              <ul className="flex flex-col gap-3">
                 {catalogues.data.available.map((choice) => {
                   const inUse =
                     pinned?.id === choice.id && pinned.version === choice.version;
                   return (
-                    <li
+                    <Card
                       key={`${choice.id}-${choice.version}`}
-                      className="flex flex-wrap items-center justify-between gap-4 py-4"
+                      as="li"
+                      tone="flat"
+                      padded={false}
+                      className={
+                        "flex flex-wrap items-center justify-between gap-4 px-5 py-4" +
+                        (inUse ? " border-accent/40" : "")
+                      }
                     >
                       <div className="flex flex-col gap-1">
                         <span className="font-display text-lg">{choice.title}</span>
@@ -121,7 +127,10 @@ export default async function MaterialsPage({
                         </span>
                       </div>
                       {inUse ? (
-                        <span className="text-sm text-verify-green">{s.inUse}</span>
+                        <Badge tone="accent">
+                          <Icon name="check" size={12} />
+                          {s.inUse}
+                        </Badge>
                       ) : (
                         <form
                           action={pinCatalogueAction.bind(
@@ -131,25 +140,21 @@ export default async function MaterialsPage({
                             choice.version,
                           )}
                         >
-                          <Button variant="quiet" type="submit" className="text-sm">
+                          <Button variant="secondary" size="sm" type="submit">
                             {s.use}
                           </Button>
                         </form>
                       )}
-                    </li>
+                    </Card>
                   );
                 })}
               </ul>
-              <p className="max-w-[var(--measure-reading)] text-sm text-ink-muted">
-                {s.pinNote}
-              </p>
+              <p className="max-w-prose text-sm text-ink-muted">{s.pinNote}</p>
               {pinned !== null ? (
-                <div className="flex flex-col gap-2 border-t border-rule-line pt-4">
-                  <p className="max-w-[var(--measure-reading)] text-sm text-ink-muted">
-                    {s.turnOffNote}
-                  </p>
+                <div className="flex flex-col gap-3 border-t border-rule-line pt-4">
+                  <p className="max-w-prose text-sm text-ink-muted">{s.turnOffNote}</p>
                   <form action={unpinCatalogueAction.bind(null, id)}>
-                    <Button variant="quiet" type="submit" className="text-sm">
+                    <Button variant="secondary" size="sm" type="submit">
                       {s.turnOff}
                     </Button>
                   </form>
@@ -162,67 +167,62 @@ export default async function MaterialsPage({
         {pinned !== null ? (
           <>
             <section aria-labelledby="shortlists" className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <h2 id="shortlists" className="font-display text-2xl">
-                  {s.shortlistsHeading}
-                </h2>
-                <p className="max-w-[var(--measure-reading)] text-sm text-ink-muted">
-                  {s.shortlistsIntro}
-                </p>
-              </div>
+              <SectionHeading
+                id="shortlists"
+                title={s.shortlistsHeading}
+                description={s.shortlistsIntro}
+              />
               {shortlists.length === 0 ? (
-                <p className="text-ink-muted">{strings.course.empty}</p>
+                <EmptyState icon="layers" body={strings.course.empty} />
               ) : (
-                <ul className="flex flex-col divide-y divide-rule-line">
+                <ul className="flex flex-col gap-3">
                   {shortlists.map(({ entry, count }) => (
-                    <li
+                    <Card
                       key={entry.id}
-                      className="flex flex-wrap items-center justify-between gap-4 py-4"
+                      as="li"
+                      tone="flat"
+                      padded={false}
+                      className="flex flex-wrap items-center justify-between gap-4 px-5 py-4"
                     >
                       <div className="flex flex-col gap-1">
                         <span className="font-display text-lg">{entry.title}</span>
-                        <span className="text-xs text-ink-muted">
+                        <span className="text-sm tabular-nums text-ink-muted">
                           {s.shortlisted(count)}
                         </span>
                       </div>
-                      <Link
+                      <ButtonLink
                         href={`/courses/${id}/case-studies/${entry.id}/shortlist`}
-                        className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                        variant="secondary"
+                        size="sm"
                       >
+                        <Icon name="pen" size={14} />
                         {s.editShortlist}
-                      </Link>
-                    </li>
+                      </ButtonLink>
+                    </Card>
                   ))}
                 </ul>
               )}
             </section>
 
             <section aria-labelledby="quotes" className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <h2 id="quotes" className="font-display text-2xl">
-                  {s.quotesHeading}
-                </h2>
-                <p className="max-w-[var(--measure-reading)] text-sm text-ink-muted">
-                  {s.quotesIntro}
-                </p>
-              </div>
+              <SectionHeading id="quotes" title={s.quotesHeading} description={s.quotesIntro} />
 
               {cases.length > 0 ? (
-                <nav aria-label={s.quotesHeading} className="flex flex-wrap gap-3">
-                  <FilterLink
-                    href={`/courses/${id}/materials`}
-                    label={s.everyCaseStudy}
-                    current={caseFilter === undefined}
-                  />
-                  {cases.map((entry) => (
-                    <FilterLink
-                      key={entry.id}
-                      href={`/courses/${id}/materials?case_study=${entry.id}`}
-                      label={entry.title}
-                      current={caseFilter === entry.id}
-                    />
-                  ))}
-                </nav>
+                <SegmentedNav
+                  label={s.quotesHeading}
+                  segments={[
+                    {
+                      href: `/courses/${id}/materials`,
+                      label: s.everyCaseStudy,
+                      current: caseFilter === undefined,
+                    },
+                    ...cases.map((entry) => ({
+                      href: `/courses/${id}/materials?case_study=${entry.id}`,
+                      label: entry.title,
+                      current: caseFilter === entry.id,
+                    })),
+                  ]}
+                />
               ) : null}
 
               {!quotes?.ok ? (
@@ -230,76 +230,70 @@ export default async function MaterialsPage({
                   {s.error}
                 </p>
               ) : quotes.data.entries.length === 0 ? (
-                <p className="text-ink-muted">{s.quotesEmpty}</p>
+                <EmptyState icon="inbox" body={s.quotesEmpty} />
               ) : (
                 <>
-                  <table className="w-full text-left text-sm">
-                    <thead className="text-xs uppercase tracking-widest text-ink-muted">
-                      <tr className="border-b border-rule-line">
-                        <th scope="col" className="py-2 font-normal">
-                          {s.colQuote}
-                        </th>
-                        <th scope="col" className="py-2 font-normal">
-                          {s.colSeat}
-                        </th>
-                        <th scope="col" className="py-2 font-normal">
-                          {s.colLines}
-                        </th>
-                        <th scope="col" className="py-2 font-normal">
-                          {s.colTotal}
-                        </th>
-                        <th scope="col" className="py-2 font-normal">
-                          {s.colMass}
-                        </th>
-                        <th scope="col" className="py-2 font-normal">
-                          {s.colCited}
-                        </th>
+                  <Table>
+                    <thead>
+                      <tr>
+                        <Th>{s.colQuote}</Th>
+                        <Th>{s.colSeat}</Th>
+                        <Th justify="end">{s.colLines}</Th>
+                        <Th justify="end">{s.colTotal}</Th>
+                        <Th justify="end">{s.colMass}</Th>
+                        <Th>{s.colCited}</Th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-rule-line">
+                    <tbody>
                       {quotes.data.entries.map((entry) => (
-                        <tr key={entry.quote_id}>
-                          <td className="py-3">
+                        <Tr key={entry.quote_id}>
+                          <Td>
                             <span className="font-mono text-xs tabular-nums">
                               {entry.quote_number}
                             </span>
                             <span className="block text-xs text-ink-muted">
                               {titles.get(entry.case_study_id) ?? ""}{" "}
-                              {new Date(entry.issued_at * 1000)
-                                .toISOString()
-                                .slice(0, 10)}
+                              <span className="font-mono tabular-nums">
+                                {new Date(entry.issued_at * 1000).toISOString().slice(0, 10)}
+                              </span>
                             </span>
-                          </td>
-                          <td className="py-3 font-mono text-xs tabular-nums">
+                          </Td>
+                          <Td numeric className="text-xs">
                             {entry.seat_number}
-                          </td>
-                          <td className="py-3 tabular-nums">{entry.line_count}</td>
-                          <td className="py-3 font-mono tabular-nums">
+                          </Td>
+                          <Td numeric justify="end">
+                            {entry.line_count}
+                          </Td>
+                          <Td numeric justify="end">
                             {money(entry.total_cents)}
-                          </td>
-                          <td className="py-3 font-mono tabular-nums">
+                          </Td>
+                          <Td numeric justify="end">
                             {mass(entry.total_mass_grams)}
-                          </td>
-                          <td className="py-3 text-ink-muted">
-                            {entry.cited ? s.cited : s.notCited}
-                          </td>
-                        </tr>
+                          </Td>
+                          <Td>
+                            <Badge tone={entry.cited ? "accent" : "neutral"}>
+                              {entry.cited ? s.cited : s.notCited}
+                            </Badge>
+                          </Td>
+                        </Tr>
                       ))}
                     </tbody>
-                  </table>
+                  </Table>
                   {quotes.data.next_cursor !== null ? (
                     <div>
-                      <Link
+                      <ButtonLink
                         href={`/courses/${id}/materials?${new URLSearchParams({
                           ...(caseFilter === undefined
                             ? {}
                             : { case_study: String(caseFilter) }),
                           cursor: String(quotes.data.next_cursor),
                         })}`}
-                        className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                        variant="secondary"
+                        size="sm"
                       >
                         {s.older}
-                      </Link>
+                        <Icon name="arrow-right" size={14} />
+                      </ButtonLink>
                     </div>
                   ) : null}
                 </>
@@ -307,17 +301,17 @@ export default async function MaterialsPage({
 
               {quotes?.ok && quotes.data.tallies.length > 0 ? (
                 <div className="flex flex-col gap-3 border-t border-rule-line pt-6">
-                  <div className="flex flex-col gap-1">
-                    <h3 className="font-display text-lg">{s.talliesHeading}</h3>
-                    <p className="max-w-[var(--measure-reading)] text-sm text-ink-muted">
-                      {s.talliesIntro}
-                    </p>
-                  </div>
-                  <ul className="flex flex-col gap-2">
+                  <SectionHeading
+                    level={3}
+                    rule={false}
+                    title={s.talliesHeading}
+                    description={s.talliesIntro}
+                  />
+                  <ul className="flex flex-col divide-y divide-rule-line">
                     {quotes.data.tallies.map((tally) => (
                       <li
                         key={tally.sku}
-                        className="flex flex-wrap items-baseline justify-between gap-3"
+                        className="flex flex-wrap items-baseline justify-between gap-3 py-2.5"
                       >
                         <span>
                           {tally.name}
@@ -338,30 +332,5 @@ export default async function MaterialsPage({
         ) : null}
       </main>
     </ProfessorShell>
-  );
-}
-
-function FilterLink({
-  href,
-  label,
-  current,
-}: {
-  href: string;
-  label: string;
-  current: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      aria-current={current ? "page" : undefined}
-      className={
-        "rounded-md border px-3 py-1 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent " +
-        (current
-          ? "border-accent text-ink"
-          : "border-rule-line text-ink-muted hover:text-ink")
-      }
-    >
-      {label}
-    </Link>
   );
 }

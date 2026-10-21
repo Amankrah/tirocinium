@@ -12,6 +12,14 @@ export const strings = {
   // the pair repeated quietly in the sticky header and at the close.
   doors: "Ways in",
   enterCourse: "Enter course",
+  // The hero's kicker and lede (decision 0102): what the product is, in one
+  // short line each, so a cold visitor is told before being asked.
+  kicker: "Case study practice for university courses",
+  lede:
+    "Work every problem by hand, photograph your pages, and defend your reasoning out loud to a tutor that has read your work.",
+  practiceKicker: "For students",
+  professorKicker: "For professors",
+  footerLine: "Built for courses that are worked, not watched.",
   signIn: "Sign in",
   signUp: "Create an account",
   // The professor's single quiet line under the hero action, one choice, not

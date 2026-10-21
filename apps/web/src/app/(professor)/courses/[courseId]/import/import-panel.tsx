@@ -7,10 +7,11 @@
 // professor JWT never reaches here (decision 0019's shape, reused). On "ready"
 // it links into the confirmation surface where the detected problems are
 // reviewed and confirmed.
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink, buttonClassName } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
 import type { Schemas } from "@/lib/api/client";
 import {
   ImportController,
@@ -120,15 +121,17 @@ export function ImportPanel({
 
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-ink-muted">{s.intro}</p>
-
       {state === null ? (
         <>
-          <div
+          <Card
+            tone="sunken"
             onDrop={onDrop}
             onDragOver={(e) => e.preventDefault()}
-            className="flex flex-col items-center gap-3 rounded-md border-2 border-dashed border-rule-line px-6 py-10 text-center"
+            className="flex flex-col items-center gap-4 border-2 border-dashed border-field-border/50 px-6 py-12 text-center"
           >
+            <span className="flex size-12 items-center justify-center rounded-full bg-surface text-ink-muted shadow-raised">
+              <Icon name="upload" size={20} />
+            </span>
             <p className="text-sm text-ink-muted">{s.dropPrompt}</p>
             <label className="cursor-pointer">
               <input
@@ -138,14 +141,20 @@ export function ImportPanel({
                   pick(e.target.files?.[0]);
                   e.target.value = "";
                 }}
-                className="sr-only"
+                className="peer sr-only"
                 aria-label={s.choose}
               />
-              <span className="inline-flex items-center justify-center rounded-md bg-accent px-4 py-2 font-medium text-on-accent">
+              <span
+                className={buttonClassName(
+                  "secondary",
+                  "peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent",
+                )}
+              >
+                <Icon name="file-import" size={16} />
                 {s.choose}
               </span>
             </label>
-          </div>
+          </Card>
 
           {rejection ? (
             <p role="alert" className="text-sm text-flag-amber">
@@ -154,10 +163,20 @@ export function ImportPanel({
           ) : null}
 
           {file ? (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-rule-line p-3">
-              <span className="min-w-0 truncate text-sm text-ink">{file.name}</span>
-              <Button onClick={() => void start()}>{s.start}</Button>
-            </div>
+            <Card
+              tone="flat"
+              padded={false}
+              className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+            >
+              <span className="flex min-w-0 items-center gap-2 text-sm text-ink">
+                <Icon name="file" size={16} className="text-ink-muted" />
+                <span className="truncate">{file.name}</span>
+              </span>
+              <Button onClick={() => void start()}>
+                {s.start}
+                <Icon name="arrow-right" size={16} />
+              </Button>
+            </Card>
           ) : null}
         </>
       ) : (
@@ -177,36 +196,37 @@ export function ImportPanel({
           ) : null}
 
           {state.phase === "ready" ? (
-            <div aria-live="polite" className="flex flex-col gap-3">
-              <p className="text-sm text-ink">
-                {s.ready(state.pageCount ?? 0)}
-              </p>
-              {state.elapsedSeconds !== null && state.elapsedSeconds >= 1 ? (
-                <p className="text-sm text-ink-muted">
-                  {s.elapsed(state.elapsedSeconds)}
+            <Card aria-live="polite" className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <p className="flex items-center gap-2 font-display text-xl text-ink">
+                  <Icon name="check" size={18} className="text-verify-green" />
+                  {s.ready(state.pageCount ?? 0)}
                 </p>
-              ) : null}
-              <div className="flex flex-wrap items-center gap-4">
+                {state.elapsedSeconds !== null && state.elapsedSeconds >= 1 ? (
+                  <p className="font-mono text-xs tabular-nums text-ink-muted">
+                    {s.elapsed(state.elapsedSeconds)}
+                  </p>
+                ) : null}
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
                 {state.importId !== null ? (
-                  <Link
-                    href={`/courses/${courseId}/imports/${state.importId}`}
-                    className="inline-flex items-center justify-center rounded-md bg-accent px-4 py-2 font-medium text-on-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                  >
+                  <ButtonLink href={`/courses/${courseId}/imports/${state.importId}`}>
                     {s.review}
-                  </Link>
+                    <Icon name="arrow-right" size={16} />
+                  </ButtonLink>
                 ) : null}
                 <Button variant="quiet" onClick={reset}>
                   {s.another}
                 </Button>
               </div>
-            </div>
+            </Card>
           ) : null}
 
           {state.phase === "error" ? (
             <div aria-live="polite" className="flex flex-col gap-3">
               <p className="text-sm text-flag-amber">{s.error}</p>
               <div>
-                <Button variant="quiet" onClick={reset}>
+                <Button variant="secondary" onClick={reset}>
                   {s.another}
                 </Button>
               </div>

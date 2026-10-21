@@ -14,6 +14,18 @@ export const strings = {
     wordmark: "Tirocinium",
     signOut: "Sign out",
   },
+  // The course rail (decision 0102): the seven places a professor works in a
+  // course, as plain nouns, one click apart from every page in it.
+  rail: {
+    label: "Course sections",
+    overview: "Case studies",
+    seats: "Seats",
+    import: "Import from PDF",
+    submissions: "Submissions",
+    mastery: "Class progress",
+    reports: "Reports",
+    materials: "Materials",
+  },
   signIn: {
     title: "Sign in",
     intro: "Sign in to your professor account.",
@@ -52,11 +64,19 @@ export const strings = {
     empty: "Your courses will appear here once you create one.",
     newCourseLabel: "New course title",
     newCourseAction: "Create course",
+    newCourseHeading: "New course",
+    created: (date: string) => `Created ${date}`,
   },
   course: {
     back: "All courses",
+    // The way back from a case study to its course's list, now that the rail
+    // names the section (decision 0102).
+    backToCourse: "Back to case studies",
     heading: "Case studies",
     empty: "No case studies yet. Write your first one below.",
+    newHeading: "New case study",
+    updated: (date: string) => `Updated ${date}`,
+    conceptCount: (n: number) => (n === 1 ? "1 concept" : `${n} concepts`),
     draft: "Draft",
     published: "Published",
     open: "Open",
@@ -129,6 +149,8 @@ export const strings = {
   confirm: {
     title: "Review and confirm",
     back: "Back to course",
+    backToImport: "Back to import from PDF",
+    figureUnavailable: "Figure unavailable",
     progress: (confirmed: number, total: number) =>
       `${confirmed} of ${total} confirmed`,
     empty: "This import produced nothing to review.",
@@ -476,7 +498,14 @@ export const strings = {
     // Honest about the one rule that shapes this whole surface.
     note: "A code is shown once, in the files a batch produces. Download them, hand them out, and keep them somewhere safe: we cannot show a code again.",
     countLabel: "How many seats",
+    generateHeading: "New batch",
     generateAction: "Generate seats",
+    // The one-time download moment, said the way guide 4.0b says it.
+    downloadNow:
+      "Download your codes now. For privacy, we keep only a locked version and cannot show them again.",
+    // The missing name column is deliberate (guide 4.0b), and the line says so.
+    namesHint:
+      "There is no name column, on purpose. Keep the list of which student holds which seat in your own records.",
     csvLink: "Download codes (CSV)",
     pdfLink: "Download cards (PDF)",
     batchReady: (count: number) =>

@@ -64,7 +64,7 @@ export function PageBoxes({
       ref={ref}
       role="group"
       aria-label={label}
-      className="relative touch-none select-none overflow-hidden rounded border border-rule-line"
+      className="relative touch-none select-none overflow-hidden rounded-lg border border-rule-line bg-surface-sunken"
       onPointerDown={(e) => {
         // A press on the page background begins a draw and clears any selection.
         onSelect(null);
@@ -109,8 +109,8 @@ export function PageBoxes({
               (selected
                 ? "border-accent bg-accent/10"
                 : b.role === "decorative"
-                  ? "border-rule-line border-dashed"
-                  : "border-accent/60")
+                  ? "border-dashed border-field-border"
+                  : "border-accent/60 hover:bg-accent/5")
             }
             style={{
               left: `${x * 100}%`,

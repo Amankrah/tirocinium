@@ -5,10 +5,16 @@
 // focus linking the two directions, low confidence marked in both, and the
 // grade. A client island: hover-linking, the image toggle, the presigned reload,
 // and the grade form are all interaction.
+//
+// No decorative icons on this surface: the region boxes are the only
+// aria-hidden elements here, and the review test counts them.
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/field";
 import type { Schemas } from "@/lib/api/client";
+import { segmentClassName, segmentTrackClassName } from "../../../../segmented";
 import { strings } from "../../../../strings";
 
 const s = strings.submissions;
@@ -16,6 +22,8 @@ const s = strings.submissions;
 // The same line the student sees on their own upload, so both audiences read
 // "less certain" at the same threshold.
 const LOW_CONFIDENCE = 0.6;
+
+const COLUMN_HEADING = "text-xs font-medium tracking-wide text-ink-muted uppercase";
 
 // A region's bbox is `[x0, y0, x1, y1]`, normalised 0..1 with a top-left origin:
 // the shape the handwriting-transcription prompt specifies, which is the
@@ -80,7 +88,7 @@ export function SubmissionReview({
   }
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-8">
       <GradeForm
         courseId={courseId}
         submissionId={review.id}
@@ -107,30 +115,32 @@ export function SubmissionReview({
         return (
           <section
             key={page.page_index}
-            className="flex flex-col gap-3 border-t border-rule-line pt-6"
+            className="flex flex-col gap-4 border-t border-rule-line pt-6"
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-display text-xl">{s.pageLabel(page.page_index + 1)}</h2>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={showOriginal ? "quiet" : "primary"}
+              <h2 className="font-display text-2xl">{s.pageLabel(page.page_index + 1)}</h2>
+              <div className={segmentTrackClassName}>
+                <button
+                  type="button"
                   aria-pressed={!showOriginal}
                   disabled={rendition === null}
                   onClick={() =>
                     setOriginals((prev) => ({ ...prev, [page.page_index]: false }))
                   }
+                  className={segmentClassName(!showOriginal)}
                 >
                   {s.showRendition}
-                </Button>
-                <Button
-                  variant={showOriginal ? "primary" : "quiet"}
+                </button>
+                <button
+                  type="button"
                   aria-pressed={showOriginal}
                   onClick={() =>
                     setOriginals((prev) => ({ ...prev, [page.page_index]: true }))
                   }
+                  className={segmentClassName(showOriginal)}
                 >
                   {s.showOriginal}
-                </Button>
+                </button>
               </div>
             </div>
 
@@ -143,14 +153,14 @@ export function SubmissionReview({
             <div className="grid gap-6 lg:grid-cols-2">
               <div className="flex flex-col gap-2">
                 {failed[page.page_index] ? (
-                  <div className="flex flex-col items-start gap-2 rounded border border-flag-amber/40 p-4">
+                  <div className="flex flex-col items-start gap-3 rounded-lg border border-flag-amber/40 bg-flag-amber-soft p-4">
                     <p className="text-sm text-flag-amber">{s.imageFailed}</p>
-                    <Button variant="quiet" onClick={() => void reload(page.page_index)}>
+                    <Button variant="secondary" size="sm" onClick={() => void reload(page.page_index)}>
                       {s.reload}
                     </Button>
                   </div>
                 ) : (
-                  <div className="relative overflow-hidden rounded border border-rule-line">
+                  <div className="surface-raised relative overflow-hidden">
                     {/* A presigned URL of unknown intrinsic size, as on the
                         import surface; next/image would need a remote pattern
                         and dimensions the review read does not carry. */}
@@ -174,7 +184,7 @@ export function SubmissionReview({
                               aria-hidden="true"
                               onMouseEnter={() => setLinked(key)}
                               onMouseLeave={() => setLinked(null)}
-                              className={`absolute border-2 ${
+                              className={`absolute border-2 transition-colors duration-(--motion-duration) ease-(--motion-ease) ${
                                 linked === key
                                   ? "border-accent bg-accent/15"
                                   : low
@@ -193,12 +203,10 @@ export function SubmissionReview({
                 ) : null}
               </div>
 
-              <div className="flex flex-col gap-2">
-                <h3 className="text-xs uppercase tracking-widest text-ink-muted">
-                  {s.reading}
-                </h3>
+              <Card className="flex flex-col gap-3 self-start">
+                <h3 className={COLUMN_HEADING}>{s.reading}</h3>
                 {page.regions.length > 0 ? (
-                  <ol className="flex flex-col gap-1">
+                  <ol className="flex flex-col gap-0.5">
                     {page.regions.map((region, index) => {
                       const key = `${page.page_index}:${index}`;
                       const low = region.confidence < LOW_CONFIDENCE;
@@ -213,7 +221,7 @@ export function SubmissionReview({
                             onMouseLeave={() => setLinked(null)}
                             onFocus={() => setLinked(key)}
                             onBlur={() => setLinked(null)}
-                            className={`w-full rounded px-2 py-1 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                            className={`w-full rounded-md px-2 py-1 text-left transition-colors duration-(--motion-duration) ease-(--motion-ease) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                               linked === key ? "bg-accent/10" : ""
                             } ${low ? "text-flag-amber" : "text-ink"}`}
                           >
@@ -234,7 +242,7 @@ export function SubmissionReview({
                 ) : (
                   <p className="text-sm text-ink-muted">{s.noReading}</p>
                 )}
-              </div>
+              </Card>
             </div>
           </section>
         );
@@ -280,39 +288,45 @@ function GradeForm({
     // noValidate so the honest line below is the one a professor reads, rather
     // than the browser's own bubble (guide 3.4); min and max stay on the input
     // for the spinner and for assistive technology.
-    <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-3">
-      <h2 className="font-display text-xl">{s.gradeHeading}</h2>
-      <p className="max-w-prose text-sm text-ink-muted">{s.gradeNote}</p>
-      <div className="flex flex-wrap items-end gap-3">
+    <Card as="section" aria-labelledby="grade-heading">
+      <form noValidate onSubmit={(e) => void submit(e)} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <label htmlFor="grade-score" className="text-sm text-ink-muted">
-            {s.gradeLabel}
-          </label>
-          <input
-            id="grade-score"
-            type="number"
-            min={0}
-            max={100}
-            step={1}
-            inputMode="numeric"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            className="w-28 rounded-md border border-field-border bg-paper px-3 py-2 font-mono tabular-nums text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          />
+          <h2 id="grade-heading" className="font-display text-2xl">
+            {s.gradeHeading}
+          </h2>
+          <p className="max-w-prose text-sm text-ink-muted">{s.gradeNote}</p>
         </div>
-        <Button type="submit" disabled={busy || value.trim() === ""}>
-          {s.gradeAction}
-        </Button>
-      </div>
-      <p aria-live="polite" className="min-h-6 text-sm">
-        {error ? (
-          <span className="text-flag-amber">{error}</span>
-        ) : saved !== null ? (
-          <span className="text-verify-green">{s.gradeSaved(saved)}</span>
-        ) : (
-          <span className="text-ink-muted">{s.ungraded}</span>
-        )}
-      </p>
-    </form>
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="grade-score" className="text-sm font-medium text-ink">
+              {s.gradeLabel}
+            </label>
+            <Input
+              id="grade-score"
+              type="number"
+              min={0}
+              max={100}
+              step={1}
+              inputMode="numeric"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              className="w-32 font-mono tabular-nums"
+            />
+          </div>
+          <Button type="submit" disabled={busy || value.trim() === ""}>
+            {s.gradeAction}
+          </Button>
+        </div>
+        <p aria-live="polite" className="min-h-6 text-sm">
+          {error ? (
+            <span className="text-flag-amber">{error}</span>
+          ) : saved !== null ? (
+            <span className="text-verify-green">{s.gradeSaved(saved)}</span>
+          ) : (
+            <span className="text-ink-muted">{s.ungraded}</span>
+          )}
+        </p>
+      </form>
+    </Card>
   );
 }

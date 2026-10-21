@@ -11,8 +11,13 @@ import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 
 import type { FigureMap } from "@/components/reading/problem-body";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Textarea } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
 import type { Schemas } from "@/lib/api/client";
+import { KeyHint } from "../../../../../key-hint";
 import { strings } from "../../../../../strings";
 
 const ClientProblemBody = dynamic(() =>
@@ -36,6 +41,8 @@ type ListAction = (
   caseStudyId: number,
   options: { state?: string; cursor?: number; limit?: number },
 ) => Promise<Schemas["VariantListOut"] | null>;
+
+const COLUMN_HEADING = "text-xs font-medium tracking-wide text-ink-muted uppercase";
 
 export function ReviewQueue({
   courseId,
@@ -160,15 +167,15 @@ export function ReviewQueue({
   }
 
   if (items.length === 0) {
-    return <p className="text-ink-muted">{s.reviewEmpty}</p>;
+    return <EmptyState icon="check" body={s.reviewEmpty} />;
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="max-w-prose text-sm text-ink-muted">{s.reviewIntro}</p>
-      <p id={KEYS_ID} className="text-xs text-ink-muted">
-        {s.reviewKeys}
-      </p>
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+        <p className="max-w-prose text-sm text-ink-muted">{s.reviewIntro}</p>
+        <KeyHint id={KEYS_ID} text={s.reviewKeys} />
+      </div>
       {error ? (
         <p role="alert" className="text-sm text-flag-amber">
           {s.reviewError}
@@ -183,7 +190,7 @@ export function ReviewQueue({
         onKeyDown={onKeyDown}
         aria-label={s.reviewQueueLabel}
         aria-describedby={KEYS_ID}
-        className="flex flex-col gap-4 rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+        className="flex flex-col gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
       >
         {items.map((item, index) => {
           const loaded = details[item.id];
@@ -198,20 +205,19 @@ export function ReviewQueue({
                 rowRefs.current[index] = node;
               }}
               aria-current={isCurrent ? "true" : undefined}
-              className={`flex flex-col gap-3 rounded-md border p-4 ${
-                isCurrent ? "border-accent" : "border-rule-line"
-              }`}
+              className={
+                "flex flex-col gap-4 rounded-lg border p-4 transition-[background-color,border-color] duration-(--motion-duration) ease-(--motion-ease) sm:p-5 " +
+                (isCurrent ? "border-accent bg-accent-soft/50" : "border-rule-line bg-surface")
+              }
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-col gap-0.5">
-                  {item.seed != null ? (
-                    <span className="text-xs text-ink-muted">{s.seedLabel(item.seed)}</span>
-                  ) : null}
+                <div className="flex flex-wrap items-center gap-3">
+                  {item.seed != null ? <Badge mono>{s.seedLabel(item.seed)}</Badge> : null}
                   {item.flag_reason ? (
                     <span className="text-sm text-flag-amber">{item.flag_reason}</span>
                   ) : null}
                 </div>
-                <Button variant="quiet" onClick={() => void onToggle(item.id)}>
+                <Button variant="secondary" size="sm" onClick={() => void onToggle(item.id)}>
                   {isOpen ? s.cancelEdit : s.reSolve}
                 </Button>
               </div>
@@ -219,16 +225,14 @@ export function ReviewQueue({
               {isOpen && detail ? (
                 <div className="flex flex-col gap-4">
                   <div className="grid gap-4 lg:grid-cols-2">
-                    <div className="flex flex-col gap-1">
-                      <h3 className="text-xs uppercase tracking-widest text-ink-muted">
-                        {s.generated}
-                      </h3>
+                    <div className="flex flex-col gap-2 rounded-lg bg-surface-sunken p-4">
+                      <h3 className={COLUMN_HEADING}>{s.generated}</h3>
                       {editing === item.id ? (
-                        <textarea
+                        <Textarea
                           value={editText}
                           onChange={(e) => setEditText(e.target.value)}
                           rows={10}
-                          className="rounded-md border border-field-border bg-paper px-3 py-2 font-mono text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                          className="font-mono text-sm"
                         />
                       ) : (
                         <ClientProblemBody
@@ -237,10 +241,8 @@ export function ReviewQueue({
                         />
                       )}
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <h3 className="text-xs uppercase tracking-widest text-ink-muted">
-                        {s.reSolve}
-                      </h3>
+                    <div className="flex flex-col gap-2 rounded-lg bg-surface-sunken p-4">
+                      <h3 className={COLUMN_HEADING}>{s.reSolve}</h3>
                       {detail.verify_solution ? (
                         <ClientProblemBody
                           body={detail.verify_solution}
@@ -255,11 +257,13 @@ export function ReviewQueue({
                   {detail.final_answers.length > 0 ? (
                     <p className="text-sm text-ink">
                       <span className="text-ink-muted">{s.answers}: </span>
-                      {detail.final_answers.join(", ")}
+                      <span className="font-mono tabular-nums">
+                        {detail.final_answers.join(", ")}
+                      </span>
                     </p>
                   ) : null}
 
-                  <div className="flex flex-wrap gap-3 border-t border-rule-line pt-3">
+                  <div className="flex flex-wrap gap-3 border-t border-rule-line pt-4">
                     {editing === item.id ? (
                       <>
                         <Button
@@ -282,16 +286,23 @@ export function ReviewQueue({
                           disabled={isBusy}
                           onClick={() => void run(item.id, () => promote(courseId, item.id))}
                         >
+                          <Icon name="check" size={16} />
                           {s.promote}
                         </Button>
-                        <Button variant="quiet" disabled={isBusy} onClick={() => startEdit(item.id)}>
+                        <Button
+                          variant="secondary"
+                          disabled={isBusy}
+                          onClick={() => startEdit(item.id)}
+                        >
+                          <Icon name="pen" size={16} />
                           {s.editSolution}
                         </Button>
                         <Button
-                          variant="quiet"
+                          variant="danger"
                           disabled={isBusy}
                           onClick={() => void onDiscard(item.id)}
                         >
+                          <Icon name="x" size={16} />
                           {s.discard}
                         </Button>
                       </>

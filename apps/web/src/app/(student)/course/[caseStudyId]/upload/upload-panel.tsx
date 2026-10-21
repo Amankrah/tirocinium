@@ -7,12 +7,16 @@
 // PUT direct to storage; the authed create and complete come in as bound server
 // actions so the seat token never reaches here.
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Button, ButtonLink, buttonClassName } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Icon, type IconName } from "@/components/ui/icon";
 import type { Schemas } from "@/lib/api/client";
 import { analyzeSharpness } from "@/lib/upload/image-quality";
+import type { InkStroke } from "@/lib/upload/pen-ink";
 import {
   type PageFileRejection,
   validatePageFile,
@@ -30,6 +34,7 @@ import {
   type UploadState,
 } from "@/lib/upload/upload-controller";
 import { getTranscriptionAction } from "./actions";
+import type { PadEdit } from "./pen-pad";
 import { strings } from "../../../strings";
 
 // The preview renders markdown and KaTeX, so it loads in its own chunk only when
@@ -50,6 +55,12 @@ type FetchTranscription = (
 // writing on the pad. The file modes are the accessibility fallback.
 type InputMode = "photos" | "pdf" | "pen";
 
+const MODES: { mode: InputMode; icon: IconName }[] = [
+  { mode: "pen", icon: "pen" },
+  { mode: "photos", icon: "camera" },
+  { mode: "pdf", icon: "file" },
+];
+
 // Below this per-page confidence a page is worth a second look.
 const LOW_CONFIDENCE = 0.6;
 
@@ -66,6 +77,10 @@ interface SelectedPage {
   file: File;
   previewUrl: string;
   blurry: boolean;
+  // The strokes a page written on the pad was drawn from, so it can be opened
+  // on the pad again and changed (decision 0103). A photograph or a PDF page
+  // has none, and is replaced by removing it and adding another.
+  ink?: InkStroke[];
 }
 
 interface Rejection {
@@ -80,6 +95,26 @@ function rejectionLine(r: Rejection): string {
   if (r.reason === "too_large") return s.rejectedTooLarge(r.name);
   return s.rejectedEmpty(r.name);
 }
+
+function modeLabel(mode: InputMode): string {
+  if (mode === "photos") return s.modePhotos;
+  if (mode === "pdf") return s.modePdf;
+  return s.modePen;
+}
+
+// The segmented control's segments (decision 0102): real buttons in a sunken
+// track, the chosen one lifted onto the surface. Hand-rolled rather than the
+// Button primitive because the quiet variant's hover fill is the track's own
+// colour and would vanish on it.
+const segmentBase =
+  "inline-flex min-h-9 shrink-0 items-center gap-2 rounded-md px-3.5 text-sm whitespace-nowrap " +
+  "transition-[background-color,color,box-shadow] duration-(--motion-duration) ease-(--motion-ease) focus-ring";
+const segmentOn = "bg-surface font-medium text-ink shadow-raised";
+const segmentOff = "text-ink-muted hover:text-ink";
+
+// An icon-only control in the page row (reorder, remove): the label is the
+// accessible name, the glyph is what a sighted student sees.
+const rowControl = buttonClassName("quiet", "text-ink-muted hover:text-ink", "sm");
 
 // What the worker is doing, in the order it actually does it. "sent" is done
 // the moment the pages have left the device. Checking is the preprocess pass,
@@ -100,12 +135,21 @@ function markingStep(processing: ProcessingState | null): MarkingStep {
   return "checking";
 }
 
+// The processing state as a raised sheet: the one object on the page while the
+// worker runs. The live step carries the progress shimmer (guide 3.3), the
+// done ones a check, the waiting ones stay quiet.
 function MarkingSteps({ current }: { current: MarkingStep }) {
   const order = ["sent", "checking", "reading", "comparing"] as const;
   const currentAt = order.indexOf(current);
   return (
-    <section aria-live="polite" aria-busy="true" className="flex flex-col gap-3">
-      <ol className="flex flex-col gap-2">
+    <Card
+      as="section"
+      tone="raised"
+      aria-live="polite"
+      aria-busy="true"
+      className="flex flex-col gap-3"
+    >
+      <ol className="flex flex-col">
         {MARKING_STEPS.map((step, index) => {
           const state = index < currentAt ? "done" : index === currentAt ? "current" : "waiting";
           return (
@@ -113,15 +157,22 @@ function MarkingSteps({ current }: { current: MarkingStep }) {
               key={step.id}
               aria-current={state === "current" ? "step" : undefined}
               className={
-                state === "current" ? "text-sm font-medium text-ink" : "text-sm text-ink-muted"
+                state === "current"
+                  ? "progress-shimmer relative flex items-center gap-2 overflow-hidden border-l-2 border-l-accent py-2 pl-3 text-sm font-medium text-ink"
+                  : state === "done"
+                    ? "flex items-center gap-2 border-l-2 border-l-rule-line py-2 pl-3 text-sm text-ink-muted"
+                    : "flex items-center gap-2 border-l-2 border-l-transparent py-2 pl-3 text-sm text-ink-muted"
               }
             >
+              {state === "done" ? (
+                <Icon name="check" size={14} className="text-verify-green" />
+              ) : null}
               {step.label}
             </li>
           );
         })}
       </ol>
-    </section>
+    </Card>
   );
 }
 
@@ -171,8 +222,37 @@ export function UploadPanel({
   const locked = submitting;
   const submissionId = upload?.submissionId ?? null;
 
+  // The pad page being changed, if any (decision 0103).
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const padRef = useRef<HTMLDivElement>(null);
+
+  // A send that failed part-way holds the pages as they were when it started,
+  // and its retry re-sends page N of that list. Once the list changes (a page
+  // edited, moved, removed or added) those retries would send the wrong
+  // thing, so the failed attempt is let go and Send starts a fresh one from
+  // the pages on screen.
+  const forgetFailedSend = useCallback(() => {
+    if (upload?.phase !== "error") return;
+    controllerRef.current = null;
+    setUpload(null);
+  }, [upload]);
+
+  const previewOf = (file: File) =>
+    typeof URL !== "undefined" && "createObjectURL" in URL ? URL.createObjectURL(file) : "";
+
+  const flagIfBlurry = (page: { id: string; file: File }) => {
+    // Score sharpness off the critical path; a blurry page stays but is
+    // flagged so the student can choose to retake.
+    void analyzeSharpness(page.file).then((sharpness) => {
+      if (sharpness === "blurry") {
+        setPages((prev) => prev.map((p) => (p.id === page.id ? { ...p, blurry: true } : p)));
+      }
+    });
+  };
+
   const addFiles = useCallback(
-    async (files: FileList | File[]) => {
+    // `ink` travels with a single page written on the pad.
+    async (files: FileList | File[], ink?: InkStroke[]) => {
       const nextRejections: Rejection[] = [];
       const accepted: SelectedPage[] = [];
       for (const file of Array.from(files)) {
@@ -184,31 +264,55 @@ export function UploadPanel({
         accepted.push({
           id: makeId(),
           file,
-          previewUrl:
-            typeof URL !== "undefined" && "createObjectURL" in URL
-              ? URL.createObjectURL(file)
-              : "",
+          previewUrl: previewOf(file),
           blurry: false,
+          ...(ink ? { ink } : {}),
         });
       }
       setRejections(nextRejections);
       if (accepted.length > 0) {
+        forgetFailedSend();
         setPages((prev) => [...prev, ...accepted]);
-        // Score sharpness off the critical path; a blurry page stays but is
-        // flagged so the student can choose to retake.
-        for (const page of accepted) {
-          void analyzeSharpness(page.file).then((sharpness) => {
-            if (sharpness === "blurry") {
-              setPages((prev) =>
-                prev.map((p) => (p.id === page.id ? { ...p, blurry: true } : p)),
-              );
-            }
-          });
-        }
+        for (const page of accepted) flagIfBlurry(page);
       }
     },
-    [makeId],
+    [makeId, forgetFailedSend],
   );
+
+  // Open a pad page to change it: the pad, with its strokes, in view.
+  const edit = (id: string) => {
+    setMode("pen");
+    setEditingId(id);
+    setRejections([]);
+    requestAnimationFrame(() => {
+      const pad = padRef.current;
+      if (pad && typeof pad.scrollIntoView === "function") {
+        pad.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  };
+
+  // The changed page takes the old one's place, at the same position, with
+  // the same id; only its pixels, its strokes and its preview are new.
+  const savePage = (id: string, file: File, ink: InkStroke[]) => {
+    const reason = validatePageFile(file);
+    if (reason !== null) {
+      setRejections([{ name: file.name, reason }]);
+      return;
+    }
+    forgetFailedSend();
+    setPages((prev) =>
+      prev.map((page) => {
+        if (page.id !== id) return page;
+        if (page.previewUrl && typeof URL !== "undefined" && "revokeObjectURL" in URL) {
+          URL.revokeObjectURL(page.previewUrl);
+        }
+        return { ...page, file, ink, previewUrl: previewOf(file), blurry: false };
+      }),
+    );
+    flagIfBlurry({ id, file });
+    setEditingId(null);
+  };
 
   const onInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) void addFiles(event.target.files);
@@ -220,10 +324,16 @@ export function UploadPanel({
     if (event.dataTransfer.files.length > 0) void addFiles(event.dataTransfer.files);
   };
 
-  const remove = (id: string) =>
+  const remove = (id: string) => {
+    forgetFailedSend();
+    // Removing the page being edited ends the edit: there is nothing left to
+    // save it into.
+    if (id === editingId) setEditingId(null);
     setPages((prev) => prev.filter((p) => p.id !== id));
+  };
 
-  const move = (index: number, delta: number) =>
+  const move = (index: number, delta: number) => {
+    forgetFailedSend();
     setPages((prev) => {
       const next = [...prev];
       const target = index + delta;
@@ -232,6 +342,7 @@ export function UploadPanel({
       if (item) next.splice(target, 0, item);
       return next;
     });
+  };
 
   const submit = async () => {
     if (pages.length === 0) return;
@@ -280,6 +391,7 @@ export function UploadPanel({
     setMarkingSettled(false);
     setRejections([]);
     setPages([]);
+    setEditingId(null);
   };
 
   // While uploading, the upload phase drives the line; once sent, the worker's
@@ -314,38 +426,72 @@ export function UploadPanel({
   const progressFor = (index: number) =>
     upload?.pages.find((p) => p.index === index);
 
+  // The page open on the pad, named by where it sits in the list now.
+  const editingIndex = pages.findIndex((page) => page.id === editingId);
+  const editingSource = editingIndex >= 0 ? pages[editingIndex] : undefined;
+  const editingPage: PadEdit | null =
+    editingSource?.ink !== undefined
+      ? { id: editingSource.id, label: s.pageLabel(editingIndex + 1), strokes: editingSource.ink }
+      : null;
+
   return (
-    <div className="flex flex-col gap-6">
-      <h2 className="font-display text-4xl">{heading}</h2>
-      {!locked ? <p className="text-ink-muted">{s.intro}</p> : null}
+    <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-2">
+        {/* At rest the page's own heading names the task; once pages are on
+            their way the panel says what is happening instead. */}
+        {locked ? <h2 className="font-display text-3xl">{heading}</h2> : null}
+        {!locked ? <p className="max-w-prose text-pretty text-ink-muted">{s.intro}</p> : null}
+      </div>
 
       {!locked ? (
-        <div className="flex flex-col gap-4">
-          <div role="group" aria-label={s.modeHint} className="flex flex-wrap gap-2">
-            {(["pen", "photos", "pdf"] as const).map((option) => (
-              <Button
+        <div className="flex flex-col gap-5">
+          <div
+            role="group"
+            aria-label={s.modeHint}
+            className="inline-flex max-w-full gap-0.5 self-start overflow-x-auto rounded-lg bg-surface-sunken p-1"
+          >
+            {MODES.map(({ mode: option, icon }) => (
+              <button
                 key={option}
-                variant={mode === option ? "primary" : "quiet"}
+                type="button"
                 aria-pressed={mode === option}
-                onClick={() => setMode(option)}
+                onClick={() => {
+                  // The pad is the only place a page is edited; leaving it
+                  // leaves the page as it was.
+                  if (option !== "pen") setEditingId(null);
+                  setMode(option);
+                }}
+                className={`${segmentBase} ${mode === option ? segmentOn : segmentOff}`}
               >
-                {option === "photos"
-                  ? s.modePhotos
-                  : option === "pdf"
-                    ? s.modePdf
-                    : s.modePen}
-              </Button>
+                <Icon name={icon} size={14} />
+                {modeLabel(option)}
+              </button>
             ))}
           </div>
 
           {mode === "pen" ? (
-            <PenPad onCapture={(file) => void addFiles([file])} />
+            <div ref={padRef} className="flex scroll-mt-24 flex-col gap-3">
+              {editingPage ? (
+                <p role="status" className="text-sm font-medium text-ink">
+                  {s.editingNow(editingPage.label)}
+                </p>
+              ) : null}
+              <PenPad
+                onCapture={(file, ink) => void addFiles([file], ink)}
+                editing={editingPage}
+                onSave={savePage}
+                onCancelEdit={() => setEditingId(null)}
+              />
+            </div>
           ) : (
             <div
               onDrop={onDrop}
               onDragOver={(e) => e.preventDefault()}
-              className="flex flex-col items-center gap-3 rounded-md border-2 border-dashed border-rule-line px-6 py-10 text-center"
+              className="flex flex-col items-center gap-4 rounded-lg border-2 border-dashed border-rule-line bg-surface-sunken/40 px-6 py-10 text-center"
             >
+              <span className="flex size-10 items-center justify-center rounded-full bg-surface text-ink-muted shadow-raised">
+                <Icon name="upload" size={18} />
+              </span>
               <p className="text-sm text-ink-muted">{s.dropPrompt}</p>
               <div className="flex flex-wrap justify-center gap-3">
                 <label className="cursor-pointer">
@@ -364,7 +510,8 @@ export function UploadPanel({
                     className="sr-only"
                     aria-label={mode === "pdf" ? s.choosePdf : s.choose}
                   />
-                  <span className="inline-flex items-center justify-center rounded-md bg-accent px-4 py-2 font-medium text-on-accent">
+                  <span className={buttonClassName("secondary")}>
+                    <Icon name={mode === "pdf" ? "file" : "file-import"} size={16} className="text-ink-muted" />
                     {mode === "pdf" ? s.choosePdf : s.choose}
                   </span>
                 </label>
@@ -379,7 +526,8 @@ export function UploadPanel({
                       className="sr-only"
                       aria-label={s.capture}
                     />
-                    <span className="inline-flex items-center justify-center rounded-md border border-rule-line px-4 py-2 font-medium text-ink">
+                    <span className={buttonClassName("secondary")}>
+                      <Icon name="camera" size={16} className="text-ink-muted" />
                       {s.capture}
                     </span>
                   </label>
@@ -401,29 +549,57 @@ export function UploadPanel({
       ) : null}
 
       {pages.length === 0 && !locked ? (
-        <p className="text-sm text-ink-muted">{s.empty}</p>
+        <EmptyState icon="layers" body={s.empty} />
       ) : pages.length === 0 ? null : (
         <ol className="flex flex-col gap-3">
           {pages.map((page, index) => {
             const prog = progressFor(index);
             return (
-              <li
+              <Card
                 key={page.id}
-                className="flex items-center gap-4 rounded-md border border-rule-line p-3"
+                as="li"
+                tone="flat"
+                padded={false}
+                className="flex items-center gap-4 p-3"
               >
-                {page.previewUrl ? (
+                {page.previewUrl && page.ink && !locked ? (
+                  // A page written on the pad opens again on the pad: the
+                  // thumbnail is the obvious thing to tap (decision 0103).
+                  // Pointer-only: the pen control in the row is the one a
+                  // keyboard or a screen reader reaches, so the page is not
+                  // announced twice.
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    aria-hidden="true"
+                    onClick={() => edit(page.id)}
+                    className="shrink-0 cursor-pointer rounded-md"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={page.previewUrl}
+                      alt=""
+                      className={`size-16 rounded-md border bg-surface-sunken object-cover ${
+                        page.id === editingId ? "border-accent" : "border-rule-line"
+                      }`}
+                    />
+                  </button>
+                ) : page.previewUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={page.previewUrl}
                     alt=""
-                    className="h-16 w-16 shrink-0 rounded object-cover"
+                    className="size-16 shrink-0 rounded-md border border-rule-line bg-surface-sunken object-cover"
                   />
                 ) : (
-                  <div className="h-16 w-16 shrink-0 rounded bg-rule-line/40" />
+                  <div className="size-16 shrink-0 rounded-md bg-surface-sunken" />
                 )}
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <span className="text-sm text-ink">
+                  <span className="font-display text-base text-ink">
                     {s.pageLabel(index + 1)}
+                    {page.id === editingId ? (
+                      <span className="ml-2 font-sans text-xs text-ink-muted">{s.editingTag}</span>
+                    ) : null}
                   </span>
                   {page.blurry && !prog ? (
                     <span className="text-xs text-flag-amber">{s.blurry}</span>
@@ -432,7 +608,7 @@ export function UploadPanel({
                     <progress
                       value={prog.fraction}
                       max={1}
-                      className="h-1 w-full"
+                      className="h-1 w-full rounded-full"
                       aria-label={s.pageLabel(index + 1)}
                     />
                   ) : null}
@@ -440,42 +616,55 @@ export function UploadPanel({
                 {prog?.status === "failed" ? (
                   <Button
                     variant="quiet"
+                    size="sm"
                     onClick={() => controllerRef.current?.retryPage(index)}
                   >
+                    <Icon name="refresh" size={14} className="text-ink-muted" />
                     {s.retry(index + 1)}
                   </Button>
                 ) : null}
                 {!locked ? (
-                  <div className="flex shrink-0 gap-1">
+                  <div className="flex shrink-0 gap-0.5">
+                    {page.ink ? (
+                      <button
+                        type="button"
+                        aria-label={s.editPage(index + 1)}
+                        aria-pressed={page.id === editingId}
+                        onClick={() => edit(page.id)}
+                        className={rowControl}
+                      >
+                        <Icon name="pen" size={16} />
+                      </button>
+                    ) : null}
                     <button
                       type="button"
                       aria-label={s.moveUp(index + 1)}
                       disabled={index === 0}
                       onClick={() => move(index, -1)}
-                      className="rounded px-2 py-1 text-ink-muted hover:text-ink disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                      className={rowControl}
                     >
-                      ↑
+                      <Icon name="chevron-up" size={16} />
                     </button>
                     <button
                       type="button"
                       aria-label={s.moveDown(index + 1)}
                       disabled={index === pages.length - 1}
                       onClick={() => move(index, 1)}
-                      className="rounded px-2 py-1 text-ink-muted hover:text-ink disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                      className={rowControl}
                     >
-                      ↓
+                      <Icon name="chevron-down" size={16} />
                     </button>
                     <button
                       type="button"
                       aria-label={s.remove(index + 1)}
                       onClick={() => remove(page.id)}
-                      className="rounded px-2 py-1 text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                      className={rowControl}
                     >
-                      ✕
+                      <Icon name="x" size={16} />
                     </button>
                   </div>
                 ) : null}
-              </li>
+              </Card>
             );
           })}
         </ol>
@@ -490,9 +679,9 @@ export function UploadPanel({
       {marking ? <MarkingSteps current={markingStep(processing)} /> : null}
 
       {processing ? (
-        <section aria-live="polite" className="flex flex-col gap-3">
+        <section aria-live="polite" className="flex flex-col gap-4">
           {showingResult ? (
-          <p className="text-sm text-ink">
+          <p className="text-ink">
             {processing.terminalStatus === "processed"
               ? s.processed
               : processing.terminalStatus === "needs_retake"
@@ -505,19 +694,20 @@ export function UploadPanel({
           </p>
           ) : null}
           {processing.pages.length > 0 ? (
-            <ul className="flex flex-col gap-1">
+            <ul className="flex flex-wrap gap-2">
               {processing.pages.map((p) => (
-                <li key={p.pageIndex} className="text-sm">
+                <li key={p.pageIndex}>
                   {p.rejected ? (
-                    <span className="text-flag-amber">
+                    <Badge tone="amber">
                       {s.pageRetake(p.pageIndex + 1, p.rejected.message)}
-                    </span>
+                    </Badge>
                   ) : p.confidence !== undefined && p.confidence < LOW_CONFIDENCE ? (
-                    <span className="text-flag-amber">
-                      {s.pageHardToRead(p.pageIndex + 1)}
-                    </span>
+                    <Badge tone="amber">{s.pageHardToRead(p.pageIndex + 1)}</Badge>
                   ) : (
-                    <span className="text-ink-muted">{s.pageRead(p.pageIndex + 1)}</span>
+                    <Badge tone="green">
+                      <Icon name="check" size={12} />
+                      {s.pageRead(p.pageIndex + 1)}
+                    </Badge>
                   )}
                 </li>
               ))}
@@ -530,18 +720,16 @@ export function UploadPanel({
             />
           ) : null}
           {showingResult ? (
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {/* The defence is offered once the work has been read, and never
                 gates the submission (guide 4.2): the scan stands on its own. */}
             {processing.terminalStatus === "processed" &&
             markingSettled &&
             submissionId !== null ? (
-              <Link
-                href={`/course/${caseStudyId}/defence/${submissionId}`}
-                className="inline-flex items-center justify-center rounded-md bg-accent px-4 py-2 font-medium text-on-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-              >
+              <ButtonLink href={`/course/${caseStudyId}/defence/${submissionId}`}>
+                <Icon name="mic" size={16} />
                 {s.defend}
-              </Link>
+              </ButtonLink>
             ) : null}
             {processing.done || processing.error ? (
               <Button variant="quiet" onClick={reset}>
@@ -554,10 +742,22 @@ export function UploadPanel({
       ) : null}
 
       {!submitting ? (
-        <div>
-          <Button onClick={() => void submit()} disabled={pages.length === 0}>
+        <div className="border-t border-rule-line pt-6">
+          <Button
+            onClick={() => void submit()}
+            disabled={pages.length === 0 || editingPage !== null}
+            aria-describedby={editingPage ? "finish-editing" : undefined}
+          >
+            <Icon name="upload" size={16} />
             {s.submit(pages.length)}
           </Button>
+          {editingPage ? (
+            // A page open on the pad would otherwise be sent as it was before
+            // the change: say so rather than leave a silent disabled button.
+            <p id="finish-editing" className="mt-2 text-sm text-ink-muted">
+              {s.finishEditing(editingPage.label)}
+            </p>
+          ) : null}
         </div>
       ) : null}
     </div>

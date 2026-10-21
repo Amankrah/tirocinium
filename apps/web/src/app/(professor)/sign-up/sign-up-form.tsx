@@ -9,6 +9,7 @@ import { useId, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { inputClassName } from "@/components/ui/field";
 import { strings } from "../strings";
 import { signUp } from "./actions";
 
@@ -88,7 +89,7 @@ export function SignUpForm() {
           setError(null);
         }}
       />
-      <Button type="submit" disabled={pending} className="py-3">
+      <Button type="submit" size="lg" disabled={pending}>
         {strings.signUp.action}
       </Button>
       <p role="status" className="min-h-6 text-sm text-ink">
@@ -117,7 +118,7 @@ function Field({
   const hintId = hint ? `${id}-hint` : undefined;
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="text-sm text-ink">
+      <label htmlFor={id} className="text-sm font-medium text-ink">
         {label}
       </label>
       <input
@@ -127,11 +128,7 @@ function Field({
         aria-describedby={hintId}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className={
-          "rounded-md border border-field-border bg-paper px-4 py-3 " +
-          "text-ink " +
-          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        }
+        className={inputClassName("px-4 py-3")}
       />
       {hint ? (
         <p id={hintId} className="text-xs text-ink-muted">

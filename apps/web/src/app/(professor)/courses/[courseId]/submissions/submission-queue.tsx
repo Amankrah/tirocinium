@@ -11,8 +11,12 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { Schemas } from "@/lib/api/client";
+import { KeyHint } from "../../../key-hint";
+import { segmentClassName, segmentTrackClassName } from "../../../segmented";
 import { strings } from "../../../strings";
 
 const s = strings.submissions;
@@ -116,62 +120,67 @@ export function SubmissionQueue({
       role="group"
       aria-label={s.queueLabel}
       aria-describedby={KEYS_ID}
-      className="flex flex-col gap-4 rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+      className="flex flex-col gap-4 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
     >
-      <div role="group" aria-label={s.heading} className="flex flex-wrap gap-2">
-        {FILTERS.map((filter) => (
-          <Button
-            key={filter.value || "all"}
-            variant={status === filter.value ? "primary" : "quiet"}
-            aria-pressed={status === filter.value}
-            disabled={busy}
-            onClick={() => void applyFilter(filter.value)}
-          >
-            {filter.label}
-          </Button>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+        {/* The filter is client state, so these are buttons in the segmented
+            look rather than the link-based SegmentedNav. */}
+        <div role="group" aria-label={s.heading} className={segmentTrackClassName}>
+          {FILTERS.map((filter) => (
+            <button
+              key={filter.value || "all"}
+              type="button"
+              aria-pressed={status === filter.value}
+              disabled={busy}
+              onClick={() => void applyFilter(filter.value)}
+              className={segmentClassName(status === filter.value)}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+        <KeyHint id={KEYS_ID} text={s.keys} />
       </div>
-      <p id={KEYS_ID} className="text-xs text-ink-muted">
-        {s.keys}
-      </p>
 
       {rows.length === 0 ? (
-        <p className="text-ink-muted">{s.empty}</p>
+        <EmptyState icon="inbox" body={s.empty} />
       ) : (
-        <ol className="flex flex-col">
+        <ol className="flex flex-col gap-2">
           {rows.map((row, index) => {
             const low =
               row.recognition_conf !== null && row.recognition_conf < LOW_CONFIDENCE;
+            const current = index === selected;
             return (
               <li
                 key={row.id}
                 ref={(node) => {
                   rowRefs.current[index] = node;
                 }}
-                aria-current={index === selected ? "true" : undefined}
-                className={`border-b border-rule-line ${
-                  index === selected ? "bg-rule-line/30" : ""
-                }`}
+                aria-current={current ? "true" : undefined}
+                className={
+                  "rounded-lg border transition-[background-color,border-color] duration-(--motion-duration) ease-(--motion-ease) " +
+                  (current
+                    ? "border-accent bg-accent-soft/50"
+                    : "border-rule-line bg-surface hover:border-ink")
+                }
               >
                 <Link
                   href={`/courses/${courseId}/submissions/${row.id}`}
                   onFocus={() => setSelected(index)}
-                  className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 px-3 py-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className="flex flex-wrap items-center gap-x-5 gap-y-1.5 rounded-lg px-4 py-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
-                  <span className="font-mono text-sm tabular-nums text-ink">
+                  <span className="font-mono text-sm font-medium tabular-nums text-ink">
                     {s.seat(row.seat_number)}
                   </span>
-                  <span className="min-w-0 flex-1 truncate text-ink">
+                  <span className="min-w-0 flex-1 truncate font-display text-base text-ink">
                     {row.case_study_title}
                   </span>
-                  <span className="text-sm text-ink-muted">{s.pages(row.page_count)}</span>
-                  <span
-                    className={`text-sm tabular-nums ${low ? "text-flag-amber" : "text-ink-muted"}`}
-                  >
+                  <span className="text-sm tabular-nums text-ink-muted">{s.pages(row.page_count)}</span>
+                  <Badge tone={low ? "amber" : "neutral"}>
                     {row.recognition_conf === null
                       ? s.noConfidence
                       : s.confidence(Math.round(row.recognition_conf * 100))}
-                  </span>
+                  </Badge>
                   {/* Effort made legible to the person who matters (guide
                       4.2b); absent, never zero, when no start was recorded. */}
                   <span className="text-sm tabular-nums text-ink-muted">
@@ -179,7 +188,7 @@ export function SubmissionQueue({
                       ? s.noEngaged
                       : s.engaged(Math.round(row.engaged_seconds / 60))}
                   </span>
-                  <span className="text-sm tabular-nums text-ink-muted">
+                  <span className="font-mono text-sm tabular-nums text-ink-muted">
                     {row.grade === null ? s.ungraded : s.graded(row.grade)}
                   </span>
                 </Link>
@@ -191,7 +200,7 @@ export function SubmissionQueue({
 
       {cursor != null ? (
         <div>
-          <Button variant="quiet" disabled={busy} onClick={() => void loadMore()}>
+          <Button variant="secondary" size="sm" disabled={busy} onClick={() => void loadMore()}>
             {s.loadMore}
           </Button>
         </div>

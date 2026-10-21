@@ -1,8 +1,13 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ProblemBody } from "@/components/reading/problem-body";
+import { Badge } from "@/components/ui/badge";
+import { ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
+import { PageHeader } from "@/components/ui/page-header";
 import { getCaseStudy } from "@/lib/api/case-studies";
+import { getCourse } from "@/lib/api/courses";
 import { resolveFigures } from "@/lib/api/figures";
 import { listCatalogues } from "@/lib/api/marketplace-authoring";
 import { getParamSpec } from "@/lib/api/params";
@@ -25,7 +30,9 @@ import { VariantPreview } from "./variant-preview";
 
 // The professor's preview of a case study, published or draft, rendered through
 // the same ProblemBody a seat would read (decision 0014) so what the professor
-// checks is exactly what a student gets.
+// checks is exactly what a student gets. The body sits on a raised sheet at the
+// reading measure; the parameter panel and the preview variants follow at the
+// page's full width (decision 0102).
 export default async function CaseStudyPreviewPage({
   params,
 }: {
@@ -37,8 +44,11 @@ export default async function CaseStudyPreviewPage({
   const csid = Number(caseStudyId);
   if (!Number.isInteger(cid) || !Number.isInteger(csid)) notFound();
 
-  const caseStudy = await getCaseStudy(token, cid, csid);
-  if (!caseStudy) notFound();
+  const [course, caseStudy] = await Promise.all([
+    getCourse(token, cid),
+    getCaseStudy(token, cid, csid),
+  ]);
+  if (!course || !caseStudy) notFound();
   const published = caseStudy.status === "published";
   // A draft straight out of an import carries its figures as fig:// tokens, and
   // this is the surface where the professor judges whether the platform kept
@@ -54,33 +64,35 @@ export default async function CaseStudyPreviewPage({
   const pricesMaterials = catalogues.ok && catalogues.data.pinned !== null;
 
   return (
-    <ProfessorShell email={email} signOut={signOut}>
-      <article className="mx-auto flex w-full max-w-[var(--measure-reading)] flex-col gap-6 px-6 py-12">
-        <Link
-          href={`/courses/${cid}`}
-          className="text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        >
-          {strings.course.back}
-        </Link>
-        <header className="flex flex-col gap-3">
-          <span
-            className={
-              published ? "text-xs text-verify-green" : "text-xs text-ink-muted"
-            }
-          >
-            {published ? strings.course.published : strings.course.draft}
-          </span>
-          <h1 className="font-display text-4xl">{caseStudy.title}</h1>
-          {pricesMaterials ? (
-            <Link
-              href={`/courses/${cid}/case-studies/${csid}/shortlist`}
-              className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
-              {strings.course.shortlistLink}
-            </Link>
-          ) : null}
-        </header>
-        <ProblemBody body={caseStudy.body} figures={figures} />
+    <ProfessorShell
+      email={email}
+      signOut={signOut}
+      course={{ id: cid, title: course.title, section: "overview" }}
+    >
+      <main className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-10">
+        <PageHeader
+          back={{ href: `/courses/${cid}`, label: strings.course.backToCourse }}
+          eyebrow={
+            <Badge tone={published ? "green" : "neutral"}>
+              {published ? strings.course.published : strings.course.draft}
+            </Badge>
+          }
+          title={caseStudy.title}
+          actions={
+            pricesMaterials ? (
+              <ButtonLink
+                href={`/courses/${cid}/case-studies/${csid}/shortlist`}
+                variant="secondary"
+              >
+                <Icon name="store" size={16} />
+                {strings.course.shortlistLink}
+              </ButtonLink>
+            ) : undefined
+          }
+        />
+        <Card as="article" className="w-full max-w-[calc(var(--measure-reading)+3rem)]">
+          <ProblemBody body={caseStudy.body} figures={figures} />
+        </Card>
         <ParamPanel
           courseId={cid}
           caseStudyId={csid}
@@ -97,7 +109,7 @@ export default async function CaseStudyPreviewPage({
           list={listVariantsAction}
           get={getVariantAction}
         />
-      </article>
+      </main>
     </ProfessorShell>
   );
 }

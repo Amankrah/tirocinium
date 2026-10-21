@@ -8,6 +8,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { inputClassName } from "@/components/ui/field";
 import { strings } from "../strings";
 import { signIn } from "./actions";
 
@@ -62,7 +63,7 @@ export function SignInForm() {
           setFailed(false);
         }}
       />
-      <Button type="submit" disabled={pending} className="py-3">
+      <Button type="submit" size="lg" disabled={pending}>
         {strings.signIn.action}
       </Button>
       <p role="status" className="min-h-6 text-sm text-ink">
@@ -86,18 +87,14 @@ function Field({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="flex flex-col gap-2">
-      <span className="text-sm text-ink">{label}</span>
+    <label className="flex flex-col gap-1.5">
+      <span className="text-sm font-medium text-ink">{label}</span>
       <input
         type={type}
         autoComplete={autoComplete}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className={
-          "rounded-md border border-field-border bg-paper px-4 py-3 " +
-          "text-ink " +
-          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        }
+        className={inputClassName("px-4 py-3")}
       />
     </label>
   );

@@ -8,10 +8,13 @@
 // The transport and the audio runtime are injected, so the whole surface is
 // driven in a test without a socket or a sound card, exactly as the upload
 // controller's side-effects are.
-import Link from "next/link";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Badge, type BadgeTone } from "@/components/ui/badge";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
 import { pcm16ToFloat } from "@/lib/defence/pcm";
 import { clientFrame, parseServerMessage } from "@/lib/defence/protocol";
 import {
@@ -150,6 +153,14 @@ function phaseLabel(state: SessionState): string {
   return state.speechDown ? s.answerLabel : s.listening;
 }
 
+// The state chip (decision 0102): the accent is for the live microphone, ink
+// for the tutor speaking, neutral for everything in between and after.
+function phaseTone(state: SessionState): BadgeTone {
+  if (state.phase === "listening" && !state.speechDown) return "accent";
+  if (state.phase === "speaking") return "ink";
+  return "neutral";
+}
+
 export function DefenceSession({
   streamUrl,
   revisit = [],
@@ -231,22 +242,26 @@ export function DefenceSession({
       ? revisit.find((c) => c.conceptId === state.verdict?.conceptToRevisit)
       : undefined;
 
+  const listening = state.phase === "listening" && !state.speechDown;
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center gap-3">
-        <span
-          aria-hidden="true"
-          className={`h-2 w-2 rounded-full ${
-            state.phase === "listening" && !state.speechDown
-              ? "bg-accent motion-safe:animate-pulse"
-              : state.phase === "closed"
-                ? "bg-rule-line"
-                : "bg-ink-muted"
-          }`}
-        />
-        <p aria-live="polite" className="text-sm text-ink-muted">
-          {phaseLabel(state)}
-        </p>
+        <Badge tone={phaseTone(state)}>
+          <span
+            aria-hidden="true"
+            className={`size-1.5 rounded-full ${
+              listening
+                ? "bg-accent motion-safe:animate-pulse"
+                : state.phase === "closed"
+                  ? "bg-rule-line"
+                  : state.phase === "speaking"
+                    ? "bg-paper"
+                    : "bg-ink-muted"
+            }`}
+          />
+          <span aria-live="polite">{phaseLabel(state)}</span>
+        </Badge>
         {state.windDown ? (
           <p className="text-sm text-ink-muted">{s.windDown}</p>
         ) : null}
@@ -264,13 +279,20 @@ export function DefenceSession({
         </p>
       ) : null}
 
+      {/* The transcript: each turn named by role, the student's own words
+          ruled in the accent, the tutor's in the hairline. */}
       <ol aria-live="polite" className="flex flex-col gap-4">
         {state.turns.map((turn) => (
-          <li key={turn.id} className="flex flex-col gap-1">
-            <span className="text-xs uppercase tracking-wide text-ink-muted">
+          <li
+            key={turn.id}
+            className={`flex flex-col gap-1 border-l-2 pl-4 ${
+              turn.speaker === "student" ? "border-accent" : "border-rule-line"
+            }`}
+          >
+            <span className="text-xs font-medium tracking-wide text-ink-muted uppercase">
               {turn.speaker === "student" ? s.you : s.tutor}
             </span>
-            <p className="text-ink">{turn.text}</p>
+            <p className="max-w-prose text-ink">{turn.text}</p>
             {turn.interrupted ? (
               <span className="text-xs text-ink-muted">{s.interrupted}</span>
             ) : null}
@@ -279,7 +301,7 @@ export function DefenceSession({
       </ol>
 
       {state.partial !== "" ? (
-        <p className="text-ink-muted italic">{state.partial}</p>
+        <p className="border-l-2 border-accent/40 pl-4 text-ink-muted italic">{state.partial}</p>
       ) : null}
 
       {live ? (
@@ -290,19 +312,19 @@ export function DefenceSession({
             sendTyped();
           }}
         >
-          <label htmlFor="defence-answer" className="text-sm text-ink-muted">
+          <label htmlFor="defence-answer" className="text-sm font-medium text-ink">
             {s.answerLabel}
           </label>
-          <textarea
+          <Textarea
             id="defence-answer"
             value={typed}
             rows={3}
             onChange={(event) => setTyped(event.target.value)}
-            className="rounded-md border border-field-border bg-paper p-3 text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           />
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Button type="submit" disabled={typed.trim() === ""}>
               {s.send}
+              <Icon name="arrow-right" size={16} />
             </Button>
             <Button type="button" variant="quiet" onClick={end}>
               {s.end}
@@ -312,24 +334,22 @@ export function DefenceSession({
       ) : null}
 
       {state.phase === "closed" && state.verdict ? (
-        <section className="flex flex-col gap-2 rounded-md border border-rule-line p-4">
+        <Card as="section" tone="raised" className="flex flex-col gap-3">
           <h2 className="font-display text-xl">{s.revisitHeading}</h2>
           {target ? (
             <p className="flex flex-wrap items-center gap-3 text-ink">
-              {target.name}
+              <span className="font-display text-lg">{target.name}</span>
               {target.caseStudyId !== null ? (
-                <Link
-                  href={`/course/${target.caseStudyId}`}
-                  className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                >
+                <ButtonLink href={`/course/${target.caseStudyId}`} variant="secondary" size="sm">
                   {s.revisitPractise}
-                </Link>
+                  <Icon name="arrow-right" size={14} className="text-ink-muted" />
+                </ButtonLink>
               ) : null}
             </p>
           ) : (
             <p className="text-ink-muted">{s.revisitNone}</p>
           )}
-        </section>
+        </Card>
       ) : null}
     </div>
   );

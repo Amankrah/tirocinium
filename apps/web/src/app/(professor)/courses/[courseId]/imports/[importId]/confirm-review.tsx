@@ -10,12 +10,16 @@
 //
 // This increment covers the read, the card layout, edit, confirm, and discard.
 // Merge, the figure verbs, draw-a-box, and the j/k keyboard model layer on next.
-import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Textarea } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
 import type { Schemas } from "@/lib/api/client";
+import { KeyHint } from "../../../../key-hint";
 import { strings } from "../../../../strings";
 import { PageBoxes } from "./page-boxes";
 
@@ -27,6 +31,8 @@ const LOW_CONFIDENCE = 0.6;
 const s = strings.confirm;
 // Ties the queue's focus stop to the line that already lists its keys.
 const KEYS_ID = "confirm-queue-keys";
+
+const COLUMN_HEADING = "text-xs font-medium tracking-wide text-ink-muted uppercase";
 
 type Item = Schemas["ImportItemOut"];
 type Page = Schemas["ImportPageOut"];
@@ -229,7 +235,7 @@ export function ConfirmReview({
   }
 
   if (items.length === 0) {
-    return <p className="text-ink-muted">{s.empty}</p>;
+    return <EmptyState icon="file-import" body={s.empty} />;
   }
 
   return (
@@ -243,17 +249,19 @@ export function ConfirmReview({
       role="group"
       aria-label={s.queueLabel}
       aria-describedby={KEYS_ID}
-      className="flex flex-col gap-6 rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+      className="flex flex-col gap-6 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-ink" role="status">
-          {s.progress(confirmedCount, items.length)}
-        </p>
-        <p className="max-w-prose text-sm text-ink-muted">{s.note}</p>
+      {/* The session's shape, kept visible (guide 4.3): the count in the
+          display face, the one rule beneath it, and the keys on the right. */}
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 border-b border-rule-line pb-4">
+        <div className="flex flex-col gap-1.5">
+          <p role="status" className="font-display text-3xl tabular-nums leading-none">
+            {s.progress(confirmedCount, items.length)}
+          </p>
+          <p className="max-w-prose text-sm text-ink-muted">{s.note}</p>
+        </div>
+        <KeyHint id={KEYS_ID} text={s.keys} />
       </div>
-      <p id={KEYS_ID} className="text-xs text-ink-muted">
-        {s.keys}
-      </p>
 
       {error ? (
         <p role="alert" className="text-sm text-flag-amber">
@@ -261,7 +269,7 @@ export function ConfirmReview({
         </p>
       ) : null}
 
-      <ol className="flex flex-col gap-8">
+      <ol className="flex flex-col gap-6">
         {ordered.map((item, index) => {
           const isConfirmed = item.state === "confirmed";
           const isEditing = editing === item.id;
@@ -286,24 +294,25 @@ export function ConfirmReview({
               }}
               aria-current={isCurrent ? "true" : undefined}
               className={
-                "flex flex-col gap-4 rounded-md border p-4 " +
-                (isCurrent ? "border-accent ring-2 ring-accent/40" : "border-rule-line")
+                "flex flex-col gap-4 rounded-lg border bg-surface p-5 shadow-raised transition-[border-color,box-shadow] duration-(--motion-duration) ease-(--motion-ease) " +
+                (isCurrent ? "border-accent ring-2 ring-accent/30" : "border-rule-line")
               }
             >
               <div className="flex flex-wrap items-center gap-3">
                 <h2 className="font-display text-xl">
                   {item.title ?? s.question}
                 </h2>
-                <span className="text-xs text-ink-muted">
+                <span className="font-mono text-xs tabular-nums text-ink-muted">
                   {s.pageSpan(item.page_span)}
                 </span>
                 {low && !isConfirmed ? (
-                  <span className="rounded-full bg-flag-amber/15 px-2 py-0.5 text-xs text-flag-amber">
-                    {s.lowConfidence}
-                  </span>
+                  <Badge tone="amber">{s.lowConfidence}</Badge>
                 ) : null}
                 {isConfirmed ? (
-                  <span className="text-xs text-verify-green">{s.confirmed}</span>
+                  <Badge tone="green">
+                    <Icon name="check" size={12} />
+                    {s.confirmed}
+                  </Badge>
                 ) : null}
               </div>
 
@@ -311,12 +320,10 @@ export function ConfirmReview({
                 <p className="text-sm text-flag-amber">{item.notes}</p>
               ) : null}
 
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid gap-5 lg:grid-cols-2">
                 {figurePages.length > 0 ? (
                   <div className="flex flex-col gap-3">
-                    <h3 className="text-xs uppercase tracking-widest text-ink-muted">
-                      {s.sourcePages}
-                    </h3>
+                    <h3 className={COLUMN_HEADING}>{s.sourcePages}</h3>
                     {!isConfirmed ? (
                       <p className="text-xs text-ink-muted">{s.figureHint}</p>
                     ) : null}
@@ -352,7 +359,8 @@ export function ConfirmReview({
                     {selectedFig ? (
                       <div className="flex flex-wrap gap-2">
                         <Button
-                          variant="quiet"
+                          variant="secondary"
+                          size="sm"
                           disabled={isBusy}
                           onClick={() =>
                             void runFigureVerb(item.id, () =>
@@ -367,12 +375,14 @@ export function ConfirmReview({
                             )
                           }
                         >
+                          <Icon name="tag" size={14} />
                           {selectedFig.role === "decorative"
                             ? s.markEssential
                             : s.markDecorative}
                         </Button>
                         <Button
-                          variant="quiet"
+                          variant="danger"
+                          size="sm"
                           disabled={isBusy}
                           onClick={() =>
                             void runFigureVerb(item.id, () =>
@@ -380,6 +390,7 @@ export function ConfirmReview({
                             )
                           }
                         >
+                          <Icon name="x" size={14} />
                           {s.removeFigure}
                         </Button>
                       </div>
@@ -390,11 +401,9 @@ export function ConfirmReview({
                 <div className="flex min-w-0 flex-col gap-4">
                   {isEditing ? (
                     <>
-                      <label className="flex flex-col gap-1">
-                        <span className="text-xs uppercase tracking-widest text-ink-muted">
-                          {s.question}
-                        </span>
-                        <textarea
+                      <label className="flex flex-col gap-1.5">
+                        <span className={COLUMN_HEADING}>{s.question}</span>
+                        <Textarea
                           value={edits[item.id]?.question_md ?? ""}
                           onChange={(e) =>
                             setEdits((prev) => ({
@@ -406,14 +415,12 @@ export function ConfirmReview({
                             }))
                           }
                           rows={8}
-                          className="rounded-md border border-field-border bg-paper px-3 py-2 font-mono text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                          className="font-mono text-sm"
                         />
                       </label>
-                      <label className="flex flex-col gap-1">
-                        <span className="text-xs uppercase tracking-widest text-ink-muted">
-                          {s.solution}
-                        </span>
-                        <textarea
+                      <label className="flex flex-col gap-1.5">
+                        <span className={COLUMN_HEADING}>{s.solution}</span>
+                        <Textarea
                           value={edits[item.id]?.solution_md ?? ""}
                           onChange={(e) =>
                             setEdits((prev) => ({
@@ -425,25 +432,21 @@ export function ConfirmReview({
                             }))
                           }
                           rows={8}
-                          className="rounded-md border border-field-border bg-paper px-3 py-2 font-mono text-sm text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                          className="font-mono text-sm"
                         />
                       </label>
                     </>
                   ) : (
                     <>
-                      <div>
-                        <h3 className="mb-1 text-xs uppercase tracking-widest text-ink-muted">
-                          {s.question}
-                        </h3>
+                      <div className="flex flex-col gap-1.5">
+                        <h3 className={COLUMN_HEADING}>{s.question}</h3>
                         <FigureMarkdown
                           markdown={edits[item.id]?.question_md ?? item.question_md}
                           figures={item.figures}
                         />
                       </div>
-                      <div>
-                        <h3 className="mb-1 text-xs uppercase tracking-widest text-ink-muted">
-                          {s.solution}
-                        </h3>
+                      <div className="flex flex-col gap-1.5">
+                        <h3 className={COLUMN_HEADING}>{s.solution}</h3>
                         {item.solution_md || edits[item.id]?.solution_md ? (
                           <FigureMarkdown
                             markdown={
@@ -460,32 +463,29 @@ export function ConfirmReview({
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 border-t border-rule-line pt-3">
+              <div className="flex flex-wrap items-center gap-2 border-t border-rule-line pt-4">
                 {isConfirmed ? (
-                  <Link
+                  <ButtonLink
                     href={`/courses/${courseId}/case-studies/${item.case_study_id}`}
-                    className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    variant="secondary"
+                    size="sm"
                   >
                     {s.openDraft}
-                  </Link>
+                    <Icon name="arrow-right" size={14} />
+                  </ButtonLink>
                 ) : (
                   <>
                     <Button onClick={() => void onConfirm(item)} disabled={isBusy}>
+                      <Icon name="check" size={16} />
                       {s.confirm}
                     </Button>
                     <Button
-                      variant="quiet"
+                      variant="secondary"
                       onClick={() => (isEditing ? setEditing(null) : beginEdit(item))}
                       disabled={isBusy}
                     >
+                      <Icon name="pen" size={16} />
                       {isEditing ? s.done : s.edit}
-                    </Button>
-                    <Button
-                      variant="quiet"
-                      onClick={() => void onDiscard(item)}
-                      disabled={isBusy}
-                    >
-                      {s.discard}
                     </Button>
                     {nextOf.has(item.id) ? (
                       <Button
@@ -493,6 +493,7 @@ export function ConfirmReview({
                         onClick={() => void onMerge(item, nextOf.get(item.id) ?? 0)}
                         disabled={isBusy}
                       >
+                        <Icon name="layers" size={16} />
                         {s.mergeNext}
                       </Button>
                     ) : null}
@@ -500,6 +501,15 @@ export function ConfirmReview({
                         then), so the affordance is present but disabled. */}
                     <Button variant="quiet" disabled title={s.splitSoon}>
                       {s.split}
+                    </Button>
+                    <Button
+                      variant="danger"
+                      className="ml-auto"
+                      onClick={() => void onDiscard(item)}
+                      disabled={isBusy}
+                    >
+                      <Icon name="x" size={16} />
+                      {s.discard}
                     </Button>
                   </>
                 )}

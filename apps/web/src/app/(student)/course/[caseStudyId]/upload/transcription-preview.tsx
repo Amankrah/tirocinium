@@ -9,6 +9,7 @@ import {
   previewRehypePlugins,
   remarkPlugins,
 } from "@/components/reading/markdown";
+import { Card } from "@/components/ui/card";
 import type { Schemas } from "@/lib/api/client";
 import { strings } from "../../../strings";
 
@@ -33,25 +34,27 @@ export function TranscriptionPreview({
 }) {
   const s = strings.upload;
   return (
-    <section className="flex flex-col gap-8">
+    <section className="flex flex-col gap-4">
       {pages.map((page) => {
         const uncertain = page.regions.filter((r) => r.confidence < LOW_CONFIDENCE);
         const thumb = thumbnails[page.page_index];
         return (
-          <article
+          <Card
             key={page.page_index}
-            className="flex flex-col gap-3 sm:flex-row sm:gap-4"
+            as="article"
+            tone="flat"
+            className="flex flex-col gap-4 sm:flex-row sm:gap-5"
           >
             {thumb ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={thumb}
                 alt=""
-                className="h-44 w-32 shrink-0 rounded border border-rule-line object-cover"
+                className="h-44 w-32 shrink-0 rounded-md border border-rule-line bg-surface-sunken object-cover"
               />
             ) : null}
-            <div className="flex min-w-0 flex-1 flex-col gap-2">
-              <h3 className="text-sm text-ink-muted">
+            <div className="flex min-w-0 flex-1 flex-col gap-3">
+              <h3 className="font-display text-base text-ink-muted">
                 {s.pageLabel(page.page_index + 1)}
               </h3>
               <div className="reading-body text-sm">
@@ -67,12 +70,12 @@ export function TranscriptionPreview({
                 </ReactMarkdown>
               </div>
               {uncertain.length > 0 ? (
-                <div className="rounded-md border border-flag-amber/40 p-3">
-                  <p className="text-xs text-flag-amber">{s.checkSpans}</p>
-                  <ul className="mt-1 flex flex-col gap-1">
+                <div className="rounded-md border border-flag-amber/40 bg-flag-amber-soft/50 p-3">
+                  <p className="text-xs font-medium text-flag-amber">{s.checkSpans}</p>
+                  <ul className="mt-2 flex flex-col gap-1">
                     {uncertain.map((region, i) => (
                       <li key={i} className="text-sm text-ink">
-                        <mark className="rounded bg-flag-amber/15 px-1">
+                        <mark className="rounded bg-flag-amber/15 px-1 text-ink">
                           {region.text}
                         </mark>
                       </li>
@@ -81,7 +84,7 @@ export function TranscriptionPreview({
                 </div>
               ) : null}
             </div>
-          </article>
+          </Card>
         );
       })}
     </section>

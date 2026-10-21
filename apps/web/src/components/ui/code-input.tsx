@@ -5,6 +5,8 @@
 
 import { useId, type ChangeEvent } from "react";
 
+import { inputClassName } from "./field";
+
 // Crockford base32: digits and letters minus I, L, O, U. Entry is forgiving
 // where decoding is unambiguous (o reads as 0; i and l as 1); U and anything
 // else outside the alphabet is dropped rather than rejected loudly, because
@@ -45,7 +47,7 @@ export function CodeInput({ label, hint, value, onChange }: CodeInputProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="text-sm text-ink">
+      <label htmlFor={id} className="text-sm font-medium text-ink">
         {label}
       </label>
       <input
@@ -58,12 +60,9 @@ export function CodeInput({ label, hint, value, onChange }: CodeInputProps) {
         autoCapitalize="characters"
         spellCheck={false}
         inputMode="text"
-        className={
-          "rounded-md border border-field-border bg-paper px-4 py-3 " +
-          "font-mono text-lg tracking-widest text-ink " +
-          "placeholder:text-ink/30 " +
-          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        }
+        className={inputClassName(
+          "px-4 py-3 text-center font-mono text-xl tracking-[0.2em] placeholder:tracking-[0.2em]",
+        )}
       />
       {hint ? (
         <p id={hintId} className="text-sm text-ink-muted">

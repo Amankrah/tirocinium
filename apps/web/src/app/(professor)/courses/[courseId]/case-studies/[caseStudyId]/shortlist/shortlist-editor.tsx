@@ -14,7 +14,11 @@
 // client-side work rather than a page-boundary illusion.
 import { useMemo, useState, useTransition } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonClassName } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { inputClassName, Select } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
+import { SectionHeading } from "@/components/ui/section-heading";
 import type { Result } from "@/lib/api/client";
 import type {
   AuthoringCatalogue,
@@ -122,27 +126,30 @@ export function ShortlistEditor({
   return (
     <div className="flex flex-col gap-10">
       <section aria-labelledby="chosen" className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <h2 id="chosen" className="font-display text-2xl">
-            {s.chosenHeading}
-          </h2>
-          <p className="text-sm text-ink-muted">{s.order}</p>
-        </div>
+        <SectionHeading
+          id="chosen"
+          title={s.chosenHeading}
+          count={chosen.length}
+          description={s.order}
+        />
 
         {chosen.length === 0 ? (
-          <p className="text-ink-muted">{s.chosenEmpty}</p>
+          <p className="text-sm text-ink-muted">{s.chosenEmpty}</p>
         ) : (
-          <ol className="flex flex-col divide-y divide-rule-line">
+          <ol className="flex flex-col gap-2">
             {chosen.map((sku, index) => {
               const line = bySku.get(sku);
               return (
-                <li
+                <Card
                   key={sku}
-                  className="flex flex-wrap items-center justify-between gap-4 py-3"
+                  as="li"
+                  tone="flat"
+                  padded={false}
+                  className="flex flex-wrap items-center justify-between gap-4 px-4 py-3"
                 >
-                  <div className="flex flex-col gap-0.5">
-                    <span>{line?.name ?? sku}</span>
-                    <span className="font-mono text-xs text-ink-muted">
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    <span className="font-display text-base">{line?.name ?? sku}</span>
+                    <span className="font-mono text-xs tabular-nums text-ink-muted">
                       {sku}
                       {line ? ` · ${line.supplier_name}` : ""}
                     </span>
@@ -162,15 +169,12 @@ export function ShortlistEditor({
                     >
                       ↓
                     </IconButton>
-                    <button
-                      type="button"
-                      onClick={() => remove(sku)}
-                      className="rounded-md px-2 py-1 text-xs text-ink-muted underline hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                    >
+                    <Button variant="quiet" size="sm" onClick={() => remove(sku)}>
+                      <Icon name="x" size={14} />
                       {s.remove}
-                    </button>
+                    </Button>
                   </div>
-                </li>
+                </Card>
               );
             })}
           </ol>
@@ -200,12 +204,10 @@ export function ShortlistEditor({
       </section>
 
       <section aria-labelledby="catalogue" className="flex flex-col gap-4">
-        <h2 id="catalogue" className="font-display text-2xl">
-          {s.catalogueHeading}
-        </h2>
+        <SectionHeading id="catalogue" title={s.catalogueHeading} count={matches.length} />
 
         <div className="flex flex-wrap gap-3">
-          <label className="flex flex-1 flex-col gap-1 text-sm">
+          <label className="flex min-w-48 flex-1 flex-col gap-1 text-sm">
             <span className="sr-only">{s.search}</span>
             <input
               type="search"
@@ -213,15 +215,15 @@ export function ShortlistEditor({
               aria-label={s.search}
               placeholder={s.searchPlaceholder}
               onChange={(event) => setSearch(event.currentTarget.value)}
-              className="min-w-48 rounded-md border border-rule-line bg-transparent px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              className={inputClassName()}
             />
           </label>
 
-          <select
+          <Select
             aria-label={s.allSuppliers}
             value={supplier}
             onChange={(event) => setSupplier(event.currentTarget.value)}
-            className={SELECT}
+            className="w-auto"
           >
             <option value="">{s.allSuppliers}</option>
             {catalogue.suppliers.map((entry) => (
@@ -229,13 +231,13 @@ export function ShortlistEditor({
                 {entry.name}
               </option>
             ))}
-          </select>
+          </Select>
 
-          <select
+          <Select
             aria-label={s.allCategories}
             value={category}
             onChange={(event) => setCategory(event.currentTarget.value)}
-            className={SELECT}
+            className="w-auto"
           >
             <option value="">{s.allCategories}</option>
             {catalogue.categories.map((name) => (
@@ -243,13 +245,13 @@ export function ShortlistEditor({
                 {name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         {matches.length === 0 ? (
           <p className="text-sm text-ink-muted">{s.noResults}</p>
         ) : (
-          <ul className="grid gap-3 sm:grid-cols-2">
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {matches.map((line) => (
               <LineCard
                 key={line.sku}
@@ -265,10 +267,6 @@ export function ShortlistEditor({
     </div>
   );
 }
-
-const SELECT =
-  "rounded-md border border-rule-line bg-transparent px-3 py-2 text-sm " +
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
 function IconButton({
   label,
@@ -287,7 +285,7 @@ function IconButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="rounded-md px-2 py-1 text-sm text-ink-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-40 disabled:pointer-events-none"
+      className={buttonClassName("quiet", "px-2 text-ink-muted hover:text-ink", "sm")}
     >
       {children}
     </button>
@@ -306,9 +304,9 @@ function LineCard({
   onAdd: () => void;
 }) {
   return (
-    <li className="flex flex-col gap-2 rounded-lg border border-rule-line p-4">
+    <Card as="li" tone="flat" className="flex flex-col gap-3">
       <div className="flex flex-col gap-0.5">
-        <span className="font-medium">{line.name}</span>
+        <span className="font-display text-base">{line.name}</span>
         <span className="text-xs text-ink-muted">{line.spec}</span>
         <span className="text-xs text-ink-muted">{line.supplier_name}</span>
       </div>
@@ -326,19 +324,21 @@ function LineCard({
         <span className="text-xs text-ink-muted">{s.service}</span>
       ) : null}
 
-      <div className="mt-auto pt-2">
+      <div className="mt-auto pt-1">
         {/* The label leads with the visible word and then names the line, so a
             screen reader hears which material it would add while the button
             still reads as what it says (WCAG 2.5.3). */}
         <Button
+          variant="secondary"
+          size="sm"
           onClick={onAdd}
           disabled={chosen || atCapacity}
           aria-label={`${chosen ? s.added : s.add}: ${line.name}`}
-          className="text-sm"
         >
+          {chosen ? <Icon name="check" size={14} /> : <Icon name="plus" size={14} />}
           {chosen ? s.added : s.add}
         </Button>
       </div>
-    </li>
+    </Card>
   );
 }

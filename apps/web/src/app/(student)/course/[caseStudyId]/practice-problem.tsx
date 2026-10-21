@@ -10,13 +10,19 @@
 // view does not offer a second control to it (decision 0084). "See the
 // solution" opens the whole worked solution at once, and is temporary
 // (decision 0085).
-import Link from "next/link";
+//
+// The body sits on a raised sheet (decision 0102): it is the page the student
+// will work from, so it reads as an object rather than as prose on the ground.
+// The rail is the one primary action and its quieter neighbours; on a phone it
+// sticks to the bottom so the way into the work is never a scroll away.
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
 import type { FigureMap } from "@/components/reading/problem-body";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
 import type { Schemas } from "@/lib/api/client";
 import { strings } from "../../strings";
 
@@ -133,61 +139,70 @@ export function PracticeProblem({
 
   return (
     <>
-      {current === null ? (
-        children
-      ) : (
-        <ClientProblemBody body={current.variant.body} figures={current.figures} />
-      )}
+      <Card tone="raised" padded={false} className="px-5 py-6 sm:px-8 sm:py-8">
+        <div className="max-w-[var(--measure-reading)]">
+          {current === null ? (
+            children
+          ) : (
+            <ClientProblemBody body={current.variant.body} figures={current.figures} />
+          )}
+        </div>
+      </Card>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-rule-line pt-6">
-        <Button onClick={() => void onNewVariant()} disabled={swapping}>
-          {s.newVariant}
-        </Button>
-        {/* The "start attempt" moment (guide 4.2, decision 0080): an explicit
-            act that opens the page where the solution is written or added.
-            A failed start still opens that page, so the clock never gates the
-            work (decision 0058). */}
-        {variantId !== null && attemptId === null ? (
-          <Button onClick={() => void onStart()} disabled={starting}>
-            {s.startAttempt}
+      <div className="sticky bottom-0 z-30 -mx-4 flex flex-col gap-2 border-t border-rule-line bg-ground px-4 py-3 sm:static sm:mx-0 sm:border-t-0 sm:bg-transparent sm:px-0 sm:py-0">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* The "start attempt" moment (guide 4.2, decision 0080): an explicit
+              act that opens the page where the solution is written or added.
+              A failed start still opens that page, so the clock never gates the
+              work (decision 0058). */}
+          {variantId !== null && attemptId === null ? (
+            <Button onClick={() => void onStart()} disabled={starting}>
+              <Icon name="pen" size={16} />
+              {s.startAttempt}
+            </Button>
+          ) : null}
+          <Button variant="secondary" onClick={() => void onNewVariant()} disabled={swapping}>
+            <Icon name="refresh" size={16} className="text-ink-muted" />
+            {s.newVariant}
           </Button>
-        ) : null}
+          {variantId !== null ? (
+            <Button
+              variant="quiet"
+              onClick={() => void onSeeSolution()}
+              disabled={openingSolution}
+            >
+              {s.seeSolution}
+            </Button>
+          ) : null}
+          {pricesMaterials && variantId !== null ? (
+            <ButtonLink
+              href={`/course/${caseStudyId}/marketplace?variant=${variantId}`}
+              variant="quiet"
+            >
+              <Icon name="store" size={16} className="text-ink-muted" />
+              {s.price}
+            </ButtonLink>
+          ) : null}
+        </div>
         {variantId === null ? (
           <p className="text-sm text-ink-muted">{s.uploadNeedsVariant}</p>
         ) : null}
-        {variantId !== null ? (
-          <Button
-            variant="quiet"
-            onClick={() => void onSeeSolution()}
-            disabled={openingSolution}
-          >
-            {s.seeSolution}
-          </Button>
+        {poolDry ? (
+          <p role="status" className="text-sm text-ink-muted">
+            {s.onlyVariant}
+          </p>
         ) : null}
-        {pricesMaterials && variantId !== null ? (
-          <Link
-            href={`/course/${caseStudyId}/marketplace?variant=${variantId}`}
-            className="inline-flex items-center justify-center rounded-md px-4 py-2 font-medium text-ink hover:bg-rule-line/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
-            {s.price}
-          </Link>
+        {solutionFailed ? (
+          <p role="alert" className="text-sm text-flag-amber">
+            {s.seeSolutionFailed}
+          </p>
+        ) : null}
+        {attemptId !== null ? (
+          <p role="status" className="text-sm text-ink-muted">
+            {s.attemptStarted}
+          </p>
         ) : null}
       </div>
-      {poolDry ? (
-        <p role="status" className="mt-2 text-sm text-ink-muted">
-          {s.onlyVariant}
-        </p>
-      ) : null}
-      {solutionFailed ? (
-        <p role="alert" className="mt-2 text-sm text-flag-amber">
-          {s.seeSolutionFailed}
-        </p>
-      ) : null}
-      {attemptId !== null ? (
-        <p role="status" className="mt-2 text-sm text-ink-muted">
-          {s.attemptStarted}
-        </p>
-      ) : null}
     </>
   );
 }
