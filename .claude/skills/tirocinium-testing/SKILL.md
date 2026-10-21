@@ -222,7 +222,8 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (650 Vitest tests across 73 files, the project marketplace's 6 in
+Web suite (652 Vitest tests across 73 files, `student-shell.test.tsx` pinning
+the header's Course and Marketplace links and which one is current, the project marketplace's 6 in
 `app/(student)/marketplace/project-marketplace.test.tsx`, `markdown.test.ts` reading the
 same `apps/api/tests/fixtures/math-delimiters.json` as the Python suite: the token contract with its
 computed-contrast assertion, the primitives, the API clients, the upload flow's

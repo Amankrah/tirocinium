@@ -9,6 +9,12 @@ export const strings = {
     // The seat number kept quietly present so a student always knows which
     // identity their work is filed under (guide 4.0). Never a name.
     seat: (seatNumber: string) => `Seat ${seatNumber}`,
+    // The two places a student works: their course (problems, mastery,
+    // history) and the project marketplace (decision 0100). Plain nouns, so
+    // the header says where you can go rather than what to do there.
+    nav: "Main",
+    course: "Course",
+    marketplace: "Marketplace",
   },
   enter: {
     title: "Enter your course",
@@ -259,7 +265,6 @@ export const strings = {
   // because a student who has also quoted inside a problem has met moving
   // prices there, and one who expects to come back to a basket would lose it.
   project: {
-    link: "Materials for your project",
     title: "Materials for your project",
     back: "Back to your course",
     lede: "Price the materials for a design project. These are the suppliers' list prices, the same for everyone, so a classmate quoting the same line gets the same figure.",

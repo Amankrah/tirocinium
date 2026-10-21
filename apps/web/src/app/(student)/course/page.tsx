@@ -49,7 +49,7 @@ export default async function CourseHomePage({
         {revisit ? <RevisitQueue revisit={revisit} /> : null}
         <CaseStudyIndex view={view} />
         {mastery ? <MasteryPicture mastery={mastery} /> : null}
-        {/* Quiet links rather than nagging cards (guide 4.2b: calm is
+        {/* Two quiet links rather than nagging cards (guide 4.2b: calm is
             the feature). How practice works stays reachable long after the
             first-run panel is gone, because the week someone wonders how the
             defence fits is rarely the week they arrived. */}
@@ -65,12 +65,6 @@ export default async function CourseHomePage({
             className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             {strings.history.link}
-          </Link>
-          <Link
-            href="/marketplace"
-            className="text-sm text-accent-text underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
-            {strings.project.link}
           </Link>
         </div>
       </main>

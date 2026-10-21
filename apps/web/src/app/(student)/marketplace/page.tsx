@@ -31,7 +31,7 @@ export default async function ProjectMarketplacePage() {
   const basis = p.basis(market.title, market.catalogue_version);
 
   return (
-    <StudentShell seatNumber={seat.seat_number}>
+    <StudentShell seatNumber={seat.seat_number} section="marketplace">
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12 print:max-w-none print:p-0">
         <div className="flex flex-col gap-8 print:hidden">
           <Link
