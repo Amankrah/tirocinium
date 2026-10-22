@@ -42,3 +42,50 @@ which the repository style rule forbids in documents. They are carried
 verbatim, because normalising someone's teaching copy is an edit to their
 teaching and not a formatting pass. Normalising it is a one-pass change to the
 extractor if that is wanted.
+
+## v2
+
+Corrections after an audit of v1 against handbook values, section geometry
+and the suppliers' own policies (decision 0108), derived from v1 by
+`scripts/revise_catalogue_v2.py`, which is the whole of the difference and is
+written as data. Nothing was added or removed: the same 146 lines, the same
+SKUs, the same shortlists, so every brief and every course pack still resolves.
+
+Figures students compute against. The 50 × 50 × 4.8 HSS mass falls from 8.62
+to 6.4 kg/m, and the 76 mm tube's spec moves to the 6.4 mm wall its 14.17 kg/m
+was always true for, so the $/kg and freight lines of the greenhouse brief now
+follow from the sections stated. The 2205 duplex tube rises from 1.77 to 2.38
+kg/m, the mass of the wall its spec names. The four Vulcan coating services
+and Macdonald's electropolishing were priced per square decimetre, as the
+policies say, but sold per square metre, so any coated area came out a hundred
+times too cheap; the figure is now the per-metre one with the per-decimetre
+rate stated in the spec, and the four coatings are flagged as the services
+they are. CPVC Schedule 80 at 82 °C is 100 psi, not 200. The rotational mould
+setup rises from $3,400 to $18,500, a figure a tank mould can be bought for.
+
+Properties. 5160 spring bar and 1045 shafting bar carried their quenched and
+tempered figures while the spec and the fabrication note described the bar as
+bought; both now carry the as-supplied values, and the hardened figures live
+in the description as what the heat treatment buys. Black HDPE pipe is rated
+5 for UV, as its own copy says, and Schedule 80 PVC carries the same rating
+as the Schedule 40 of the same compound.
+
+Terms. Minimum orders now match the suppliers' notes: one full length on
+Laurentian's structural sections, 25 kg on its plate and sheet, 10 kg on
+Boréal's sheet and plate, one piece on Vulcan's blanks. Six-metre straight
+pipe lengths are long loads for freight like the three-metre bars already
+were. Manual shop time is billed in 0.25 h increments, as Macdonald's policy
+says.
+
+Copy. Eleven descriptions and four fabrication notes stated a comparison the
+figures on the same line did not support (the FRP tube is heavier than the
+aluminium tube, not lighter; carbon fibre has about three times E-glass's
+fibre modulus, not thirteen; alumina is a thirtieth as tough as mild steel,
+not a hundredth; and so on) and now state the one they do. The rewrites are
+the only lines whose copy is not the course author's verbatim, and they carry
+no em-dashes.
+
+What moves to v2: the project marketplace for any seat whose course has not
+pinned a catalogue, since it takes the newest shipped version. A course
+pinned to v1 stays on v1 until its professor re-pins, and an issued quotation
+is untouched either way. The course pack still pins v1.

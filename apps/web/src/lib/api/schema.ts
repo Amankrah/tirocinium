@@ -1181,8 +1181,13 @@ export interface paths {
         put?: never;
         /**
          * Project Rfq
-         * @description The application-engineering notes for a request, from the catalogue's
-         *     authored rules (never a model, decision 0076). Not stored.
+         * @description The supplier desk's reply to a request, at list prices (decision
+         *     0108): the figures are the quote arithmetic's, the authored notes are
+         *     always there, and a model writes the reply around them when a desk is
+         *     configured. No request, note or reply is stored; the one row a desk call
+         *     leaves is its token_usage in the seat's course shard, because a model
+         *     call made on a course's behalf is accounted to the course wherever it was
+         *     made.
          */
         post: operations["project_rfq_api_v1_marketplace_rfq_post"];
         delete?: never;
@@ -1567,8 +1572,11 @@ export interface paths {
         put?: never;
         /**
          * Submit Rfq
-         * @description Send a request for quotation and get the application-engineering notes
-         *     back. Deterministic rules, never a model call (decision 0076).
+         * @description Send a request for quotation and get the supplier desk's reply
+         *     (decision 0108): the figures are the quote arithmetic's at this seat's own
+         *     prices, the authored notes are always there, and the desk writes around
+         *     them when it can. The request, the notes and the reply are stored with
+         *     the reply's provenance.
          */
         post: operations["submit_rfq_api_v1_variants__variant_id__marketplace_rfqs_post"];
         delete?: never;
@@ -1935,6 +1943,14 @@ export interface components {
             unit_label: string;
             /** Unit Price Cents */
             unit_price_cents: number;
+        };
+        /** ComputedQuote */
+        ComputedQuote: {
+            /** Lines */
+            lines: components["schemas"]["ComputedLine"][];
+            /** Notices */
+            notices: string[];
+            totals: components["schemas"]["QuoteTotals"];
         };
         /**
          * ConceptDistribution
@@ -2870,10 +2886,20 @@ export interface components {
             /** Valid Until */
             valid_until: number;
         };
-        /** ProjectRfqOut */
+        /**
+         * ProjectRfqOut
+         * @description The desk's reply at list prices, not stored (decision 0108).
+         */
         ProjectRfqOut: {
             advice: components["schemas"]["RfqAdvice"];
+            priced: components["schemas"]["ComputedQuote"] | null;
+            reply: components["schemas"]["SupplierReply"] | null;
             request: components["schemas"]["RfqIn"];
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "desk" | "rules";
         };
         /**
          * ProposalOut
@@ -3188,6 +3214,11 @@ export interface components {
             /** @default indoor */
             environment: components["schemas"]["Environment"];
             /**
+             * Needed By
+             * @default
+             */
+            needed_by: string;
+            /**
              * Notes
              * @default
              */
@@ -3197,6 +3228,11 @@ export interface components {
              * @default
              */
             quantity: string;
+            /**
+             * Ship To
+             * @default
+             */
+            ship_to: string;
             /** Sku */
             sku?: string | null;
             /**
@@ -3207,16 +3243,27 @@ export interface components {
             /** @default prototype */
             volume: components["schemas"]["Volume"];
         };
-        /** RfqOut */
+        /**
+         * RfqOut
+         * @description A stored request and its reply (decision 0108): the answer every RFQ
+         *     gets, plus the record it became.
+         */
         RfqOut: {
             advice: components["schemas"]["RfqAdvice"];
             /** Created At */
             created_at: number;
             /** Id */
             id: number;
+            priced: components["schemas"]["ComputedQuote"] | null;
             /** Reference */
             reference: string;
+            reply: components["schemas"]["SupplierReply"] | null;
             request: components["schemas"]["RfqIn"];
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "desk" | "rules";
         };
         /**
          * Role
@@ -3529,6 +3576,39 @@ export interface components {
             shipping: string;
             /** Tagline */
             tagline: string;
+        };
+        /**
+         * SupplierAlternative
+         * @description A line the desk would steer the student toward, and why. Only a
+         *     catalogue SKU survives the check; the reason is the desk's own.
+         */
+        SupplierAlternative: {
+            /** Reason */
+            reason: string;
+            /** Sku */
+            sku: string;
+        };
+        /**
+         * SupplierReply
+         * @description What the desk wrote, in the parts a quotation email actually has. The
+         *     priced table is not here: it is the server's (`RfqAnswer.priced`), and
+         *     the reply refers to it rather than restating it.
+         */
+        SupplierReply: {
+            /** Alternatives */
+            alternatives?: components["schemas"]["SupplierAlternative"][];
+            /** Closing */
+            closing: string;
+            /** Notes */
+            notes?: string[];
+            /** Offer */
+            offer: string;
+            /** Opening */
+            opening: string;
+            /** Questions */
+            questions?: string[];
+            /** Subject */
+            subject: string;
         };
         /** SupplierSummary */
         SupplierSummary: {

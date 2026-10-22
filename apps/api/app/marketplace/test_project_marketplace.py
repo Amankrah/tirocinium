@@ -13,7 +13,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from app.db.connection import connect
-from app.marketplace.catalogue import load_catalogue
+from app.marketplace.catalogue import available_catalogues, load_catalogue
 from app.marketplace.listing import list_prices
 from app.marketplace.quoting import QuoteLineIn, compute_quote
 from app.marketplace.test_marketplace import CATALOGUE as PIN
@@ -127,7 +127,9 @@ def test_a_course_that_does_not_price_materials_still_has_one(
     # ...and the project marketplace is not that setting.
     front = client.get("/api/v1/marketplace", headers=bearer(world.token))
     assert front.status_code == 200, front.text
-    assert (front.json()["catalogue_id"], front.json()["catalogue_version"]) == ("bree-216", 1)
+    # An unpinned seat meets the newest shipped version, whatever it is.
+    newest = max(version for cid, version in available_catalogues() if cid == "bree-216")
+    assert (front.json()["catalogue_id"], front.json()["catalogue_version"]) == ("bree-216", newest)
 
 
 def test_only_a_seat_may_use_it(

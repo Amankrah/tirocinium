@@ -33,7 +33,7 @@ from pydantic import BaseModel, Field
 from app.auth.deps import get_shards, require_seat
 from app.auth.models import Identity
 from app.db.shards import ShardManager
-from app.marketplace.advice import RfqAdvice, RfqIn, advise
+from app.marketplace.advice import RfqIn
 from app.marketplace.catalogue import (
     Brief,
     Catalogue,
@@ -61,6 +61,13 @@ from app.marketplace.quoting import (
     QuoteLineIn,
     QuoteTotals,
     compute_quote,
+)
+from app.marketplace.supplier import (
+    RfqAnswer,
+    RfqResult,
+    SupplierDesk,
+    answer_rfq,
+    get_supplier_desk,
 )
 from app.problems import Problem
 
@@ -119,9 +126,8 @@ class CompareIn(BaseModel):
     skus: list[str] = Field(min_length=1, max_length=MAX_COMPARE)
 
 
-class ProjectRfqOut(BaseModel):
-    request: RfqIn
-    advice: RfqAdvice
+class ProjectRfqOut(RfqAnswer):
+    """The desk's reply at list prices, not stored (decision 0108)."""
 
 
 async def _catalogue(shards: ShardManager, identity: Identity) -> Catalogue:
@@ -275,8 +281,43 @@ async def project_rfq(
     body: RfqIn,
     identity: Annotated[Identity, Depends(require_seat)],
     shards: Annotated[ShardManager, Depends(get_shards)],
+    desk: Annotated[SupplierDesk | None, Depends(get_supplier_desk)] = None,
 ) -> ProjectRfqOut:
-    """The application-engineering notes for a request, from the catalogue's
-    authored rules (never a model, decision 0076). Not stored."""
+    """The supplier desk's reply to a request, at list prices (decision
+    0108): the figures are the quote arithmetic's, the authored notes are
+    always there, and a model writes the reply around them when a desk is
+    configured. No request, note or reply is stored; the one row a desk call
+    leaves is its token_usage in the seat's course shard, because a model
+    call made on a course's behalf is accounted to the course wherever it was
+    made."""
     catalogue = await _catalogue(shards, identity)
-    return ProjectRfqOut(request=body, advice=advise(catalogue, body))
+    result = await answer_rfq(
+        catalogue, list_prices(catalogue), body, desk=desk, price_basis="list"
+    )
+    if result.usage is not None and identity.course_id is not None:
+        await shards.course(identity.course_id).run(
+            lambda conn: _record_desk_usage(conn, result, int(time.time()))
+        )
+    answer = result.answer
+    return ProjectRfqOut(
+        request=answer.request,
+        advice=answer.advice,
+        priced=answer.priced,
+        reply=answer.reply,
+        source=answer.source,
+    )
+
+
+def _record_desk_usage(conn: sqlite3.Connection, result: RfqResult, now: int) -> None:
+    assert result.usage is not None and result.model_id is not None
+    conn.execute(
+        "INSERT INTO token_usage (kind, model_id, input_tokens, output_tokens, created_at)"
+        " VALUES (?, ?, ?, ?, ?)",
+        (
+            "supplier_reply",
+            result.model_id,
+            result.usage.input_tokens,
+            result.usage.output_tokens,
+            now,
+        ),
+    )

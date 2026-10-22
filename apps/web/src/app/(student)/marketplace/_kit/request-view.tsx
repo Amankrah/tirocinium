@@ -1,12 +1,12 @@
 "use client";
 
 // Request a quotation (decision 0101, restyled in 0105): name the line,
-// answer what a supplier would need, and get the catalogue's
-// application-engineering notes back. The notes are authored rules, never a
-// model (decision 0076), and nothing is sent anywhere or kept. There is no
-// name or group field, unlike the prototype's form: a student here is a seat,
-// and this is the one form that would otherwise be tempted to collect a
-// person.
+// answer what a supplier would need, and get the supplier desk's reply back
+// (decision 0108). The figures in it are the catalogue's own; the prose is a
+// model's when a desk is configured and the authored rules otherwise, and the
+// panel says which. Nothing is kept. There is no name or group field, unlike
+// the prototype's form: a student here is a seat, and this is the one form
+// that would otherwise be tempted to collect a person.
 import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";

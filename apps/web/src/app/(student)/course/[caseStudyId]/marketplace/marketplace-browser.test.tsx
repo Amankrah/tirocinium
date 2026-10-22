@@ -244,15 +244,13 @@ describe("MarketplaceBrowser", () => {
     expect(screen.getByText("best")).toBeDefined();
   });
 
-  it("says the advice is authored rules rather than a model", async () => {
+  it("says the advice is authored rules when no desk answered", async () => {
     renderBrowser();
     fireEvent.click(screen.getByRole("button", { name: "Send request" }));
     expect(await screen.findByText("No tolerance was stated.")).toBeDefined();
-    expect(
-      screen.getByText(
-        "These notes come from the catalogue's own application-engineering rules, not from a model.",
-      ),
-    ).toBeDefined();
+    // A rules-only answer says so, and never claims a model wrote it (0108).
+    expect(screen.getByText(/nothing here was written by a model/)).toBeDefined();
+    expect(screen.queryByText(/The wording is a model's/)).toBeNull();
     expect(screen.getByText("a quantity and unit")).toBeDefined();
   });
 });

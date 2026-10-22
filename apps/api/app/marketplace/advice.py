@@ -2,11 +2,14 @@
 decision 0076).
 
 Deterministic rules over the answers the student gave and the line they named.
-No model call, no versioned prompt, no recorded seam, and that is a refusal
-rather than a saving: engineering advice to a student who cannot yet judge it
-is the worst possible place for a fluent paraphrase of a plausible-sounding
-rule. What is here is authored, reviewable and diffable, and is wrong only in
-the ways someone chose.
+Authored, reviewable and diffable, and wrong only in the ways someone chose.
+
+Since decision 0108 these notes are no longer the whole reply. The supplier
+desk (`app.marketplace.supplier`) hands them to a model as house notes, with
+the catalogue's own figures, and the model writes the reply a sales engineer
+would. The rules remain the reviewable half of that reply and the whole of it
+whenever the desk is unavailable or its reply fails the figure check, so they
+stay total: every combination of answers returns at least one note.
 
 The rules are total. Every combination of answers returns at least one note,
 because a vendor who replies with nothing has told the student that their
@@ -87,6 +90,13 @@ class RfqIn(BaseModel):
     environment: Environment = Environment.INDOOR
     certification: Certification = Certification.NONE
     tolerance: str = Field(default="", max_length=300)
+    # The two things a real request carries that the first form left out
+    # (decision 0108): when the part is needed, which decides whether a lead
+    # time is a problem, and where it ships to, which decides whether the
+    # freight estimate means anything. Free text, because "before the field
+    # trial on the 14th" is an answer and a date picker would refuse it.
+    needed_by: str = Field(default="", max_length=120)
+    ship_to: str = Field(default="", max_length=160)
     notes: str = Field(default="", max_length=1000)
 
 

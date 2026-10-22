@@ -143,7 +143,13 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 642 collected and 638 passing with 4 skipped (15 project
+Python suite, 666 collected and 662 passing with 4 skipped (24 supplier desk
+in `app/marketplace/test_supplier.py`, decision 0108: the quantity reader, the
+fact sheet carrying the figures and fencing the request, the guard refusing an
+invented figure or an unstocked SKU whole, the house style, the desk answering
+with the rules kept, the three fallbacks, the no-key and recorded-gate
+factories, and both surfaces: the case-study RFQ stored with provenance and
+its usage row, the project RFQ storing nothing but the usage row; 15 project
 marketplace in `app/marketplace/test_project_marketplace.py`, decisions 0100
 and 0101, the later seven pinning ticked filters as alternatives, a SKU list
 in its own order, search over descriptions and suppliers, the property sorts
@@ -226,7 +232,12 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (666 Vitest tests across 74 files, the project marketplace's 19 in
+Web suite (682 Vitest tests across 77 files, the supplier desk's 4 in
+`_marketplace/rfq-panel.test.tsx` (the form sends the needed-by and ship-to
+fields and asks for no person; a desk reply renders as a letter around the
+server's priced table and says a model wrote the words; a rules reply says
+none did; a request nothing could be priced for names what was missing),
+the project marketplace's 19 in
 `marketplace/_kit/marketplace-kit.test.tsx` and 5 in `_kit/content.test.ts`
 (which reads `apps/api/catalogue/bree-216/v1.json` and fails when a figure the
 guide cites drifts), plus `quote-sheet.test.tsx` summing the quotation's rows
@@ -1393,9 +1404,16 @@ prompts are, and is regenerated from the teaching artifact by
 `infra/extract-marketplace-catalogue.mjs`. Editing it is a version bump, never
 an edit in place, because a course is pinned to an exact version and issued
 quotations name the version they were struck against. The marketplace tests
-build their own baskets and need no committed recorded response, since nothing
-in the marketplace calls a model: pricing is arithmetic and the RFQ advice is
-authored rules.
+build their own baskets and need no committed recorded response: pricing is
+arithmetic and the RFQ's authored rules need no model. The supplier desk
+(decision 0108) is the marketplace's one model seam; `RecordedSupplierDesk`
+replays a `SupplierReply` keyed on `document_key` of the fact sheet, the tests
+build theirs in memory, and `apps/api/tests/recorded/supplier-reply/` is where
+captured replies land. `scripts/smoke_supplier_reply.py` is the live lane and
+spends tokens; it is never part of the gate. Catalogue v2
+(`scripts/revise_catalogue_v2.py`) is derived from v1 and re-running the script
+must reproduce it byte for byte; `content.test.ts` and the unpinned-seat test
+read the newest shipped version rather than naming one.
 
 The five-PDF ingestion corpus lives at `crates/platform_core/pdf/corpus/` (PDFs
 under `pdfs/`, the spec in `README.md`, baselines in `expectations.json`). The

@@ -88,7 +88,11 @@ catalogue is a versioned asset, not a table: `apps/api/catalogue/{id}/vN.json`
 with a `CHANGELOG.md`, loaded the way `app/prompts.py` loads prompts, and a
 course is pinned to one exact version (directory migration 0005) rather than to
 "latest", because a price list that moved under a term is one students could not
-be asked to defend. Prices are a pure function of (line, variant seed) in
+be asked to defend. v2 exists (decision 0108): an accuracy audit found masses,
+unit-of-sale mismatches, tempers and copy that did not follow from the figures,
+and `scripts/revise_catalogue_v2.py` derives v2 from v1 as data. The project
+marketplace serves the newest version to an unpinned seat; the course pack and
+every test world still pin v1. Prices are a pure function of (line, variant seed) in
 `pricing.py`, so two students never hold the same number and each can be asked
 about their own. Issuing freezes a full line snapshot (course migration 0021),
 so a catalogue revision, or a professor turning the marketplace off entirely,
@@ -97,9 +101,22 @@ that made it. Two rules here are product law rather than taste. The shortlist
 (`case_study_shortlist`) narrows what a student meets first and never restricts
 what they can reach, because deciding a material is wrong is the exercise and a
 catalogue that hid the wrong answers would be doing it for them. And the RFQ's
-application-engineering notes are deterministic rules over data (`advice.py`),
-never a model call, because a hallucinated engineering note is worse than no
-note. A submission may cite an issued quotation on decision 0058's terms, and
+figures are never a model's: decision 0108 replaced 0076's rules-only reply
+with the supplier desk (`supplier.py`, prompt `supplier-reply/v1`, a model
+writing as the named supplier's sales desk), but the desk writes around a fact
+sheet the platform assembled first (the line's terms, `compute_quote` run for
+the quantity asked, the related and process lines it may name, and `advice.py`'s
+authored rules as house notes), and `check_reply` refuses whole any reply that
+states a dollar figure the sheet does not carry or names a SKU the catalogue
+does not stock. The rules stay total and are the answer whenever the desk is
+absent (no key, the recorded seam gate, a failed call, a refused reply), and
+the response says which it was (`source`). A quantity is priced only in the
+line's own unit of sale; "2 sheets" of plate is a question the desk asks. The
+reply is stored with model id and prompt version (course migration 0024), and
+every desk call writes a `supplier_reply` row to `token_usage` in the seat's
+course shard on both marketplaces. Default model `claude-sonnet-5-5`
+(`TIRO_SUPPLIER_MODEL_ID`); `scripts/smoke_supplier_reply.py` is its live
+lane. A submission may cite an issued quotation on decision 0058's terms, and
 the defence context carries it as a fourth delimited source under
 `defense-tutor/v3`, which may press on the cost basis and may never name the
 material it would have chosen. The professor's side (`authoring.py`) sees list

@@ -354,7 +354,13 @@ describe("the request for quotation", () => {
   it("asks for no person, and offers to quote the line it was asked about", async () => {
     const ask = vi.fn(async (request: RfqRequest) => ({
       ok: true as const,
-      data: { request, advice: { notes: [{ rule: "r", text: "A note." }], missing: [] } },
+      data: {
+        request,
+        advice: { notes: [{ rule: "r", text: "A note." }], missing: [] },
+        priced: null,
+        reply: null,
+        source: "rules" as const,
+      },
     }));
     const { price } = withMarket(<RequestView initialSku="A" line={summary("A")} ask={ask} />);
     expect(screen.queryByLabelText(/name/i)).toBeNull();

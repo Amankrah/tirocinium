@@ -193,6 +193,7 @@ def test_every_untrusted_reading_prompt_states_that_text_is_data() -> None:
         ("variant-generation", "v5"),
         ("variant-verification", "v4"),
         ("defense-tutor", "v2"),
+        ("supplier-reply", "v1"),
         # defense-rubric is deliberately absent: it is never sent alone. The
         # closing call carries the session's whole system prompt, persona and
         # hard rules included, and the next test asserts that rather than

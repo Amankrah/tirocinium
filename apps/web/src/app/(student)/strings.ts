@@ -256,17 +256,36 @@ export const strings = {
       hint: "Answer what a supplier would need before they could price your part.",
       component: "What are you making?",
       quantityLabel: "How many, and in what unit?",
+      quantityHint: "In the unit the line is sold by, for example 40 kg or 12 m.",
       volume: "Production volume",
       environment: "Where will it live?",
       certification: "Certification needed",
       tolerance: "Tolerance or finish",
+      neededBy: "When do you need it?",
+      shipTo: "Ship to",
       notes: "Anything else",
       send: "Send request",
       sending: "Sending…",
       answer: "Their reply",
       missing: "They could not price this without:",
-      authored:
-        "These notes come from the catalogue's own application-engineering rules, not from a model.",
+      questions: "Before they can firm this up",
+      applicationNotes: "Application notes",
+      alternatives: "They would also consider",
+      tableLine: "Line",
+      tableQuantity: "Quantity",
+      tableUnitPrice: "Unit price",
+      tableAmount: "Amount",
+      breakApplied: (percent: number) => `after ${percent} % volume break`,
+      cutting: "Cutting",
+      freight: "Freight, estimated on consolidated shipment",
+      total: "Total, CAD",
+      leadAndBasis: (lead: string) =>
+        `Lead time ${lead}, ex-works. Figures are the catalogue's own, worked for the quantity you gave.`,
+      // Where the reply came from, said plainly either way (decision 0108).
+      fromDesk:
+        "The figures are the catalogue's own and were checked against it before this reply was shown. The wording is a model's, writing as the supplier's sales desk.",
+      fromRules:
+        "These notes come from the catalogue's own application-engineering rules. No supplier desk was available for this request, so nothing here was written by a model.",
     },
   },
   // The project marketplace (decisions 0100 and 0101): the same catalogue
@@ -481,7 +500,7 @@ export const strings = {
     requestLede:
       "Suppliers do not quote from a description alone. Everything asked below is something a real supplier would need before putting a number on paper, which is exactly why answering it is a useful exercise.",
     requestNothingSent:
-      "Nothing is sent anywhere and nothing is kept. The reply is immediate and comes from the catalogue's authored rules.",
+      "Nothing is kept. The reply comes from a supplier desk that quotes only the catalogue's own figures, and it says so when it was written by a model.",
     requestLine: "Line item (SKU)",
     requestLinePlaceholder: "For example BSA-316L-2B",
     addSkuToQuote: (sku: string) => `Add ${sku} to the quote`,

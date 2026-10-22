@@ -25,7 +25,7 @@ from app.auth.deps import get_shards, require_seat
 from app.auth.models import Identity
 from app.compression import compress_bytes, decompress_bytes
 from app.db.shards import ShardManager
-from app.marketplace.advice import RfqAdvice, RfqIn, advise
+from app.marketplace.advice import RfqAdvice, RfqIn
 from app.marketplace.catalogue import (
     UNIT_LABELS,
     Brief,
@@ -58,6 +58,14 @@ from app.marketplace.quoting import (
     QuoteTotals,
     TaxLine,
     compute_quote,
+)
+from app.marketplace.supplier import (
+    RfqAnswer,
+    RfqResult,
+    SupplierDesk,
+    SupplierReply,
+    answer_rfq,
+    get_supplier_desk,
 )
 from app.problems import Problem
 
@@ -133,12 +141,13 @@ class CompareIn(BaseModel):
     skus: list[str] = Field(min_length=1, max_length=MAX_COMPARE)
 
 
-class RfqOut(BaseModel):
+class RfqOut(RfqAnswer):
+    """A stored request and its reply (decision 0108): the answer every RFQ
+    gets, plus the record it became."""
+
     id: int
     reference: str
     created_at: int
-    request: RfqIn
-    advice: RfqAdvice
 
 
 # ---------------------------------------------------------------------------
@@ -310,9 +319,7 @@ async def list_lines(
     category: Annotated[list[str] | None, Query()] = None,
     tag: Annotated[list[str] | None, Query()] = None,
     q: Annotated[str | None, Query(max_length=100)] = None,
-    sort: Annotated[
-        str, Query(pattern=SORT_PATTERN)
-    ] = "relevance",
+    sort: Annotated[str, Query(pattern=SORT_PATTERN)] = "relevance",
     cursor: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=MAX_LIMIT)] = DEFAULT_LIMIT,
 ) -> LineListOut:
@@ -793,17 +800,25 @@ async def submit_rfq(
     body: RfqIn,
     identity: Annotated[Identity, Depends(require_seat)],
     shards: Annotated[ShardManager, Depends(get_shards)],
+    desk: Annotated[SupplierDesk | None, Depends(get_supplier_desk)] = None,
 ) -> RfqOut:
-    """Send a request for quotation and get the application-engineering notes
-    back. Deterministic rules, never a model call (decision 0076)."""
+    """Send a request for quotation and get the supplier desk's reply
+    (decision 0108): the figures are the quote arithmetic's at this seat's own
+    prices, the authored notes are always there, and the desk writes around
+    them when it can. The request, the notes and the reply are stored with
+    the reply's provenance."""
     context = await _context(shards, identity, variant_id)
-    result = advise(context.catalogue, body)
+    result = await answer_rfq(
+        context.catalogue, context.prices, body, desk=desk, price_basis="project"
+    )
+    answer = result.answer
     now = int(time.time())
 
     def store(conn: sqlite3.Connection) -> tuple[int, str]:
         cursor = conn.execute(
             "INSERT INTO rfqs (variant_id, seat_id, reference, sku, request_json_z,"
-            " notes_json_z, created_at) VALUES (?, ?, '', ?, ?, ?, ?)",
+            " notes_json_z, created_at, reply_json_z, reply_source, reply_model_id,"
+            " reply_prompt_version) VALUES (?, ?, '', ?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 variant_id,
                 context.seat_id,
@@ -812,18 +827,55 @@ async def submit_rfq(
                 # vocabulary with the trained problem-text dictionary, and
                 # Python never touches raw zstd either way.
                 compress_bytes(body.model_dump_json().encode("utf-8")),
-                compress_bytes(result.model_dump_json().encode("utf-8")),
+                compress_bytes(answer.advice.model_dump_json().encode("utf-8")),
                 now,
+                (
+                    compress_bytes(answer.reply.model_dump_json().encode("utf-8"))
+                    if answer.reply is not None
+                    else None
+                ),
+                answer.source,
+                result.model_id,
+                result.prompt_version,
             ),
         )
         assert cursor.lastrowid is not None
         rfq_id = int(cursor.lastrowid)
         reference = f"RFQ-{rfq_id:05d}"
         conn.execute("UPDATE rfqs SET reference = ? WHERE id = ?", (reference, rfq_id))
+        _record_desk_usage(conn, result, now)
         return rfq_id, reference
 
     rfq_id, reference = await shards.course(context.course_id).run(store)
-    return RfqOut(id=rfq_id, reference=reference, created_at=now, request=body, advice=result)
+    return RfqOut(
+        id=rfq_id,
+        reference=reference,
+        created_at=now,
+        request=answer.request,
+        advice=answer.advice,
+        priced=answer.priced,
+        reply=answer.reply,
+        source=answer.source,
+    )
+
+
+def _record_desk_usage(conn: sqlite3.Connection, result: RfqResult, now: int) -> None:
+    """One token_usage row per desk call, in the course's own shard like
+    every other model call made on a course's behalf (migration 0016). A
+    call that was never made writes nothing."""
+    if result.usage is None or result.model_id is None:
+        return
+    conn.execute(
+        "INSERT INTO token_usage (kind, model_id, input_tokens, output_tokens, created_at)"
+        " VALUES (?, ?, ?, ?, ?)",
+        (
+            "supplier_reply",
+            result.model_id,
+            result.usage.input_tokens,
+            result.usage.output_tokens,
+            now,
+        ),
+    )
 
 
 @router.get(
@@ -839,6 +891,9 @@ async def list_rfqs(
     course_id, seat_id = _seat(identity)
 
     def read(conn: sqlite3.Connection) -> list[RfqOut]:
+        # The priced figures are not stored: they are a pure function of the
+        # request and this seat's prices, and reading them back would mean
+        # recomputing them anyway. The list shows what was asked and answered.
         return [
             RfqOut(
                 id=int(row[0]),
@@ -846,9 +901,17 @@ async def list_rfqs(
                 created_at=int(row[4]),
                 request=RfqIn.model_validate(json.loads(decompress_bytes(bytes(row[2])))),
                 advice=RfqAdvice.model_validate(json.loads(decompress_bytes(bytes(row[3])))),
+                priced=None,
+                reply=(
+                    SupplierReply.model_validate(json.loads(decompress_bytes(bytes(row[5]))))
+                    if row[5] is not None
+                    else None
+                ),
+                source="desk" if row[6] == "desk" and row[5] is not None else "rules",
             )
             for row in conn.execute(
-                "SELECT id, reference, request_json_z, notes_json_z, created_at"
+                "SELECT id, reference, request_json_z, notes_json_z, created_at,"
+                " reply_json_z, reply_source"
                 " FROM rfqs WHERE seat_id = ? AND variant_id = ? ORDER BY id DESC",
                 (seat_id, variant_id),
             ).fetchall()

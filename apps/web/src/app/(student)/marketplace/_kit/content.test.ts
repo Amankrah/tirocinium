@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -28,13 +28,14 @@ type CatalogueFile = {
   lines: Line[];
 };
 
-const catalogue = JSON.parse(
-  readFileSync(
-    // Vitest runs from apps/web; jsdom gives import.meta.url no file scheme.
-    resolve(process.cwd(), `../api/catalogue/${CONTENT_CATALOGUE}/v1.json`),
-    "utf8",
-  ),
-) as CatalogueFile;
+// Vitest runs from apps/web; jsdom gives import.meta.url no file scheme. The
+// newest shipped version is what the project marketplace serves an unpinned
+// seat, so that is the one the guide's figures are held to.
+const catalogueDir = resolve(process.cwd(), `../api/catalogue/${CONTENT_CATALOGUE}`);
+const newest = readdirSync(catalogueDir)
+  .filter((name) => /^v\d+\.json$/.test(name))
+  .sort((a, b) => Number(b.slice(1, -5)) - Number(a.slice(1, -5)))[0];
+const catalogue = JSON.parse(readFileSync(resolve(catalogueDir, newest), "utf8")) as CatalogueFile;
 
 const bySku = new Map(catalogue.lines.map((line) => [line.sku, line]));
 const line = (sku: string): Line => {

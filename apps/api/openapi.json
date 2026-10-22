@@ -828,6 +828,34 @@
         "title": "ComputedLine",
         "type": "object"
       },
+      "ComputedQuote": {
+        "properties": {
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/ComputedLine"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "notices": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notices",
+            "type": "array"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/QuoteTotals"
+          }
+        },
+        "required": [
+          "lines",
+          "totals",
+          "notices"
+        ],
+        "title": "ComputedQuote",
+        "type": "object"
+      },
       "ConceptDistribution": {
         "description": "The professor's lens: how the class stands on one concept. Gaps fill\nin when the defense conversations of Phase 7 start naming them.",
         "properties": {
@@ -3511,17 +3539,49 @@
         "type": "object"
       },
       "ProjectRfqOut": {
+        "description": "The desk's reply at list prices, not stored (decision 0108).",
         "properties": {
           "advice": {
             "$ref": "#/components/schemas/RfqAdvice"
           },
+          "priced": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComputedQuote"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reply": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SupplierReply"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "request": {
             "$ref": "#/components/schemas/RfqIn"
+          },
+          "source": {
+            "enum": [
+              "desk",
+              "rules"
+            ],
+            "title": "Source",
+            "type": "string"
           }
         },
         "required": [
           "request",
-          "advice"
+          "advice",
+          "priced",
+          "reply",
+          "source"
         ],
         "title": "ProjectRfqOut",
         "type": "object"
@@ -4350,6 +4410,12 @@
             "$ref": "#/components/schemas/Environment",
             "default": "indoor"
           },
+          "needed_by": {
+            "default": "",
+            "maxLength": 120,
+            "title": "Needed By",
+            "type": "string"
+          },
           "notes": {
             "default": "",
             "maxLength": 1000,
@@ -4360,6 +4426,12 @@
             "default": "",
             "maxLength": 80,
             "title": "Quantity",
+            "type": "string"
+          },
+          "ship_to": {
+            "default": "",
+            "maxLength": 160,
+            "title": "Ship To",
             "type": "string"
           },
           "sku": {
@@ -4389,6 +4461,7 @@
         "type": "object"
       },
       "RfqOut": {
+        "description": "A stored request and its reply (decision 0108): the answer every RFQ\ngets, plus the record it became.",
         "properties": {
           "advice": {
             "$ref": "#/components/schemas/RfqAdvice"
@@ -4401,20 +4474,51 @@
             "title": "Id",
             "type": "integer"
           },
+          "priced": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComputedQuote"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "reference": {
             "title": "Reference",
             "type": "string"
           },
+          "reply": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SupplierReply"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "request": {
             "$ref": "#/components/schemas/RfqIn"
+          },
+          "source": {
+            "enum": [
+              "desk",
+              "rules"
+            ],
+            "title": "Source",
+            "type": "string"
           }
         },
         "required": [
+          "request",
+          "advice",
+          "priced",
+          "reply",
+          "source",
           "id",
           "reference",
-          "created_at",
-          "request",
-          "advice"
+          "created_at"
         ],
         "title": "RfqOut",
         "type": "object"
@@ -5378,6 +5482,84 @@
           "minimum_order_note"
         ],
         "title": "Supplier",
+        "type": "object"
+      },
+      "SupplierAlternative": {
+        "description": "A line the desk would steer the student toward, and why. Only a\ncatalogue SKU survives the check; the reason is the desk's own.",
+        "properties": {
+          "reason": {
+            "maxLength": 600,
+            "title": "Reason",
+            "type": "string"
+          },
+          "sku": {
+            "maxLength": 64,
+            "title": "Sku",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sku",
+          "reason"
+        ],
+        "title": "SupplierAlternative",
+        "type": "object"
+      },
+      "SupplierReply": {
+        "description": "What the desk wrote, in the parts a quotation email actually has. The\npriced table is not here: it is the server's (`RfqAnswer.priced`), and\nthe reply refers to it rather than restating it.",
+        "properties": {
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/SupplierAlternative"
+            },
+            "maxItems": 3,
+            "title": "Alternatives",
+            "type": "array"
+          },
+          "closing": {
+            "maxLength": 1200,
+            "title": "Closing",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Notes",
+            "type": "array"
+          },
+          "offer": {
+            "maxLength": 3000,
+            "title": "Offer",
+            "type": "string"
+          },
+          "opening": {
+            "maxLength": 1500,
+            "title": "Opening",
+            "type": "string"
+          },
+          "questions": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Questions",
+            "type": "array"
+          },
+          "subject": {
+            "maxLength": 200,
+            "title": "Subject",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject",
+          "opening",
+          "offer",
+          "closing"
+        ],
+        "title": "SupplierReply",
         "type": "object"
       },
       "SupplierSummary": {
@@ -12029,7 +12211,7 @@
     },
     "/api/v1/marketplace/rfq": {
       "post": {
-        "description": "The application-engineering notes for a request, from the catalogue's\nauthored rules (never a model, decision 0076). Not stored.",
+        "description": "The supplier desk's reply to a request, at list prices (decision\n0108): the figures are the quote arithmetic's, the authored notes are\nalways there, and a model writes the reply around them when a desk is\nconfigured. No request, note or reply is stored; the one row a desk call\nleaves is its token_usage in the seat's course shard, because a model\ncall made on a course's behalf is accounted to the course wherever it was\nmade.",
         "operationId": "project_rfq_api_v1_marketplace_rfq_post",
         "requestBody": {
           "content": {
@@ -13607,7 +13789,7 @@
         ]
       },
       "post": {
-        "description": "Send a request for quotation and get the application-engineering notes\nback. Deterministic rules, never a model call (decision 0076).",
+        "description": "Send a request for quotation and get the supplier desk's reply\n(decision 0108): the figures are the quote arithmetic's at this seat's own\nprices, the authored notes are always there, and the desk writes around\nthem when it can. The request, the notes and the reply are stored with\nthe reply's provenance.",
         "operationId": "submit_rfq_api_v1_variants__variant_id__marketplace_rfqs_post",
         "parameters": [
           {
