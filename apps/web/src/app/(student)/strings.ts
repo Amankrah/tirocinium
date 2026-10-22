@@ -328,6 +328,17 @@ export const strings = {
     attributes: "Attributes",
     applyFilters: "Apply filters",
     clearFilters: "Clear filters",
+    // The filter sheet (decision 0107): changes apply as they are ticked, the
+    // long groups fold past their first few, and what is applied is said
+    // above the results as chips a student can take off one at a time.
+    applyHint: "Changes apply as you tick.",
+    clearShort: "Clear",
+    applyShort: "Apply",
+    filterTitle: (count: number) => (count === 0 ? "Filters" : `Filters (${count})`),
+    showAll: (count: number) => `Show all ${count}`,
+    activeFilters: "Filtering by",
+    removeFilter: (name: string) => `Remove ${name}`,
+    sortedBy: (label: string) => `Sorted by ${label}`,
     sortCatalogue: "Catalogue order",
     sortPerKg: "Price per kg, low to high",
     sortDensity: "Density, low to high",

@@ -23,7 +23,7 @@ import { RequestView } from "./request-view";
 // quotation's rows are the server's and add up; what is copied is what is
 // shown; and the request form collects no person.
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }) }));
 
 function summary(sku: string, overrides: Partial<LineSummary> = {}): LineSummary {
   return {

@@ -8,7 +8,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { allProjectLines, getProjectMarketplace } from "@/lib/api/marketplace";
 import { requireSeat } from "@/lib/seat-session";
 import { strings } from "../../../strings";
-import { Filters, list, sortOf } from "../../_kit/filters";
+import { ActiveFilters, Filters, list, sortOf } from "../../_kit/filters";
 import { LineGrid } from "../../_kit/line-card";
 
 // One supplier's catalogue (decision 0101, restyled in 0105): who they are,
@@ -55,10 +55,17 @@ export default async function StorePage({
     value,
     count: whole.data.items.filter((line) => line.category === value).length,
   }));
-  const tags = [...new Set(whole.data.items.flatMap((line) => line.tags))]
-    .sort()
-    .slice(0, 16)
-    .map((value) => ({ value }));
+  // The attributes a student is most likely to filter on: the most frequent
+  // two dozen, with their counts, since the sheet folds past the first eight
+  // (decision 0107). Ties fall alphabetically.
+  const tagCounts = new Map<string, number>();
+  for (const line of whole.data.items) {
+    for (const tag of line.tags) tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+  }
+  const tags = [...tagCounts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 24)
+    .map(([value, count]) => ({ value, count }));
 
   return (
     <>
@@ -137,7 +144,7 @@ export default async function StorePage({
         </nav>
       </header>
 
-      <div className="grid gap-8 lg:grid-cols-[15rem_minmax(0,1fr)]">
+      <div className="grid gap-8 lg:grid-cols-[16.5rem_minmax(0,1fr)]">
         <Filters
           action={`/marketplace/store/${supplier.id}`}
           categories={categories}
@@ -148,6 +155,12 @@ export default async function StorePage({
         />
         <section aria-labelledby="lines" className="flex flex-col gap-5">
           <SectionHeading id="lines" title={p.lineCount(shown.data.total)} description={p.trayHint} />
+          <ActiveFilters
+            action={`/marketplace/store/${supplier.id}`}
+            chosenCategories={chosenCategories}
+            chosenTags={chosenTags}
+            sort={sort}
+          />
           {shown.data.items.length > 0 ? (
             <LineGrid lines={shown.data.items} />
           ) : (
