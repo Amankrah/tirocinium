@@ -10,6 +10,7 @@ import { Table, Td, Th, Tr } from "@/components/ui/table";
 import { getProjectLine } from "@/lib/api/marketplace";
 import { lead, money } from "@/lib/money";
 import { requireSeat } from "@/lib/seat-session";
+import { MaterialSwatch } from "../../../_marketplace/material-swatch";
 import { strings } from "../../../strings";
 import { LineActions } from "../../_kit/controls";
 import { LineGrid } from "../../_kit/line-card";
@@ -127,6 +128,7 @@ export default async function LinePage({ params }: { params: Promise<{ sku: stri
         </Card>
 
         <article className="flex flex-col gap-6">
+          <MaterialSwatch swatch={line.swatch} category={line.category} label={line.category} size="hero" />
           <header className="flex flex-col gap-2">
             <p className="text-sm text-ink-muted">{line.supplier_name}</p>
             <h1 className="font-display text-4xl leading-[1.05]">{line.name}</h1>

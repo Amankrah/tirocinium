@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import type { LineSummary } from "@/lib/api/marketplace";
 import { lead, money } from "@/lib/money";
+import { MaterialSwatch } from "../../_marketplace/material-swatch";
 import { strings } from "../../strings";
 import { LineActions } from "./controls";
 
@@ -17,6 +18,22 @@ export function LineCard({ line }: { line: LineSummary }) {
   const p = strings.project;
   return (
     <li className="flex flex-col gap-3 rounded-lg border border-rule-line bg-surface p-4 shadow-raised transition-[border-color,box-shadow] duration-(--motion-duration) ease-(--motion-ease) hover:border-ink hover:shadow-floating">
+      {/* The material as a picture (decision 0106), captioned with its
+          category; the name beneath is what a reader is told. */}
+      <Link
+        href={`/marketplace/line/${encodeURIComponent(line.sku)}`}
+        tabIndex={-1}
+        aria-hidden="true"
+        className="-mx-4 -mt-4 block"
+      >
+        <MaterialSwatch
+          swatch={line.swatch}
+          category={line.category}
+          label={line.category}
+          size="tile"
+          className="rounded-t-lg rounded-b-none border-0 border-b border-rule-line"
+        />
+      </Link>
       <div className="flex flex-col gap-1">
         <span className="flex items-center justify-between gap-2 text-xs text-ink-muted">
           <span className="truncate">{line.supplier_name}</span>

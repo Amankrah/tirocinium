@@ -11,15 +11,20 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Comparison } from "@/lib/api/marketplace";
+import { MaterialSwatch } from "./material-swatch";
 import { strings } from "../strings";
 
 export function ComparisonTable({
   comparison,
   names,
+  swatches = {},
   onClear,
 }: {
   comparison: Comparison;
   names: Record<string, string>;
+  // The material tile above each column, when the surface knows it
+  // (decision 0106); a column without one is just its name.
+  swatches?: Record<string, { swatch: string; category: string }>;
   onClear: () => void;
 }) {
   const s = strings.marketplace;
@@ -52,6 +57,14 @@ export function ComparisonTable({
                   scope="col"
                   className="border-b border-rule-line px-3.5 py-3 text-start align-bottom font-display text-base font-normal leading-snug"
                 >
+                  {swatches[sku] ? (
+                    <MaterialSwatch
+                      swatch={swatches[sku].swatch}
+                      category={swatches[sku].category}
+                      size="thumb"
+                      className="mb-2 min-w-24"
+                    />
+                  ) : null}
                   {names[sku] ?? sku}
                 </th>
               ))}

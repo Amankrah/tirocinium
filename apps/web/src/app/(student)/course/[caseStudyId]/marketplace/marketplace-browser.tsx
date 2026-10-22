@@ -80,6 +80,15 @@ export function MarketplaceBrowser({
     for (const line of [...shortlist, ...catalogue.lines.items]) map[line.sku] = line.name;
     return map;
   }, [shortlist, catalogue.lines.items]);
+  // The material tiles for the same columns (decision 0106), from the same
+  // lines.
+  const swatches = useMemo(() => {
+    const map: Record<string, { swatch: string; category: string }> = {};
+    for (const line of [...shortlist, ...catalogue.lines.items]) {
+      map[line.sku] = { swatch: line.swatch, category: line.category };
+    }
+    return map;
+  }, [shortlist, catalogue.lines.items]);
 
   const inBasket = useMemo(() => new Set(basket.map((line) => line.sku)), [basket]);
 
@@ -237,6 +246,7 @@ export function MarketplaceBrowser({
         <ComparisonTable
           comparison={comparison}
           names={names}
+          swatches={swatches}
           onClear={() => {
             setSelected([]);
             setComparison(null);

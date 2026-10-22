@@ -78,7 +78,11 @@ export function CompareView({
   }
 
   const names: Record<string, string> = {};
-  for (const line of lines?.items ?? []) names[line.sku] = line.name;
+  const swatches: Record<string, { swatch: string; category: string }> = {};
+  for (const line of lines?.items ?? []) {
+    names[line.sku] = line.name;
+    swatches[line.sku] = { swatch: line.swatch, category: line.category };
+  }
 
   async function copy(table: Comparison) {
     try {
@@ -101,7 +105,12 @@ export function CompareView({
         </p>
       ) : null}
       {comparison ? (
-        <ComparisonTable comparison={comparison} names={names} onClear={market.clearTray} />
+        <ComparisonTable
+          comparison={comparison}
+          names={names}
+          swatches={swatches}
+          onClear={market.clearTray}
+        />
       ) : (
         <p className="text-sm text-ink-muted">{s.comparing(tray.length)}</p>
       )}
