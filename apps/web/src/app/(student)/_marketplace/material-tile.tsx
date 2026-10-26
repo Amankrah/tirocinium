@@ -16,18 +16,20 @@ const FRAME = {
 
 export function MaterialTile({
   swatch,
+  sku,
   category,
   label,
   size = "tile",
   className,
 }: {
   swatch: string;
+  sku?: string;
   category?: string;
   label?: string;
   size?: "tile" | "hero" | "thumb" | "dot";
   className?: string;
 }) {
-  const photo = size === "dot" ? undefined : materialPhoto(swatch);
+  const photo = size === "dot" ? undefined : materialPhoto(swatch, sku);
   if (!photo) {
     return (
       <MaterialSwatch swatch={swatch} category={category} label={label} size={size} className={className} />
@@ -55,8 +57,8 @@ export function MaterialTile({
   );
 }
 
-export function PhotoCredit({ swatch, className }: { swatch: string; className?: string }) {
-  const photo = materialPhoto(swatch);
+export function PhotoCredit({ swatch, sku, className }: { swatch: string; sku?: string; className?: string }) {
+  const photo = materialPhoto(swatch, sku);
   if (!photo) return null;
   const p = strings.project;
   return (

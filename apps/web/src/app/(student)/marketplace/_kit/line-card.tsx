@@ -41,6 +41,7 @@ export function LineCard({ line }: { line: LineSummary }) {
         ) : (
           <MaterialTile
             swatch={line.swatch}
+            sku={line.sku}
             category={line.category}
             label={line.category}
             size="tile"
@@ -49,7 +50,7 @@ export function LineCard({ line }: { line: LineSummary }) {
         )}
       </Link>
       {line.image ? null : (
-        <PhotoCredit swatch={line.swatch} className="truncate text-[0.65rem] text-ink-muted" />
+        <PhotoCredit swatch={line.swatch} sku={line.sku} className="truncate text-[0.65rem] text-ink-muted" />
       )}
       <div className="flex flex-col gap-1">
         <span className="flex items-center justify-between gap-2 text-xs text-ink-muted">

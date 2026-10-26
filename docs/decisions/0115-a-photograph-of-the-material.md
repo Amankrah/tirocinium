@@ -10,8 +10,9 @@ product owner has now asked for a real photograph of the materials the shop
 check cannot cover, and the picture does not have to come from one shop. The
 photograph is of the material, one per swatch, taken from Wikimedia Commons
 and kept with the photographer, the licence and a link to the file. The
-caption names what the picture shows and who photographed it. Thirty swatches have such a photograph.
-The other thirty stay the drawn tile, because no file turned up that was
-actually that material. A shop photograph of a matched product still replaces
-both, because that picture is the product on the line. The quotation stays a
-document without pictures.
+caption names what the picture shows and who photographed it. Where one swatch
+covers two forms, the photograph is shown only on the lines it depicts. A
+picture of a different alloy, or of a finished article rather than the stock,
+is left out, and that line keeps the drawn tile. A shop photograph of a
+matched product still replaces both, because that picture is the product on
+the line. The quotation stays a document without pictures.

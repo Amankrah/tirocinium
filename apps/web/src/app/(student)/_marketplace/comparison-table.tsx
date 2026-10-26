@@ -17,8 +17,10 @@ import { MaterialTile, PhotoCredit } from "./material-tile";
 import { strings } from "../strings";
 
 function ColumnPicture({
+  sku,
   tile,
 }: {
+  sku: string;
   tile?: { swatch: string; category: string; image?: string | null };
 }) {
   if (tile?.image) {
@@ -31,8 +33,8 @@ function ColumnPicture({
   if (!tile) return null;
   return (
     <>
-      <MaterialTile swatch={tile.swatch} category={tile.category} size="thumb" className="mb-2 min-w-24" />
-      <PhotoCredit swatch={tile.swatch} className="sr-only" />
+      <MaterialTile swatch={tile.swatch} sku={sku} category={tile.category} size="thumb" className="mb-2 min-w-24" />
+      <PhotoCredit swatch={tile.swatch} sku={sku} className="sr-only" />
     </>
   );
 }
@@ -80,7 +82,7 @@ export function ComparisonTable({
                   scope="col"
                   className="border-b border-rule-line px-3.5 py-3 text-start align-bottom font-display text-base font-normal leading-snug"
                 >
-                  <ColumnPicture tile={swatches[sku]} />
+                  <ColumnPicture sku={sku} tile={swatches[sku]} />
                   {names[sku] ?? sku}
                 </th>
               ))}

@@ -166,6 +166,7 @@ export default async function LinePage({ params }: { params: Promise<{ sku: stri
             credit={line.market_check ? p.shopPhoto(line.market_check.store) : ""}
             name={line.name}
             swatch={line.swatch}
+            sku={line.sku}
             category={line.category}
           />
           <header className="flex flex-col gap-2">

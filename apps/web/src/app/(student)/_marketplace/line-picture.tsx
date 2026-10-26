@@ -13,6 +13,7 @@ export function LinePicture({
   credit,
   name,
   swatch,
+  sku,
   category,
 }: {
   image: string | null;
@@ -20,6 +21,7 @@ export function LinePicture({
   credit: string;
   name: string;
   swatch: string;
+  sku: string;
   category: string;
 }) {
   const [failed, setFailed] = useState(false);
@@ -28,12 +30,13 @@ export function LinePicture({
       <figure className="flex flex-col gap-1.5">
         <MaterialTile
           swatch={swatch}
+          sku={sku}
           category={category}
           label={category}
           size="hero"
           className="rounded-lg"
         />
-        <PhotoCredit swatch={swatch} />
+        <PhotoCredit swatch={swatch} sku={sku} />
       </figure>
     );
   }

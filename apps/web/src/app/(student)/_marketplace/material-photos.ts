@@ -1,8 +1,9 @@
 // A photograph of the material (decision 0115). One picture per swatch,
 // from Wikimedia Commons, kept here with the photographer and the licence.
-// The caption names the material. It does not say a catalogue supplier
-// took it. A swatch with no entry keeps the drawn tile. A shop photograph
-// of the matched product replaces this one.
+// The caption names the material and the photographer. `skus`, when set,
+// limits the picture to the lines it actually depicts: a shared swatch
+// keeps the drawn tile on a line of a different alloy or a different form.
+// A shop photograph of the matched product replaces this one.
 
 export type MaterialPhoto = {
   src: string;
@@ -11,6 +12,7 @@ export type MaterialPhoto = {
   license: string;
   licenseUrl: string;
   source: string;
+  skus?: readonly string[];
 };
 
 export const MATERIAL_PHOTOS: Record<string, MaterialPhoto> = {
@@ -61,6 +63,7 @@ export const MATERIAL_PHOTOS: Record<string, MaterialPhoto> = {
     license: "CC BY-SA 3.0",
     licenseUrl: "https://creativecommons.org/licenses/by-sa/3.0",
     source: "https://commons.wikimedia.org/wiki/File:New_pvc_pipe_vs_cut_pvc_pipe.JPG",
+    skus: ["CPP-PVC-S40-50", "CPP-PVC-S40-100"],
   },
   epdm: {
     src: "/materials/epdm.jpg",
@@ -69,6 +72,7 @@ export const MATERIAL_PHOTOS: Record<string, MaterialPhoto> = {
     license: "CC BY-SA 3.0",
     licenseUrl: "https://creativecommons.org/licenses/by-sa/3.0",
     source: "https://commons.wikimedia.org/wiki/File:EPDM_Rubber_flat_roof_Halifax.jpg",
+    skus: ["CPP-EPDM-114"],
   },
   glassf: {
     src: "/materials/glassf.jpg",
@@ -117,14 +121,7 @@ export const MATERIAL_PHOTOS: Record<string, MaterialPhoto> = {
     license: "CC BY-SA 3.0",
     licenseUrl: "https://creativecommons.org/licenses/by-sa/3.0",
     source: "https://commons.wikimedia.org/wiki/File:Mix_of_Epoxy_Resin_and_Hardener.jpg",
-  },
-  strawb: {
-    src: "/materials/strawb.jpg",
-    depicts: "Particle board.",
-    author: "Rasbak",
-    license: "CC BY-SA 3.0",
-    licenseUrl: "http://creativecommons.org/licenses/by-sa/3.0/",
-    source: "https://commons.wikimedia.org/wiki/File:Particle_board_(Spaanplaat).jpg",
+    skus: ["TFC-EP-635"],
   },
   hempcr: {
     src: "/materials/hempcr.jpg",
@@ -141,6 +138,7 @@ export const MATERIAL_PHOTOS: Record<string, MaterialPhoto> = {
     license: "CC BY-SA 4.0",
     licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0",
     source: "https://commons.wikimedia.org/wiki/File:CNC_milling_machine.jpg",
+    skus: ["MFW-CNC3-HR", "MFW-CNC5-HR"],
   },
   svcw: {
     src: "/materials/svcw.jpg",
@@ -149,6 +147,7 @@ export const MATERIAL_PHOTOS: Record<string, MaterialPhoto> = {
     license: "CC BY-SA 4.0",
     licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0",
     source: "https://commons.wikimedia.org/wiki/File:Gas_Metal_Arc_Welding_(Mig).jpg",
+    skus: ["MFW-GMAW-HR"],
   },
   svcqa: {
     src: "/materials/svcqa.jpg",
@@ -157,6 +156,7 @@ export const MATERIAL_PHOTOS: Record<string, MaterialPhoto> = {
     license: "CC BY-SA 3.0",
     licenseUrl: "https://creativecommons.org/licenses/by-sa/3.0",
     source: "https://commons.wikimedia.org/wiki/File:Ultrasonic_Testing_Machine_showing_readings.jpg",
+    skus: ["MFW-NDT-UT"],
   },
   acryl: {
     src: "/materials/acryl.jpg",
@@ -165,14 +165,7 @@ export const MATERIAL_PHOTOS: Record<string, MaterialPhoto> = {
     license: "CC BY-SA 3.0",
     licenseUrl: "https://creativecommons.org/licenses/by-sa/3.0",
     source: "https://commons.wikimedia.org/wiki/File:Coloured_acrylic_transparency_by_Midton_Acrylics.jpg",
-  },
-  alumina: {
-    src: "/materials/alumina.jpg",
-    depicts: "Alumina ceramic.",
-    author: "Ezrado",
-    license: "CC BY-SA 4.0",
-    licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0",
-    source: "https://commons.wikimedia.org/wiki/File:Alumina_Robocast_Parts.jpg",
+    skus: ["CPP-ACRYL-6"],
   },
   galv: {
     src: "/materials/galv.jpg",
@@ -181,6 +174,7 @@ export const MATERIAL_PHOTOS: Record<string, MaterialPhoto> = {
     license: "CC BY 3.0",
     licenseUrl: "https://creativecommons.org/licenses/by/3.0",
     source: "https://commons.wikimedia.org/wiki/File:Alan_WorkShop_For_selling_Galvanized_Plain_Sheets_%5E_making_tanks_water_%5E_oil_Steel_has_been_fabricating_sheet_metal_products_in_Sulaymaniyah,_Iraq_since_Owner,_Raza_Abdullah_009647701544627_009647701568096_0_-_panoramio.jpg",
+    skus: ["LMS-GALV-SH10"],
   },
   nickel: {
     src: "/materials/nickel.jpg",
@@ -190,14 +184,6 @@ export const MATERIAL_PHOTOS: Record<string, MaterialPhoto> = {
     licenseUrl: "https://creativecommons.org/licenses/by/3.0",
     source: "https://commons.wikimedia.org/wiki/File:Nickel_sheet,_1.7_grams,_1_x_2_cm..jpg",
   },
-  alum: {
-    src: "/materials/alum.jpg",
-    depicts: "Aluminium plate.",
-    author: "bengt-re from Sweden",
-    license: "CC BY 2.0",
-    licenseUrl: "https://creativecommons.org/licenses/by/2.0",
-    source: "https://commons.wikimedia.org/wiki/File:Aluminum_five_bars_plate_(5669206194).jpg",
-  },
   pc: {
     src: "/materials/pc.jpg",
     depicts: "Polycarbonate sheet.",
@@ -205,46 +191,6 @@ export const MATERIAL_PHOTOS: Record<string, MaterialPhoto> = {
     license: "CC BY-SA 4.0",
     licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0",
     source: "https://commons.wikimedia.org/wiki/File:Polycarbonate_Sheet_Manufacturing_At_PTYCo.png",
-  },
-  sic: {
-    src: "/materials/sic.jpg",
-    depicts: "Silicon carbide.",
-    author: "Photographer: TOM JARES",
-    license: "Public domain",
-    licenseUrl: "",
-    source: "https://commons.wikimedia.org/wiki/File:255-GRC-2002-C-01632_SiC-SiC_Silicon_carbide_fiber_reinforced_silicon_carbide.jpg",
-  },
-  stellite: {
-    src: "/materials/stellite.jpg",
-    depicts: "Hardfacing.",
-    author: "Malak Karsh",
-    license: "Public domain",
-    licenseUrl: "",
-    source: "https://commons.wikimedia.org/wiki/File:A_welder_working_with_Stellate,_1960.jpg",
-  },
-  hss: {
-    src: "/materials/hss.jpg",
-    depicts: "High-speed steel.",
-    author: "R. Henrik Nilsson",
-    license: "CC BY 4.0",
-    licenseUrl: "https://creativecommons.org/licenses/by/4.0",
-    source: "https://commons.wikimedia.org/wiki/File:1990s_high_speed_steel_three_fluted_countersink_20_5_mm_Biltema_Sweden.jpg",
-  },
-  duplex: {
-    src: "/materials/duplex.jpg",
-    depicts: "Duplex stainless.",
-    author: "HS",
-    license: "CC BY-SA 3.0",
-    licenseUrl: "https://creativecommons.org/licenses/by-sa/3.0",
-    source: "https://commons.wikimedia.org/wiki/File:A182-F51-valves-duplex-valve.jpg",
-  },
-  pp: {
-    src: "/materials/pp.jpg",
-    depicts: "Polypropylene.",
-    author: "Quantum Chemical Corporation",
-    license: "CC BY 4.0",
-    licenseUrl: "https://creativecommons.org/licenses/by/4.0",
-    source: "https://commons.wikimedia.org/wiki/File:Polypropylene_Pellets_-_DPLA_-_f7c2fa29d14525ce21219452f4a1a316.jpg",
   },
   si3n4: {
     src: "/materials/si3n4.jpg",
@@ -256,6 +202,9 @@ export const MATERIAL_PHOTOS: Record<string, MaterialPhoto> = {
   },
 };
 
-export function materialPhoto(swatch: string): MaterialPhoto | undefined {
-  return MATERIAL_PHOTOS[swatch];
+export function materialPhoto(swatch: string, sku?: string): MaterialPhoto | undefined {
+  const photo = MATERIAL_PHOTOS[swatch];
+  if (!photo) return undefined;
+  if (photo.skus && !photo.skus.includes(sku ?? "")) return undefined;
+  return photo;
 }
