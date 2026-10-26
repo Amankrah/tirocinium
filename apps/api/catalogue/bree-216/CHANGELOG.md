@@ -114,3 +114,10 @@ its production emitted.
 What moves to v3: an unpinned project seat, because v3 is the newest shipped
 version. A course pinned to v1 or v2 stays there until its professor re-pins.
 Re-pinning does not rewrite an issued quotation. The course pack still pins v1.
+
+## v5
+
+The prose em dashes become colons, derived from v3 by
+`scripts/revise_catalogue_v5.py`. Same 146 lines, same SKUs, same prices, same
+figures. A course pinned to an earlier version stays there until it is
+re-pinned, and an issued quotation is not rewritten.
