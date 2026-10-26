@@ -1,6 +1,6 @@
 "use client";
 
-// The marketplace's section strip (decision 0105): the five places a student
+// The marketplace's section strip (decision 0105): the places a student
 // goes, with the one they are in marked. The only reason this is script is
 // the mark: the layout is a Server Component that does not know the path,
 // and a strip that never says where you are is what made the old row of
@@ -16,6 +16,7 @@ const SECTIONS: { href: string; label: string; icon: IconName; exact?: boolean }
   { href: "/marketplace/search", label: strings.project.browse, icon: "grid" },
   { href: "/marketplace/briefs", label: strings.project.briefs, icon: "book" },
   { href: "/marketplace/guide", label: strings.project.guide, icon: "help" },
+  { href: "/marketplace/impact", label: strings.project.impact, icon: "chart" },
   { href: "/marketplace/sources", label: strings.project.sources, icon: "file" },
   { href: "/marketplace/request", label: strings.project.request, icon: "inbox" },
 ];

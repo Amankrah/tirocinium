@@ -188,6 +188,13 @@ def test_totals_match_a_hand_worked_figure(catalogue: Catalogue) -> None:
     assert totals.total_cents == 48_000 + 13_000 + 3_050 + 6_085
     assert totals.total_mass_grams == 100_000
     assert totals.cost_per_kg_cents == 480
+    # v1 publishes embodied energy and not the later carbon layer, so the
+    # energy total is the plate's and the carbon totals stay unsaid.
+    assert quote.lines[0].embodied_energy_mj == 2_400
+    assert totals.embodied_energy_mj == 2_400
+    assert totals.carbon_kg is None
+    assert totals.water_l is None
+    assert totals.freight_carbon_kg is None
 
 
 def test_a_break_is_reached_by_quantity_not_by_value(catalogue: Catalogue) -> None:
@@ -235,6 +242,10 @@ def test_a_massless_basket_reports_no_cost_per_kilogram(catalogue: Catalogue) ->
     )
     assert quote.totals.total_mass_grams == 0
     assert quote.totals.cost_per_kg_cents is None
+    assert quote.totals.embodied_energy_mj is None
+    assert quote.totals.carbon_kg is None
+    assert quote.totals.freight_carbon_kg is None
+    assert quote.totals.carbon_intensity_kg_per_kg is None
 
 
 def test_cutting_is_charged_only_where_it_is_sold(catalogue: Catalogue) -> None:

@@ -43,7 +43,7 @@ from app.marketplace.advice import (
 from app.marketplace.catalogue import UNIT_LABELS, Catalogue, CatalogueLine
 from app.marketplace.indices import STOCK_LABELS, money
 from app.marketplace.listing import RELATED_LIMIT
-from app.marketplace.quoting import ComputedQuote, QuoteLineIn, compute_quote
+from app.marketplace.quoting import ComputedQuote, QuoteLineIn, QuoteTotals, compute_quote
 from app.model_text import text_of
 from app.prompt_safety import document_key, new_fence
 from app.prompts import load_prompt
@@ -281,6 +281,14 @@ def _properties_line(line: CatalogueLine) -> str:
     add("food contact approved", p.food_contact)
     add("embodied energy", p.embodied_energy_mj_kg, " MJ/kg")
     add("recyclability", p.recyclability_percent, " %")
+    add("carbon footprint", p.carbon_kg_co2e, " kg CO2e/kg")
+    add("water footprint", p.water_l_kg, " L/kg")
+    add("end-of-life recovery", p.end_of_life_recovery_percent, " %")
+    add("lowest useful temperature", p.min_service_temp_c, " °C")
+    if line.process_energy_mj is not None:
+        add("process energy", line.process_energy_mj, " MJ per unit of process")
+    if line.process_carbon_kg is not None:
+        add("process carbon", line.process_carbon_kg, " kg CO2e per unit of process")
     return "; ".join(parts)
 
 
@@ -316,6 +324,30 @@ def sku_pattern(catalogue: Catalogue) -> re.Pattern[str]:
     return re.compile(rf"\b(?:{prefixes})-[A-Z0-9]+(?:-[A-Z0-9]+)*\b")
 
 
+def _footprint_sentence(totals: QuoteTotals) -> str | None:
+    """The basket footprint, so a reply that states one is quoting the sheet
+    rather than inventing it. Omitted entirely when the basket has none."""
+    bits: list[str] = []
+    if totals.embodied_energy_mj is not None:
+        bits.append(f"embodied energy {totals.embodied_energy_mj:g} MJ")
+    if totals.carbon_kg is not None:
+        bits.append(f"carbon {totals.carbon_kg:g} kg CO2e, cradle-to-gate")
+    if totals.water_l is not None:
+        bits.append(f"water {totals.water_l:g} L")
+    if totals.freight_carbon_kg is not None:
+        bits.append(
+            f"road freight carbon {totals.freight_carbon_kg:g} kg CO2e "
+            "(450 km at 0.11 kg CO2e per tonne-km, separate from cradle-to-gate)"
+        )
+    if totals.carbon_intensity_kg_per_kg is not None:
+        bits.append(
+            f"average intensity {totals.carbon_intensity_kg_per_kg:g} kg CO2e per kg"
+        )
+    if not bits:
+        return None
+    return "Footprint of this quantity: " + "; ".join(bits) + "."
+
+
 def _priced_block(priced: ComputedQuote) -> list[str]:
     out: list[str] = []
     for item in priced.lines:
@@ -342,6 +374,9 @@ def _priced_block(priced: ComputedQuote) -> list[str]:
         f"Freight estimate {money(t.freight_cents)} (consolidated shipment); "
         f"taxes {taxes}; total {money(t.total_cents)}."
     )
+    footprint = _footprint_sentence(t)
+    if footprint:
+        out.append(footprint)
     out.extend(f"Notice: {notice}" for notice in priced.notices)
     return out
 
@@ -414,6 +449,10 @@ def rfq_document(
             parts.append("No volume breaks on this line.")
         parts.append(f"Tags: {', '.join(line.tags) if line.tags else 'none'}.")
         parts.append(f"Properties: {_properties_line(line)}.")
+        if line.end_of_life:
+            parts.append(f"End of life: {line.end_of_life}")
+        if line.process_note:
+            parts.append(f"Process footprint: {line.process_note}")
         parts.append(f"Catalogue description: {line.description}")
         parts.append(f"Fabrication notes: {line.fabrication}")
     else:

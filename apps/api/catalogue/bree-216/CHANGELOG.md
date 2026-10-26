@@ -89,3 +89,28 @@ What moves to v2: the project marketplace for any seat whose course has not
 pinned a catalogue, since it takes the newest shipped version. A course
 pinned to v1 stays on v1 until its professor re-pins, and an issued quotation
 is untouched either way. The course pack still pins v1.
+
+## v3
+
+The environmental layer from the BREE 216 L9 indicator table (decision 0110),
+derived from v2 by `scripts/revise_catalogue_v3.py`, which reads that table
+and is the whole of the difference. Same 146 lines, same SKUs, same prices,
+same mechanical properties except embodied energy, which takes the L9 figure
+where the table names one (reinforcing bar moves from 22 to 11 MJ/kg; A36
+stays 24). Indicator rows for lines this catalogue does not stock, including
+the packaging supplier, are not added.
+
+What the layer adds, per kilogram and cradle-to-gate: carbon footprint, water
+footprint, a realistic end-of-life recovery, the lowest useful service
+temperature, and a sentence on the end-of-life route. Recovery is stored
+beside the property-sheet recyclability and does not replace it, so the gap
+stays visible (A36 is 98 % recyclable on the sheet and 88 % recovered). A
+process has no mass, so machining, welding, heat treatment and coating carry
+energy and carbon per unit of process instead, and a documentation-only line
+carries zero rather than a blank. A figure the table does not give stays
+absent. Carbon may be negative, where the supplied material stores more than
+its production emitted.
+
+What moves to v3: an unpinned project seat, because v3 is the newest shipped
+version. A course pinned to v1 or v2 stays there until its professor re-pins.
+Re-pinning does not rewrite an issued quotation. The course pack still pins v1.

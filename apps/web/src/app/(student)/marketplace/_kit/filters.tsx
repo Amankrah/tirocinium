@@ -26,6 +26,10 @@ export const SORTS: [string, string][] = [
   ["per_kg_asc", strings.project.sortPerKg],
   ["density_asc", strings.project.sortDensity],
   ["yield_desc", strings.project.sortYield],
+  ["carbon_asc", strings.marketplace.sortCarbon],
+  ["energy_asc", strings.marketplace.sortEnergy],
+  ["water_asc", strings.marketplace.sortWater],
+  ["recovery_desc", strings.marketplace.sortRecovery],
   ["lead", strings.marketplace.sortLead],
 ];
 

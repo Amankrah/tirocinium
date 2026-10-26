@@ -18,6 +18,15 @@ from app.marketplace.catalogue import (
     MaterialProperties,
     Supplier,
 )
+from app.marketplace.impact import (
+    carbon_for_stiffness,
+    carbon_for_strength,
+    carbon_per_dollar,
+    carbon_per_unit,
+    embodied_energy_per_unit,
+    impact_band,
+    water_per_unit,
+)
 from app.marketplace.indices import (
     STOCK_LABELS,
     cost_per_litre_cents,
@@ -30,7 +39,8 @@ from app.marketplace.indices import (
 DEFAULT_LIMIT = 24
 MAX_LIMIT = 96
 SORT_PATTERN = (
-    "^(relevance|price_asc|price_desc|lead|name|per_kg_asc|density_asc|yield_desc)$"
+    "^(relevance|price_asc|price_desc|lead|name|per_kg_asc|density_asc|yield_desc"
+    "|carbon_asc|energy_asc|water_asc|recovery_desc)$"
 )
 RELATED_LIMIT = 4
 
@@ -58,6 +68,36 @@ class LineSummary(BaseModel):
     tags: list[str]
     service: bool
     shortlisted: bool
+    # The environmental layer, when this catalogue version publishes it.
+    # Absent fields stay null so an earlier version's card is unchanged.
+    embodied_energy_mj_kg: float | None = None
+    carbon_kg_co2e: float | None = None
+    water_l_kg: float | None = None
+    end_of_life_recovery_percent: float | None = None
+    process_energy_mj: float | None = None
+    process_carbon_kg: float | None = None
+
+
+class ImpactReading(BaseModel):
+    """One line's environmental layer, with the lecture bands already applied.
+    The browser displays this and does not recompute it."""
+
+    embodied_energy_mj_kg: float | None = None
+    embodied_energy_band: str | None = None
+    carbon_kg_co2e: float | None = None
+    carbon_band: str | None = None
+    water_l_kg: float | None = None
+    water_band: str | None = None
+    end_of_life_recovery_percent: float | None = None
+    recovery_band: str | None = None
+    min_service_temp_c: float | None = None
+    end_of_life: str = ""
+    process_energy_mj: float | None = None
+    process_carbon_kg: float | None = None
+    process_note: str = ""
+    energy_per_unit: float | None = None
+    carbon_per_unit: float | None = None
+    water_per_unit: float | None = None
 
 
 class LineIndices(BaseModel):
@@ -69,6 +109,9 @@ class LineIndices(BaseModel):
     specific_stiffness: float | None  # kN·m/kg
     strength_per_dollar: float | None
     cost_per_litre_cents: float | None
+    carbon_for_strength: float | None = None
+    carbon_for_stiffness: float | None = None
+    carbon_per_dollar: float | None = None
 
 
 class LineDetail(LineSummary):
@@ -78,6 +121,7 @@ class LineDetail(LineSummary):
     fabrication: str
     oversize: bool
     properties: MaterialProperties
+    impact: ImpactReading
     price_breaks: list[tuple[float, int]]
     supplier: Supplier
     # Lines a buyer would weigh against this one: the same category, or a
@@ -132,6 +176,34 @@ def line_summary(
         tags=line.tags,
         service=line.service,
         shortlisted=line.sku in shortlist,
+        embodied_energy_mj_kg=line.properties.embodied_energy_mj_kg,
+        carbon_kg_co2e=line.properties.carbon_kg_co2e,
+        water_l_kg=line.properties.water_l_kg,
+        end_of_life_recovery_percent=line.properties.end_of_life_recovery_percent,
+        process_energy_mj=line.process_energy_mj,
+        process_carbon_kg=line.process_carbon_kg,
+    )
+
+
+def impact_reading(line: CatalogueLine) -> ImpactReading:
+    properties = line.properties
+    return ImpactReading(
+        embodied_energy_mj_kg=properties.embodied_energy_mj_kg,
+        embodied_energy_band=impact_band("ee", properties.embodied_energy_mj_kg),
+        carbon_kg_co2e=properties.carbon_kg_co2e,
+        carbon_band=impact_band("co2", properties.carbon_kg_co2e),
+        water_l_kg=properties.water_l_kg,
+        water_band=impact_band("h2o", properties.water_l_kg),
+        end_of_life_recovery_percent=properties.end_of_life_recovery_percent,
+        recovery_band=impact_band("recy", properties.end_of_life_recovery_percent),
+        min_service_temp_c=properties.min_service_temp_c,
+        end_of_life=line.end_of_life,
+        process_energy_mj=line.process_energy_mj,
+        process_carbon_kg=line.process_carbon_kg,
+        process_note=line.process_note,
+        energy_per_unit=embodied_energy_per_unit(line),
+        carbon_per_unit=carbon_per_unit(line),
+        water_per_unit=water_per_unit(line),
     )
 
 
@@ -160,11 +232,15 @@ def line_detail(
             specific_stiffness=specific_stiffness(line),
             strength_per_dollar=strength_per_dollar(line, prices[line.sku]),
             cost_per_litre_cents=cost_per_litre_cents(line, prices[line.sku]),
+            carbon_for_strength=carbon_for_strength(line),
+            carbon_for_stiffness=carbon_for_stiffness(line),
+            carbon_per_dollar=carbon_per_dollar(line, prices[line.sku]),
         ),
         description=line.description,
         fabrication=line.fabrication,
         oversize=line.oversize,
         properties=line.properties,
+        impact=impact_reading(line),
         price_breaks=([] if line.service else list(catalogue.price_breaks.get(line.unit, []))),
         supplier=supplier,
         related=[line_summary(catalogue, prices, other, shortlist) for other in related],
@@ -262,6 +338,20 @@ def select_lines(
     elif sort == "yield_desc":
         matched.sort(
             key=lambda line: _last_if_none(line.properties.yield_strength_mpa, descending=True)
+        )
+    elif sort == "carbon_asc":
+        matched.sort(key=lambda line: _last_if_none(line.properties.carbon_kg_co2e))
+    elif sort == "energy_asc":
+        # Per kilogram only. A process publishes MJ per hour, and mixing the
+        # two units into one ranking would be a false order.
+        matched.sort(key=lambda line: _last_if_none(line.properties.embodied_energy_mj_kg))
+    elif sort == "water_asc":
+        matched.sort(key=lambda line: _last_if_none(line.properties.water_l_kg))
+    elif sort == "recovery_desc":
+        matched.sort(
+            key=lambda line: _last_if_none(
+                line.properties.end_of_life_recovery_percent, descending=True
+            )
         )
     elif skus is None:
         # Relevance is the shortlist in the order it was put in (that order is

@@ -90,9 +90,16 @@ course is pinned to one exact version (directory migration 0005) rather than to
 "latest", because a price list that moved under a term is one students could not
 be asked to defend. v2 exists (decision 0108): an accuracy audit found masses,
 unit-of-sale mismatches, tempers and copy that did not follow from the figures,
-and `scripts/revise_catalogue_v2.py` derives v2 from v1 as data. The project
-marketplace serves the newest version to an unpinned seat; the course pack and
-every test world still pin v1. Prices are a pure function of (line, variant seed) in
+and `scripts/revise_catalogue_v2.py` derives v2 from v1 as data. v3 (decision
+0110) is v2 plus the L9 environmental layer: cradle-to-gate carbon and water,
+realistic end-of-life recovery kept distinct from property-sheet recyclability,
+lowest useful temperature, an end-of-life note, and per-unit process energy and
+carbon. `scripts/revise_catalogue_v3.py` derives it from v2 and the Marketplace 2
+indicator table. Bands, per-unit figures, carbon-weighted indices and the
+quotation footprint are computed in `impact.py`, so the browser is not a second
+opinion. The project marketplace serves the newest version to an unpinned seat;
+the course pack and every test world still pin v1. A course pinned to an earlier
+version stays there until re-pinned. Prices are a pure function of (line, variant seed) in
 `pricing.py`, so two students never hold the same number and each can be asked
 about their own. Issuing freezes a full line snapshot (course migration 0021),
 so a catalogue revision, or a professor turning the marketplace off entirely,

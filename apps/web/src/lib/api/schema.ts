@@ -1907,12 +1907,16 @@ export interface components {
         ComputedLine: {
             /** Break Percent */
             break_percent: number;
+            /** Carbon Kg */
+            carbon_kg?: number | null;
             /** Cut Count */
             cut_count: number;
             /** Cut Fee Cents */
             cut_fee_cents: number;
             /** Cut To Length */
             cut_to_length: boolean;
+            /** Embodied Energy Mj */
+            embodied_energy_mj?: number | null;
             /** Extended Cents */
             extended_cents: number;
             /** Lead Days */
@@ -1943,6 +1947,8 @@ export interface components {
             unit_label: string;
             /** Unit Price Cents */
             unit_price_cents: number;
+            /** Water L */
+            water_l?: number | null;
         };
         /** ComputedQuote */
         ComputedQuote: {
@@ -2278,6 +2284,51 @@ export interface components {
             /** User Id */
             user_id?: number | null;
         };
+        /**
+         * ImpactReading
+         * @description One line's environmental layer, with the lecture bands already applied.
+         *     The browser displays this and does not recompute it.
+         */
+        ImpactReading: {
+            /** Carbon Band */
+            carbon_band?: string | null;
+            /** Carbon Kg Co2E */
+            carbon_kg_co2e?: number | null;
+            /** Carbon Per Unit */
+            carbon_per_unit?: number | null;
+            /** Embodied Energy Band */
+            embodied_energy_band?: string | null;
+            /** Embodied Energy Mj Kg */
+            embodied_energy_mj_kg?: number | null;
+            /**
+             * End Of Life
+             * @default
+             */
+            end_of_life: string;
+            /** End Of Life Recovery Percent */
+            end_of_life_recovery_percent?: number | null;
+            /** Energy Per Unit */
+            energy_per_unit?: number | null;
+            /** Min Service Temp C */
+            min_service_temp_c?: number | null;
+            /** Process Carbon Kg */
+            process_carbon_kg?: number | null;
+            /** Process Energy Mj */
+            process_energy_mj?: number | null;
+            /**
+             * Process Note
+             * @default
+             */
+            process_note: string;
+            /** Recovery Band */
+            recovery_band?: string | null;
+            /** Water Band */
+            water_band?: string | null;
+            /** Water L Kg */
+            water_l_kg?: number | null;
+            /** Water Per Unit */
+            water_per_unit?: number | null;
+        };
         /** ImportCreated */
         ImportCreated: {
             /** Import Id */
@@ -2408,14 +2459,21 @@ export interface components {
         };
         /** LineDetail */
         LineDetail: {
+            /** Carbon Kg Co2E */
+            carbon_kg_co2e?: number | null;
             /** Category */
             category: string;
             /** Cut Fee Cents */
             cut_fee_cents: number;
             /** Description */
             description: string;
+            /** Embodied Energy Mj Kg */
+            embodied_energy_mj_kg?: number | null;
+            /** End Of Life Recovery Percent */
+            end_of_life_recovery_percent?: number | null;
             /** Fabrication */
             fabrication: string;
+            impact: components["schemas"]["ImpactReading"];
             indices: components["schemas"]["LineIndices"];
             /** Kg Per Unit */
             kg_per_unit: number;
@@ -2436,6 +2494,10 @@ export interface components {
             price_cents: number;
             /** Price Per Kg Cents */
             price_per_kg_cents: number | null;
+            /** Process Carbon Kg */
+            process_carbon_kg?: number | null;
+            /** Process Energy Mj */
+            process_energy_mj?: number | null;
             properties: components["schemas"]["MaterialProperties"];
             /**
              * Related
@@ -2467,6 +2529,8 @@ export interface components {
             unit: string;
             /** Unit Label */
             unit_label: string;
+            /** Water L Kg */
+            water_l_kg?: number | null;
         };
         /**
          * LineIndices
@@ -2475,6 +2539,12 @@ export interface components {
          *     can never disagree. Each is None where the line has nothing to divide.
          */
         LineIndices: {
+            /** Carbon For Stiffness */
+            carbon_for_stiffness?: number | null;
+            /** Carbon For Strength */
+            carbon_for_strength?: number | null;
+            /** Carbon Per Dollar */
+            carbon_per_dollar?: number | null;
             /** Cost Per Litre Cents */
             cost_per_litre_cents: number | null;
             /** Specific Stiffness */
@@ -2499,10 +2569,16 @@ export interface components {
          *     specify from.
          */
         LineSummary: {
+            /** Carbon Kg Co2E */
+            carbon_kg_co2e?: number | null;
             /** Category */
             category: string;
             /** Cut Fee Cents */
             cut_fee_cents: number;
+            /** Embodied Energy Mj Kg */
+            embodied_energy_mj_kg?: number | null;
+            /** End Of Life Recovery Percent */
+            end_of_life_recovery_percent?: number | null;
             /** Lead Days */
             lead_days: number;
             /** Moq */
@@ -2513,6 +2589,10 @@ export interface components {
             price_cents: number;
             /** Price Per Kg Cents */
             price_per_kg_cents: number | null;
+            /** Process Carbon Kg */
+            process_carbon_kg?: number | null;
+            /** Process Energy Mj */
+            process_energy_mj?: number | null;
             /** Service */
             service: boolean;
             /** Shortlisted */
@@ -2537,6 +2617,8 @@ export interface components {
             unit: string;
             /** Unit Label */
             unit_label: string;
+            /** Water L Kg */
+            water_l_kg?: number | null;
         };
         /** LoginIn */
         LoginIn: {
@@ -2602,9 +2684,13 @@ export interface components {
         };
         /**
          * MaterialProperties
-         * @description The fifteen figures a selection decision is argued from.
+         * @description The fifteen mechanical figures, plus the environmental layer a catalogue
+         *     version may carry (decision 0110). The layer's fields stay null when that
+         *     version does not publish them.
          */
         MaterialProperties: {
+            /** Carbon Kg Co2E */
+            carbon_kg_co2e?: number | null;
             /** Corrosion Resistance */
             corrosion_resistance?: number | null;
             /** Density Kg M3 */
@@ -2613,6 +2699,8 @@ export interface components {
             elongation_percent?: number | null;
             /** Embodied Energy Mj Kg */
             embodied_energy_mj_kg?: number | null;
+            /** End Of Life Recovery Percent */
+            end_of_life_recovery_percent?: number | null;
             /** Food Contact */
             food_contact?: boolean | null;
             /** Fracture Toughness Mpa M05 */
@@ -2621,6 +2709,8 @@ export interface components {
             hardness?: string | null;
             /** Max Service Temp C */
             max_service_temp_c?: number | null;
+            /** Min Service Temp C */
+            min_service_temp_c?: number | null;
             /** Recyclability Percent */
             recyclability_percent?: number | null;
             /** Tensile Strength Mpa */
@@ -2631,6 +2721,8 @@ export interface components {
             thermal_expansion_um_mk?: number | null;
             /** Uv Resistance */
             uv_resistance?: number | null;
+            /** Water L Kg */
+            water_l_kg?: number | null;
             /** Yield Strength Mpa */
             yield_strength_mpa?: number | null;
             /** Youngs Modulus Gpa */
@@ -3039,12 +3131,20 @@ export interface components {
         };
         /** QuoteTotals */
         QuoteTotals: {
+            /** Carbon Intensity Kg Per Kg */
+            carbon_intensity_kg_per_kg?: number | null;
+            /** Carbon Kg */
+            carbon_kg?: number | null;
             /** Cost Per Kg Cents */
             cost_per_kg_cents: number | null;
             /** Cut Fee Cents */
             cut_fee_cents: number;
             /** Discount Cents */
             discount_cents: number;
+            /** Embodied Energy Mj */
+            embodied_energy_mj?: number | null;
+            /** Freight Carbon Kg */
+            freight_carbon_kg?: number | null;
             /** Freight Cents */
             freight_cents: number;
             /** Goods Cents */
@@ -3063,6 +3163,8 @@ export interface components {
             total_cents: number;
             /** Total Mass Grams */
             total_mass_grams: number;
+            /** Water L */
+            water_l?: number | null;
         };
         /**
          * RecognitionHealth

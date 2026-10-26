@@ -21,6 +21,7 @@ import { inputClassName } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import type { LineList, LineQuery, LineSummary, Result } from "@/lib/api/marketplace";
 import { lead, money } from "@/lib/money";
+import { ImpactMarks } from "./impact-marks";
 import { MaterialSwatch } from "./material-swatch";
 import { strings } from "../strings";
 
@@ -122,6 +123,10 @@ export function CatalogueSection({
     ["price_desc", s.sortPriceDesc],
     ["lead", s.sortLead],
     ["name", s.sortName],
+    ["carbon_asc", s.sortCarbon],
+    ["energy_asc", s.sortEnergy],
+    ["water_asc", s.sortWater],
+    ["recovery_desc", s.sortRecovery],
   ] as const;
 
   return (
@@ -284,6 +289,7 @@ export function LineCard({
         <span className="mt-1 text-xs text-ink-muted">
           {s.minimumOrder(String(line.moq), line.unit_label)} · {line.stock_label} · {lead(line.lead_days)}
         </span>
+        <ImpactMarks line={line} />
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

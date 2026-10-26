@@ -18,7 +18,7 @@ import { MarketProvider } from "./_kit/market-state";
 //
 // The frame is a masthead and a strip. The masthead names the place, carries
 // the search (the way most students reach a line) and the quote. The strip
-// is the five sections with the current one marked; suppliers are not in it,
+// is the sections with the current one marked; suppliers are not in it,
 // because six names in a row of links was the jumble, and the front page's
 // directory and each store's switcher are where a supplier is chosen. The
 // terms (currency, taxes, validity, the fictional catalogue) are a footer

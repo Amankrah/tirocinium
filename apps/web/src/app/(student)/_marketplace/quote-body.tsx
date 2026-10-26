@@ -14,6 +14,7 @@ import { Icon } from "@/components/ui/icon";
 import type { Quote } from "@/lib/api/marketplace";
 import { lead, mass, money } from "@/lib/money";
 import { strings } from "../strings";
+import { impactQuantity } from "./impact-format";
 
 // How far one press of − or + moves a quantity: a piece or an hour at a time,
 // five kilograms at a time, one of anything else.
@@ -204,7 +205,30 @@ export function QuoteBody({
               : `${money(totals.cost_per_kg_cents)}/kg`
           }
         />
+        {totals.embodied_energy_mj != null ? (
+          <Row label={s.embodiedEnergy} value={`${impactQuantity(totals.embodied_energy_mj, 1)} MJ`} />
+        ) : null}
+        {totals.carbon_kg != null ? (
+          <Row label={s.carbon} value={`${impactQuantity(totals.carbon_kg, 2)} kg CO₂e`} />
+        ) : null}
+        {totals.water_l != null ? (
+          <Row label={s.water} value={`${impactQuantity(totals.water_l, 0)} L`} />
+        ) : null}
+        {totals.freight_carbon_kg != null ? (
+          <Row label={s.freightCarbon} value={`${impactQuantity(totals.freight_carbon_kg, 2)} kg CO₂e`} />
+        ) : null}
+        {totals.carbon_intensity_kg_per_kg != null ? (
+          <Row
+            label={s.carbonIntensity}
+            value={`${impactQuantity(totals.carbon_intensity_kg_per_kg, 2)} kg CO₂e/kg`}
+          />
+        ) : null}
       </dl>
+      {totals.carbon_kg != null ? (
+        <p className="text-xs text-pretty text-ink-muted">{s.footprintNote}</p>
+      ) : totals.embodied_energy_mj != null ? (
+        <p className="text-xs text-pretty text-ink-muted">{s.energyNote}</p>
+      ) : null}
     </>
   );
 }

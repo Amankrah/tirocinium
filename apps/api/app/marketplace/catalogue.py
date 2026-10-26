@@ -37,14 +37,19 @@ UNIT_LABELS: dict[str, str] = {
 # measurement: a fabrication service has no density, and a ceramic has no yield
 # point. They load as null so a derived index divides by nothing rather than by
 # zero. Elongation, recyclability, and the two five-point ratings keep their
-# zeros, because a zero there is a real and often damning measurement.
+# zeros, because a zero there is a real and often damning measurement. Carbon,
+# water, the lowest useful temperature and end-of-life recovery keep theirs
+# too: a carbon-storing material is negative, a service temperature of 0 °C
+# is a measurement, and a recovery of zero means none comes back.
 _ZERO_IS_ABSENT = frozenset(
     {"rho", "sy", "su", "E", "K", "a", "tmax", "kic", "ee"},
 )
 
 
 class MaterialProperties(BaseModel):
-    """The fifteen figures a selection decision is argued from."""
+    """The fifteen mechanical figures, plus the environmental layer a catalogue
+    version may carry (decision 0110). The layer's fields stay null when that
+    version does not publish them."""
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -63,6 +68,14 @@ class MaterialProperties(BaseModel):
     food_contact: bool | None = Field(default=None, validation_alias="food")
     embodied_energy_mj_kg: float | None = Field(default=None, validation_alias="ee")
     recyclability_percent: float | None = Field(default=None, validation_alias="recy")
+    # Cradle-to-gate, per kilogram. Recovery is the realistic end-of-life
+    # figure and is not the theoretical recyclability above it.
+    carbon_kg_co2e: float | None = Field(default=None, validation_alias="co2")
+    water_l_kg: float | None = Field(default=None, validation_alias="h2o")
+    min_service_temp_c: float | None = Field(default=None, validation_alias="tmin")
+    end_of_life_recovery_percent: float | None = Field(
+        default=None, validation_alias="recovery"
+    )
 
 
 class Supplier(BaseModel):
@@ -110,6 +123,13 @@ class CatalogueLine(BaseModel):
     description: str
     fabrication: str
     properties: MaterialProperties
+    # Set by a catalogue that carries the environmental layer. A process has
+    # no mass, so its energy and carbon are per unit of process; the note says
+    # what that unit is. Empty and null on a version that does not publish them.
+    end_of_life: str = ""
+    process_energy_mj: float | None = None
+    process_carbon_kg: float | None = None
+    process_note: str = ""
 
 
 class Brief(BaseModel):

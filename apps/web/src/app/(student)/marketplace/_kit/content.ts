@@ -1,7 +1,8 @@
 // The editorial content of the project marketplace (decision 0101), carried
 // over from the BREE 216 teaching prototype: the guide to building a quote,
-// where the prices come from, the featured lines, and the three comparisons
-// worth making. It belongs to one catalogue, so every page that shows it
+// where the prices come from, the featured lines, the comparisons worth
+// making, and the environmental layer a selection is argued against.
+// It belongs to one catalogue, so every page that shows it
 // checks the catalogue id first and stays quiet for any other.
 //
 // Figures the copy cites are pinned against the shipped catalogue by
@@ -43,7 +44,80 @@ export const PRESETS: Preset[] = [
     body: "Price, specific stiffness and embodied energy pull in three different directions.",
     skus: ["TFC-WR-600", "TFC-FLAX-300", "TFC-BAS-300", "TFC-CF-200"],
   },
+  {
+    title: "Cost, strength and carbon",
+    body: "Mild steel, aluminium, flax and carbon fibre. Price, specific strength and carbon do not pick the same winner.",
+    skus: ["LMS-A36-PL06", "LMS-6061-PL06", "TFC-FLAX-300", "TFC-CF-200"],
+  },
 ];
+
+// Lines the environmental page sets side by side. The page reads their
+// figures from the catalogue the seat is actually on, so this list is only
+// which lines, never what they measure.
+export const IMPACT_SKUS = [
+  "LMS-A36-PL06",
+  "LMS-6061-PL06",
+  "LMS-REBAR-15M",
+  "BSA-TI-GR2",
+  "TFC-FLAX-300",
+  "TFC-CF-200",
+  "TFC-BALSA-12",
+  "CPP-HDPE-50",
+];
+
+export const IMPACT = {
+  title: "Cost, performance and impact",
+  lede: "A selection that argues only on price, or only on strength, is half an argument. These figures put cradle-to-gate impact on the same table as cost and the mechanical indices.",
+  indicatorsHeading: "Four indicators, one kilogram",
+  indicators: [
+    ["Embodied energy", "The energy to make a kilogram and bring it to the supplier's gate, in MJ/kg."],
+    [
+      "Carbon footprint",
+      "kg CO₂e/kg, cradle-to-gate. Below zero, the material stores more carbon than its production emitted, for as long as that carbon stays in the part.",
+    ],
+    [
+      "Water footprint",
+      "Litres per kilogram. A dry process and a thirsty fibre can reverse a ranking that carbon alone would give.",
+    ],
+    [
+      "End-of-life recovery",
+      "The share that is realistically collected and returned to use. Recyclability on the data sheet is the theoretical figure. The gap is decided by how you join, coat and mix the material, and by whether a stream exists to take it back.",
+    ],
+  ] as [string, string][],
+  bands:
+    "Each per-kilogram figure carries a band from the lecture scale: very low, low, moderate, high, or very high. Carbon below zero is carbon negative. The band is computed with the figure, so the line, the comparison and this page cannot disagree.",
+  quote:
+    "A quotation multiplies the per-unit figure by the quantity. A metre of tube is not a kilogram, and an hour of machining has no mass, so a process states energy and carbon per unit of process and leaves water blank rather than as zero.",
+  freight:
+    "The quotation's carbon stops at the supplier's gate. Road freight is a separate line: 450 km at 0.11 kg CO₂e per tonne-kilometre, the Québec road assumption. It is not added into the cradle-to-gate total.",
+  indices:
+    "When a tie is limited by strength, minimise ρ·CO₂/σy. When it is limited by stiffness, minimise ρ·CO₂/√E. Carbon per dollar is the footprint of a dollar of material. Lower is better on all three, including a negative number. The comparison computes them.",
+  mistakesHeading: "Four ways this goes wrong",
+  mistakes: [
+    [
+      "Comparing per kilogram when the design fixes a volume or a function.",
+      "A light material can carry more carbon per kilogram and less carbon in the part. Convert to the function before you rank.",
+    ],
+    [
+      "Stopping at cradle-to-gate.",
+      "Use, maintenance and how many times you replace the part often dominate, and none of those are in this figure.",
+    ],
+    [
+      "Ignoring the replacement cycle.",
+      "A harder steel that outlasts three mild-steel parts can win on carbon even when its per-kilogram figure is higher.",
+    ],
+    [
+      "Treating recyclability as a property of the material.",
+      "Recovery is a joining and collection decision. A coating or a mixed laminate can throw away a recovery the data sheet promised.",
+    ],
+  ] as [string, string][],
+  absent:
+    "This catalogue version does not carry carbon, water or end-of-life recovery. Embodied energy and recyclability are on each material's data sheet and in the comparison. A later version adds the rest, and a course stays on the version it is pinned to until it is re-pinned.",
+  tableHeading: "A few lines, side by side",
+  tableLede:
+    "These are lines in the catalogue you are browsing, at list price. Open one for the band and the per-unit figure.",
+  columns: ["Line", "Price", "Carbon", "Energy", "Water", "Recovery"],
+};
 
 // A figure the guide states, and the catalogue line it is read from. The test
 // checks each one; the page prints the text.

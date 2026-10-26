@@ -8,6 +8,7 @@ import {
   CONTENT_CATALOGUE,
   FEATURED,
   GUIDE,
+  IMPACT_SKUS,
   PRESETS,
   SPECIFIC_STRENGTH_RATIO,
 } from "./content";
@@ -35,6 +36,7 @@ const catalogueDir = resolve(process.cwd(), `../api/catalogue/${CONTENT_CATALOGU
 const newest = readdirSync(catalogueDir)
   .filter((name) => /^v\d+\.json$/.test(name))
   .sort((a, b) => Number(b.slice(1, -5)) - Number(a.slice(1, -5)))[0];
+if (newest === undefined) throw new Error(`no catalogue in ${catalogueDir}`);
 const catalogue = JSON.parse(readFileSync(resolve(catalogueDir, newest), "utf8")) as CatalogueFile;
 
 const bySku = new Map(catalogue.lines.map((line) => [line.sku, line]));
@@ -46,7 +48,7 @@ const line = (sku: string): Line => {
 
 describe("the marketplace's editorial content", () => {
   it("names only lines the catalogue stocks", () => {
-    for (const sku of [...FEATURED, ...PRESETS.flatMap((preset) => preset.skus)]) {
+    for (const sku of [...FEATURED, ...IMPACT_SKUS, ...PRESETS.flatMap((preset) => preset.skus)]) {
       expect(bySku.has(sku), sku).toBe(true);
     }
   });

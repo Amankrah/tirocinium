@@ -10,6 +10,7 @@ import { Table, Td, Th, Tr } from "@/components/ui/table";
 import { getProjectLine } from "@/lib/api/marketplace";
 import { lead, money } from "@/lib/money";
 import { requireSeat } from "@/lib/seat-session";
+import { EnvironmentalPanel, hasEnvironmentalLayer } from "../../../_marketplace/environmental-panel";
 import { MaterialSwatch } from "../../../_marketplace/material-swatch";
 import { strings } from "../../../strings";
 import { LineActions } from "../../_kit/controls";
@@ -181,8 +182,20 @@ export default async function LinePage({ params }: { params: Promise<{ sku: stri
                     {indices.strength_per_dollar !== null ? (
                       <li>{p.strengthPerDollar(indices.strength_per_dollar.toFixed(2))}</li>
                     ) : null}
+                    {indices.carbon_for_strength != null ? (
+                      <li>{p.carbonForStrength(indices.carbon_for_strength.toFixed(2))}</li>
+                    ) : null}
+                    {indices.carbon_for_stiffness != null ? (
+                      <li>{p.carbonForStiffness(indices.carbon_for_stiffness.toFixed(1))}</li>
+                    ) : null}
+                    {indices.carbon_per_dollar != null ? (
+                      <li>{p.carbonPerDollar(indices.carbon_per_dollar.toFixed(2))}</li>
+                    ) : null}
                   </ul>
                   <p className="text-xs text-ink-muted">{p.indicesNote}</p>
+                  {indices.carbon_for_strength != null || indices.carbon_per_dollar != null ? (
+                    <p className="text-xs text-ink-muted">{p.carbonIndicesNote}</p>
+                  ) : null}
                 </Card>
               ) : null}
             </section>
@@ -193,6 +206,8 @@ export default async function LinePage({ params }: { params: Promise<{ sku: stri
               </p>
             </Card>
           )}
+
+          {hasEnvironmentalLayer(line) ? <EnvironmentalPanel line={line} /> : null}
         </article>
       </div>
 

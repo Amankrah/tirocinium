@@ -57,7 +57,9 @@ from app.marketplace.quoting import (
     QuoteLineIn,
     QuoteTotals,
     TaxLine,
+    basket_footprint,
     compute_quote,
+    line_footprint,
 )
 from app.marketplace.supplier import (
     RfqAnswer,
@@ -608,41 +610,52 @@ def _frozen(row: tuple[Any, ...], stored: list[tuple[Any, ...]]) -> ComputedQuot
     """Rebuild an issued quotation from its stored lines and totals.
 
     Nothing priced is recomputed. The catalogue is opened only at the version
-    the quotation was struck against, and only for labels no column carries
-    (the supplier's name, the lead time, the tax breakdown behind a stored
-    total). A published catalogue version never changes, so those reads are as
-    frozen as the columns are.
+    the quotation was struck against, and only for what no column carries: the
+    supplier's name, the lead time, the tax breakdown behind a stored total,
+    and the footprint, which is fixed once the version and the snapshotted
+    quantity are. A published catalogue version never changes, so those reads
+    are as frozen as the columns are.
     """
     catalogue = load_catalogue(str(row[5]), int(row[6]))
-    lines = [
-        ComputedLine(
-            position=int(item[0]),
-            sku=str(item[1]),
-            supplier_id=str(item[2]),
-            supplier_name=(
-                supplier.name if (supplier := catalogue.supplier(str(item[2]))) else str(item[2])
-            ),
-            name=str(item[3]),
-            spec=str(item[4]),
-            unit=str(item[5]),
-            unit_label=UNIT_LABELS.get(str(item[5]), str(item[5])),
-            requested_quantity=float(item[6]),
-            quantity=float(item[6]),
-            list_price_cents=int(item[9]),
-            unit_price_cents=int(item[10]),
-            break_percent=int(item[11]),
-            extended_cents=int(item[12]),
-            cut_to_length=bool(item[7]),
-            cut_count=int(item[8]),
-            cut_fee_cents=int(item[13]),
-            mass_grams=int(item[14]),
-            lead_days=(line.lead_days if (line := catalogue.line(str(item[1]))) else 0),
+    lines: list[ComputedLine] = []
+    for item in stored:
+        catalog_line = catalogue.line(str(item[1]))
+        quantity = float(item[6])
+        energy, carbon, water = line_footprint(catalog_line, quantity)
+        supplier = catalogue.supplier(str(item[2]))
+        lines.append(
+            ComputedLine(
+                position=int(item[0]),
+                sku=str(item[1]),
+                supplier_id=str(item[2]),
+                supplier_name=supplier.name if supplier else str(item[2]),
+                name=str(item[3]),
+                spec=str(item[4]),
+                unit=str(item[5]),
+                unit_label=UNIT_LABELS.get(str(item[5]), str(item[5])),
+                requested_quantity=quantity,
+                quantity=quantity,
+                list_price_cents=int(item[9]),
+                unit_price_cents=int(item[10]),
+                break_percent=int(item[11]),
+                extended_cents=int(item[12]),
+                cut_to_length=bool(item[7]),
+                cut_count=int(item[8]),
+                cut_fee_cents=int(item[13]),
+                mass_grams=int(item[14]),
+                lead_days=catalog_line.lead_days if catalog_line else 0,
+                embodied_energy_mj=energy,
+                carbon_kg=carbon,
+                water_l=water,
+            )
         )
-        for item in stored
-    ]
     goods = int(row[10] or 0)
     freight = int(row[13] or 0)
     taxable = goods + freight
+    footprint = basket_footprint(
+        [(line.sku, line.embodied_energy_mj, line.carbon_kg, line.water_l) for line in lines],
+        int(row[16] or 0),
+    )
     totals = QuoteTotals(
         line_count=len(lines),
         supplier_count=len({line.supplier_id for line in lines}),
@@ -659,8 +672,16 @@ def _frozen(row: tuple[Any, ...], stored: list[tuple[Any, ...]]) -> ComputedQuot
         total_mass_grams=int(row[16] or 0),
         longest_lead_days=max((line.lead_days for line in lines), default=0),
         cost_per_kg_cents=(round(goods / (int(row[16]) / 1000)) if int(row[16] or 0) else None),
+        embodied_energy_mj=footprint.embodied_energy_mj,
+        carbon_kg=footprint.carbon_kg,
+        water_l=footprint.water_l,
+        freight_carbon_kg=footprint.freight_carbon_kg,
+        carbon_intensity_kg_per_kg=footprint.carbon_intensity_kg_per_kg,
     )
-    return ComputedQuote(lines=lines, totals=totals, notices=[])
+    # Prices stay in the columns. The footprint is a function of the catalogue
+    # version the quotation was struck against and the snapshotted quantity,
+    # both of which are frozen, so recomputing it does not move the quote.
+    return ComputedQuote(lines=lines, totals=totals, notices=list(footprint.notices))
 
 
 @router.put(

@@ -198,6 +198,10 @@ export const strings = {
     sortPriceDesc: "Price, high to low",
     sortLead: "Lead time",
     sortName: "Name",
+    sortCarbon: "Carbon footprint, low to high",
+    sortEnergy: "Embodied energy, low to high",
+    sortWater: "Water footprint, low to high",
+    sortRecovery: "End-of-life recovery, high to low",
     resultCount: (count: number) =>
       count === 1 ? "1 material" : `${count} materials`,
     noResults: "Nothing matched that. Try a broader search.",
@@ -234,6 +238,15 @@ export const strings = {
       longestLead: "Ready in",
       costPerKilo: "Cost per kilogram",
       costPerKiloUnknown: "Not applicable to shop time",
+      embodiedEnergy: "Embodied energy",
+      carbon: "Carbon footprint",
+      water: "Water footprint",
+      freightCarbon: "Road freight carbon",
+      carbonIntensity: "Average carbon intensity",
+      energyNote:
+        "Embodied energy is cradle-to-gate, summed over the lines that publish a figure.",
+      footprintNote:
+        "Carbon and water are cradle-to-gate and stop at the supplier's gate. Road freight carbon is a separate 450 km leg at 0.11 kg CO₂e per tonne-kilometre, on the Québec road assumption, and is not included in the cradle-to-gate total.",
       issue: "Issue this quote",
       issuing: "Issuing…",
       issued: (number: string) => `Quotation ${number}`,
@@ -295,7 +308,7 @@ export const strings = {
   project: {
     // Frame
     title: "Materials for your project",
-    lede: "Six supplier catalogues built for design projects. Compare grades side by side, watch the cost move as you change form and quantity, then print a quotation you can cite in your material-selection report. These are list prices, the same for everyone.",
+    lede: "Six supplier catalogues built for design projects. Compare grades on cost, performance and cradle-to-gate impact, watch the totals move as you change form and quantity, then print a quotation you can cite in your material-selection report. These are list prices, the same for everyone.",
     notSaved:
       "Nothing here is saved. Print your quotation, or save it as a PDF, before you leave the marketplace.",
     basis: (title: string, version: number) => `List prices from ${title}, version ${version}`,
@@ -304,6 +317,7 @@ export const strings = {
     briefs: "Project briefs",
     guide: "How to quote",
     sources: "Price sources",
+    impact: "Environmental data",
     request: "Request a quote",
     // The section strip (decision 0105): the places in the marketplace, as
     // plain nouns, with the one the student is in marked.
@@ -331,7 +345,7 @@ export const strings = {
       "Each supplier carries a different slice of the materials space, and several carry the same component in a different material or form. A 50 mm square tube, for example, is stocked in galvanised steel, aluminium and pultruded FRP. Those overlaps are deliberate: they are where the interesting selection arguments live.",
     categories: "Categories",
     featured: "Frequently specified",
-    presets: "Three comparisons worth making before you commit",
+    presets: "Comparisons worth making before you commit",
     comparePreset: (count: number) => `Compare these ${count}`,
     // Store, search and filters
     supplierLine: (tagline: string, city: string, established: number) =>
@@ -390,6 +404,28 @@ export const strings = {
     strengthPerDollar: (value: string) => `Strength per dollar σy/(ρ·$/kg) = ${value}`,
     indicesNote:
       "These are the axes of an Ashby chart. Use them, not raw strength, when mass or cost is part of the objective.",
+    carbonForStrength: (value: string) =>
+      `Carbon for a strength-limited tie, ρ·CO₂/σy = ${value}`,
+    carbonForStiffness: (value: string) =>
+      `Carbon for a stiffness-limited tie, ρ·CO₂/√E = ${value}`,
+    carbonPerDollar: (value: string) => `Carbon per dollar = ${value} kg CO₂e per $`,
+    carbonIndicesNote:
+      "Lower is better on the carbon-weighted indices, and a negative value is better than zero.",
+    impactHeading: "Environmental impact",
+    impactLede:
+      "Cradle-to-gate, per kilogram. The band is the lecture scale, computed with the figure so every line is read the same way.",
+    impactProcessLede:
+      "This is a process, so the footprint is per unit of process rather than per kilogram. A process has no water figure.",
+    impactEnergy: "Embodied energy",
+    impactCarbon: "Carbon footprint",
+    impactWater: "Water footprint",
+    impactRecovery: "Realistic recovery",
+    impactRecoveryNote:
+      "This is the share that is actually recovered. Recyclability on the data sheet is the theoretical figure, and the gap is a joining and collection decision.",
+    impactEndOfLife: "End of life.",
+    impactMinTemp: (value: string) => `Lowest useful temperature ${value}.`,
+    perUnitAsSupplied: (unit: string, figures: string) => `Per ${unit} as supplied: ${figures}.`,
+    impactMore: "How to read these figures",
     processHeading: "This is a process, not a material.",
     processBody:
       "Price it into your cost model alongside the stock you intend to buy. A material is only as economical as it is to turn into a finished part.",

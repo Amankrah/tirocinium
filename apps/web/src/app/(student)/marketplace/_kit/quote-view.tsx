@@ -16,6 +16,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Icon } from "@/components/ui/icon";
 import type { ProjectQuotation } from "@/lib/api/marketplace";
 import { lead, mass, money } from "@/lib/money";
+import { impactQuantity } from "../../_marketplace/impact-format";
 import { QuoteBody } from "../../_marketplace/quote-body";
 import { strings } from "../../strings";
 import { TERMS } from "./content";
@@ -261,6 +262,34 @@ export function QuotationSheet({
         ) : null}
       </dl>
 
+      {totals.embodied_energy_mj != null || totals.carbon_kg != null ? (
+        <>
+          <dl className="grid grid-cols-2 divide-rule-line rounded-lg border border-rule-line sm:grid-cols-3 print:rounded-none">
+            {totals.embodied_energy_mj != null ? (
+              <Stat label={q.embodiedEnergy} value={`${impactQuantity(totals.embodied_energy_mj, 1)} MJ`} />
+            ) : null}
+            {totals.carbon_kg != null ? (
+              <Stat label={q.carbon} value={`${impactQuantity(totals.carbon_kg, 2)} kg CO₂e`} />
+            ) : null}
+            {totals.water_l != null ? (
+              <Stat label={q.water} value={`${impactQuantity(totals.water_l, 0)} L`} />
+            ) : null}
+            {totals.freight_carbon_kg != null ? (
+              <Stat label={q.freightCarbon} value={`${impactQuantity(totals.freight_carbon_kg, 2)} kg CO₂e`} />
+            ) : null}
+            {totals.carbon_intensity_kg_per_kg != null ? (
+              <Stat
+                label={q.carbonIntensity}
+                value={`${impactQuantity(totals.carbon_intensity_kg_per_kg, 2)} kg CO₂e/kg`}
+              />
+            ) : null}
+          </dl>
+          <p className="text-xs text-pretty text-ink-muted">
+            {totals.carbon_kg != null ? q.footprintNote : q.energyNote}
+          </p>
+        </>
+      ) : null}
+
       {quotation.notices.length > 0 ? (
         <ul className="flex flex-col gap-0.5 text-xs text-ink-muted" aria-label={q.notices}>
           {quotation.notices.map((notice) => (
@@ -315,6 +344,23 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
+function footprintRows(quotation: ProjectQuotation): string[][] {
+  const q = strings.marketplace.quote;
+  const totals = quotation.totals;
+  const rows: string[][] = [];
+  const add = (label: string, value: string) => rows.push([label, "", "", "", "", value]);
+  if (totals.embodied_energy_mj != null) add(q.embodiedEnergy, `${impactQuantity(totals.embodied_energy_mj, 1)} MJ`);
+  if (totals.carbon_kg != null) add(q.carbon, `${impactQuantity(totals.carbon_kg, 2)} kg CO₂e`);
+  if (totals.water_l != null) add(q.water, `${impactQuantity(totals.water_l, 0)} L`);
+  if (totals.freight_carbon_kg != null) {
+    add(q.freightCarbon, `${impactQuantity(totals.freight_carbon_kg, 2)} kg CO₂e`);
+  }
+  if (totals.carbon_intensity_kg_per_kg != null) {
+    add(q.carbonIntensity, `${impactQuantity(totals.carbon_intensity_kg_per_kg, 2)} kg CO₂e/kg`);
+  }
+  return rows;
+}
+
 /** The quotation as tab-separated text, which pastes into a spreadsheet or a
  * word-processor table as columns. Figures are the server's, in dollars. */
 export function asTable(quotation: ProjectQuotation, currency: string): string {
@@ -335,6 +381,7 @@ export function asTable(quotation: ProjectQuotation, currency: string): string {
     [p.freight, "", "", "", "", dollars(quotation.totals.freight_cents)],
     ...quotation.totals.taxes.map((tax) => [p.tax(tax.code, tax.rate * 100), "", "", "", "", dollars(tax.amount_cents)]),
     [p.grandTotal(currency), "", "", "", "", dollars(quotation.totals.total_cents)],
+    ...footprintRows(quotation),
     [],
     [
       p.citation(

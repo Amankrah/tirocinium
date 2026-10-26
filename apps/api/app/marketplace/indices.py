@@ -17,6 +17,16 @@ from typing import Literal, cast
 from pydantic import BaseModel
 
 from app.marketplace.catalogue import UNIT_LABELS, Catalogue, CatalogueLine
+from app.marketplace.impact import (
+    BandKind,
+    carbon_for_stiffness,
+    carbon_for_strength,
+    carbon_per_dollar,
+    carbon_per_unit,
+    embodied_energy_per_unit,
+    impact_band,
+    water_per_unit,
+)
 
 Better = Literal["lower", "higher"]
 
@@ -140,17 +150,39 @@ class LineMetrics:
     uv_resistance: float | None
     embodied_energy_mj_kg: float | None
     recyclability_percent: float | None
+    carbon_kg_co2e: float | None
+    water_l_kg: float | None
+    end_of_life_recovery_percent: float | None
+    min_service_temp_c: float | None
+    energy_per_unit: float | None
+    carbon_per_unit: float | None
+    water_per_unit: float | None
+    carbon_for_strength: float | None
+    carbon_for_stiffness: float | None
+    carbon_per_dollar: float | None
     price_label: str
     stock_label: str
     hardness_label: str
     food_label: str
     supplier_label: str
+    energy_per_unit_label: str
+    carbon_per_unit_label: str
+    water_per_unit_label: str
+
+
+def _per_unit(value: float | None, decimals: int, unit: str) -> str:
+    if value is None:
+        return DASH
+    return f"{value:,.{decimals}f} {unit}"
 
 
 def line_metrics(catalogue: Catalogue, line: CatalogueLine, price_cents: int) -> LineMetrics:
     properties = line.properties
     supplier = catalogue.supplier(line.supplier)
     unit_label = UNIT_LABELS.get(line.unit, line.unit)
+    energy_unit = embodied_energy_per_unit(line)
+    carbon_unit = carbon_per_unit(line)
+    water_unit = water_per_unit(line)
     return LineMetrics(
         sku=line.sku,
         price_cents=float(price_cents),
@@ -174,6 +206,16 @@ def line_metrics(catalogue: Catalogue, line: CatalogueLine, price_cents: int) ->
         uv_resistance=_as_float(properties.uv_resistance),
         embodied_energy_mj_kg=properties.embodied_energy_mj_kg,
         recyclability_percent=properties.recyclability_percent,
+        carbon_kg_co2e=properties.carbon_kg_co2e,
+        water_l_kg=properties.water_l_kg,
+        end_of_life_recovery_percent=properties.end_of_life_recovery_percent,
+        min_service_temp_c=properties.min_service_temp_c,
+        energy_per_unit=energy_unit,
+        carbon_per_unit=carbon_unit,
+        water_per_unit=water_unit,
+        carbon_for_strength=carbon_for_strength(line),
+        carbon_for_stiffness=carbon_for_stiffness(line),
+        carbon_per_dollar=carbon_per_dollar(line, price_cents),
         price_label=f"{money(price_cents)} / {unit_label}",
         stock_label=STOCK_LABELS.get(line.stock, line.stock),
         hardness_label=properties.hardness or DASH,
@@ -183,6 +225,9 @@ def line_metrics(catalogue: Catalogue, line: CatalogueLine, price_cents: int) ->
             else ("Yes" if properties.food_contact else "No")
         ),
         supplier_label=supplier.name if supplier else line.supplier,
+        energy_per_unit_label=_per_unit(energy_unit, 1, f"MJ/{unit_label}"),
+        carbon_per_unit_label=_per_unit(carbon_unit, 2, f"kg CO\u2082e/{unit_label}"),
+        water_per_unit_label=_per_unit(water_unit, 0, f"L/{unit_label}"),
     )
 
 
@@ -208,6 +253,9 @@ class RowSpec:
     # needs something the number does not carry. Price is the only such row:
     # every candidate sells in its own unit.
     display_from: str | None = None
+    # A lecture band appended to the display. Only the environmental rows set
+    # it, so an older catalogue's embodied-energy cell keeps the text it had.
+    band: BandKind | None = None
 
 
 COMMERCIAL = "Commercial"
@@ -215,6 +263,8 @@ MECHANICAL = "Physical and mechanical"
 DERIVED = "Derived selection indices"
 SERVICE = "Environment and service"
 SUSTAINABILITY = "Sustainability"
+PER_UNIT = "Per unit as supplied"
+CARBON_WEIGHTED = "Carbon-weighted indices"
 
 ROWS: tuple[RowSpec, ...] = (
     RowSpec(
@@ -344,6 +394,14 @@ ROWS: tuple[RowSpec, ...] = (
         unit="\u00b0C",
     ),
     RowSpec(
+        "min_temp",
+        "Lowest useful temperature",
+        SERVICE,
+        "lower",
+        number="min_service_temp_c",
+        unit="\u00b0C",
+    ),
+    RowSpec(
         "corrosion",
         "Corrosion resistance",
         SERVICE,
@@ -377,6 +435,100 @@ ROWS: tuple[RowSpec, ...] = (
         number="recyclability_percent",
         unit="%",
     ),
+    RowSpec(
+        "carbon",
+        "Carbon footprint",
+        SUSTAINABILITY,
+        "lower",
+        number="carbon_kg_co2e",
+        unit="kg CO\u2082e/kg",
+        decimals=2,
+        band="co2",
+    ),
+    RowSpec(
+        "water",
+        "Water footprint",
+        SUSTAINABILITY,
+        "lower",
+        number="water_l_kg",
+        unit="L/kg",
+        band="h2o",
+    ),
+    RowSpec(
+        "recovery",
+        "End-of-life recovery",
+        SUSTAINABILITY,
+        "higher",
+        number="end_of_life_recovery_percent",
+        unit="%",
+        band="recy",
+    ),
+    RowSpec(
+        "energy_per_unit",
+        "Energy per unit of sale",
+        PER_UNIT,
+        "lower",
+        number="energy_per_unit",
+        display_from="energy_per_unit_label",
+    ),
+    RowSpec(
+        "carbon_per_unit",
+        "Carbon per unit of sale",
+        PER_UNIT,
+        "lower",
+        number="carbon_per_unit",
+        display_from="carbon_per_unit_label",
+    ),
+    RowSpec(
+        "water_per_unit",
+        "Water per unit of sale",
+        PER_UNIT,
+        "lower",
+        number="water_per_unit",
+        display_from="water_per_unit_label",
+    ),
+    RowSpec(
+        "carbon_for_strength",
+        "Carbon for strength, \u03c1\u00b7CO\u2082/\u03c3y",
+        CARBON_WEIGHTED,
+        "lower",
+        number="carbon_for_strength",
+        decimals=2,
+    ),
+    RowSpec(
+        "carbon_for_stiffness",
+        "Carbon for stiffness, \u03c1\u00b7CO\u2082/\u221aE",
+        CARBON_WEIGHTED,
+        "lower",
+        number="carbon_for_stiffness",
+        decimals=1,
+    ),
+    RowSpec(
+        "carbon_per_dollar",
+        "Carbon per dollar",
+        CARBON_WEIGHTED,
+        "lower",
+        number="carbon_per_dollar",
+        decimals=2,
+    ),
+)
+
+# Rows a catalogue version may not have the data for. Dropped when every cell
+# is empty, so a comparison of an earlier version does not grow a block of
+# dashes. The rows that already existed stay, empty cells and all.
+_LAYER_ROWS = frozenset(
+    {
+        "carbon",
+        "water",
+        "recovery",
+        "min_temp",
+        "energy_per_unit",
+        "carbon_per_unit",
+        "water_per_unit",
+        "carbon_for_strength",
+        "carbon_for_stiffness",
+        "carbon_per_dollar",
+    }
 )
 
 
@@ -405,7 +557,12 @@ def compare(
     rows = [_build_row(spec, metrics) for spec in ROWS]
     if rows and rows[0].key == "price":
         rows[0] = rows[0].model_copy(update={"label": price_label})
+    rows = [row for row in rows if row.key not in _LAYER_ROWS or not _unfilled(row)]
     return CompareOut(skus=seen, rows=rows)
+
+
+def _unfilled(row: CompareRow) -> bool:
+    return all(cell.value is None and cell.display == DASH for cell in row.cells)
 
 
 def _build_row(spec: RowSpec, metrics: list[LineMetrics]) -> CompareRow:
@@ -444,9 +601,16 @@ def _render(spec: RowSpec, value: float | None) -> str:
     if value is None:
         return DASH
     if spec.formatter is not None:
-        return spec.formatter(value)
-    rendered = f"{value:,.{spec.decimals}f}"
-    return f"{rendered} {spec.unit}".strip()
+        rendered = spec.formatter(value)
+    else:
+        rendered = f"{value:,.{spec.decimals}f}"
+        if spec.unit:
+            rendered = f"{rendered} {spec.unit}"
+    if spec.band is not None:
+        label = impact_band(spec.band, value)
+        if label:
+            rendered = f"{rendered}, {label}"
+    return rendered
 
 
 def _mark_best(cells: list[CompareCell], better: Better | None) -> None:

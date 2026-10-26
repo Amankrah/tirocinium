@@ -731,6 +731,17 @@
             "title": "Break Percent",
             "type": "integer"
           },
+          "carbon_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carbon Kg"
+          },
           "cut_count": {
             "title": "Cut Count",
             "type": "integer"
@@ -742,6 +753,17 @@
           "cut_to_length": {
             "title": "Cut To Length",
             "type": "boolean"
+          },
+          "embodied_energy_mj": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embodied Energy Mj"
           },
           "extended_cents": {
             "title": "Extended Cents",
@@ -802,6 +824,17 @@
           "unit_price_cents": {
             "title": "Unit Price Cents",
             "type": "integer"
+          },
+          "water_l": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Water L"
           }
         },
         "required": [
@@ -1762,6 +1795,177 @@
         "title": "Identity",
         "type": "object"
       },
+      "ImpactReading": {
+        "description": "One line's environmental layer, with the lecture bands already applied.\nThe browser displays this and does not recompute it.",
+        "properties": {
+          "carbon_band": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carbon Band"
+          },
+          "carbon_kg_co2e": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carbon Kg Co2E"
+          },
+          "carbon_per_unit": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carbon Per Unit"
+          },
+          "embodied_energy_band": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embodied Energy Band"
+          },
+          "embodied_energy_mj_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embodied Energy Mj Kg"
+          },
+          "end_of_life": {
+            "default": "",
+            "title": "End Of Life",
+            "type": "string"
+          },
+          "end_of_life_recovery_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Of Life Recovery Percent"
+          },
+          "energy_per_unit": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Energy Per Unit"
+          },
+          "min_service_temp_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Service Temp C"
+          },
+          "process_carbon_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Process Carbon Kg"
+          },
+          "process_energy_mj": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Process Energy Mj"
+          },
+          "process_note": {
+            "default": "",
+            "title": "Process Note",
+            "type": "string"
+          },
+          "recovery_band": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recovery Band"
+          },
+          "water_band": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Water Band"
+          },
+          "water_l_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Water L Kg"
+          },
+          "water_per_unit": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Water Per Unit"
+          }
+        },
+        "title": "ImpactReading",
+        "type": "object"
+      },
       "ImportCreated": {
         "properties": {
           "import_id": {
@@ -2142,6 +2346,17 @@
       },
       "LineDetail": {
         "properties": {
+          "carbon_kg_co2e": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carbon Kg Co2E"
+          },
           "category": {
             "title": "Category",
             "type": "string"
@@ -2154,9 +2369,34 @@
             "title": "Description",
             "type": "string"
           },
+          "embodied_energy_mj_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embodied Energy Mj Kg"
+          },
+          "end_of_life_recovery_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Of Life Recovery Percent"
+          },
           "fabrication": {
             "title": "Fabrication",
             "type": "string"
+          },
+          "impact": {
+            "$ref": "#/components/schemas/ImpactReading"
           },
           "indices": {
             "$ref": "#/components/schemas/LineIndices"
@@ -2212,6 +2452,28 @@
               }
             ],
             "title": "Price Per Kg Cents"
+          },
+          "process_carbon_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Process Carbon Kg"
+          },
+          "process_energy_mj": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Process Energy Mj"
           },
           "properties": {
             "$ref": "#/components/schemas/MaterialProperties"
@@ -2277,6 +2539,17 @@
           "unit_label": {
             "title": "Unit Label",
             "type": "string"
+          },
+          "water_l_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Water L Kg"
           }
         },
         "required": [
@@ -2305,6 +2578,7 @@
           "fabrication",
           "oversize",
           "properties",
+          "impact",
           "price_breaks",
           "supplier"
         ],
@@ -2314,6 +2588,39 @@
       "LineIndices": {
         "description": "The derived selection indices for one line at these prices, from the\nsame functions the comparison uses, so the line page and the comparison\ncan never disagree. Each is None where the line has nothing to divide.",
         "properties": {
+          "carbon_for_stiffness": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carbon For Stiffness"
+          },
+          "carbon_for_strength": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carbon For Strength"
+          },
+          "carbon_per_dollar": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carbon Per Dollar"
+          },
           "cost_per_litre_cents": {
             "anyOf": [
               {
@@ -2404,6 +2711,17 @@
       "LineSummary": {
         "description": "A catalogue line as a card: enough to compare on, not enough to\nspecify from.",
         "properties": {
+          "carbon_kg_co2e": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carbon Kg Co2E"
+          },
           "category": {
             "title": "Category",
             "type": "string"
@@ -2411,6 +2729,28 @@
           "cut_fee_cents": {
             "title": "Cut Fee Cents",
             "type": "integer"
+          },
+          "embodied_energy_mj_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embodied Energy Mj Kg"
+          },
+          "end_of_life_recovery_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Of Life Recovery Percent"
           },
           "lead_days": {
             "title": "Lead Days",
@@ -2438,6 +2778,28 @@
               }
             ],
             "title": "Price Per Kg Cents"
+          },
+          "process_carbon_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Process Carbon Kg"
+          },
+          "process_energy_mj": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Process Energy Mj"
           },
           "service": {
             "title": "Service",
@@ -2489,6 +2851,17 @@
           "unit_label": {
             "title": "Unit Label",
             "type": "string"
+          },
+          "water_l_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Water L Kg"
           }
         },
         "required": [
@@ -2689,8 +3062,19 @@
         "type": "object"
       },
       "MaterialProperties": {
-        "description": "The fifteen figures a selection decision is argued from.",
+        "description": "The fifteen mechanical figures, plus the environmental layer a catalogue\nversion may carry (decision 0110). The layer's fields stay null when that\nversion does not publish them.",
         "properties": {
+          "carbon_kg_co2e": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carbon Kg Co2E"
+          },
           "corrosion_resistance": {
             "anyOf": [
               {
@@ -2735,6 +3119,17 @@
             ],
             "title": "Embodied Energy Mj Kg"
           },
+          "end_of_life_recovery_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Of Life Recovery Percent"
+          },
           "food_contact": {
             "anyOf": [
               {
@@ -2778,6 +3173,17 @@
               }
             ],
             "title": "Max Service Temp C"
+          },
+          "min_service_temp_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Service Temp C"
           },
           "recyclability_percent": {
             "anyOf": [
@@ -2833,6 +3239,17 @@
               }
             ],
             "title": "Uv Resistance"
+          },
+          "water_l_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Water L Kg"
           },
           "yield_strength_mpa": {
             "anyOf": [
@@ -3970,6 +4387,28 @@
       },
       "QuoteTotals": {
         "properties": {
+          "carbon_intensity_kg_per_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carbon Intensity Kg Per Kg"
+          },
+          "carbon_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carbon Kg"
+          },
           "cost_per_kg_cents": {
             "anyOf": [
               {
@@ -3988,6 +4427,28 @@
           "discount_cents": {
             "title": "Discount Cents",
             "type": "integer"
+          },
+          "embodied_energy_mj": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embodied Energy Mj"
+          },
+          "freight_carbon_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Freight Carbon Kg"
           },
           "freight_cents": {
             "title": "Freight Cents",
@@ -4027,6 +4488,17 @@
           "total_mass_grams": {
             "title": "Total Mass Grams",
             "type": "integer"
+          },
+          "water_l": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Water L"
           }
         },
         "required": [
@@ -11933,7 +12405,7 @@
             "required": false,
             "schema": {
               "default": "relevance",
-              "pattern": "^(relevance|price_asc|price_desc|lead|name|per_kg_asc|density_asc|yield_desc)$",
+              "pattern": "^(relevance|price_asc|price_desc|lead|name|per_kg_asc|density_asc|yield_desc|carbon_asc|energy_asc|water_asc|recovery_desc)$",
               "title": "Sort",
               "type": "string"
             }
@@ -13540,7 +14012,7 @@
             "required": false,
             "schema": {
               "default": "relevance",
-              "pattern": "^(relevance|price_asc|price_desc|lead|name|per_kg_asc|density_asc|yield_desc)$",
+              "pattern": "^(relevance|price_asc|price_desc|lead|name|per_kg_asc|density_asc|yield_desc|carbon_asc|energy_asc|water_asc|recovery_desc)$",
               "title": "Sort",
               "type": "string"
             }

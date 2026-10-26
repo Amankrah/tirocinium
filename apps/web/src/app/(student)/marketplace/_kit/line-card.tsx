@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import type { LineSummary } from "@/lib/api/marketplace";
 import { lead, money } from "@/lib/money";
+import { ImpactMarks } from "../../_marketplace/impact-marks";
 import { MaterialSwatch } from "../../_marketplace/material-swatch";
 import { strings } from "../../strings";
 import { LineActions } from "./controls";
@@ -70,6 +71,7 @@ export function LineCard({ line }: { line: LineSummary }) {
         <span className="mt-1 text-xs text-ink-muted">
           {s.minimumOrder(String(line.moq), line.unit_label)} · {line.stock_label} · {lead(line.lead_days)}
         </span>
+        <ImpactMarks line={line} />
       </div>
 
       <LineActions line={{ sku: line.sku, moq: line.moq, name: line.name }} />
