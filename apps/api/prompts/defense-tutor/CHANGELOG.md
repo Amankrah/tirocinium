@@ -38,3 +38,16 @@ variant and nobody else holds them, so a comparison would be either meaningless
 or a leak. The quotation is also named alongside the transcription in the
 hostile-text rule: it carries catalogue prose and the student's own free text,
 and both are data.
+
+## v4
+
+Decision 0112, project challenges. A fifth source can reach the tutor: the
+selection the student committed to a project challenge, when the submission
+cites one, carrying the candidates, the weighting, the scores and the
+quotation priced for the chosen line. One paragraph says what it is for (a
+weighting is an argument, so ask why this criterion over that one, what the
+requirements justified, what a moved weight would change, and whether the
+priced line is the one the matrix ranked first) and that its absence means
+nothing. The selection joins the transcription and the quotation in the
+hostile-text rule. Everything else is v3's, including the rule never to name
+the material the student should have chosen.

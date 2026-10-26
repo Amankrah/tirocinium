@@ -510,3 +510,67 @@ def test_loading_writes_the_spec_the_pool_fill_reads(
             assert stored == question.param_spec, question.key
     finally:
         conn.close()
+
+
+# ---------------------------------------------------- challenges (decision 0112)
+
+
+def _with_challenge(pack: CoursePack, shortlist: list[str]) -> CoursePack:
+    """The shipped pack plus one project challenge, re-validated so the
+    shortlist is checked against the pinned catalogue as a load would."""
+    raw = pack.model_dump(mode="json")
+    raw["challenges"] = [
+        {
+            "key": "feed-auger",
+            "title": "A feed auger for a dairy barn",
+            "context": "A 6 m screw auger moving silage.",
+            "requirements": [{"text": "Resist silage effluent", "target": "pH 4"}],
+            "constraints": ["Batch of 20"],
+            "weights": {"corrosion": 5},
+            "candidate_families": "Galvanised vs. stainless",
+            "shortlist": shortlist,
+        }
+    ]
+    return CoursePack.model_validate(raw)
+
+
+def test_a_pack_challenge_shortlisting_an_unknown_line_fails_at_parse(pack: CoursePack) -> None:
+    with pytest.raises(ValueError, match="feed-auger"):
+        _with_challenge(pack, ["LMS-NOPE"])
+    raw = pack.model_dump(mode="json")
+    raw["challenges"] = [
+        {"key": "x", "title": "x", "requirements": [{"text": "y"}], "weights": {"wear": 2}}
+    ]
+    with pytest.raises(ValueError, match="matrix criterion"):
+        CoursePack.model_validate(raw)
+
+
+def test_a_pack_challenge_loads_published_and_reloads_in_place(
+    tmp_path: Path, pack: CoursePack, storage: FakeObjectStorage
+) -> None:
+    packed = _with_challenge(pack, ["LMS-A36-PL06"])
+    conn = _load(tmp_path, packed, storage, course_id=1)
+    try:
+        rows = conn.execute("SELECT id, title, status, shortlist_json FROM challenges").fetchall()
+        assert len(rows) == 1 and rows[0][2] == "published"
+        assert json.loads(rows[0][3]) == ["LMS-A36-PL06"]
+        first_id = int(rows[0][0])
+        # A second load updates the same row rather than adding one.
+        load_into_course(
+            pack=packed,
+            pack_root=PACK_ROOT / packed.id,
+            conn=conn,
+            storage=storage,
+            course_id=1,
+            author_id=1,
+            now=1_780_000_001,
+        )
+        conn.commit()
+        rows = conn.execute("SELECT id FROM challenges").fetchall()
+        assert [int(row[0]) for row in rows] == [first_id]
+        linked = conn.execute(
+            "SELECT challenge_id FROM course_pack_challenges WHERE item_key = 'feed-auger'"
+        ).fetchone()
+        assert int(linked[0]) == first_id
+    finally:
+        conn.close()

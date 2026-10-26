@@ -62,6 +62,10 @@ class SubmissionIn(BaseModel):
     # attempt: a submission that cites nothing is complete, and only an issued
     # quotation can be cited, because a draft is still moving.
     quote_id: int | None = None
+    # The project selection this work argues from, if the student committed
+    # one to a challenge (decision 0112). Optional on the same terms; checked
+    # against this seat inside the creating transaction, never trusted.
+    selection_id: int | None = None
 
 
 class UploadTarget(BaseModel):
@@ -108,6 +112,10 @@ class SubmissionOut(BaseModel):
     # can name out loud.
     quote_id: int | None
     quote_number: str | None
+    # The project selection cited, by its reference as well as its id, for
+    # the same reason as the quotation (decision 0112).
+    selection_id: int | None
+    selection_reference: str | None
     pages: list[PageOut]
 
 
@@ -155,8 +163,10 @@ async def _load_submission(
         row = conn.execute(
             "SELECT s.id, s.variant_id, s.seat_id, s.page_count, s.status,"
             " s.submitted_at, s.recognition_conf, s.started_at, s.quote_id,"
-            " q.quote_number FROM submissions s"
-            " LEFT JOIN quotes q ON q.id = s.quote_id WHERE s.id = ?",
+            " q.quote_number, s.selection_id, cs.reference FROM submissions s"
+            " LEFT JOIN quotes q ON q.id = s.quote_id"
+            " LEFT JOIN challenge_selections cs ON cs.id = s.selection_id"
+            " WHERE s.id = ?",
             (submission_id,),
         ).fetchone()
         # A submission that is not this seat's is indistinguishable from one
@@ -178,6 +188,8 @@ async def _load_submission(
             started_at=None if row[7] is None else int(row[7]),
             quote_id=None if row[8] is None else int(row[8]),
             quote_number=None if row[9] is None else str(row[9]),
+            selection_id=None if row[10] is None else int(row[10]),
+            selection_reference=None if row[11] is None else str(row[11]),
             pages=[
                 PageOut(
                     page_index=int(p[0]),
@@ -198,15 +210,12 @@ async def _load_transcription(
 ) -> "TranscriptionOut":
     def read(conn: sqlite3.Connection) -> TranscriptionOut:
         row = conn.execute(
-            "SELECT seat_id, status, recognized_z, recognition_conf"
-            " FROM submissions WHERE id = ?",
+            "SELECT seat_id, status, recognized_z, recognition_conf FROM submissions WHERE id = ?",
             (submission_id,),
         ).fetchone()
         if row is None or int(row[0]) != seat_id:
             raise HTTPException(status_code=404, detail="Submission not found.")
-        recognized = (
-            None if row[2] is None else decompress_text(conn, "handwriting", bytes(row[2]))
-        )
+        recognized = None if row[2] is None else decompress_text(conn, "handwriting", bytes(row[2]))
         # Join each page to its cached reading by the server-computed content
         # hash (migration 0008); a page not yet processed has no match, so its
         # markdown is empty and its regions absent.
@@ -299,18 +308,12 @@ async def create_submission(
     def create(conn: sqlite3.Connection) -> int:
         if idempotency_key is not None:
             seen = conn.execute(
-                "SELECT submission_id FROM idempotency_keys"
-                " WHERE key = ? AND scope = ?",
+                "SELECT submission_id FROM idempotency_keys WHERE key = ? AND scope = ?",
                 (idempotency_key, _CREATE_SCOPE),
             ).fetchone()
             if seen is not None:
                 return int(seen[0])
-        if (
-            conn.execute(
-                "SELECT 1 FROM variants WHERE id = ?", (variant_id,)
-            ).fetchone()
-            is None
-        ):
+        if conn.execute("SELECT 1 FROM variants WHERE id = ?", (variant_id,)).fetchone() is None:
             raise HTTPException(status_code=404, detail="Variant not found.")
         # The span comes from the attempt row, never from the request: an
         # attempt that is not this seat's, or not this variant's, contributes
@@ -318,8 +321,7 @@ async def create_submission(
         started_at: int | None = None
         if body.attempt_id is not None:
             attempt = conn.execute(
-                "SELECT started_at FROM attempts"
-                " WHERE id = ? AND seat_id = ? AND variant_id = ?",
+                "SELECT started_at FROM attempts WHERE id = ? AND seat_id = ? AND variant_id = ?",
                 (body.attempt_id, seat_id, variant_id),
             ).fetchone()
             if attempt is not None:
@@ -337,12 +339,31 @@ async def create_submission(
             ).fetchone()
             if quote is not None:
                 quote_id = body.quote_id
+        # A selection is not bound to a variant: a project challenge stands
+        # outside any case study, so the check is ownership alone.
+        selection_id: int | None = None
+        if body.selection_id is not None:
+            selection = conn.execute(
+                "SELECT 1 FROM challenge_selections WHERE id = ? AND seat_id = ?",
+                (body.selection_id, seat_id),
+            ).fetchone()
+            if selection is not None:
+                selection_id = body.selection_id
         cursor = conn.execute(
             "INSERT INTO submissions"
             " (variant_id, seat_id, page_count, storage_prefix, status,"
-            "  submitted_at, started_at, quote_id)"
-            " VALUES (?, ?, ?, ?, 'pending', ?, ?, ?)",
-            (variant_id, seat_id, len(body.pages), prefix, now, started_at, quote_id),
+            "  submitted_at, started_at, quote_id, selection_id)"
+            " VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?)",
+            (
+                variant_id,
+                seat_id,
+                len(body.pages),
+                prefix,
+                now,
+                started_at,
+                quote_id,
+                selection_id,
+            ),
         )
         submission_id = cursor.lastrowid
         assert submission_id is not None
@@ -447,8 +468,7 @@ async def complete_submission(
         if str(row[1]) != "pending":
             return False
         conn.execute(
-            "UPDATE submissions SET status = 'uploaded', submitted_at = ?"
-            " WHERE id = ?",
+            "UPDATE submissions SET status = 'uploaded', submitted_at = ? WHERE id = ?",
             (now, submission_id),
         )
         return True

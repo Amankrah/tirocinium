@@ -294,15 +294,39 @@
         "type": "object"
       },
       "Brief": {
-        "description": "A project brief: the selection factors, the families in contention, and\nthe lines worth quoting first.",
+        "description": "A project brief. From catalogue v4 (decision 0112) a brief is a\nrequirements statement first: the context, what the part must do, the\nconstraints and the deliverable are what a student meets; the families in\ncontention and the shortlist are the author's answer, revealed only once\nthe student has committed a selection of their own. Earlier versions carry\nthe factors and the shortlist alone, and the surfaces treat the factors as\nthe requirements.",
         "properties": {
           "candidate_families": {
             "title": "Candidate Families",
             "type": "string"
           },
+          "constraints": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Constraints",
+            "type": "array"
+          },
+          "context": {
+            "default": "",
+            "title": "Context",
+            "type": "string"
+          },
+          "deliverable": {
+            "default": "",
+            "title": "Deliverable",
+            "type": "string"
+          },
           "id": {
             "title": "Id",
             "type": "string"
+          },
+          "requirements": {
+            "items": {
+              "$ref": "#/components/schemas/Requirement"
+            },
+            "title": "Requirements",
+            "type": "array"
           },
           "selection_factors": {
             "items": {
@@ -321,6 +345,13 @@
           "title": {
             "title": "Title",
             "type": "string"
+          },
+          "weights": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Weights",
+            "type": "object"
           }
         },
         "required": [
@@ -571,6 +602,232 @@
         ],
         "title": "Certification",
         "type": "string"
+      },
+      "ChallengeIn": {
+        "description": "A challenge as the professor writes it. Weights are a suggestion over\nthe matrix criteria; the shortlist is the answer the reveal shows and may\nbe empty for a challenge whose author has no answer to show.",
+        "properties": {
+          "candidate_families": {
+            "default": "",
+            "maxLength": 400,
+            "title": "Candidate Families",
+            "type": "string"
+          },
+          "constraints": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Constraints",
+            "type": "array"
+          },
+          "context": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Context",
+            "type": "string"
+          },
+          "deliverable": {
+            "default": "",
+            "maxLength": 1500,
+            "title": "Deliverable",
+            "type": "string"
+          },
+          "requirements": {
+            "items": {
+              "$ref": "#/components/schemas/Requirement"
+            },
+            "maxItems": 12,
+            "title": "Requirements",
+            "type": "array"
+          },
+          "shortlist": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Shortlist",
+            "type": "array"
+          },
+          "status": {
+            "default": "draft",
+            "enum": [
+              "draft",
+              "published"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "weights": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Weights",
+            "type": "object"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "title": "ChallengeIn",
+        "type": "object"
+      },
+      "ChallengeOut": {
+        "properties": {
+          "constraints": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Constraints",
+            "type": "array"
+          },
+          "context": {
+            "title": "Context",
+            "type": "string"
+          },
+          "criteria": {
+            "items": {
+              "$ref": "#/components/schemas/CriterionOut"
+            },
+            "title": "Criteria",
+            "type": "array"
+          },
+          "deliverable": {
+            "title": "Deliverable",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "requirements": {
+            "items": {
+              "$ref": "#/components/schemas/Requirement"
+            },
+            "title": "Requirements",
+            "type": "array"
+          },
+          "reveal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RevealOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "selection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SelectionOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "enum": [
+              "catalogue",
+              "course"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "weights": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Weights",
+            "type": "object"
+          }
+        },
+        "required": [
+          "key",
+          "source",
+          "title",
+          "context",
+          "requirements",
+          "constraints",
+          "deliverable",
+          "weights",
+          "criteria",
+          "selection",
+          "reveal"
+        ],
+        "title": "ChallengeOut",
+        "type": "object"
+      },
+      "ChallengeSummary": {
+        "properties": {
+          "committed": {
+            "title": "Committed",
+            "type": "boolean"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          },
+          "requirement_count": {
+            "title": "Requirement Count",
+            "type": "integer"
+          },
+          "selection_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selection Id"
+          },
+          "source": {
+            "enum": [
+              "catalogue",
+              "course"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "source",
+          "title",
+          "requirement_count",
+          "committed",
+          "reference",
+          "selection_id"
+        ],
+        "title": "ChallengeSummary",
+        "type": "object"
       },
       "ChoiceParameter": {
         "properties": {
@@ -1264,6 +1521,104 @@
         "title": "ConversationOut",
         "type": "object"
       },
+      "CourseChallengeOut": {
+        "properties": {
+          "candidate_families": {
+            "default": "",
+            "maxLength": 400,
+            "title": "Candidate Families",
+            "type": "string"
+          },
+          "constraints": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Constraints",
+            "type": "array"
+          },
+          "context": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Context",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "integer"
+          },
+          "deliverable": {
+            "default": "",
+            "maxLength": 1500,
+            "title": "Deliverable",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "requirements": {
+            "items": {
+              "$ref": "#/components/schemas/Requirement"
+            },
+            "maxItems": 12,
+            "title": "Requirements",
+            "type": "array"
+          },
+          "selection_count": {
+            "title": "Selection Count",
+            "type": "integer"
+          },
+          "shortlist": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Shortlist",
+            "type": "array"
+          },
+          "status": {
+            "default": "draft",
+            "enum": [
+              "draft",
+              "published"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "integer"
+          },
+          "weights": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Weights",
+            "type": "object"
+          }
+        },
+        "required": [
+          "title",
+          "id",
+          "key",
+          "created_at",
+          "updated_at",
+          "selection_count"
+        ],
+        "title": "CourseChallengeOut",
+        "type": "object"
+      },
       "CourseIn": {
         "properties": {
           "title": {
@@ -1331,6 +1686,34 @@
           "title"
         ],
         "title": "CourseUpdate",
+        "type": "object"
+      },
+      "CriterionOut": {
+        "properties": {
+          "better": {
+            "title": "Better",
+            "type": "string"
+          },
+          "group": {
+            "title": "Group",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "group",
+          "better"
+        ],
+        "title": "CriterionOut",
         "type": "object"
       },
       "DistributionOut": {
@@ -3341,6 +3724,201 @@
         "title": "MaterialProperties",
         "type": "object"
       },
+      "MatrixCell": {
+        "properties": {
+          "display": {
+            "title": "Display",
+            "type": "string"
+          },
+          "normalised": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Normalised"
+          },
+          "sku": {
+            "title": "Sku",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "weighted": {
+            "title": "Weighted",
+            "type": "number"
+          }
+        },
+        "required": [
+          "sku",
+          "value",
+          "display",
+          "normalised",
+          "weighted"
+        ],
+        "title": "MatrixCell",
+        "type": "object"
+      },
+      "MatrixCriterion": {
+        "properties": {
+          "better": {
+            "enum": [
+              "lower",
+              "higher"
+            ],
+            "title": "Better",
+            "type": "string"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/MatrixCell"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "group": {
+            "enum": [
+              "cost",
+              "performance",
+              "durability",
+              "environment",
+              "supply"
+            ],
+            "title": "Group",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "weight": {
+            "title": "Weight",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "group",
+          "better",
+          "weight",
+          "cells"
+        ],
+        "title": "MatrixCriterion",
+        "type": "object"
+      },
+      "MatrixIn": {
+        "properties": {
+          "skus": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5,
+            "minItems": 2,
+            "title": "Skus",
+            "type": "array"
+          },
+          "weights": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Weights",
+            "type": "object"
+          }
+        },
+        "required": [
+          "skus"
+        ],
+        "title": "MatrixIn",
+        "type": "object"
+      },
+      "MatrixOut": {
+        "properties": {
+          "criteria": {
+            "items": {
+              "$ref": "#/components/schemas/MatrixCriterion"
+            },
+            "title": "Criteria",
+            "type": "array"
+          },
+          "scores": {
+            "items": {
+              "$ref": "#/components/schemas/MatrixScore"
+            },
+            "title": "Scores",
+            "type": "array"
+          },
+          "skus": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Skus",
+            "type": "array"
+          },
+          "weights": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Weights",
+            "type": "object"
+          }
+        },
+        "required": [
+          "skus",
+          "weights",
+          "criteria",
+          "scores"
+        ],
+        "title": "MatrixOut",
+        "type": "object"
+      },
+      "MatrixScore": {
+        "properties": {
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing",
+            "type": "array"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "sku": {
+            "title": "Sku",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sku",
+          "score",
+          "rank",
+          "missing"
+        ],
+        "title": "MatrixScore",
+        "type": "object"
+      },
       "MergeIn": {
         "properties": {
           "source_item_id": {
@@ -4722,6 +5300,25 @@
         "title": "ReissueOut",
         "type": "object"
       },
+      "Requirement": {
+        "description": "One thing the part has to do, with a target where one can be stated:\n\"operate through a Qu\u00e9bec winter\" with the target \"minus 35 \u00b0C\". The target is\ntext, because a target is sometimes a standard and sometimes a number.",
+        "properties": {
+          "target": {
+            "default": "",
+            "title": "Target",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "Requirement",
+        "type": "object"
+      },
       "RevealIn": {
         "description": "Unfold through this step number, 1-based. Setting a target rather than\nincrementing makes a retry harmless.",
         "properties": {
@@ -4736,6 +5333,36 @@
           "through_step"
         ],
         "title": "RevealIn",
+        "type": "object"
+      },
+      "RevealOut": {
+        "description": "The author's answer, shown only after a commit: the families they had\nin contention, the lines they would have put on the table, and which of\nthe student's candidates were among them. Agreement is reported, never\ngraded: a different shortlist with a better argument is a better report.",
+        "properties": {
+          "agreement": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Agreement",
+            "type": "array"
+          },
+          "candidate_families": {
+            "title": "Candidate Families",
+            "type": "string"
+          },
+          "shortlist": {
+            "items": {
+              "$ref": "#/components/schemas/LineSummary"
+            },
+            "title": "Shortlist",
+            "type": "array"
+          }
+        },
+        "required": [
+          "candidate_families",
+          "shortlist",
+          "agreement"
+        ],
+        "title": "RevealOut",
         "type": "object"
       },
       "ReviewPageOut": {
@@ -5387,6 +6014,110 @@
         "title": "SeatOut",
         "type": "object"
       },
+      "SelectionIn": {
+        "properties": {
+          "candidates": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5,
+            "minItems": 2,
+            "title": "Candidates",
+            "type": "array"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/QuoteLineIn"
+            },
+            "maxItems": 60,
+            "minItems": 1,
+            "title": "Lines",
+            "type": "array"
+          },
+          "weights": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Weights",
+            "type": "object"
+          }
+        },
+        "required": [
+          "candidates",
+          "lines"
+        ],
+        "title": "SelectionIn",
+        "type": "object"
+      },
+      "SelectionOut": {
+        "description": "What the student committed, read back exactly as stored: the matrix and\nthe quotation are snapshots, never recomputed, so the figures a defence\npresses on are the figures the student saw.",
+        "properties": {
+          "candidates": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Candidates",
+            "type": "array"
+          },
+          "committed_at": {
+            "title": "Committed At",
+            "type": "integer"
+          },
+          "first_committed_at": {
+            "title": "First Committed At",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/ComputedLine"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "matrix": {
+            "$ref": "#/components/schemas/MatrixOut"
+          },
+          "notices": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notices",
+            "type": "array"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/QuoteTotals"
+          },
+          "weights": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Weights",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "reference",
+          "candidates",
+          "weights",
+          "matrix",
+          "lines",
+          "totals",
+          "notices",
+          "committed_at",
+          "first_committed_at"
+        ],
+        "title": "SelectionOut",
+        "type": "object"
+      },
       "ShortlistIn": {
         "properties": {
           "skus": {
@@ -5610,6 +6341,17 @@
               }
             ],
             "title": "Quote Id"
+          },
+          "selection_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selection Id"
           }
         },
         "required": [
@@ -5696,6 +6438,28 @@
             ],
             "title": "Recognition Conf"
           },
+          "selection_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selection Id"
+          },
+          "selection_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selection Reference"
+          },
           "started_at": {
             "anyOf": [
               {
@@ -5730,6 +6494,8 @@
           "recognition_conf",
           "quote_id",
           "quote_number",
+          "selection_id",
+          "selection_reference",
           "pages"
         ],
         "title": "SubmissionOut",
@@ -8974,6 +9740,481 @@
           }
         ],
         "summary": "List Catalogues",
+        "tags": [
+          "marketplace-authoring"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/challenges": {
+      "get": {
+        "operationId": "list_challenges_api_v1_courses__course_id__challenges_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CourseChallengeOut"
+                  },
+                  "title": "Response List Challenges Api V1 Courses  Course Id  Challenges Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Challenges",
+        "tags": [
+          "marketplace-authoring"
+        ]
+      },
+      "post": {
+        "operationId": "create_challenge_api_v1_courses__course_id__challenges_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChallengeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseChallengeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Challenge",
+        "tags": [
+          "marketplace-authoring"
+        ]
+      }
+    },
+    "/api/v1/courses/{course_id}/challenges/{challenge_id}": {
+      "delete": {
+        "description": "Delete a challenge nobody has committed to. One with selections is a\nrecord and is refused (409); unpublish it instead.",
+        "operationId": "delete_challenge_api_v1_courses__course_id__challenges__challenge_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "challenge_id",
+            "required": true,
+            "schema": {
+              "title": "Challenge Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Challenge",
+        "tags": [
+          "marketplace-authoring"
+        ]
+      },
+      "get": {
+        "operationId": "get_course_challenge_api_v1_courses__course_id__challenges__challenge_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "challenge_id",
+            "required": true,
+            "schema": {
+              "title": "Challenge Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseChallengeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Course Challenge",
+        "tags": [
+          "marketplace-authoring"
+        ]
+      },
+      "put": {
+        "description": "Edit a challenge, including publishing or unpublishing it through\n`status`. A student's committed selection is a snapshot and is untouched\nby an edit; the professor is shown how many exist before editing.",
+        "operationId": "update_challenge_api_v1_courses__course_id__challenges__challenge_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "course_id",
+            "required": true,
+            "schema": {
+              "title": "Course Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "challenge_id",
+            "required": true,
+            "schema": {
+              "title": "Challenge Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChallengeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseChallengeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Challenge",
         "tags": [
           "marketplace-authoring"
         ]
@@ -12310,6 +13551,263 @@
         ]
       }
     },
+    "/api/v1/marketplace/challenges": {
+      "get": {
+        "description": "Every challenge this seat can work: the catalogue's briefs and the\ncourse's published challenges, each saying whether the seat has committed\na selection. Nothing about the author's answer is here.",
+        "operationId": "list_challenges_api_v1_marketplace_challenges_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ChallengeSummary"
+                  },
+                  "title": "Response List Challenges Api V1 Marketplace Challenges Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Challenges",
+        "tags": [
+          "project-marketplace"
+        ]
+      }
+    },
+    "/api/v1/marketplace/challenges/{key}": {
+      "get": {
+        "description": "One challenge: the requirements statement, the matrix criteria, the\nseat's own selection if committed, and the reveal only then.",
+        "operationId": "get_challenge_api_v1_marketplace_challenges__key__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "title": "Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Challenge",
+        "tags": [
+          "project-marketplace"
+        ]
+      }
+    },
+    "/api/v1/marketplace/challenges/{key}/selection": {
+      "post": {
+        "description": "Commit a selection: the candidates, the weighting, the scored matrix\nand the priced basket, stored together in the seat's course shard. The\nreply carries the reveal, which this commit earned. A recommit replaces\nthe work and keeps the first commit's time.",
+        "operationId": "commit_challenge_selection_api_v1_marketplace_challenges__key__selection_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "title": "Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Commit Challenge Selection",
+        "tags": [
+          "project-marketplace"
+        ]
+      }
+    },
     "/api/v1/marketplace/compare": {
       "post": {
         "description": "Up to five lines side by side with the derived selection indices.",
@@ -12663,6 +14161,93 @@
           }
         ],
         "summary": "Get Project Line",
+        "tags": [
+          "project-marketplace"
+        ]
+      }
+    },
+    "/api/v1/marketplace/matrix": {
+      "post": {
+        "description": "Score candidates under the student's weights, at list prices. Not\nstored: the student tunes the weighting here and commits it with a\nselection.",
+        "operationId": "score_project_matrix_api_v1_marketplace_matrix_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MatrixIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatrixOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Score Project Matrix",
         "tags": [
           "project-marketplace"
         ]

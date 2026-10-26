@@ -115,9 +115,41 @@ What moves to v3: an unpinned project seat, because v3 is the newest shipped
 version. A course pinned to v1 or v2 stays there until its professor re-pins.
 Re-pinning does not rewrite an issued quotation. The course pack still pins v1.
 
+## v4
+
+No line changes. Each of the seventeen briefs gains the requirements statement
+a project challenge actually carries (decision 0112): the context the part
+lives in, what it must do with a target where one can be stated, the
+constraints, the deliverable, and a suggested weighting over the selection
+matrix's criteria. The families in contention and the shortlist stay in the
+asset and are no longer shown first: they are the reveal a student earns by
+committing a selection of their own, because handing them over on the first
+view was the selection exercise done for them.
+
+The statements are drafts, written by the platform's engineer from each
+brief's own title and factors and derived from v3 by
+`scripts/revise_catalogue_v4.py`, for the course author to review. Figures in
+them (snow loads, cycle counts, temperatures, quantities) are plausible for the
+part and the region and are stated as targets rather than as data the
+catalogue holds; an author who knows the actual project should replace them,
+and that review lands as a later revision.
+
+What moves to v4: an unpinned project seat, for as long as v4 is the newest
+shipped version. A course pinned to an earlier version stays there until its
+professor re-pins, and its briefs read their selection factors as the
+requirements.
+
 ## v5
 
 The prose em dashes become colons, derived from v3 by
 `scripts/revise_catalogue_v5.py`. Same 146 lines, same SKUs, same prices, same
 figures. A course pinned to an earlier version stays there until it is
 re-pinned, and an issued quotation is not rewritten.
+
+## v6
+
+v4 with the prose em dashes replaced by colons, derived by
+`scripts/revise_catalogue_v6.py`. The challenge requirements stay. Same lines,
+same prices, same figures. This is the newest shipped version. A course pinned
+to an earlier version stays there until it is re-pinned, and an issued
+quotation is not rewritten.

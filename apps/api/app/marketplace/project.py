@@ -43,6 +43,20 @@ from app.marketplace.catalogue import (
     available_catalogues,
     load_catalogue,
 )
+from app.marketplace.challenges import (
+    ChallengeDef,
+    ChallengeOut,
+    ChallengeSummary,
+    MatrixIn,
+    SelectionIn,
+    brief_challenge,
+    challenge_out,
+    commit_selection,
+    committed_keys,
+    course_challenge,
+    published_course_challenges,
+    read_selection,
+)
 from app.marketplace.indices import MAX_COMPARE, CompareOut, compare
 from app.marketplace.listing import (
     DEFAULT_LIMIT,
@@ -57,6 +71,7 @@ from app.marketplace.listing import (
     supplier_summaries,
 )
 from app.marketplace.market_check import checks_path, load_sources, public_check, read_checks
+from app.marketplace.matrix import MatrixOut, Weights, score_matrix
 from app.marketplace.quoting import (
     MAX_LINES,
     ComputedLine,
@@ -84,6 +99,7 @@ _ERRORS: dict[int | str, dict[str, object]] = {
     403: {"model": Problem},
     503: {"model": Problem},
 }
+_CHALLENGE_ERRORS: dict[int | str, dict[str, object]] = {**_ERRORS, 404: {"model": Problem}}
 
 
 class ProjectMarketplaceOut(BaseModel):
@@ -334,3 +350,147 @@ def _record_desk_usage(conn: sqlite3.Connection, result: RfqResult, now: int) ->
             now,
         ),
     )
+
+
+# ---------------------------------------------------------------------------
+# Project challenges (decision 0112)
+# ---------------------------------------------------------------------------
+
+
+def _seat(identity: Identity) -> tuple[int, int]:
+    assert identity.course_id is not None
+    assert identity.seat_id is not None
+    return identity.course_id, identity.seat_id
+
+
+async def _challenge_definitions(
+    shards: ShardManager, identity: Identity, catalogue: Catalogue
+) -> list[ChallengeDef]:
+    """The seeded library first, in the catalogue's order, then the course's
+    own published challenges."""
+    course_id, _ = _seat(identity)
+    course_defs = await shards.course_reads(course_id).run(published_course_challenges)
+    return [brief_challenge(catalogue, brief) for brief in catalogue.briefs] + course_defs
+
+
+async def _challenge_definition(
+    shards: ShardManager, identity: Identity, catalogue: Catalogue, key: str
+) -> ChallengeDef:
+    course_id, _ = _seat(identity)
+    if key.startswith("course:"):
+        try:
+            challenge_id = int(key.removeprefix("course:"))
+        except ValueError:
+            raise HTTPException(status_code=404, detail="Challenge not found.") from None
+        found = await shards.course_reads(course_id).run(
+            lambda conn: course_challenge(conn, challenge_id)
+        )
+    else:
+        found = next(
+            (
+                brief_challenge(catalogue, brief)
+                for brief in catalogue.briefs
+                if brief_challenge(catalogue, brief).key == key
+            ),
+            None,
+        )
+    if found is None:
+        raise HTTPException(status_code=404, detail="Challenge not found.")
+    return found
+
+
+@router.get("/challenges", response_model=list[ChallengeSummary], responses=_ERRORS)
+async def list_challenges(
+    identity: Annotated[Identity, Depends(require_seat)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+) -> list[ChallengeSummary]:
+    """Every challenge this seat can work: the catalogue's briefs and the
+    course's published challenges, each saying whether the seat has committed
+    a selection. Nothing about the author's answer is here."""
+    catalogue = await _catalogue(shards, identity)
+    course_id, seat_id = _seat(identity)
+    definitions = await _challenge_definitions(shards, identity, catalogue)
+    committed = await shards.course_reads(course_id).run(lambda conn: committed_keys(conn, seat_id))
+    return [
+        ChallengeSummary(
+            key=definition.key,
+            source=definition.source,
+            title=definition.title,
+            requirement_count=len(definition.requirements),
+            committed=definition.key in committed,
+            reference=committed[definition.key][0] if definition.key in committed else None,
+            selection_id=committed[definition.key][1] if definition.key in committed else None,
+        )
+        for definition in definitions
+    ]
+
+
+@router.get("/challenges/{key}", response_model=ChallengeOut, responses=_CHALLENGE_ERRORS)
+async def get_challenge(
+    key: str,
+    identity: Annotated[Identity, Depends(require_seat)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+) -> ChallengeOut:
+    """One challenge: the requirements statement, the matrix criteria, the
+    seat's own selection if committed, and the reveal only then."""
+    catalogue = await _catalogue(shards, identity)
+    course_id, seat_id = _seat(identity)
+    definition = await _challenge_definition(shards, identity, catalogue, key)
+    selection = await shards.course_reads(course_id).run(
+        lambda conn: read_selection(conn, seat_id, definition.key)
+    )
+    return challenge_out(catalogue, list_prices(catalogue), definition, selection)
+
+
+@router.post("/matrix", response_model=MatrixOut, responses={**_ERRORS, 400: {"model": Problem}})
+async def score_project_matrix(
+    body: MatrixIn,
+    identity: Annotated[Identity, Depends(require_seat)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+) -> MatrixOut:
+    """Score candidates under the student's weights, at list prices. Not
+    stored: the student tunes the weighting here and commits it with a
+    selection."""
+    catalogue = await _catalogue(shards, identity)
+    try:
+        return score_matrix(
+            catalogue, list_prices(catalogue), body.skus, Weights(values=body.weights)
+        )
+    except ValueError as reason:
+        raise HTTPException(status_code=400, detail=str(reason)) from None
+
+
+@router.post(
+    "/challenges/{key}/selection",
+    response_model=ChallengeOut,
+    responses={**_CHALLENGE_ERRORS, 400: {"model": Problem}},
+)
+async def commit_challenge_selection(
+    key: str,
+    body: SelectionIn,
+    identity: Annotated[Identity, Depends(require_seat)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+) -> ChallengeOut:
+    """Commit a selection: the candidates, the weighting, the scored matrix
+    and the priced basket, stored together in the seat's course shard. The
+    reply carries the reveal, which this commit earned. A recommit replaces
+    the work and keeps the first commit's time."""
+    catalogue = await _catalogue(shards, identity)
+    course_id, seat_id = _seat(identity)
+    definition = await _challenge_definition(shards, identity, catalogue, key)
+    prices = list_prices(catalogue)
+    now = int(time.time())
+
+    def store(conn: sqlite3.Connection) -> object:
+        try:
+            return commit_selection(
+                conn, catalogue, prices, seat_id=seat_id, key=definition.key, body=body, now=now
+            )
+        except ValueError as reason:
+            raise HTTPException(status_code=400, detail=str(reason)) from None
+
+    stored = await shards.course(course_id).run(store)
+    from app.marketplace.challenges import StoredSelection
+
+    assert isinstance(stored, StoredSelection)
+    return challenge_out(catalogue, prices, definition, stored)

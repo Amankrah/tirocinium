@@ -131,7 +131,7 @@ export default async function GuidePage() {
         <SectionHeading id="tradeoff" title={GUIDE.tradeoffHeading} rule={false} />
         <p className="max-w-[var(--measure-reading)] text-pretty">{GUIDE.tradeoffBody}</p>
         <div>
-          <ButtonLink href="/marketplace/briefs">
+          <ButtonLink href="/marketplace/challenges">
             {p.toBriefs}
             <Icon name="arrow-right" size={16} />
           </ButtonLink>

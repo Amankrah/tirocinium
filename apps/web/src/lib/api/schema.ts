@@ -359,6 +359,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/courses/{course_id}/challenges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Challenges */
+        get: operations["list_challenges_api_v1_courses__course_id__challenges_get"];
+        put?: never;
+        /** Create Challenge */
+        post: operations["create_challenge_api_v1_courses__course_id__challenges_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/challenges/{challenge_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Course Challenge */
+        get: operations["get_course_challenge_api_v1_courses__course_id__challenges__challenge_id__get"];
+        /**
+         * Update Challenge
+         * @description Edit a challenge, including publishing or unpublishing it through
+         *     `status`. A student's committed selection is a snapshot and is untouched
+         *     by an edit; the professor is shown how many exist before editing.
+         */
+        put: operations["update_challenge_api_v1_courses__course_id__challenges__challenge_id__put"];
+        post?: never;
+        /**
+         * Delete Challenge
+         * @description Delete a challenge nobody has committed to. One with selections is a
+         *     record and is refused (409); unpublish it instead.
+         */
+        delete: operations["delete_challenge_api_v1_courses__course_id__challenges__challenge_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses/{course_id}/concepts": {
         parameters: {
             query?: never;
@@ -1087,6 +1133,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/marketplace/challenges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Challenges
+         * @description Every challenge this seat can work: the catalogue's briefs and the
+         *     course's published challenges, each saying whether the seat has committed
+         *     a selection. Nothing about the author's answer is here.
+         */
+        get: operations["list_challenges_api_v1_marketplace_challenges_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/marketplace/challenges/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Challenge
+         * @description One challenge: the requirements statement, the matrix criteria, the
+         *     seat's own selection if committed, and the reveal only then.
+         */
+        get: operations["get_challenge_api_v1_marketplace_challenges__key__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/marketplace/challenges/{key}/selection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Commit Challenge Selection
+         * @description Commit a selection: the candidates, the weighting, the scored matrix
+         *     and the priced basket, stored together in the seat's course shard. The
+         *     reply carries the reveal, which this commit earned. A recommit replaces
+         *     the work and keeps the first commit's time.
+         */
+        post: operations["commit_challenge_selection_api_v1_marketplace_challenges__key__selection_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/marketplace/compare": {
         parameters: {
             query?: never;
@@ -1142,6 +1254,28 @@ export interface paths {
         get: operations["get_project_line_api_v1_marketplace_lines__sku__get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/marketplace/matrix": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Score Project Matrix
+         * @description Score candidates under the student's weights, at list prices. Not
+         *     stored: the student tunes the weighting here and commits it with a
+         *     selection.
+         */
+        post: operations["score_project_matrix_api_v1_marketplace_matrix_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1754,20 +1888,43 @@ export interface components {
         };
         /**
          * Brief
-         * @description A project brief: the selection factors, the families in contention, and
-         *     the lines worth quoting first.
+         * @description A project brief. From catalogue v4 (decision 0112) a brief is a
+         *     requirements statement first: the context, what the part must do, the
+         *     constraints and the deliverable are what a student meets; the families in
+         *     contention and the shortlist are the author's answer, revealed only once
+         *     the student has committed a selection of their own. Earlier versions carry
+         *     the factors and the shortlist alone, and the surfaces treat the factors as
+         *     the requirements.
          */
         Brief: {
             /** Candidate Families */
             candidate_families: string;
+            /** Constraints */
+            constraints?: string[];
+            /**
+             * Context
+             * @default
+             */
+            context: string;
+            /**
+             * Deliverable
+             * @default
+             */
+            deliverable: string;
             /** Id */
             id: string;
+            /** Requirements */
+            requirements?: components["schemas"]["Requirement"][];
             /** Selection Factors */
             selection_factors: string[];
             /** Shortlist */
             shortlist: string[];
             /** Title */
             title: string;
+            /** Weights */
+            weights?: {
+                [key: string]: number;
+            };
         };
         /** CaseStudyDetail */
         CaseStudyDetail: {
@@ -1851,6 +2008,95 @@ export interface components {
          * @enum {string}
          */
         Certification: "none" | "mill_test_report" | "sanitary_3a" | "pressure_code" | "structural";
+        /**
+         * ChallengeIn
+         * @description A challenge as the professor writes it. Weights are a suggestion over
+         *     the matrix criteria; the shortlist is the answer the reveal shows and may
+         *     be empty for a challenge whose author has no answer to show.
+         */
+        ChallengeIn: {
+            /**
+             * Candidate Families
+             * @default
+             */
+            candidate_families: string;
+            /** Constraints */
+            constraints?: string[];
+            /**
+             * Context
+             * @default
+             */
+            context: string;
+            /**
+             * Deliverable
+             * @default
+             */
+            deliverable: string;
+            /** Requirements */
+            requirements?: components["schemas"]["Requirement"][];
+            /** Shortlist */
+            shortlist?: string[];
+            /**
+             * Status
+             * @default draft
+             * @enum {string}
+             */
+            status: "draft" | "published";
+            /** Title */
+            title: string;
+            /** Weights */
+            weights?: {
+                [key: string]: number;
+            };
+        };
+        /** ChallengeOut */
+        ChallengeOut: {
+            /** Constraints */
+            constraints: string[];
+            /** Context */
+            context: string;
+            /** Criteria */
+            criteria: components["schemas"]["CriterionOut"][];
+            /** Deliverable */
+            deliverable: string;
+            /** Key */
+            key: string;
+            /** Requirements */
+            requirements: components["schemas"]["Requirement"][];
+            reveal: components["schemas"]["RevealOut"] | null;
+            selection: components["schemas"]["SelectionOut"] | null;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "catalogue" | "course";
+            /** Title */
+            title: string;
+            /** Weights */
+            weights: {
+                [key: string]: number;
+            };
+        };
+        /** ChallengeSummary */
+        ChallengeSummary: {
+            /** Committed */
+            committed: boolean;
+            /** Key */
+            key: string;
+            /** Reference */
+            reference: string | null;
+            /** Requirement Count */
+            requirement_count: number;
+            /** Selection Id */
+            selection_id: number | null;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "catalogue" | "course";
+            /** Title */
+            title: string;
+        };
         /** ChoiceParameter */
         ChoiceParameter: {
             /** Base */
@@ -2092,6 +2338,52 @@ export interface components {
             /** Submission Id */
             submission_id: number;
         };
+        /** CourseChallengeOut */
+        CourseChallengeOut: {
+            /**
+             * Candidate Families
+             * @default
+             */
+            candidate_families: string;
+            /** Constraints */
+            constraints?: string[];
+            /**
+             * Context
+             * @default
+             */
+            context: string;
+            /** Created At */
+            created_at: number;
+            /**
+             * Deliverable
+             * @default
+             */
+            deliverable: string;
+            /** Id */
+            id: number;
+            /** Key */
+            key: string;
+            /** Requirements */
+            requirements?: components["schemas"]["Requirement"][];
+            /** Selection Count */
+            selection_count: number;
+            /** Shortlist */
+            shortlist?: string[];
+            /**
+             * Status
+             * @default draft
+             * @enum {string}
+             */
+            status: "draft" | "published";
+            /** Title */
+            title: string;
+            /** Updated At */
+            updated_at: number;
+            /** Weights */
+            weights?: {
+                [key: string]: number;
+            };
+        };
         /** CourseIn */
         CourseIn: {
             /** Title */
@@ -2115,6 +2407,17 @@ export interface components {
         CourseUpdate: {
             /** Title */
             title: string;
+        };
+        /** CriterionOut */
+        CriterionOut: {
+            /** Better */
+            better: string;
+            /** Group */
+            group: string;
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
         };
         /** DistributionOut */
         DistributionOut: {
@@ -2757,6 +3060,73 @@ export interface components {
             /** Youngs Modulus Gpa */
             youngs_modulus_gpa?: number | null;
         };
+        /** MatrixCell */
+        MatrixCell: {
+            /** Display */
+            display: string;
+            /** Normalised */
+            normalised: number | null;
+            /** Sku */
+            sku: string;
+            /** Value */
+            value: number | null;
+            /** Weighted */
+            weighted: number;
+        };
+        /** MatrixCriterion */
+        MatrixCriterion: {
+            /**
+             * Better
+             * @enum {string}
+             */
+            better: "lower" | "higher";
+            /** Cells */
+            cells: components["schemas"]["MatrixCell"][];
+            /**
+             * Group
+             * @enum {string}
+             */
+            group: "cost" | "performance" | "durability" | "environment" | "supply";
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Weight */
+            weight: number;
+        };
+        /** MatrixIn */
+        MatrixIn: {
+            /** Skus */
+            skus: string[];
+            /** Weights */
+            weights?: {
+                [key: string]: number;
+            };
+        };
+        /** MatrixOut */
+        MatrixOut: {
+            /** Criteria */
+            criteria: components["schemas"]["MatrixCriterion"][];
+            /** Scores */
+            scores: components["schemas"]["MatrixScore"][];
+            /** Skus */
+            skus: string[];
+            /** Weights */
+            weights: {
+                [key: string]: number;
+            };
+        };
+        /** MatrixScore */
+        MatrixScore: {
+            /** Missing */
+            missing: string[];
+            /** Rank */
+            rank: number;
+            /** Score */
+            score: number;
+            /** Sku */
+            sku: string;
+        };
         /** MergeIn */
         MergeIn: {
             /** Source Item Id */
@@ -3254,6 +3624,21 @@ export interface components {
             seat_number: string;
         };
         /**
+         * Requirement
+         * @description One thing the part has to do, with a target where one can be stated:
+         *     "operate through a Québec winter" with the target "minus 35 °C". The target is
+         *     text, because a target is sometimes a standard and sometimes a number.
+         */
+        Requirement: {
+            /**
+             * Target
+             * @default
+             */
+            target: string;
+            /** Text */
+            text: string;
+        };
+        /**
          * RevealIn
          * @description Unfold through this step number, 1-based. Setting a target rather than
          *     incrementing makes a retry harmless.
@@ -3261,6 +3646,21 @@ export interface components {
         RevealIn: {
             /** Through Step */
             through_step: number;
+        };
+        /**
+         * RevealOut
+         * @description The author's answer, shown only after a commit: the families they had
+         *     in contention, the lines they would have put on the table, and which of
+         *     the student's candidates were among them. Agreement is reported, never
+         *     graded: a different shortlist with a better argument is a better report.
+         */
+        RevealOut: {
+            /** Agreement */
+            agreement: string[];
+            /** Candidate Families */
+            candidate_families: string;
+            /** Shortlist */
+            shortlist: components["schemas"]["LineSummary"][];
         };
         /**
          * ReviewPageOut
@@ -3507,6 +3907,45 @@ export interface components {
             /** Submission Count */
             submission_count: number;
         };
+        /** SelectionIn */
+        SelectionIn: {
+            /** Candidates */
+            candidates: string[];
+            /** Lines */
+            lines: components["schemas"]["QuoteLineIn"][];
+            /** Weights */
+            weights?: {
+                [key: string]: number;
+            };
+        };
+        /**
+         * SelectionOut
+         * @description What the student committed, read back exactly as stored: the matrix and
+         *     the quotation are snapshots, never recomputed, so the figures a defence
+         *     presses on are the figures the student saw.
+         */
+        SelectionOut: {
+            /** Candidates */
+            candidates: string[];
+            /** Committed At */
+            committed_at: number;
+            /** First Committed At */
+            first_committed_at: number;
+            /** Id */
+            id: number;
+            /** Lines */
+            lines: components["schemas"]["ComputedLine"][];
+            matrix: components["schemas"]["MatrixOut"];
+            /** Notices */
+            notices: string[];
+            /** Reference */
+            reference: string;
+            totals: components["schemas"]["QuoteTotals"];
+            /** Weights */
+            weights: {
+                [key: string]: number;
+            };
+        };
         /** ShortlistIn */
         ShortlistIn: {
             /** Skus */
@@ -3585,6 +4024,8 @@ export interface components {
             pages: components["schemas"]["PageIn"][];
             /** Quote Id */
             quote_id?: number | null;
+            /** Selection Id */
+            selection_id?: number | null;
         };
         /** SubmissionListOut */
         SubmissionListOut: {
@@ -3607,6 +4048,10 @@ export interface components {
             quote_number: string | null;
             /** Recognition Conf */
             recognition_conf: number | null;
+            /** Selection Id */
+            selection_id: number | null;
+            /** Selection Reference */
+            selection_reference: string | null;
             /** Started At */
             started_at: number | null;
             /** Status */
@@ -5413,6 +5858,350 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_challenges_api_v1_courses__course_id__challenges_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseChallengeOut"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_challenge_api_v1_courses__course_id__challenges_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChallengeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseChallengeOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_course_challenge_api_v1_courses__course_id__challenges__challenge_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                challenge_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseChallengeOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_challenge_api_v1_courses__course_id__challenges__challenge_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                challenge_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChallengeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseChallengeOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_challenge_api_v1_courses__course_id__challenges__challenge_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                challenge_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7631,6 +8420,200 @@ export interface operations {
             };
         };
     };
+    list_challenges_api_v1_marketplace_challenges_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChallengeSummary"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    get_challenge_api_v1_marketplace_challenges__key__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChallengeOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    commit_challenge_selection_api_v1_marketplace_challenges__key__selection_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SelectionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChallengeOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     compare_project_lines_api_v1_marketplace_compare_post: {
         parameters: {
             query?: never;
@@ -7796,6 +8779,75 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    score_project_matrix_api_v1_marketplace_matrix_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MatrixIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatrixOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

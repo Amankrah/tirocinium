@@ -14,7 +14,7 @@ import { strings } from "../../strings";
 const SECTIONS: { href: string; label: string; icon: IconName; exact?: boolean }[] = [
   { href: "/marketplace", label: strings.project.home, icon: "home", exact: true },
   { href: "/marketplace/search", label: strings.project.browse, icon: "grid" },
-  { href: "/marketplace/briefs", label: strings.project.briefs, icon: "book" },
+  { href: "/marketplace/challenges", label: strings.project.briefs, icon: "book" },
   { href: "/marketplace/guide", label: strings.project.guide, icon: "help" },
   { href: "/marketplace/impact", label: strings.project.impact, icon: "chart" },
   { href: "/marketplace/sources", label: strings.project.sources, icon: "file" },

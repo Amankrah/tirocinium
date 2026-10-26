@@ -227,9 +227,7 @@ def test_a_line_with_no_footprint_is_named_and_left_out() -> None:
     )
     assert quote.totals.embodied_energy_mj == 2400
     assert quote.totals.carbon_kg is None
-    assert any(
-        service.sku in notice and "energy total" in notice for notice in quote.notices
-    )
+    assert any(service.sku in notice and "energy total" in notice for notice in quote.notices)
 
 
 def test_shop_time_alone_has_carbon_and_no_intensity() -> None:

@@ -158,6 +158,35 @@ class PackQuestion(BaseModel):
         return self
 
 
+class PackRequirement(BaseModel):
+    text: str = Field(min_length=1, max_length=400)
+    target: str = Field(default="", max_length=200)
+
+
+class PackChallenge(BaseModel):
+    """A project challenge as pack content (decision 0112): the requirements
+    statement a student meets, and the author's answer (families and
+    shortlist) that the reveal shows once a selection is committed. Loads as
+    a published challenge, because pack content is the professor's own."""
+
+    key: str = Field(pattern=r"^[a-z0-9][a-z0-9-]*$")
+    title: str = Field(min_length=1, max_length=200)
+    context: str = Field(default="", max_length=4000)
+    requirements: list[PackRequirement] = Field(min_length=1, max_length=12)
+    constraints: list[str] = Field(default_factory=list, max_length=8)
+    deliverable: str = Field(default="", max_length=1500)
+    weights: dict[str, int] = Field(default_factory=dict)
+    candidate_families: str = Field(default="", max_length=400)
+    shortlist: list[str] = Field(default_factory=list, max_length=20)
+
+    @model_validator(mode="after")
+    def _weights_are_criteria(self) -> "PackChallenge":
+        from app.marketplace.challenges import validate_weights
+
+        validate_weights(self.weights)
+        return self
+
+
 class CoursePack(BaseModel):
     """A whole course's taught content at one revision."""
 
@@ -172,6 +201,7 @@ class CoursePack(BaseModel):
     concepts: list[PackConcept] = Field(min_length=1)
     figures: list[PackFigure] = Field(default_factory=list)
     questions: list[PackQuestion] = Field(min_length=1)
+    challenges: list[PackChallenge] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _references_resolve(self) -> "CoursePack":
@@ -183,6 +213,7 @@ class CoursePack(BaseModel):
             ("concept", [c.key for c in self.concepts]),
             ("figure", [f.key for f in self.figures]),
             ("question", [q.key for q in self.questions]),
+            ("challenge", [c.key for c in self.challenges]),
         ):
             duplicates = sorted({k for k in keys if keys.count(k) > 1})
             if duplicates:
@@ -205,7 +236,10 @@ class CoursePack(BaseModel):
         # A shortlisted SKU that is not in the pinned catalogue would load as a
         # link to nothing, so this fails rather than writes, the same way the
         # catalogue extractor refuses a brief naming a line that does not exist.
-        if any(q.shortlist for q in self.questions) and self.catalogue_id is not None:
+        shortlisted = any(q.shortlist for q in self.questions) or any(
+            c.shortlist for c in self.challenges
+        )
+        if shortlisted and self.catalogue_id is not None:
             from app.marketplace.catalogue import load_catalogue
 
             catalogue = load_catalogue(self.catalogue_id, self.catalogue_version or 1)
@@ -217,6 +251,15 @@ class CoursePack(BaseModel):
                         f"question {question.key} shortlists SKUs absent from"
                         f" {self.catalogue_id}/v{self.catalogue_version}: {unknown}"
                     )
+            for challenge in self.challenges:
+                unknown = sorted(set(challenge.shortlist) - skus)
+                if unknown:
+                    raise ValueError(
+                        f"challenge {challenge.key} shortlists SKUs absent from"
+                        f" {self.catalogue_id}/v{self.catalogue_version}: {unknown}"
+                    )
+        elif shortlisted:
+            raise ValueError("a shortlist needs a catalogue to resolve against")
         return self
 
     def figure(self, key: str) -> PackFigure:

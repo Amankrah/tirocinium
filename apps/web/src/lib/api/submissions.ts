@@ -21,8 +21,15 @@ export async function createSubmission(
   pages: Schemas["PageIn"][],
   idempotencyKey: string,
   attemptId: number | null = null,
+  // The project selection this work argues from (decision 0112), checked
+  // server-side against this seat, so it is a claim the backend verifies.
+  selectionId: number | null = null,
 ): Promise<Schemas["SubmissionCreated"] | null> {
-  const body: Schemas["SubmissionIn"] = { pages, attempt_id: attemptId };
+  const body: Schemas["SubmissionIn"] = {
+    pages,
+    attempt_id: attemptId,
+    selection_id: selectionId,
+  };
   let response: Response;
   try {
     response = await fetch(

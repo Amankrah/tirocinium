@@ -65,7 +65,7 @@ async def test_context_carries_the_three_sources_and_figures_as_pixels(
     assert "[step 1]" in context.system
     assert "unfolded none of the 1 steps" in context.system
     # Provenance: the versioned prompt id, stored with the session.
-    assert context.prompt_version.startswith("defense-tutor/v3")
+    assert context.prompt_version.startswith("defense-tutor/v4")
     # A submission that cites no quotation carries no quotation section. Silence
     # rather than an empty heading, which would invite a question about nothing
     # (Phase 10, decision 0076).

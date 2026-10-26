@@ -70,14 +70,14 @@ export const IMPACT = {
   lede: "A selection that argues only on price, or only on strength, is half an argument. These figures put cradle-to-gate impact on the same table as cost and the mechanical indices.",
   indicatorsHeading: "Four indicators, one kilogram",
   indicators: [
-    ["Embodied energy", "The energy to make a kilogram and bring it to the supplier's gate, in MJ/kg."],
+    ["Embodied energy", "The primary energy to make a kilogram, from raw material to the factory gate, in MJ/kg. Transport beyond the gate is not in it."],
     [
       "Carbon footprint",
-      "kg CO₂e/kg, cradle-to-gate. Below zero, the material stores more carbon than its production emitted, for as long as that carbon stays in the part.",
+      "kg CO₂e/kg, cradle-to-gate, all greenhouse gases as CO₂ equivalents. Below zero, the material holds more biogenic carbon, taken up while it grew, than its production emitted, and keeps it only for as long as that carbon stays in the part.",
     ],
     [
       "Water footprint",
-      "Litres per kilogram. A dry process and a thirsty fibre can reverse a ranking that carbon alone would give.",
+      "Litres of water used per kilogram, cradle-to-gate. This is an inventory figure, not a scarcity-weighted footprint under ISO 14046, so a litre in Québec counts the same as a litre in a dry basin. A dry process and a thirsty fibre can still reverse a ranking that carbon alone would give.",
     ],
     [
       "End-of-life recovery",
@@ -87,11 +87,11 @@ export const IMPACT = {
   bands:
     "The word under a per-kilogram figure is very low, low, moderate, high, or very high, with the same cutoffs on every line. Carbon below zero is called carbon negative. Recovery runs from very poor to excellent.",
   quote:
-    "A quotation multiplies the per-unit figure by the quantity. A metre of tube is not a kilogram, and an hour of machining has no mass, so a process states energy and carbon per unit of process and leaves water blank rather than as zero.",
+    "A quotation multiplies the per-unit figure by the quantity. The functional unit follows the unit of sale, as the goal and scope of an assessment define it: a metre of tube is not a kilogram, and an hour of machining has no mass, so a process states energy and carbon per hour or per unit of process. Its water is left blank because the catalogue has no figure for it, not because the process uses none; a blank is a gap in the inventory, never a zero.",
   freight:
-    "The quotation's carbon stops at the supplier's gate. Road freight is a separate line: 450 km at 0.11 kg CO₂e per tonne-kilometre, the Québec road assumption. It is not added into the cradle-to-gate total.",
+    "The quotation's carbon is cradle-to-gate and stops at the factory gate; the leg from the mill to the supplier is in neither figure. Road freight is a separate line on an assumption stated so you can replace it: 450 km from the supplier to your site at 0.11 kg CO₂e per tonne-kilometre, a typical heavy-truck average. It is not added into the cradle-to-gate total.",
   indices:
-    "When a tie is limited by strength, minimise ρ·CO₂/σy. When it is limited by stiffness, minimise ρ·CO₂/√E. Carbon per dollar is the footprint of a dollar of material. Lower is better on all three, including a negative number. The comparison computes them.",
+    "These are Ashby's material indices with carbon in place of mass. For a tie in tension limited by strength, the carbon in the part scales with ρ·CO₂/σy. For a beam in bending limited by stiffness it scales with ρ·CO₂/√E; a tie limited by stiffness would use ρ·CO₂/E and a panel ρ·CO₂/∛E, so match the index to the loading before you rank. Carbon per dollar is the footprint of a dollar of material. Lower is better on all three, including a negative number. The comparison computes them.",
   mistakesHeading: "Four ways this goes wrong",
   mistakes: [
     [

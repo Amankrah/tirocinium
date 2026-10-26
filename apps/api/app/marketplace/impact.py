@@ -94,8 +94,10 @@ def carbon_for_strength(line: CatalogueLine) -> float | None:
 
 
 def carbon_for_stiffness(line: CatalogueLine) -> float | None:
-    """rho * CO2 / sqrt(E), with E in GPa. Lower spends less carbon on a
-    stiffness-limited tie."""
+    """rho * CO2 / sqrt(E), with E in GPa: Ashby's beam-in-bending index with
+    carbon in place of mass. Lower spends less carbon on a stiffness-limited
+    beam. A tie limited by stiffness would use rho / E and a panel rho / E^(1/3);
+    the beam is the common structural case and the one the course teaches."""
     rho = line.properties.density_kg_m3
     modulus = line.properties.youngs_modulus_gpa
     carbon = line.properties.carbon_kg_co2e

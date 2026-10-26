@@ -51,7 +51,7 @@ export function QuoteView({
           body={p.emptyQuote}
           action={
             <div className="flex flex-wrap justify-center gap-3">
-              <ButtonLink href="/marketplace/briefs">
+              <ButtonLink href="/marketplace/challenges">
                 {p.startFromBrief}
                 <Icon name="arrow-right" size={16} />
               </ButtonLink>

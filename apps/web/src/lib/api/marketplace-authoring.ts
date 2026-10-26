@@ -84,3 +84,52 @@ export function reviewQuotes(
   const suffix = search.size > 0 ? `?${search}` : "";
   return call(token, `/courses/${courseId}/quotes${suffix}`);
 }
+
+// ---------------------------------------------------------------------------
+// Course challenges (decision 0112): the professor's own project challenges,
+// course content beside the catalogue's seeded briefs. Drafts are invisible to
+// seats; a challenge with committed selections cannot be deleted.
+// ---------------------------------------------------------------------------
+
+export type CourseChallenge = Schemas["CourseChallengeOut"];
+export type ChallengeInput = Schemas["ChallengeIn"];
+
+export function listCourseChallenges(
+  token: string,
+  courseId: number,
+): Promise<Result<CourseChallenge[]>> {
+  return call(token, `/courses/${courseId}/challenges`);
+}
+
+export function getCourseChallenge(
+  token: string,
+  courseId: number,
+  challengeId: number,
+): Promise<Result<CourseChallenge>> {
+  return call(token, `/courses/${courseId}/challenges/${challengeId}`);
+}
+
+export function createCourseChallenge(
+  token: string,
+  courseId: number,
+  body: ChallengeInput,
+): Promise<Result<CourseChallenge>> {
+  return call(token, `/courses/${courseId}/challenges`, { method: "POST", body });
+}
+
+export function updateCourseChallenge(
+  token: string,
+  courseId: number,
+  challengeId: number,
+  body: ChallengeInput,
+): Promise<Result<CourseChallenge>> {
+  return call(token, `/courses/${courseId}/challenges/${challengeId}`, { method: "PUT", body });
+}
+
+export function deleteCourseChallenge(
+  token: string,
+  courseId: number,
+  challengeId: number,
+): Promise<Result<void>> {
+  return call(token, `/courses/${courseId}/challenges/${challengeId}`, { method: "DELETE" });
+}

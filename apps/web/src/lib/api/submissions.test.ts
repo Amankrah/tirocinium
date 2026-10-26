@@ -33,7 +33,7 @@ describe("createSubmission", () => {
         }),
         // No attempt cited, which the backend reads as "nobody recorded the
         // start" rather than as a zero span (decision 0058).
-        body: JSON.stringify({ pages: PAGES, attempt_id: null }),
+        body: JSON.stringify({ pages: PAGES, attempt_id: null, selection_id: null }),
       }),
     );
   });
@@ -47,7 +47,7 @@ describe("createSubmission", () => {
     expect(fetchSpy).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
-        body: JSON.stringify({ pages: PAGES, attempt_id: 77 }),
+        body: JSON.stringify({ pages: PAGES, attempt_id: 77, selection_id: null }),
       }),
     );
   });

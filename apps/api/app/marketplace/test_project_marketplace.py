@@ -70,9 +70,7 @@ def _all_lines(client: TestClient, token: str) -> dict[str, int]:
     prices: dict[str, int] = {}
     cursor: int | None = 0
     while cursor is not None:
-        r = client.get(
-            f"/api/v1/marketplace/lines?limit=96&cursor={cursor}", headers=bearer(token)
-        )
+        r = client.get(f"/api/v1/marketplace/lines?limit=96&cursor={cursor}", headers=bearer(token))
         assert r.status_code == 200, r.text
         prices.update({item["sku"]: item["price_cents"] for item in r.json()["items"]})
         cursor = r.json()["next_cursor"]
@@ -215,9 +213,7 @@ def test_an_unknown_line_is_a_notice_not_a_failure(
     assert r.json()["notices"]
 
 
-def test_nothing_is_stored(
-    client: TestClient, storage: FakeObjectStorage, tmp_data: Path
-) -> None:
+def test_nothing_is_stored(client: TestClient, storage: FakeObjectStorage, tmp_data: Path) -> None:
     world = build(client, storage, tmp_data)
     before = _rows(tmp_data, world.course_id)
 
@@ -305,8 +301,7 @@ def test_search_reads_descriptions_and_supplier_names(
         token
         for line in CATALOGUE.lines
         for token in line.description.split()
-        if len(token) > 8 and token.isalpha()
-        and token.casefold() not in line.name.casefold()
+        if len(token) > 8 and token.isalpha() and token.casefold() not in line.name.casefold()
     )
     assert _items(client, world.token, f"q={word}")
 
@@ -347,9 +342,9 @@ def test_a_line_names_what_it_is_weighed_against(
     line = CATALOGUE.line(PLATE)
     assert line is not None
 
-    related = client.get(
-        f"/api/v1/marketplace/lines/{PLATE}", headers=bearer(world.token)
-    ).json()["related"]
+    related = client.get(f"/api/v1/marketplace/lines/{PLATE}", headers=bearer(world.token)).json()[
+        "related"
+    ]
 
     assert 0 < len(related) <= 4
     for item in related:
@@ -378,9 +373,7 @@ def test_a_line_carries_the_comparison_s_own_indices(
     client: TestClient, storage: FakeObjectStorage, tmp_data: Path
 ) -> None:
     world = build(client, storage, tmp_data)
-    detail = client.get(
-        f"/api/v1/marketplace/lines/{PLATE}", headers=bearer(world.token)
-    ).json()
+    detail = client.get(f"/api/v1/marketplace/lines/{PLATE}", headers=bearer(world.token)).json()
     compared = client.post(
         "/api/v1/marketplace/compare", json={"skus": [PLATE]}, headers=bearer(world.token)
     ).json()

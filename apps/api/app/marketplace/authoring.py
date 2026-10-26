@@ -15,6 +15,7 @@ per-variant pricing is that nobody is holding the same number.
 """
 
 import sqlite3
+import time
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -30,6 +31,15 @@ from app.marketplace.catalogue import (
     Supplier,
     available_catalogues,
     load_catalogue,
+)
+from app.marketplace.challenges import (
+    ChallengeIn,
+    CourseChallengeOut,
+    course_key,
+    list_course_challenges,
+    read_course_challenge,
+    validate_weights,
+    write_course_challenge,
 )
 from app.marketplace.pricing import price_band_cents
 from app.problems import Problem
@@ -490,3 +500,167 @@ async def review_quotes(
         next_cursor=entries[-1].quote_id if more and entries else None,
         tallies=tallies,
     )
+
+
+# ---------------------------------------------------------------------------
+# Course challenges (decision 0112): the professor's own project challenges,
+# course content in the course shard, beside the catalogue's seeded briefs.
+# ---------------------------------------------------------------------------
+
+_CHALLENGE_RESPONSES: dict[int | str, dict[str, object]] = {
+    400: {"model": Problem},
+    403: {"model": Problem},
+    404: {"model": Problem},
+    409: {"model": Problem},
+}
+
+
+async def _validated(shards: ShardManager, course_id: int, body: ChallengeIn) -> ChallengeIn:
+    """A shortlist names lines the course's catalogue stocks, or it is
+    refused: a reveal pointing at nothing would teach nothing. A course
+    without a catalogue may still author challenges, with no shortlist."""
+    try:
+        validate_weights(body.weights)
+    except ValueError as reason:
+        raise HTTPException(status_code=400, detail=str(reason)) from None
+    if not body.shortlist:
+        return body
+
+    def pin(conn: sqlite3.Connection) -> tuple[str, int] | None:
+        row = conn.execute(
+            "SELECT catalogue_id, catalogue_version FROM courses WHERE id = ?", (course_id,)
+        ).fetchone()
+        if row is None or row[0] is None:
+            return None
+        return str(row[0]), int(row[1])
+
+    pinned = await shards.directory_reads.run(pin)
+    if pinned is None:
+        shipped = available_catalogues()
+        if not shipped:
+            raise HTTPException(
+                status_code=400, detail="No catalogue is installed to shortlist from."
+            )
+        pinned = shipped[0]
+    catalogue = load_catalogue(*pinned)
+    unknown = sorted({sku for sku in body.shortlist if catalogue.line(sku) is None})
+    if unknown:
+        raise HTTPException(
+            status_code=400,
+            detail=f"The shortlist names lines the catalogue does not stock: {', '.join(unknown)}.",
+        )
+    return body
+
+
+@router.get("/challenges", response_model=list[CourseChallengeOut], responses=_CHALLENGE_RESPONSES)
+async def list_challenges(
+    course_id: int,
+    identity: Annotated[Identity, Depends(current_identity)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+) -> list[CourseChallengeOut]:
+    await ensure_course_owner(shards, course_id, identity)
+    return await shards.course_reads(course_id).run(list_course_challenges)
+
+
+@router.post(
+    "/challenges",
+    status_code=201,
+    response_model=CourseChallengeOut,
+    responses=_CHALLENGE_RESPONSES,
+)
+async def create_challenge(
+    course_id: int,
+    body: ChallengeIn,
+    identity: Annotated[Identity, Depends(current_identity)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+) -> CourseChallengeOut:
+    await ensure_course_owner(shards, course_id, identity)
+    body = await _validated(shards, course_id, body)
+    now = int(time.time())
+
+    def store(conn: sqlite3.Connection) -> CourseChallengeOut:
+        challenge_id = write_course_challenge(conn, body, now)
+        out = read_course_challenge(conn, challenge_id)
+        assert out is not None
+        return out
+
+    return await shards.course(course_id).run(store)
+
+
+@router.get(
+    "/challenges/{challenge_id}",
+    response_model=CourseChallengeOut,
+    responses=_CHALLENGE_RESPONSES,
+)
+async def get_course_challenge(
+    course_id: int,
+    challenge_id: int,
+    identity: Annotated[Identity, Depends(current_identity)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+) -> CourseChallengeOut:
+    await ensure_course_owner(shards, course_id, identity)
+    found = await shards.course_reads(course_id).run(
+        lambda conn: read_course_challenge(conn, challenge_id)
+    )
+    if found is None:
+        raise HTTPException(status_code=404, detail="Challenge not found.")
+    return found
+
+
+@router.put(
+    "/challenges/{challenge_id}",
+    response_model=CourseChallengeOut,
+    responses=_CHALLENGE_RESPONSES,
+)
+async def update_challenge(
+    course_id: int,
+    challenge_id: int,
+    body: ChallengeIn,
+    identity: Annotated[Identity, Depends(current_identity)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+) -> CourseChallengeOut:
+    """Edit a challenge, including publishing or unpublishing it through
+    `status`. A student's committed selection is a snapshot and is untouched
+    by an edit; the professor is shown how many exist before editing."""
+    await ensure_course_owner(shards, course_id, identity)
+    body = await _validated(shards, course_id, body)
+    now = int(time.time())
+
+    def store(conn: sqlite3.Connection) -> CourseChallengeOut:
+        if read_course_challenge(conn, challenge_id) is None:
+            raise HTTPException(status_code=404, detail="Challenge not found.")
+        write_course_challenge(conn, body, now, challenge_id=challenge_id)
+        out = read_course_challenge(conn, challenge_id)
+        assert out is not None
+        return out
+
+    return await shards.course(course_id).run(store)
+
+
+@router.delete("/challenges/{challenge_id}", status_code=204, responses=_CHALLENGE_RESPONSES)
+async def delete_challenge(
+    course_id: int,
+    challenge_id: int,
+    identity: Annotated[Identity, Depends(current_identity)],
+    shards: Annotated[ShardManager, Depends(get_shards)],
+) -> None:
+    """Delete a challenge nobody has committed to. One with selections is a
+    record and is refused (409); unpublish it instead."""
+    await ensure_course_owner(shards, course_id, identity)
+
+    def remove(conn: sqlite3.Connection) -> None:
+        if read_course_challenge(conn, challenge_id) is None:
+            raise HTTPException(status_code=404, detail="Challenge not found.")
+        count = conn.execute(
+            "SELECT COUNT(*) FROM challenge_selections WHERE challenge_key = ?",
+            (course_key(challenge_id),),
+        ).fetchone()
+        if count and int(count[0]) > 0:
+            raise HTTPException(
+                status_code=409,
+                detail="Students have committed selections to this challenge; unpublish it.",
+            )
+        conn.execute("DELETE FROM course_pack_challenges WHERE challenge_id = ?", (challenge_id,))
+        conn.execute("DELETE FROM challenges WHERE id = ?", (challenge_id,))
+
+    await shards.course(course_id).run(remove)

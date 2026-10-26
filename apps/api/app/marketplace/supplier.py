@@ -340,9 +340,7 @@ def _footprint_sentence(totals: QuoteTotals) -> str | None:
             "(450 km at 0.11 kg CO2e per tonne-km, separate from cradle-to-gate)"
         )
     if totals.carbon_intensity_kg_per_kg is not None:
-        bits.append(
-            f"average intensity {totals.carbon_intensity_kg_per_kg:g} kg CO2e per kg"
-        )
+        bits.append(f"average intensity {totals.carbon_intensity_kg_per_kg:g} kg CO2e per kg")
     if not bits:
         return None
     return "Footprint of this quantity: " + "; ".join(bits) + "."

@@ -73,9 +73,7 @@ class MaterialProperties(BaseModel):
     carbon_kg_co2e: float | None = Field(default=None, validation_alias="co2")
     water_l_kg: float | None = Field(default=None, validation_alias="h2o")
     min_service_temp_c: float | None = Field(default=None, validation_alias="tmin")
-    end_of_life_recovery_percent: float | None = Field(
-        default=None, validation_alias="recovery"
-    )
+    end_of_life_recovery_percent: float | None = Field(default=None, validation_alias="recovery")
 
 
 class Supplier(BaseModel):
@@ -132,15 +130,36 @@ class CatalogueLine(BaseModel):
     process_note: str = ""
 
 
+class Requirement(BaseModel):
+    """One thing the part has to do, with a target where one can be stated:
+    "operate through a Québec winter" with the target "minus 35 °C". The target is
+    text, because a target is sometimes a standard and sometimes a number."""
+
+    text: str
+    target: str = ""
+
+
 class Brief(BaseModel):
-    """A project brief: the selection factors, the families in contention, and
-    the lines worth quoting first."""
+    """A project brief. From catalogue v4 (decision 0112) a brief is a
+    requirements statement first: the context, what the part must do, the
+    constraints and the deliverable are what a student meets; the families in
+    contention and the shortlist are the author's answer, revealed only once
+    the student has committed a selection of their own. Earlier versions carry
+    the factors and the shortlist alone, and the surfaces treat the factors as
+    the requirements."""
 
     id: str
     title: str
     selection_factors: list[str]
     candidate_families: str
     shortlist: list[str]
+    context: str = ""
+    requirements: list[Requirement] = Field(default_factory=list)
+    constraints: list[str] = Field(default_factory=list)
+    deliverable: str = ""
+    # The author's suggested weighting over the matrix criteria, 0 to 5 each.
+    # A suggestion the student starts from, never a weighting imposed.
+    weights: dict[str, int] = Field(default_factory=dict)
 
 
 class Tax(BaseModel):

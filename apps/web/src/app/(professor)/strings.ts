@@ -25,6 +25,7 @@ export const strings = {
     mastery: "Class progress",
     reports: "Reports",
     materials: "Materials",
+    challenges: "Challenges",
   },
   signIn: {
     title: "Sign in",
@@ -411,6 +412,54 @@ export const strings = {
   // list that moved under a term is one students could not be asked to defend.
   // And the shortlist narrows without restricting, so nothing here promises to
   // hide a material, because deciding a material is wrong is the exercise.
+  // Project challenges (decision 0112): a requirements statement a student
+  // works a selection from. The answer half (families, shortlist) is shown to
+  // a student only after they commit, so the form says which half is which.
+  challenges: {
+    title: "Project challenges",
+    intro:
+      "A challenge states what a part has to do, under what constraints, and what is to be delivered. Students narrow the catalogue themselves, weight the criteria, price a basket and commit the three together. The catalogue's own briefs are always available to them; these are yours.",
+    newChallenge: "New challenge",
+    none: "No challenges yet. Write one, or let students work the catalogue's briefs.",
+    colTitle: "Challenge",
+    colStatus: "Status",
+    colCommitted: "Committed selections",
+    draft: "Draft",
+    published: "Published",
+    edit: "Edit",
+    publish: "Publish",
+    unpublish: "Unpublish",
+    remove: "Delete",
+    removeBlocked: "Students have committed selections; unpublish instead of deleting.",
+    // The form
+    formTitleNew: "Write a challenge",
+    formTitleEdit: "Edit challenge",
+    back: "Back to challenges",
+    titleLabel: "Title",
+    contextLabel: "Context",
+    contextHint: "Where the part lives and what it is for, in a short paragraph.",
+    requirementsLabel: "Requirements",
+    requirementsHint:
+      "One per line. Put a target after a pipe where one can be stated, for example: Survive a Québec winter | minus 35 °C",
+    constraintsLabel: "Constraints",
+    constraintsHint: "One per line: batch size, budget, what is already decided.",
+    deliverableLabel: "Deliverable",
+    deliverableHint: "Leave blank for the standard one: candidates, weighting, matrix and quotation.",
+    weightsLabel: "Suggested weighting",
+    weightsHint:
+      "A starting point students edit, 0 to 5 per criterion. Leave every one at 0 to suggest nothing.",
+    answerHeading: "The answer, shown only after a student commits",
+    familiesLabel: "Families in contention",
+    familiesHint: "For example: galvanised steel vs. aluminium alloy vs. stainless steel.",
+    shortlistLabel: "Shortlist",
+    shortlistHint:
+      "Catalogue SKUs, one per line. What a practising engineer would put on the table. Shown as a self-check, never graded against.",
+    statusLabel: "Visible to students",
+    save: "Save",
+    saveAndPublish: "Save and publish",
+    saved: "Saved.",
+    error: "That could not be saved. Check the shortlist names stocked lines and try again.",
+  },
   materials: {
     title: "Materials",
     back: "Back to course",

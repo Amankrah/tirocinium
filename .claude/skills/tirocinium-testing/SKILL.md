@@ -143,7 +143,7 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 666 collected and 662 passing with 4 skipped (24 supplier desk
+Python suite, 708 collected and 704 passing with 4 skipped (24 supplier desk
 in `app/marketplace/test_supplier.py`, decision 0108: the quantity reader, the
 fact sheet carrying the figures and fencing the request, the guard refusing an
 invented figure or an unstocked SKU whole, the house style, the desk answering
@@ -232,7 +232,7 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (682 Vitest tests across 77 files, the supplier desk's 4 in
+Web suite (688 Vitest tests across 79 files, the supplier desk's 4 in
 `_marketplace/rfq-panel.test.tsx` (the form sends the needed-by and ship-to
 fields and asks for no person; a desk reply renders as a letter around the
 server's priced table and says a model wrote the words; a rules reply says
@@ -1410,7 +1410,24 @@ arithmetic and the RFQ's authored rules need no model. The supplier desk
 replays a `SupplierReply` keyed on `document_key` of the fact sheet, the tests
 build theirs in memory, and `apps/api/tests/recorded/supplier-reply/` is where
 captured replies land. `scripts/smoke_supplier_reply.py` is the live lane and
-spends tokens; it is never part of the gate. Catalogue v2
+spends tokens; it is never part of the gate. Catalogue v4 (`scripts/revise_catalogue_v4.py`, decision 0112) adds the
+briefs' requirements statements on top of v3 and reproduces the same way.
+`app/marketplace/test_challenges.py` (19, decision 0112) covers the matrix
+(best reads 100, a weighted sum is a percentage, a missing figure is named,
+four refusals, the endpoint at list prices), the challenge (a brief withholds
+families and shortlist, an old brief falls back to its factors, the list and
+detail name no shortlisted SKU before a commit, a commit earns the reveal and
+stores one artifact, a recommit keeps the first commit, refusals, two seats
+hold their own), the professor's own (draft invisible then published visible,
+validation and ownership, delete refused with selections), the citation on a
+submission (own only) and the rendered selection inside the fence.
+`test_coursepack.py` gains two: a pack challenge shortlisting an unknown line
+fails at parse, and one loads published and reloads in place. Web:
+`_kit/challenge-work.test.tsx` (3: commit withheld with the reason, scoring on
+the server at the author's weights and again on a change, the commit payload
+carrying no price and refreshing) and the professor's `challenges/parse.test.ts`
+(1); the upload panel's create assertions carry a fifth argument, the cited
+selection, null by default. Catalogue v2
 (`scripts/revise_catalogue_v2.py`) is derived from v1 and re-running the script
 must reproduce it byte for byte; `content.test.ts` and the unpinned-seat test
 read the newest shipped version rather than naming one. The market check

@@ -207,3 +207,46 @@ export function askProjectSupplier(
 ): Promise<Result<ProjectRfq>> {
   return call(token, "/marketplace/rfq", { method: "POST", body: request });
 }
+
+// ---------------------------------------------------------------------------
+// Project challenges (decision 0112): the requirements a student works from,
+// the matrix they weight, and the selection they commit. The author's answer
+// arrives only inside a committed challenge's `reveal`.
+// ---------------------------------------------------------------------------
+
+export type ChallengeSummary = Schemas["ChallengeSummary"];
+export type Challenge = Schemas["ChallengeOut"];
+export type Selection = Schemas["SelectionOut"];
+export type Reveal = Schemas["RevealOut"];
+export type Matrix = Schemas["MatrixOut"];
+export type MatrixCriterion = Schemas["MatrixCriterion"];
+export type Criterion = Schemas["CriterionOut"];
+export type Requirement = Schemas["Requirement"];
+export type SelectionRequest = Schemas["SelectionIn"];
+
+export function listChallenges(token: string): Promise<Result<ChallengeSummary[]>> {
+  return call(token, "/marketplace/challenges");
+}
+
+export function getChallenge(token: string, key: string): Promise<Result<Challenge>> {
+  return call(token, `/marketplace/challenges/${encodeURIComponent(key)}`);
+}
+
+export function scoreMatrix(
+  token: string,
+  skus: string[],
+  weights: Record<string, number>,
+): Promise<Result<Matrix>> {
+  return call(token, "/marketplace/matrix", { method: "POST", body: { skus, weights } });
+}
+
+export function commitSelection(
+  token: string,
+  key: string,
+  request: SelectionRequest,
+): Promise<Result<Challenge>> {
+  return call(token, `/marketplace/challenges/${encodeURIComponent(key)}/selection`, {
+    method: "POST",
+    body: request,
+  });
+}

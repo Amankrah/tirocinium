@@ -489,7 +489,7 @@ ROWS: tuple[RowSpec, ...] = (
     ),
     RowSpec(
         "carbon_for_strength",
-        "Carbon for strength, \u03c1\u00b7CO\u2082/\u03c3y",
+        "Carbon for strength (tie in tension), \u03c1\u00b7CO\u2082/\u03c3y",
         CARBON_WEIGHTED,
         "lower",
         number="carbon_for_strength",
@@ -497,7 +497,7 @@ ROWS: tuple[RowSpec, ...] = (
     ),
     RowSpec(
         "carbon_for_stiffness",
-        "Carbon for stiffness, \u03c1\u00b7CO\u2082/\u221aE",
+        "Carbon for stiffness (beam in bending), \u03c1\u00b7CO\u2082/\u221aE",
         CARBON_WEIGHTED,
         "lower",
         number="carbon_for_stiffness",

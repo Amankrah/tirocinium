@@ -6,6 +6,7 @@
 // prices and answers with the one account of the money.
 import {
   askProjectSupplier,
+  commitSelection,
   compareProjectLines,
   listProjectLines,
   prepareProjectQuotation,
@@ -17,6 +18,10 @@ import {
   type QuoteLine,
   type Result,
   type RfqRequest,
+  scoreMatrix,
+  type Challenge,
+  type Matrix,
+  type SelectionRequest,
 } from "@/lib/api/marketplace";
 import { requireSeat } from "@/lib/seat-session";
 
@@ -38,4 +43,20 @@ export async function priceAction(lines: QuoteLine[]): Promise<Result<ProjectQuo
 export async function askAction(request: RfqRequest): Promise<Result<ProjectRfq>> {
   const { token } = await requireSeat();
   return askProjectSupplier(token, request);
+}
+
+export async function matrixAction(
+  skus: string[],
+  weights: Record<string, number>,
+): Promise<Result<Matrix>> {
+  const { token } = await requireSeat();
+  return scoreMatrix(token, skus, weights);
+}
+
+export async function commitSelectionAction(
+  key: string,
+  request: SelectionRequest,
+): Promise<Result<Challenge>> {
+  const { token } = await requireSeat();
+  return commitSelection(token, key, request);
 }

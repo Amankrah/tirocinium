@@ -31,7 +31,8 @@ export type CourseSection =
   | "submissions"
   | "mastery"
   | "reports"
-  | "materials";
+  | "materials"
+  | "challenges";
 
 export type CourseContext = {
   id: number;
@@ -47,6 +48,7 @@ const RAIL: { section: CourseSection; path: string; label: string; icon: IconNam
   { section: "mastery", path: "/mastery", label: strings.rail.mastery, icon: "chart" },
   { section: "reports", path: "/reports", label: strings.rail.reports, icon: "file" },
   { section: "materials", path: "/materials", label: strings.rail.materials, icon: "store" },
+  { section: "challenges", path: "/challenges", label: strings.rail.challenges, icon: "book" },
 ];
 
 export function ProfessorShell({

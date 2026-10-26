@@ -242,11 +242,11 @@ export const strings = {
       carbon: "Carbon footprint",
       water: "Water footprint",
       freightCarbon: "Road freight carbon",
-      carbonIntensity: "Average carbon intensity",
+      carbonIntensity: "Carbon per kilogram of material quoted",
       energyNote:
-        "Embodied energy is cradle-to-gate, summed over the lines that publish a figure.",
+        "Embodied energy is cradle-to-gate primary energy, summed over the lines that publish a figure.",
       footprintNote:
-        "Carbon and water are cradle-to-gate and stop at the supplier's gate. Road freight carbon is a separate 450 km leg at 0.11 kg CO₂e per tonne-kilometre, on the Québec road assumption, and is not included in the cradle-to-gate total.",
+        "Carbon and water are cradle-to-gate and stop at the factory gate; transport from the mill to the supplier is in neither figure. Road freight carbon is a separate assumed leg of 450 km from the supplier to your site at 0.11 kg CO₂e per tonne-kilometre, and is not added into the cradle-to-gate total. Water is an inventory figure in litres, not a scarcity-weighted footprint. The per-kilogram carbon divides the whole basket's carbon, processes included, by the mass of the materials in it.",
       issue: "Issue this quote",
       issuing: "Issuing…",
       issued: (number: string) => `Quotation ${number}`,
@@ -314,7 +314,7 @@ export const strings = {
     basis: (title: string, version: number) => `List prices from ${title}, version ${version}`,
     nav: "Marketplace",
     home: "Marketplace",
-    briefs: "Project briefs",
+    briefs: "Challenges",
     guide: "How to quote",
     sources: "Price sources",
     impact: "Environmental data",
@@ -334,11 +334,11 @@ export const strings = {
     validity: (days: number) => `List prices hold ${days} days`,
     fictional: "Teaching catalogue: the suppliers are fictional",
     // Home
-    startFromBrief: "Start from your project brief",
+    startFromBrief: "Start from a project challenge",
     guideLink: "How to build a defensible quote",
     kpiLines: "Priced line items",
     kpiSuppliers: "Supplier catalogues",
-    kpiBriefs: "Project briefs mapped",
+    kpiBriefs: "Project challenges",
     kpiProperties: "Properties per material",
     directory: "Supplier directory",
     directoryLede:
@@ -413,15 +413,18 @@ export const strings = {
     carbonForStrength: (value: string) =>
       `Carbon for a strength-limited tie, ρ·CO₂/σy = ${value}`,
     carbonForStiffness: (value: string) =>
-      `Carbon for a stiffness-limited tie, ρ·CO₂/√E = ${value}`,
+      `Carbon for a stiffness-limited beam in bending, ρ·CO₂/√E = ${value}`,
     carbonPerDollar: (value: string) => `Carbon per dollar = ${value} kg CO₂e per $`,
     carbonIndicesNote:
       "Lower is better on the carbon-weighted indices, and a negative value is better than zero.",
     impactHeading: "Environmental impact",
     impactLede:
-      "Cradle-to-gate, per kilogram. The word under each figure means the same thing on every line.",
+      "Cradle-to-gate, per kilogram: from raw material to the factory gate, before transport to the supplier or to you. The word under each figure means the same thing on every line.",
+    // The functional unit follows the unit of sale, as an LCA's goal and scope
+    // define it: a shop hour, not a kilogram. Water is absent from the data,
+    // not from the process, and the copy must not claim otherwise.
     impactProcessLede:
-      "This is a process, so the footprint is per unit of process rather than per kilogram. A process has no water figure.",
+      "This is a process, so its functional unit is the unit it is sold by (an hour of shop time, a unit of process) rather than the kilogram. The catalogue carries no water figure for it; that is a gap in the data, not a property of the process, which draws water for cooling, cleaning and the electricity behind it.",
     impactEnergy: "Embodied energy",
     impactCarbon: "Carbon footprint",
     impactWater: "Water footprint",
@@ -436,6 +439,69 @@ export const strings = {
     processBody:
       "Price it into your cost model alongside the stock you intend to buy. A material is only as economical as it is to turn into a finished part.",
     related: "Also considered for this application",
+    // Challenges (decision 0112): a requirements statement first, the
+    // author's answer only after a commit.
+    challengesTitle: "Project challenges",
+    challengesLede:
+      "Each challenge states what a part has to do, under what constraints, and what you are to deliver. Nothing here names a material. Narrow the catalogue yourself, weight the criteria that matter, price what you would buy, and commit the three together; only then is the shortlist a practising engineer would have started from shown, as a check on your own.",
+    fromCatalogue: "Catalogue brief",
+    fromCourse: "Set by your professor",
+    requirementCount: (n: number) => (n === 1 ? "1 requirement" : `${n} requirements`),
+    committedAs: (reference: string) => `Committed as ${reference}`,
+    notCommitted: "Not yet committed",
+    openChallenge: "Open the challenge",
+    challengeContext: "The situation",
+    challengeRequirements: "What the part must do",
+    challengeTarget: "Target",
+    challengeConstraints: "Constraints",
+    challengeDeliverable: "What you deliver",
+    howToWork: "How to work this challenge",
+    howToWorkSteps: [
+      "Search the catalogue and put two to five candidates in the comparison tray.",
+      "Weight the criteria below from the requirements. The weighting is your argument.",
+      "Put the line you would buy, at the quantity the project needs, in your quote.",
+      "Commit. Your candidates, weights, scores and quotation are kept together as one selection you can cite in a submission.",
+    ],
+    yourCandidates: "Your candidates",
+    candidatesFromTray: (n: number) =>
+      n === 0
+        ? "Nothing in the comparison tray yet. Press Compare on two to five lines while browsing."
+        : n === 1
+          ? "One line in the tray. A selection needs at least two candidates."
+          : `${n} candidates from your comparison tray.`,
+    browseForCandidates: "Browse the catalogue",
+    weighting: "Your weighting",
+    weightingHint:
+      "0 means a criterion does not count; 5 means it dominates. The suggestion is the author's starting point, not a rule.",
+    weightOf: (label: string) => `Weight for ${label}`,
+    matrixHeading: "Scored matrix",
+    matrixHint:
+      "Each criterion is scaled across your candidates so the best scores 1 and the worst 0, then weighted. A score is a percentage of the best possible under your weighting; a missing figure scores nothing and is named.",
+    matrixCriterion: "Criterion",
+    matrixWeight: "Weight",
+    matrixScore: "Score",
+    matrixRank: (rank: number) => `Rank ${rank}`,
+    matrixMissing: (criteria: string) => `No figure for ${criteria}`,
+    matrixWaiting: "Set at least one weight to score your candidates.",
+    yourBasket: "Your quote",
+    basketEmpty: "Nothing in your quote yet. Add the line you would buy, at the project's quantity.",
+    basketLines: (n: number) => (n === 1 ? "1 line in your quote" : `${n} lines in your quote`),
+    commit: "Commit this selection",
+    recommit: "Commit again with these changes",
+    committing: "Committing…",
+    commitNeeds: "A selection needs two to five candidates, at least one weight, and a line in your quote.",
+    committed: (reference: string) => `Committed as ${reference}. Cite it when you upload a solution.`,
+    revealHeading: "What a practising engineer would have put on the table",
+    revealLede:
+      "Shown now that you have committed. It is a check on your own reasoning, not a verdict: a different shortlist with a better argument is a better report.",
+    revealFamilies: "Families they had in contention:",
+    revealAgreement: (n: number, total: number) =>
+      n === 0
+        ? "None of your candidates was on their list. Ask yourself why, and whether your requirements reading differs from theirs."
+        : `${n} of your ${total} candidates ${n === 1 ? "was" : "were"} on their list.`,
+    selectionSummary: "Your committed selection",
+    selectionScoreOf: (sku: string, score: number) => `${sku}: ${score} % of best`,
+    selectionQuotedTotal: (total: string) => `Quotation total ${total}`,
     // Briefs
     briefsLede:
       "Every brief issued for the BREE 216 material-selection project, each mapped to the lines a credible shortlist would draw on. Open a brief to load its candidates into the comparison or the quote.",
@@ -454,7 +520,7 @@ export const strings = {
     processingLede:
       "A material you cannot afford to fabricate is not a material choice. These are the process lines your cost model needs.",
     // Guide
-    toBriefs: "Go to the project briefs",
+    toBriefs: "Go to the project challenges",
     validityNote: (days: number) =>
       `List prices here hold for ${days} days from the date a quotation is prepared; the quotation says until when.`,
     invoiceMoq: "Minimum order quantity",
@@ -552,6 +618,10 @@ export const strings = {
   // refusal.
   upload: {
     title: "Upload your solution",
+    // A committed project selection the submission may cite (decision 0112).
+    citeSelection: "Cite a project selection",
+    citeSelectionHint: "Optional. The tutor can then ask about your weighting and your quotation.",
+    citeNone: "None",
     sendingTitle: "Sending your solution",
     // Once the pages are in, the worker checks they can be read, reads the
     // handwriting, then compares the working with the solution (pipeline, then

@@ -166,7 +166,7 @@ describe("the quote page", () => {
   it("says an empty quote is empty and points at where to start", () => {
     withMarket(view);
     expect(screen.getByText(/Nothing quoted yet/)).toBeDefined();
-    expect(screen.getByRole("link", { name: "Start from your project brief" })).toBeDefined();
+    expect(screen.getByRole("link", { name: "Start from a project challenge" })).toBeDefined();
   });
 
   it("prints a sheet whose subtotal is the server's goods figure, with its reference", async () => {

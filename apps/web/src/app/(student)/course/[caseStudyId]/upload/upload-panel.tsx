@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink, buttonClassName } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Field, Select } from "@/components/ui/field";
 import { Icon, type IconName } from "@/components/ui/icon";
 import type { Schemas } from "@/lib/api/client";
 import { analyzeSharpness } from "@/lib/upload/image-quality";
@@ -69,7 +70,11 @@ export type CreateAction = (
   pages: Schemas["PageIn"][],
   idempotencyKey: string,
   attemptId: number | null,
+  selectionId?: number | null,
 ) => Promise<Schemas["SubmissionCreated"] | null>;
+
+// A committed project selection the student may cite (decision 0112).
+export type CitableSelection = { id: number; reference: string; title: string };
 export type CompleteAction = (submissionId: number) => Promise<boolean>;
 
 interface SelectedPage {
@@ -180,6 +185,8 @@ export function UploadPanel({
   variantId,
   caseStudyId,
   attemptId = null,
+  selections = [],
+  selectionId = null,
   create,
   complete,
   makeId = () => crypto.randomUUID(),
@@ -192,6 +199,11 @@ export function UploadPanel({
   // The attempt this submission cites, if the student started one (decision
   // 0058). Carried through untouched: no time is computed here.
   attemptId?: number | null;
+  // The selections this seat has committed to project challenges, offered
+  // for citation; the one named in the URL is preselected. Empty means the
+  // control is not shown at all (decision 0112).
+  selections?: CitableSelection[];
+  selectionId?: number | null;
   create: CreateAction;
   complete: CompleteAction;
   // Injectable so a test need not lean on crypto/URL specifics.
@@ -202,6 +214,9 @@ export function UploadPanel({
   fetchTranscription?: FetchTranscription;
 }) {
   const [pages, setPages] = useState<SelectedPage[]>([]);
+  const [cited, setCited] = useState<number | null>(
+    selections.some((entry) => entry.id === selectionId) ? selectionId : null,
+  );
   const [mode, setMode] = useState<InputMode>("pen");
   const [rejections, setRejections] = useState<Rejection[]>([]);
   const [upload, setUpload] = useState<UploadState | null>(null);
@@ -347,7 +362,7 @@ export function UploadPanel({
   const submit = async () => {
     if (pages.length === 0) return;
     const deps: UploadDeps = {
-      create: (manifest, key) => create(variantId, manifest, key, attemptId),
+      create: (manifest, key) => create(variantId, manifest, key, attemptId, cited),
       put: putPage,
       complete,
       newIdempotencyKey: makeId,
@@ -742,7 +757,27 @@ export function UploadPanel({
       ) : null}
 
       {!submitting ? (
-        <div className="border-t border-rule-line pt-6">
+        <div className="flex flex-col gap-4 border-t border-rule-line pt-6">
+          {selections.length > 0 ? (
+            // A committed project selection the submission may cite (decision
+            // 0112): optional, and only offered when there is one to offer.
+            <Field label={s.citeSelection} hint={s.citeSelectionHint} className="max-w-sm">
+              <Select
+                value={cited ?? ""}
+                onChange={(event) =>
+                  setCited(event.currentTarget.value ? Number(event.currentTarget.value) : null)
+                }
+              >
+                <option value="">{s.citeNone}</option>
+                {selections.map((entry) => (
+                  <option key={entry.id} value={entry.id}>
+                    {entry.reference} · {entry.title}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          ) : null}
+          <div>
           <Button
             onClick={() => void submit()}
             disabled={pages.length === 0 || editingPage !== null}
@@ -758,6 +793,7 @@ export function UploadPanel({
               {s.finishEditing(editingPage.label)}
             </p>
           ) : null}
+          </div>
         </div>
       ) : null}
     </div>

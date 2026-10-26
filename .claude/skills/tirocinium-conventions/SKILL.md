@@ -153,6 +153,33 @@ cited figure that drifts fails that test. Never import a value from a
 value): `TRAY_LIMIT` lives in the plain `_kit/limits.ts` for that reason. The
 prototype's name and group fields, named reviews and star ratings stay out.
 
+A brief is a challenge the student works (decision 0112), and the shortlist is
+earned. Catalogue v4 gives each brief a requirements statement (context,
+requirements with targets, constraints, deliverable, suggested weights); a
+brief from an earlier version reads its selection factors as the requirements.
+The families in contention and the shortlist never reach a page that has not
+earned them: `ChallengeOut.reveal` is null until the seat commits a selection
+(`POST /marketplace/challenges/{key}/selection`: two to five candidates, the
+weights, the basket lines), which stores candidates, weights, the scored
+matrix and the quotation at list prices together in `challenge_selections`
+(course migration 0025), the one stored project quotation decision 0100 now
+allows. The matrix (`app/marketplace/matrix.py`) scores eleven criteria read
+from the comparison's own rows, min-max in the better direction, weighted 0 to
+5, as a percentage of the best possible, on the server only; a missing figure
+scores nothing and is named. A professor's own challenges are course content
+(`challenges` table, `/courses/{id}/challenges`, the `(professor)` challenges
+pages, or `challenges` in a course pack, loaded published); seats see only
+published ones; one with committed selections cannot be deleted (409). A
+submission cites `selection_id` on ownership alone, and the defence context
+carries the rendered selection as a fifth fenced source under
+`defense-tutor/v4`. Web: `/marketplace/challenges` replaces
+`/marketplace/briefs`; the challenge page is a Server Component around
+`challenge-work.tsx`, whose candidates are the comparison tray and whose quote
+is the basket, and the reveal renders server-side after `router.refresh()`.
+The upload offers the seat's committed selections for citation. The seventeen
+requirement statements are the engineer's drafts for the course author to
+review.
+
 A shop's published price may sit beside a list price and may not become it (decision 0111, `app/marketplace/market_check.py`). `catalogue/bree-216/market-sources.json` maps a few stocked grades to one public product page and one named cut on it. The weekly timer runs `scripts/refresh_market_checks.py`, which writes `$TIRO_DATA_DIR/market-checks.json` and, when the page does not answer or no longer has that cut, keeps the previous cents. The project line shows that reading. `compute_quote` does not see it, the supplier fact sheet does not carry it, and the case-study line does not show it. Do not write it into `list_price_cents`.
 
 Deployment is one host, and the data layer decides that rather than taste

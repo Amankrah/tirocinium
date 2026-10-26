@@ -23,10 +23,12 @@ export async function createSubmissionAction(
   // server-side against this seat and this variant, so passing it is a claim
   // the backend verifies rather than one it accepts.
   attemptId: number | null = null,
+  // The project selection cited, on the same terms (decision 0112).
+  selectionId: number | null = null,
 ): Promise<Schemas["SubmissionCreated"] | null> {
   const token = (await cookies()).get(SEAT_COOKIE)?.value;
   if (!token) return null;
-  return createSubmission(token, variantId, pages, idempotencyKey, attemptId);
+  return createSubmission(token, variantId, pages, idempotencyKey, attemptId, selectionId);
 }
 
 export async function completeSubmissionAction(

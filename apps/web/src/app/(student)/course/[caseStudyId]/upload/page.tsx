@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { getCaseStudy } from "@/lib/api/case-studies";
 import { resolveFigures } from "@/lib/api/figures";
 import { getPracticeVariant } from "@/lib/api/practice";
+import { listChallenges } from "@/lib/api/marketplace";
 import { requireSeat } from "@/lib/seat-session";
 import { StudentShell } from "../../../student-shell";
 import { strings } from "../../../strings";
@@ -21,11 +22,11 @@ export default async function UploadPage({
   searchParams,
 }: {
   params: Promise<{ caseStudyId: string }>;
-  searchParams: Promise<{ variant?: string; attempt?: string }>;
+  searchParams: Promise<{ variant?: string; attempt?: string; selection?: string }>;
 }) {
   const { token, seat } = await requireSeat();
   const { caseStudyId } = await params;
-  const { variant, attempt } = await searchParams;
+  const { variant, attempt, selection } = await searchParams;
 
   const caseId = Number(caseStudyId);
   const variantId = Number(variant);
@@ -36,6 +37,21 @@ export default async function UploadPage({
   const attemptId = Number(attempt);
   const attemptToCite =
     Number.isInteger(attemptId) && attemptId > 0 ? attemptId : null;
+  // The project selections this seat has committed, offered for citation
+  // (decision 0112); a marketplace that cannot be read offers none.
+  const challenges = await listChallenges(token);
+  const selections = challenges.ok
+    ? challenges.data
+        .filter((entry) => entry.committed && entry.selection_id !== null)
+        .map((entry) => ({
+          id: entry.selection_id as number,
+          reference: entry.reference ?? "",
+          title: entry.title,
+        }))
+    : [];
+  const selectionId = Number(selection);
+  const selectionToCite =
+    Number.isInteger(selectionId) && selectionId > 0 ? selectionId : null;
 
   // The question the student just started, not a fresh draw from the pool
   // (decision 0080). A pin that cannot be read falls back to the case study
@@ -83,6 +99,8 @@ export default async function UploadPage({
           variantId={variantId}
           caseStudyId={caseId}
           attemptId={attemptToCite}
+          selections={selections}
+          selectionId={selectionToCite}
           create={createSubmissionAction}
           complete={completeSubmissionAction}
         />

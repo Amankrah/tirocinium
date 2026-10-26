@@ -47,6 +47,8 @@ class LoadReport(BaseModel, frozen=True):
     figures: int
     questions_created: int
     questions_updated: int
+    challenges_created: int = 0
+    challenges_updated: int = 0
 
 
 def _sync_concepts(conn: sqlite3.Connection, pack: CoursePack) -> dict[str, int]:
@@ -220,13 +222,10 @@ def _sync_question(
 
     # The marketplace shortlist (course migration 0021, decision 0081).
     # Replaced rather than merged, like the concept mappings and the figures.
-    conn.execute(
-        "DELETE FROM case_study_shortlist WHERE case_study_id = ?", (case_study_id,)
-    )
+    conn.execute("DELETE FROM case_study_shortlist WHERE case_study_id = ?", (case_study_id,))
     for position, sku in enumerate(question.shortlist):
         conn.execute(
-            "INSERT INTO case_study_shortlist (case_study_id, sku, position)"
-            " VALUES (?, ?, ?)",
+            "INSERT INTO case_study_shortlist (case_study_id, sku, position) VALUES (?, ?, ?)",
             (case_study_id, sku, position),
         )
 
@@ -268,6 +267,43 @@ def _sync_question(
     return created
 
 
+def _sync_challenge(conn: sqlite3.Connection, pack: CoursePack, index: int, now: int) -> bool:
+    """Upsert one project challenge as published course content (decision
+    0112). Returns True when it created the row. A student's committed
+    selection is a snapshot and survives a reload untouched."""
+    from app.marketplace.challenges import ChallengeIn, write_course_challenge
+
+    challenge = pack.challenges[index]
+    body = ChallengeIn(
+        title=challenge.title,
+        context=challenge.context,
+        requirements=[r.model_dump() for r in challenge.requirements],  # type: ignore[misc]
+        constraints=challenge.constraints,
+        deliverable=challenge.deliverable,
+        weights=challenge.weights,
+        candidate_families=challenge.candidate_families,
+        shortlist=challenge.shortlist,
+        status="published",
+    )
+    existing = conn.execute(
+        "SELECT challenge_id FROM course_pack_challenges WHERE pack_id = ? AND item_key = ?",
+        (pack.id, challenge.key),
+    ).fetchone()
+    created = existing is None
+    challenge_id = write_course_challenge(
+        conn, body, now, challenge_id=None if created else int(existing[0])
+    )
+    conn.execute(
+        "INSERT INTO course_pack_challenges (pack_id, item_key, challenge_id,"
+        " pack_version, loaded_at) VALUES (?, ?, ?, ?, ?)"
+        " ON CONFLICT(pack_id, item_key) DO UPDATE SET"
+        "   challenge_id = excluded.challenge_id,"
+        "   pack_version = excluded.pack_version, loaded_at = excluded.loaded_at",
+        (pack.id, challenge.key, challenge_id, pack.version, now),
+    )
+    return created
+
+
 def load_into_course(
     *,
     pack: CoursePack,
@@ -289,6 +325,12 @@ def load_into_course(
             created += 1
         else:
             updated += 1
+    challenges_created = challenges_updated = 0
+    for index in range(len(pack.challenges)):
+        if _sync_challenge(conn, pack, index, stamp):
+            challenges_created += 1
+        else:
+            challenges_updated += 1
     return LoadReport(
         pack=pack.provenance,
         course_id=course_id,
@@ -296,4 +338,6 @@ def load_into_course(
         figures=len(figure_ids),
         questions_created=created,
         questions_updated=updated,
+        challenges_created=challenges_created,
+        challenges_updated=challenges_updated,
     )

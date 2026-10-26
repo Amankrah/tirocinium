@@ -183,7 +183,9 @@ describe("UploadPanel", () => {
       9,
       [{ content_type: "image/jpeg", size_bytes: 4 }],
       expect.any(String),
-      // No attempt was carried in, so none is cited (decision 0058).
+      // No attempt was carried in, so none is cited (decision 0058), and no
+      // project selection either (decision 0112).
+      null,
       null,
     );
     expect(complete).toHaveBeenCalledWith(42);
@@ -344,6 +346,7 @@ describe("UploadPanel", () => {
         [{ content_type: "image/jpeg", size_bytes: 4 }],
         expect.any(String),
         77,
+        null,
       ),
     );
   });
