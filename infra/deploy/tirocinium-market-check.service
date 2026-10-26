@@ -8,6 +8,7 @@ Type=oneshot
 User=tirocinium
 Group=tirocinium
 WorkingDirectory=/opt/tirocinium/app/apps/api
+Environment=PYTHONPATH=/opt/tirocinium/app/apps/api
 EnvironmentFile=/etc/tirocinium/tirocinium.env
 ExecStart=/opt/tirocinium/app/apps/api/.venv/bin/python scripts/refresh_market_checks.py
 # Nine pages, a second apart, each allowed twenty seconds.

@@ -18,6 +18,8 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import app.env  # noqa: F401  (loads apps/api/.env so TIRO_DATA_DIR is set)
 from app.marketplace.market_check import (
     apply_reading,
