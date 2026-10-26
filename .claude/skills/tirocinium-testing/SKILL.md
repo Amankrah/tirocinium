@@ -1412,6 +1412,15 @@ build theirs in memory, and `apps/api/tests/recorded/supplier-reply/` is where
 captured replies land. `scripts/smoke_supplier_reply.py` is the live lane and
 spends tokens; it is never part of the gate. Catalogue v4 (`scripts/revise_catalogue_v4.py`, decision 0112) adds the
 briefs' requirements statements on top of v3 and reproduces the same way.
+Catalogue v7 (`scripts/revise_catalogue_v7.py`, decision 0113) corrects the
+environmental layer on top of v6 and is pinned by
+`app/marketplace/test_catalogue_v7.py` (6): nothing but that layer moved, every
+coating states its footprint per unit of sale, every electric process sits on
+the Québec grid ratio or its note names what else it burns or consumes
+(`CONSUMABLE_WORDS`; extend the list when a note names a new consumable, never
+loosen the ratio), biogenic storage is credited to every plant-fibre line,
+the notes' comparative claims hold against the figures, and v7 reproduces
+from its script byte for byte.
 `app/marketplace/test_challenges.py` (19, decision 0112) covers the matrix
 (best reads 100, a weighted sum is a percentage, a missing figure is named,
 four refusals, the endpoint at list prices), the challenge (a brief withholds

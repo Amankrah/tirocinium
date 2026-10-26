@@ -153,3 +153,57 @@ v4 with the prose em dashes replaced by colons, derived by
 same prices, same figures. This is the newest shipped version. A course pinned
 to an earlier version stays there until it is re-pinned, and an issued
 quotation is not rewritten.
+
+## v7
+
+Corrections to the environmental layer after an audit of v6's figures and
+notes against ICE v3, ecoinvent and the LCA literature (decision 0113),
+derived from v6 by `scripts/revise_catalogue_v7.py`, which is the whole of the
+difference and is written as data. Same 146 lines, same SKUs, same prices,
+same mechanical properties, same briefs.
+
+Units. The four Vulcan coating services and Macdonald's electropolishing are
+sold per square metre but stated their energy and carbon per square
+decimetre, so a coated area under-counted a hundredfold. The figures now
+follow the unit of sale and each note says so. Hard chrome plating and
+electropolishing carried fossil-grid carbon for an electric process; they now
+sit on the Québec grid ratio every Macdonald shop hour already uses, plus a
+stated consumables allowance, and so do plasma cutting, ultrasonic testing
+and passivation. Injection moulding and vacuum infusion counted consumables in
+their carbon and not in their energy; the energy now carries them too, and the
+moulding note agrees with its fabrication note about the 50 g of polymer.
+
+Figures. Galvanised steel is 2.3 kg CO2e/kg, plain A36 plus the 0.2 its own
+note states, not 2.5. Biogenic storage is now credited uniformly: flax, hemp
+and jute reinforcements carry the same net credit balsa, straw board and
+hempcrete already carried, at 1.6 kg CO2 per kg of dry fibre, and the course
+note states the method. Cemented carbide's realistic recovery is 50 %, the
+zinc-reclaim yield being a process figure and not a collection rate; a balsa
+core and an MDI-bonded straw board recover 15 and 20 %, not 90, and carry the
+embodied energy of kiln-dried timber and particleboard; hempcrete's water
+follows the hemp it is made of; PETG is 25 % recyclable and 15 % recovered,
+since it contaminates the PET stream; PTFE is not zero; Stellite 6 moves to the
+middle of the literature range. Vulcan's seventeen material lines gain a
+lowest useful temperature, and the table is made consistent: grey iron
+serves at minus 40, aluminium alloys and austenitic fasteners are cryogenic,
+CP titanium stops at minus 196, galvanising does not improve a tube's Charpy,
+the three inorganic fibres agree, and nylon and EPDM parts take their
+polymer's limit.
+
+Notes. The welding consumable no longer carries the fastener text; carbon
+fibre's pyrolysis note says what is actually lost (length and alignment, not
+fibre strength); the geomembrane note describes a liner rather than a pipe;
+basalt's "under half" of carbon's energy becomes the fourteenth the figures
+give; carburising is the second most energy-intensive treatment, after
+nitriding, as the figures say; and the aluminium note states that the carbon
+figure is a world-average primary while Québec hydro smelters are nearer 5.
+
+Left as it was, with low confidence either way: the per-kilogram material
+figures the audit found inside ICE and ecoinvent ranges, which is all of the
+steels, stainless, nickel, polymers, resins, glass fibre, ceramics and tool
+steels; the TiN and DLC energies; and the comparative claims the data
+supports (rebar a third of plate, 316 a fifth over 304, titanium nearly ten
+times stainless, flax a fifth of glass).
+
+What moves to v7: an unpinned project seat, because v7 is the newest shipped
+version. A course pinned to an earlier version stays there until re-pinned.
