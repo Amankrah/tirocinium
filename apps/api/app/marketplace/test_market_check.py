@@ -13,6 +13,7 @@ from app.marketplace.market_check import (
     checks_path,
     load_sources,
     observed_on,
+    photographs,
     public_check,
     read_checks,
     shopify_image_url,
@@ -55,6 +56,15 @@ def test_the_photograph_is_the_shops_and_a_failed_read_keeps_it() -> None:
     shown = public_check(kept)
     assert shown is not None
     assert shown.image == picture
+
+
+def test_a_matched_line_keeps_its_photograph_for_the_card(tmp_path: Path) -> None:
+    source = load_sources()
+    listing = source.listings[0]
+    picture = "https://cdn.shopify.com/s/files/1/bar.png"
+    row = apply_reading(None, source, listing, cents=1582, error=None, now=1, image=picture)
+    write_checks(checks_path(tmp_path), {listing.sku: row})
+    assert photographs(tmp_path) == {listing.sku: picture}
 
 
 def test_a_missing_cut_a_zero_and_a_string_are_not_a_price() -> None:

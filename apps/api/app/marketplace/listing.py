@@ -67,6 +67,9 @@ class LineSummary(BaseModel):
     stock_label: str
     cut_fee_cents: int
     swatch: str
+    # The shop's product photograph, when this line is the product on that
+    # page. Absent on every other line (decision 0111).
+    image: str | None = None
     tags: list[str]
     service: bool
     shortlisted: bool

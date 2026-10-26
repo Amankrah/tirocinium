@@ -64,13 +64,20 @@ from app.marketplace.listing import (
     SORT_PATTERN,
     LineDetail,
     LineListOut,
+    LineSummary,
     SupplierSummary,
     line_detail,
     list_prices,
     select_lines,
     supplier_summaries,
 )
-from app.marketplace.market_check import checks_path, load_sources, public_check, read_checks
+from app.marketplace.market_check import (
+    checks_path,
+    load_sources,
+    photographs,
+    public_check,
+    read_checks,
+)
 from app.marketplace.matrix import MatrixOut, Weights, score_matrix
 from app.marketplace.quoting import (
     MAX_LINES,
@@ -176,6 +183,15 @@ async def _catalogue(shards: ShardManager, identity: Identity) -> Catalogue:
     return load_catalogue(*shipped[0])
 
 
+def _with_photographs(items: list[LineSummary], pictures: dict[str, str]) -> list[LineSummary]:
+    if not pictures:
+        return items
+    return [
+        item.model_copy(update={"image": pictures[item.sku]}) if item.sku in pictures else item
+        for item in items
+    ]
+
+
 def _reference(catalogue: Catalogue, lines: list[ComputedLine], prepared_at: int) -> str:
     day = datetime.fromtimestamp(prepared_at, tz=UTC).strftime("%Y%m%d")
     basket = json.dumps(
@@ -239,7 +255,7 @@ async def list_project_lines(
     brief's candidates and the featured set are read; an unknown SKU is simply
     absent from the answer."""
     catalogue = await _catalogue(shards, identity)
-    return select_lines(
+    listed = select_lines(
         catalogue,
         list_prices(catalogue),
         supplier=supplier,
@@ -251,6 +267,10 @@ async def list_project_lines(
         limit=limit,
         skus=sku,
     )
+    pictures = photographs(shards.data_dir)
+    if not pictures:
+        return listed
+    return listed.model_copy(update={"items": _with_photographs(listed.items, pictures)})
 
 
 @router.get(
@@ -267,6 +287,9 @@ async def get_project_line(
     detail = line_detail(catalogue, list_prices(catalogue), sku)
     if detail is None:
         raise HTTPException(status_code=404, detail="Line not found.")
+    pictures = photographs(shards.data_dir)
+    if pictures:
+        detail = detail.model_copy(update={"related": _with_photographs(detail.related, pictures)})
     if sku not in {item.sku for item in load_sources().listings}:
         return detail
     stored = read_checks(checks_path(shards.data_dir))

@@ -8,11 +8,31 @@
 // A best cell is marked in words, visibly, as well as in weight: boldness
 // alone is a marking a screen reader cannot pass on and, on a monospaced
 // figure, one a sighted reader barely sees (decision 0101).
+import Image from "next/image";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Comparison } from "@/lib/api/marketplace";
 import { MaterialSwatch } from "./material-swatch";
 import { strings } from "../strings";
+
+function ColumnPicture({
+  tile,
+}: {
+  tile?: { swatch: string; category: string; image?: string | null };
+}) {
+  if (tile?.image) {
+    return (
+      <span className="relative mb-2 block h-9 min-w-24 overflow-hidden rounded bg-white">
+        <Image src={tile.image} alt="" fill sizes="6rem" className="object-contain" />
+      </span>
+    );
+  }
+  if (!tile) return null;
+  return (
+    <MaterialSwatch swatch={tile.swatch} category={tile.category} size="thumb" className="mb-2 min-w-24" />
+  );
+}
 
 export function ComparisonTable({
   comparison,
@@ -24,7 +44,7 @@ export function ComparisonTable({
   names: Record<string, string>;
   // The material tile above each column, when the surface knows it
   // (decision 0106); a column without one is just its name.
-  swatches?: Record<string, { swatch: string; category: string }>;
+  swatches?: Record<string, { swatch: string; category: string; image?: string | null }>;
   onClear: () => void;
 }) {
   const s = strings.marketplace;
@@ -57,14 +77,7 @@ export function ComparisonTable({
                   scope="col"
                   className="border-b border-rule-line px-3.5 py-3 text-start align-bottom font-display text-base font-normal leading-snug"
                 >
-                  {swatches[sku] ? (
-                    <MaterialSwatch
-                      swatch={swatches[sku].swatch}
-                      category={swatches[sku].category}
-                      size="thumb"
-                      className="mb-2 min-w-24"
-                    />
-                  ) : null}
+                  <ColumnPicture tile={swatches[sku]} />
                   {names[sku] ?? sku}
                 </th>
               ))}

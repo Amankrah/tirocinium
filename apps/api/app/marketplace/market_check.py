@@ -210,6 +210,24 @@ def observed_on(timestamp: int) -> str:
     return f"{day.day} {day.strftime('%b %Y')}"
 
 
+def photographs(data_dir: Path) -> dict[str, str]:
+    """Shop photographs for the lines whose page we have matched.
+
+    An unreadable checks file yields none, the same as a line with no reading:
+    the drawn swatch stays.
+    """
+    mapped = {item.sku for item in load_sources().listings}
+    stored = read_checks(checks_path(data_dir))
+    if not stored:
+        return {}
+    found: dict[str, str] = {}
+    for sku in mapped:
+        shown = public_check(stored.get(sku, {}))
+        if shown is not None and shown.image:
+            found[sku] = shown.image
+    return found
+
+
 def public_check(record: dict[str, object], rates: Sequence[float] = ()) -> MarketCheck | None:
     """The reading a line page may show, or None when no price was ever kept."""
     cents = record.get("cents")

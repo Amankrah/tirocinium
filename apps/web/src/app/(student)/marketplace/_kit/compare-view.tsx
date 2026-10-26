@@ -78,10 +78,14 @@ export function CompareView({
   }
 
   const names: Record<string, string> = {};
-  const swatches: Record<string, { swatch: string; category: string }> = {};
+  const swatches: Record<string, { swatch: string; category: string; image?: string | null }> = {};
   for (const line of lines?.items ?? []) {
     names[line.sku] = line.name;
-    swatches[line.sku] = { swatch: line.swatch, category: line.category };
+    swatches[line.sku] = {
+      swatch: line.swatch,
+      category: line.category,
+      image: line.image,
+    };
   }
 
   async function copy(table: Comparison) {

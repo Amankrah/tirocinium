@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
@@ -27,13 +28,25 @@ export function LineCard({ line }: { line: LineSummary }) {
         aria-hidden="true"
         className="-mx-4 -mt-4 block"
       >
-        <MaterialSwatch
-          swatch={line.swatch}
-          category={line.category}
-          label={line.category}
-          size="tile"
-          className="rounded-t-lg rounded-b-none border-0 border-b border-rule-line"
-        />
+        {line.image ? (
+          <span className="relative block h-28 overflow-hidden border-b border-rule-line bg-white">
+            <Image
+              src={line.image}
+              alt=""
+              fill
+              sizes="(min-width: 1024px) 20rem, 50vw"
+              className="object-contain"
+            />
+          </span>
+        ) : (
+          <MaterialSwatch
+            swatch={line.swatch}
+            category={line.category}
+            label={line.category}
+            size="tile"
+            className="rounded-t-lg rounded-b-none border-0 border-b border-rule-line"
+          />
+        )}
       </Link>
       <div className="flex flex-col gap-1">
         <span className="flex items-center justify-between gap-2 text-xs text-ink-muted">

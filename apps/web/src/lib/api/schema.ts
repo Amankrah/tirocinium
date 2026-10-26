@@ -2816,6 +2816,8 @@ export interface components {
             /** Fabrication */
             fabrication: string;
             geometry?: components["schemas"]["StockGeometry"] | null;
+            /** Image */
+            image?: string | null;
             impact: components["schemas"]["ImpactReading"];
             indices: components["schemas"]["LineIndices"];
             /** Kg Per Unit */
@@ -2923,6 +2925,8 @@ export interface components {
             embodied_energy_mj_kg?: number | null;
             /** End Of Life Recovery Percent */
             end_of_life_recovery_percent?: number | null;
+            /** Image */
+            image?: string | null;
             /** Lead Days */
             lead_days: number;
             /** Moq */

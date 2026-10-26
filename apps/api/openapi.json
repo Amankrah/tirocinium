@@ -2902,6 +2902,17 @@
               }
             ]
           },
+          "image": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image"
+          },
           "impact": {
             "$ref": "#/components/schemas/ImpactReading"
           },
@@ -3268,6 +3279,17 @@
               }
             ],
             "title": "End Of Life Recovery Percent"
+          },
+          "image": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image"
           },
           "lead_days": {
             "title": "Lead Days",
