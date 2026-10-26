@@ -56,6 +56,9 @@ class MarketCheck(BaseModel):
     currency: str
     observed_on: str
     stale: bool
+    # The shop's own product photograph, when the same document that named the
+    # price also published one. Absent for every line we have not matched.
+    image: str | None = None
 
 
 def sources_path() -> Path:
@@ -123,6 +126,31 @@ def shopify_variant_cents(body: bytes, variant_title: str) -> int | None:
     return None
 
 
+def published_image(value: object) -> str | None:
+    if isinstance(value, str) and value.startswith("https://cdn.shopify.com/"):
+        return value
+    return None
+
+
+def shopify_image_url(body: bytes) -> str | None:
+    """The product photograph on a Shopify product document, if it is theirs.
+
+    The address is protocol-relative in the document. Only their image host is
+    kept, so a page that answers with some other address is not a picture we
+    show.
+    """
+    try:
+        payload = json.loads(body)
+    except json.JSONDecodeError:
+        return None
+    raw = payload.get("featured_image") if isinstance(payload, dict) else None
+    if not isinstance(raw, str) or not raw:
+        return None
+    if raw.startswith("//cdn.shopify.com/"):
+        raw = "https:" + raw
+    return published_image(raw)
+
+
 def apply_reading(
     previous: dict[str, object] | None,
     source: MarketSources,
@@ -131,6 +159,7 @@ def apply_reading(
     cents: int | None,
     error: str | None,
     now: int,
+    image: str | None = None,
 ) -> dict[str, object]:
     """Fold one attempt into the stored reading.
 
@@ -151,6 +180,7 @@ def apply_reading(
             "observed_at": now,
             "last_attempt_at": now,
             "last_error": None,
+            "image": image or kept.get("image"),
         }
     return {
         "store": source.store,
@@ -162,6 +192,7 @@ def apply_reading(
         "observed_at": kept.get("observed_at"),
         "last_attempt_at": now,
         "last_error": error or "no price",
+        "image": kept.get("image"),
     }
 
 
@@ -198,6 +229,7 @@ def public_check(record: dict[str, object], rates: Sequence[float] = ()) -> Mark
             currency=str(record["currency"]),
             observed_on=observed_on(observed),
             stale=record.get("last_error") not in (None, ""),
+            image=published_image(record.get("image")),
         )
     except (KeyError, TypeError, ValueError):
         return None

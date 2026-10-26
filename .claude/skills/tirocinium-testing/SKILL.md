@@ -1441,7 +1441,9 @@ selection, null by default. Catalogue v2
 must reproduce it byte for byte; `content.test.ts` and the unpinned-seat test
 read the newest shipped version rather than naming one. The market check
 (decision 0111) is fixture-only: `app/marketplace/test_market_check.py` feeds a
-product document and a checks file, and never opens a shop page.
+product document and a checks file, and never opens a shop page. The photograph
+is the `featured_image` on that same document, and only a `cdn.shopify.com`
+address is kept.
 `scripts/refresh_market_checks.py` is the live read and is not part of the gate.
 
 The five-PDF ingestion corpus lives at `crates/platform_core/pdf/corpus/` (PDFs

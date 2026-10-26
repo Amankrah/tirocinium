@@ -180,7 +180,7 @@ The upload offers the seat's committed selections for citation. The seventeen
 requirement statements are the engineer's drafts for the course author to
 review.
 
-A shop's published price may sit beside a list price and may not become it (decision 0111, `app/marketplace/market_check.py`). `catalogue/bree-216/market-sources.json` maps a few stocked grades to one public product page and one named cut on it. The weekly timer runs `scripts/refresh_market_checks.py`, which writes `$TIRO_DATA_DIR/market-checks.json` and, when the page does not answer or no longer has that cut, keeps the previous cents. The project line shows that reading. `compute_quote` does not see it, the supplier fact sheet does not carry it, and the case-study line does not show it. Do not write it into `list_price_cents`.
+A shop's published price may sit beside a list price and may not become it (decision 0111, `app/marketplace/market_check.py`). `catalogue/bree-216/market-sources.json` maps a few stocked grades to one public product page and one named cut on it. The weekly timer runs `scripts/refresh_market_checks.py`, which writes `$TIRO_DATA_DIR/market-checks.json` and, when the page does not answer or no longer has that cut, keeps the previous cents and the previous photograph. The project line shows that reading, and the shop's own product photograph when the same document published one on `cdn.shopify.com`. `compute_quote` does not see it, the supplier fact sheet does not carry it, and the case-study line does not show it. Do not write it into `list_price_cents`.
 
 Deployment is one host, and the data layer decides that rather than taste
 (decision 0091). Shards are SQLite files with one writer each behind a

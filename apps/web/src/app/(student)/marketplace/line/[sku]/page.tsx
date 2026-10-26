@@ -11,7 +11,7 @@ import { getProjectLine } from "@/lib/api/marketplace";
 import { lead, money } from "@/lib/money";
 import { requireSeat } from "@/lib/seat-session";
 import { EnvironmentalPanel, hasEnvironmentalLayer } from "../../../_marketplace/environmental-panel";
-import { MaterialSwatch } from "../../../_marketplace/material-swatch";
+import { LinePicture } from "../../../_marketplace/line-picture";
 import { strings } from "../../../strings";
 import { LineActions } from "../../_kit/controls";
 import { LineGrid } from "../../_kit/line-card";
@@ -156,7 +156,14 @@ export default async function LinePage({ params }: { params: Promise<{ sku: stri
         </Card>
 
         <article className="flex flex-col gap-6">
-          <MaterialSwatch swatch={line.swatch} category={line.category} label={line.category} size="hero" />
+          <LinePicture
+            image={line.market_check?.image ?? null}
+            href={line.market_check?.page ?? ""}
+            credit={line.market_check ? p.shopPhoto(line.market_check.store) : ""}
+            name={line.name}
+            swatch={line.swatch}
+            category={line.category}
+          />
           <header className="flex flex-col gap-2">
             <p className="text-sm text-ink-muted">{line.supplier_name}</p>
             <h1 className="font-display text-4xl leading-[1.05]">{line.name}</h1>

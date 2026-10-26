@@ -26,6 +26,7 @@ from app.marketplace.market_check import (
     checks_path,
     load_sources,
     read_checks,
+    shopify_image_url,
     shopify_variant_cents,
     write_checks,
 )
@@ -79,12 +80,14 @@ def main() -> int:
         got = pages[listing.url]
         cents: int | None
         error: str | None
+        image: str | None = None
         if isinstance(got, Exception):
             cents = None
             error = type(got).__name__
         else:
             cents = shopify_variant_cents(got, listing.variant)
             error = None if cents is not None else "cut not on the page"
+            image = shopify_image_url(got)
         stored[listing.sku] = apply_reading(
             stored.get(listing.sku),
             source,
@@ -92,6 +95,7 @@ def main() -> int:
             cents=cents,
             error=error,
             now=now,
+            image=image,
         )
         state = "kept" if stored[listing.sku].get("last_error") else "read"
         print(f"{listing.sku} {state}")

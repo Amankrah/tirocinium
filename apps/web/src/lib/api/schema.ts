@@ -2959,6 +2959,8 @@ export interface components {
             cents: number;
             /** Currency */
             currency: string;
+            /** Image */
+            image?: string | null;
             /** Observed On */
             observed_on: string;
             /** Page */

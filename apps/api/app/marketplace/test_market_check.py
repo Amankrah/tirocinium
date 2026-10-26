@@ -15,6 +15,7 @@ from app.marketplace.market_check import (
     observed_on,
     public_check,
     read_checks,
+    shopify_image_url,
     shopify_variant_cents,
     write_checks,
 )
@@ -36,6 +37,24 @@ _BODY = json.dumps(
 def test_the_named_cut_is_the_price_and_the_smallest_cut_is_not() -> None:
     assert shopify_variant_cents(_BODY, 'Up to 12" width / Up to 12" length') == 1547
     assert shopify_variant_cents(_BODY, 'Up to 6" width / Up to 6" length') == 842
+
+
+def test_the_photograph_is_the_shops_and_a_failed_read_keeps_it() -> None:
+    body = json.dumps(
+        {"featured_image": "//cdn.shopify.com/s/files/1/bar.png", "variants": []}
+    ).encode()
+    assert shopify_image_url(body) == "https://cdn.shopify.com/s/files/1/bar.png"
+    other = json.dumps({"featured_image": "https://example.com/a.png"}).encode()
+    assert shopify_image_url(other) is None
+    source = load_sources()
+    listing = source.listings[0]
+    picture = "https://cdn.shopify.com/s/files/1/bar.png"
+    kept = apply_reading(None, source, listing, cents=1582, error=None, now=1, image=picture)
+    failed = apply_reading(kept, source, listing, cents=None, error="HTTPError", now=2)
+    assert failed["image"] == picture
+    shown = public_check(kept)
+    assert shown is not None
+    assert shown.image == picture
 
 
 def test_a_missing_cut_a_zero_and_a_string_are_not_a_price() -> None:

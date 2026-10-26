@@ -3348,6 +3348,17 @@
             "title": "Currency",
             "type": "string"
           },
+          "image": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image"
+          },
           "observed_on": {
             "title": "Observed On",
             "type": "string"
