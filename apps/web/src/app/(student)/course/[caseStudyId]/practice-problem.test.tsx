@@ -231,3 +231,53 @@ describe("PracticeProblem when the pool has nothing else to give", () => {
     expect(screen.queryByText(/Uploading opens once/i)).toBeNull();
   });
 });
+
+// decision 0109: a pool holding only the variant on screen serves it again
+// rather than nothing (a course-pack question has exactly one, marked manual).
+// That is the same non-answer as a dry pool, so it must read as one.
+describe("PracticeProblem when the pool repeats the variant on screen", () => {
+  function renderRepeat(startAttempt = vi.fn(async () => ({
+    attempt_id: 77,
+    variant_id: 12,
+    started_at: 1_700_000_000,
+  }))) {
+    const swap = vi.fn(async () => ({
+      variant: { variant_id: 12, body: "the same variant, again" },
+      figures: {},
+    }));
+    render(
+      <PracticeProblem
+        caseStudyId={2}
+        initialVariantId={12}
+        pricesMaterials={false}
+        swap={swap as never}
+        startAttempt={startAttempt as never}
+        openSolution={vi.fn(async () => true)}
+      >
+        <div>the first variant</div>
+      </PracticeProblem>,
+    );
+    return { swap };
+  }
+
+  it("keeps the problem and says why nothing changed", async () => {
+    const { swap } = renderRepeat();
+    fireEvent.click(screen.getByRole("button", { name: "New variant" }));
+    await waitFor(() => expect(swap).toHaveBeenCalledWith(2, 12));
+    expect(await screen.findByText(/only version of this problem/i)).toBeDefined();
+    expect(screen.getByText("the first variant")).toBeDefined();
+  });
+
+  it("keeps an attempt already started", async () => {
+    const { swap } = renderRepeat();
+    fireEvent.click(screen.getByRole("button", { name: "Start working" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: "Start working" })).toBeNull(),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "New variant" }));
+    await waitFor(() => expect(swap).toHaveBeenCalled());
+    await screen.findByText(/only version of this problem/i);
+    // Nothing changed, so the running attempt still applies.
+    expect(screen.queryByRole("button", { name: "Start working" })).toBeNull();
+  });
+});

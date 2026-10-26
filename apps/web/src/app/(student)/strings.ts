@@ -152,8 +152,7 @@ export const strings = {
     // Asking for another version when the pool has none to give (decision 0088).
     // Said plainly, because the alternative is a button that appears to do
     // nothing: the problem is unchanged and the student is owed the reason.
-    onlyVariant:
-      "This is the only version of this problem so far. Your professor's others are still being prepared.",
+    onlyVariant: "This is the only version of this problem so far.",
     // The "start attempt" moment (guide 4.2, decision 0058). Honest about what
     // it does and what it is for: the record is the student's own, and it is
     // what makes their effort visible rather than a stopwatch judging them.

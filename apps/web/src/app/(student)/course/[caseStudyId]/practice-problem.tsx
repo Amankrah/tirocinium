@@ -95,9 +95,16 @@ export function PracticeProblem({
     // the student wait (the 5.4 pool invariant). Swapping that in would replace
     // the problem with the identical text and, because the upload needs a
     // variant to file against, silently take the upload link away: a control
-    // that looks broken and removes an unrelated one as it goes. So keep what
-    // is on screen, and say why nothing changed.
-    if (next && next.variant.variant_id !== null) setCurrent(next);
+    // that looks broken and removes an unrelated one as it goes. A pool holding
+    // only the variant on screen answers with that same variant again (a
+    // course-pack question has exactly one), which is the same non-answer with
+    // an id attached (decision 0109). So keep what is on screen in both cases,
+    // and say why nothing changed.
+    const fresh =
+      next !== null &&
+      next.variant.variant_id !== null &&
+      next.variant.variant_id !== variantId;
+    if (fresh) setCurrent(next);
     else setPoolDry(true);
     setSwapping(false);
     // A fresh variant is a fresh problem, so the old attempt no longer applies:
@@ -105,7 +112,7 @@ export function PracticeProblem({
     // clearing it here means the student is never quietly credited for time
     // spent on a problem they swapped away from. A swap that found nothing
     // changed no problem, so it clears nothing either.
-    if (next && next.variant.variant_id !== null) setAttemptId(null);
+    if (fresh) setAttemptId(null);
   }
 
   async function onStart() {
