@@ -153,6 +153,8 @@ cited figure that drifts fails that test. Never import a value from a
 value): `TRAY_LIMIT` lives in the plain `_kit/limits.ts` for that reason. The
 prototype's name and group fields, named reviews and star ratings stay out.
 
+A shop's published price may sit beside a list price and may not become it (decision 0111, `app/marketplace/market_check.py`). `catalogue/bree-216/market-sources.json` maps a few stocked grades to one public product page and one named cut on it. The weekly timer runs `scripts/refresh_market_checks.py`, which writes `$TIRO_DATA_DIR/market-checks.json` and, when the page does not answer or no longer has that cut, keeps the previous cents. The project line shows that reading. `compute_quote` does not see it, the supplier fact sheet does not carry it, and the case-study line does not show it. Do not write it into `list_price_cents`.
+
 Deployment is one host, and the data layer decides that rather than taste
 (decision 0091). Shards are SQLite files with one writer each behind a
 serialized queue, Litestream ships their WAL, the worker holds jobs for hours,

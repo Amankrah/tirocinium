@@ -615,6 +615,22 @@ sudo systemctl restart tirocinium-api tirocinium-worker tirocinium-web
 Migrations apply per shard at startup, so restarting the API *is* the
 migration. Restart the worker too; it holds its own shard handles.
 
+The shop-price check (decision 0111) is a separate oneshot. Copy its unit and
+timer into `/etc/systemd/system/`, then enable the timer once. It reads public
+product pages and writes `/var/lib/tirocinium/data/market-checks.json`. It does
+not open a shard, so it can run while the API is up. Run it once after the
+units are installed so a line has a figure before the first Monday.
+
+```bash
+sudo install -o root -g root -m 0644 \
+  infra/deploy/tirocinium-market-check.service \
+  infra/deploy/tirocinium-market-check.timer \
+  /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now tirocinium-market-check.timer
+sudo systemctl start tirocinium-market-check.service
+```
+
 ---
 
 ## When something is wrong

@@ -2409,6 +2409,16 @@
             "title": "Lead Days",
             "type": "integer"
           },
+          "market_check": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MarketCheck"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "moq": {
             "title": "Moq",
             "type": "number"
@@ -2942,6 +2952,55 @@
           "mappings"
         ],
         "title": "MappingsIn",
+        "type": "object"
+      },
+      "MarketCheck": {
+        "description": "What the line page may show. No error text: a failed read is `stale`.",
+        "properties": {
+          "cents": {
+            "title": "Cents",
+            "type": "integer"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "observed_on": {
+            "title": "Observed On",
+            "type": "string"
+          },
+          "page": {
+            "title": "Page",
+            "type": "string"
+          },
+          "place": {
+            "title": "Place",
+            "type": "string"
+          },
+          "stale": {
+            "title": "Stale",
+            "type": "boolean"
+          },
+          "store": {
+            "title": "Store",
+            "type": "string"
+          },
+          "what": {
+            "title": "What",
+            "type": "string"
+          }
+        },
+        "required": [
+          "store",
+          "place",
+          "page",
+          "what",
+          "cents",
+          "currency",
+          "observed_on",
+          "stale"
+        ],
+        "title": "MarketCheck",
         "type": "object"
       },
       "MarketplaceOut": {

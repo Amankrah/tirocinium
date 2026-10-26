@@ -1,0 +1,19 @@
+[Unit]
+Description=Read public shop prices beside the catalogue list
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=tirocinium
+Group=tirocinium
+WorkingDirectory=/opt/tirocinium/app/apps/api
+EnvironmentFile=/etc/tirocinium/tirocinium.env
+ExecStart=/opt/tirocinium/app/apps/api/.venv/bin/python scripts/refresh_market_checks.py
+# Nine pages, a second apart, each allowed twenty seconds.
+TimeoutStartSec=300
+ReadWritePaths=/var/lib/tirocinium
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true

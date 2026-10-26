@@ -83,6 +83,8 @@ install -o root -g root -m 0644 \
   "$HERE/tirocinium-api.service" \
   "$HERE/tirocinium-worker.service" \
   "$HERE/tirocinium-web.service" \
+  "$HERE/tirocinium-market-check.service" \
+  "$HERE/tirocinium-market-check.timer" \
   /etc/systemd/system/
 install -o root -g root -m 0644 "$HERE/Caddyfile" /etc/caddy/Caddyfile
 systemctl daemon-reload
@@ -99,7 +101,7 @@ Provisioned. What is left, in order:
   2. Deploy the application into /opt/tirocinium/app (see the runbook).
   3. Restore the course data (see the runbook).
   4. systemctl enable --now litestream tirocinium-api tirocinium-worker \
-       tirocinium-web caddy
+       tirocinium-web tirocinium-market-check.timer caddy
   5. Sign up once, at https://tirocinium.sasellab.com/sign-up, as the one
      address on the allowlist. Nobody else can.
 

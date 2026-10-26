@@ -1413,7 +1413,10 @@ captured replies land. `scripts/smoke_supplier_reply.py` is the live lane and
 spends tokens; it is never part of the gate. Catalogue v2
 (`scripts/revise_catalogue_v2.py`) is derived from v1 and re-running the script
 must reproduce it byte for byte; `content.test.ts` and the unpinned-seat test
-read the newest shipped version rather than naming one.
+read the newest shipped version rather than naming one. The market check
+(decision 0111) is fixture-only: `app/marketplace/test_market_check.py` feeds a
+product document and a checks file, and never opens a shop page.
+`scripts/refresh_market_checks.py` is the live read and is not part of the gate.
 
 The five-PDF ingestion corpus lives at `crates/platform_core/pdf/corpus/` (PDFs
 under `pdfs/`, the spec in `README.md`, baselines in `expectations.json`). The

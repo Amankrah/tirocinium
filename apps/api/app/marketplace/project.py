@@ -22,6 +22,7 @@ reimplemented here.
 
 import hashlib
 import json
+import logging
 import sqlite3
 import time
 from datetime import UTC, datetime
@@ -55,6 +56,7 @@ from app.marketplace.listing import (
     select_lines,
     supplier_summaries,
 )
+from app.marketplace.market_check import checks_path, public_check, read_checks
 from app.marketplace.quoting import (
     MAX_LINES,
     ComputedLine,
@@ -70,6 +72,8 @@ from app.marketplace.supplier import (
     get_supplier_desk,
 )
 from app.problems import Problem
+
+log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/marketplace", tags=["project-marketplace"])
 
@@ -238,7 +242,14 @@ async def get_project_line(
     detail = line_detail(catalogue, list_prices(catalogue), sku)
     if detail is None:
         raise HTTPException(status_code=404, detail="Line not found.")
-    return detail
+    stored = read_checks(checks_path(shards.data_dir))
+    if stored is None:
+        log.warning("market checks file is unreadable; the line is shown without one")
+        return detail
+    shown = public_check(stored.get(sku, {}))
+    if shown is None:
+        return detail
+    return detail.model_copy(update={"market_check": shown})
 
 
 @router.post("/compare", response_model=CompareOut, responses=_ERRORS)

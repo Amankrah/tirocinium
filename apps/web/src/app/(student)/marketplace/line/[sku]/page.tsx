@@ -77,6 +77,34 @@ export default async function LinePage({ params }: { params: Promise<{ sku: stri
             {perLitre !== null ? (
               <p className="font-mono text-xs tabular-nums text-ink-muted">{p.perLitre(money(Math.round(perLitre)))}</p>
             ) : null}
+            {line.market_check ? (
+              <p className="text-sm text-ink-muted">
+                {line.market_check.stale
+                  ? p.shopReadingStale(
+                      line.market_check.store,
+                      line.market_check.place,
+                      line.market_check.observed_on,
+                      money(line.market_check.cents),
+                    )
+                  : p.shopReading(
+                      line.market_check.store,
+                      line.market_check.place,
+                      line.market_check.observed_on,
+                      money(line.market_check.cents),
+                    )}{" "}
+                {line.market_check.what}{" "}
+                {line.market_check.stale ? `${p.shopKept} ` : null}
+                {p.shopQuotation}{" "}
+                <a
+                  href={line.market_check.page}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline decoration-rule underline-offset-2 hover:text-ink focus-ring"
+                >
+                  {p.shopPage}
+                </a>
+              </p>
+            ) : null}
           </div>
           <ul className="flex flex-col gap-1.5 border-t border-rule-line pt-4 text-sm">
             <li className="flex items-start gap-2">

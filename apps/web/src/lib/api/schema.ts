@@ -2479,6 +2479,7 @@ export interface components {
             kg_per_unit: number;
             /** Lead Days */
             lead_days: number;
+            market_check?: components["schemas"]["MarketCheck"] | null;
             /** Moq */
             moq: number;
             /** Name */
@@ -2641,6 +2642,28 @@ export interface components {
         MappingsIn: {
             /** Mappings */
             mappings: components["schemas"]["MappingIn"][];
+        };
+        /**
+         * MarketCheck
+         * @description What the line page may show. No error text: a failed read is `stale`.
+         */
+        MarketCheck: {
+            /** Cents */
+            cents: number;
+            /** Currency */
+            currency: string;
+            /** Observed On */
+            observed_on: string;
+            /** Page */
+            page: string;
+            /** Place */
+            place: string;
+            /** Stale */
+            stale: boolean;
+            /** Store */
+            store: string;
+            /** What */
+            what: string;
         };
         /**
          * MarketplaceOut

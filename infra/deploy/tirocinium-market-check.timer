@@ -1,0 +1,10 @@
+[Unit]
+Description=Weekly shop-price check for the materials catalogue
+
+[Timer]
+OnCalendar=Mon *-*-* 11:00:00
+Persistent=true
+Unit=tirocinium-market-check.service
+
+[Install]
+WantedBy=timers.target

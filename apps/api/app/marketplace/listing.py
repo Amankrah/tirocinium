@@ -35,6 +35,7 @@ from app.marketplace.indices import (
     specific_strength,
     strength_per_dollar,
 )
+from app.marketplace.market_check import MarketCheck
 
 DEFAULT_LIMIT = 24
 MAX_LIMIT = 96
@@ -127,6 +128,10 @@ class LineDetail(LineSummary):
     # Lines a buyer would weigh against this one: the same category, or a
     # shared attribute, in catalogue order. Alternatives, never a verdict.
     related: list[LineSummary] = []
+    # A shop's published price for a comparable cut of this grade. Absent when
+    # no page is mapped, or when one has never been read. It is not the price
+    # a quotation uses (decision 0111).
+    market_check: MarketCheck | None = None
 
 
 class LineListOut(BaseModel):

@@ -60,6 +60,10 @@ class ShardManager:
         self._directory: _Shard | None = None
         self._courses: dict[int, _Shard] = {}
 
+    @property
+    def data_dir(self) -> Path:
+        return self._config.data_dir
+
     # ------------------------------------------------------------ lifecycle
 
     async def __aenter__(self) -> Self:
