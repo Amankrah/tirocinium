@@ -85,18 +85,15 @@ export default async function LinePage({ params }: { params: Promise<{ sku: stri
                       line.market_check.place,
                       line.market_check.observed_on,
                       money(line.market_check.cents),
-                      money(line.market_check.with_tax_cents),
                     )
                   : p.shopReading(
                       line.market_check.store,
                       line.market_check.place,
                       line.market_check.observed_on,
                       money(line.market_check.cents),
-                      money(line.market_check.with_tax_cents),
                     )}{" "}
                 {line.market_check.what}{" "}
                 {line.market_check.stale ? `${p.shopKept} ` : null}
-                {p.shopQuotation}{" "}
                 <a
                   href={line.market_check.page}
                   target="_blank"

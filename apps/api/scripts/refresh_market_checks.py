@@ -73,6 +73,8 @@ def main() -> int:
             pages[listing.url] = exc
 
     now = int(time.time())
+    mapped = {item.sku for item in source.listings}
+    stored = {sku: row for sku, row in stored.items() if sku in mapped}
     for listing in source.listings:
         got = pages[listing.url]
         cents: int | None

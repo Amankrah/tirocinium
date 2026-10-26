@@ -56,7 +56,7 @@ from app.marketplace.listing import (
     select_lines,
     supplier_summaries,
 )
-from app.marketplace.market_check import checks_path, public_check, read_checks
+from app.marketplace.market_check import checks_path, load_sources, public_check, read_checks
 from app.marketplace.quoting import (
     MAX_LINES,
     ComputedLine,
@@ -242,6 +242,8 @@ async def get_project_line(
     detail = line_detail(catalogue, list_prices(catalogue), sku)
     if detail is None:
         raise HTTPException(status_code=404, detail="Line not found.")
+    if sku not in {item.sku for item in load_sources().listings}:
+        return detail
     stored = read_checks(checks_path(shards.data_dir))
     if stored is None:
         log.warning("market checks file is unreadable; the line is shown without one")

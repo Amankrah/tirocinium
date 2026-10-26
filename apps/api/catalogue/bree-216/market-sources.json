@@ -4,81 +4,25 @@
   "currency": "CAD",
   "listings": [
     {
-      "sku": "LMS-A36-PL06",
-      "url": "https://metalsrus.ca/products/carbon-steel-sheet-14ga-075-x-cut-a36-hr.js",
-      "page": "https://metalsrus.ca/products/carbon-steel-sheet-14ga-075-x-cut-a36-hr",
-      "variant": "Up to 12\" width / Up to 12\" length",
-      "what": "14GA A36 hot-rolled sheet, a panel up to 12 × 12 in. This line is 6 mm plate."
-    },
-    {
-      "sku": "LMS-A36-PL12",
-      "url": "https://metalsrus.ca/products/carbon-steel-sheet-14ga-075-x-cut-a36-hr.js",
-      "page": "https://metalsrus.ca/products/carbon-steel-sheet-14ga-075-x-cut-a36-hr",
-      "variant": "Up to 12\" width / Up to 12\" length",
-      "what": "14GA A36 hot-rolled sheet, a panel up to 12 × 12 in. This line is 12 mm plate."
-    },
-    {
-      "sku": "LMS-A36-PL25",
-      "url": "https://metalsrus.ca/products/carbon-steel-sheet-14ga-075-x-cut-a36-hr.js",
-      "page": "https://metalsrus.ca/products/carbon-steel-sheet-14ga-075-x-cut-a36-hr",
-      "variant": "Up to 12\" width / Up to 12\" length",
-      "what": "14GA A36 hot-rolled sheet, a panel up to 12 × 12 in. This line is 25 mm plate."
-    },
-    {
       "sku": "LMS-1018-CD",
       "url": "https://metalsrus.ca/products/carbon-round-bar-1-1018-cf.js",
       "page": "https://metalsrus.ca/products/carbon-round-bar-1-1018-cf",
       "variant": "12\" length",
-      "what": "1 in 1018 cold-finished round, 12 in long. This line is a 25 mm bar, 3.66 m long."
-    },
-    {
-      "sku": "LMS-4140-AN",
-      "url": "https://metalsrus.ca/products/steel-round-bar-3-4-4140-hr-ann.js",
-      "page": "https://metalsrus.ca/products/steel-round-bar-3-4-4140-hr-ann",
-      "variant": "12\" length",
-      "what": "3/4 in 4140 hot-rolled annealed round, 12 in long. This line is a 50 mm bar."
+      "what": "12 in length."
     },
     {
       "sku": "LMS-6061-BAR",
       "url": "https://metalsrus.ca/products/aluminum-round-bar-2-6061-t6.js",
       "page": "https://metalsrus.ca/products/aluminum-round-bar-2-6061-t6",
       "variant": "12\" length",
-      "what": "2 in 6061-T6 round, 12 in long. This line is a 50 mm bar, 3.66 m long."
-    },
-    {
-      "sku": "LMS-6061-PL06",
-      "url": "https://metalsrus.ca/products/aluminum-flat-bar-1-4-x-4-6061-t6.js",
-      "page": "https://metalsrus.ca/products/aluminum-flat-bar-1-4-x-4-6061-t6",
-      "variant": "12\" length",
-      "what": "1/4 in × 4 in 6061-T6 flat bar, 12 in long. This line is 6 mm plate."
+      "what": "12 in length."
     },
     {
       "sku": "LMS-6061-TUBE",
       "url": "https://metalsrus.ca/products/aluminum-square-tube-2-x-1-8-6061-t6-round-corner.js",
       "page": "https://metalsrus.ca/products/aluminum-square-tube-2-x-1-8-6061-t6-round-corner",
       "variant": "12\" length",
-      "what": "2 in × 1/8 in 6061-T6 square tube, 12 in long. This line is 50 × 50 × 3.2 mm, 4.9 m long."
-    },
-    {
-      "sku": "LMS-GALV-SH10",
-      "url": "https://metalsrus.ca/products/galvanized-steel-sheet-18ga-x-052-x-48-a653.js",
-      "page": "https://metalsrus.ca/products/galvanized-steel-sheet-18ga-x-052-x-48-a653",
-      "variant": "Up to 12\" width / Up to 12\" length",
-      "what": "18GA galvanised A653 sheet, a panel up to 12 × 12 in. This line is 1.0 mm G90 sheet."
-    },
-    {
-      "sku": "BSA-304-2B",
-      "url": "https://metalsrus.ca/products/stainless-sheets-18ga-048-x-cut-304-2b.js",
-      "page": "https://metalsrus.ca/products/stainless-sheets-18ga-048-x-cut-304-2b",
-      "variant": "Up to 12\" width / Up to 12\" length",
-      "what": "18GA 304 sheet, 2B finish, a panel up to 12 × 12 in. This line is 1.5 mm sheet."
-    },
-    {
-      "sku": "BSA-316-2B",
-      "url": "https://metalsrus.ca/products/stainless-sheets-1-8-x-cut-316-2b.js",
-      "page": "https://metalsrus.ca/products/stainless-sheets-1-8-x-cut-316-2b",
-      "variant": "Up to 12\" width / Up to 12\" length",
-      "what": "1/8 in 316 sheet, 2B finish, a panel up to 12 × 12 in. This line is 1.5 mm sheet."
+      "what": "12 in length."
     }
   ]
 }

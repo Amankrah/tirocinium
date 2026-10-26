@@ -49,7 +49,7 @@ def test_a_missing_cut_a_zero_and_a_string_are_not_a_price() -> None:
 
 def test_a_failed_read_keeps_the_previous_figure() -> None:
     source = load_sources()
-    listing = next(item for item in source.listings if item.sku == PLATE)
+    listing = source.listings[0]
     kept = apply_reading(None, source, listing, cents=1547, error=None, now=1_700_000_000)
     failed = apply_reading(
         kept, source, listing, cents=None, error="cut not on the page", now=1_700_000_100
@@ -111,50 +111,50 @@ def test_the_line_keeps_its_list_price_beside_the_shop_reading(
 ) -> None:
     world: World = build(client, storage, tmp_data)
     catalogue = load_catalogue("bree-216", 1)
-    listed = catalogue.line(PLATE)
+    bar = "LMS-1018-CD"
+    listed = catalogue.line(bar)
     assert listed is not None
-    listing = next(item for item in load_sources().listings if item.sku == PLATE)
+    listing = next(item for item in load_sources().listings if item.sku == bar)
     moment = int(datetime(2026, 10, 26, 16, 0, tzinfo=UTC).timestamp())
-    write_checks(
-        checks_path(tmp_data),
-        {
-            PLATE: {
-                "store": "Metals 'R' Us",
-                "place": "Dartmouth, NS",
-                "page": listing.page,
-                "what": listing.what,
-                "cents": 1547,
-                "currency": "CAD",
-                "observed_at": moment,
-                "last_attempt_at": moment,
-                "last_error": None,
-            }
-        },
-    )
+    reading = {
+        "store": "Metals 'R' Us",
+        "place": "Dartmouth, NS",
+        "page": listing.page,
+        "what": listing.what,
+        "cents": 1582,
+        "currency": "CAD",
+        "observed_at": moment,
+        "last_attempt_at": moment,
+        "last_error": None,
+    }
+    write_checks(checks_path(tmp_data), {bar: reading, PLATE: reading})
 
-    detail = client.get(f"/api/v1/marketplace/lines/{PLATE}", headers=bearer(world.token))
+    detail = client.get(f"/api/v1/marketplace/lines/{bar}", headers=bearer(world.token))
     assert detail.status_code == 200, detail.text
     body = detail.json()
     assert body["price_cents"] == listed.list_price_cents
-    assert body["market_check"]["cents"] == 1547
-    assert body["market_check"]["with_tax_cents"] == cents_with_taxes(
-        1547, [tax.rate for tax in catalogue.taxes]
-    )
+    assert body["market_check"]["cents"] == 1582
+    assert body["market_check"]["what"] == "12 in length."
     assert body["market_check"]["currency"] == "CAD"
     assert body["market_check"]["observed_on"] == "26 Oct 2026"
     assert body["market_check"]["stale"] is False
     assert "last_error" not in body["market_check"]
 
+    # A stored reading for a line the shop does not sell in this section is not shown.
+    plate = client.get(f"/api/v1/marketplace/lines/{PLATE}", headers=bearer(world.token))
+    assert plate.status_code == 200, plate.text
+    assert plate.json()["market_check"] is None
+
     quoted = client.post(
         "/api/v1/marketplace/quotation",
-        json={"lines": [{"sku": PLATE, "quantity": 1}]},
+        json={"lines": [{"sku": bar, "quantity": 1}]},
         headers=bearer(world.token),
     )
     assert quoted.status_code == 200, quoted.text
     assert quoted.json()["lines"][0]["unit_price_cents"] == listed.list_price_cents
 
     seeded = client.get(
-        f"/api/v1/variants/{world.variant_id}/marketplace/lines/{PLATE}",
+        f"/api/v1/variants/{world.variant_id}/marketplace/lines/{bar}",
         headers=bearer(world.token),
     )
     assert seeded.status_code == 200, seeded.text
