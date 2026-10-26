@@ -1,13 +1,11 @@
 "use client";
 
-// The shop's product photograph when we have matched the line to that product.
-// A missing address, or a picture that does not load, falls back to the drawn
-// swatch. next/image is the one image path (guide 5); the host is allowlisted
-// in next.config.ts.
+// The shop's product photograph when the line is that product. Otherwise the
+// material photograph, and the drawn swatch when there is none (decision 0115).
 import Image from "next/image";
 import { useState } from "react";
 
-import { MaterialSwatch } from "./material-swatch";
+import { MaterialTile, PhotoCredit } from "./material-tile";
 
 export function LinePicture({
   image,
@@ -26,7 +24,18 @@ export function LinePicture({
 }) {
   const [failed, setFailed] = useState(false);
   if (!image || failed) {
-    return <MaterialSwatch swatch={swatch} category={category} label={category} size="hero" />;
+    return (
+      <figure className="flex flex-col gap-1.5">
+        <MaterialTile
+          swatch={swatch}
+          category={category}
+          label={category}
+          size="hero"
+          className="rounded-lg"
+        />
+        <PhotoCredit swatch={swatch} />
+      </figure>
+    );
   }
   return (
     <figure className="overflow-hidden rounded-lg border border-ink/10 bg-white">

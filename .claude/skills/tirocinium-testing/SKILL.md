@@ -1456,7 +1456,9 @@ read the newest shipped version rather than naming one. The market check
 (decision 0111) is fixture-only: `app/marketplace/test_market_check.py` feeds a
 product document and a checks file, and never opens a shop page. The photograph
 is the `featured_image` on that same document, and only a `cdn.shopify.com`
-address is kept.
+address is kept. The material photographs (decision 0115) are files under
+`apps/web/public/materials/`, checked by `material-photos.test.ts`, and the
+test never fetches them.
 `scripts/refresh_market_checks.py` is the live read and is not part of the gate.
 
 The five-PDF ingestion corpus lives at `crates/platform_core/pdf/corpus/` (PDFs

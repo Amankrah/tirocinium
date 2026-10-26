@@ -13,7 +13,7 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Comparison } from "@/lib/api/marketplace";
-import { MaterialSwatch } from "./material-swatch";
+import { MaterialTile, PhotoCredit } from "./material-tile";
 import { strings } from "../strings";
 
 function ColumnPicture({
@@ -30,7 +30,10 @@ function ColumnPicture({
   }
   if (!tile) return null;
   return (
-    <MaterialSwatch swatch={tile.swatch} category={tile.category} size="thumb" className="mb-2 min-w-24" />
+    <>
+      <MaterialTile swatch={tile.swatch} category={tile.category} size="thumb" className="mb-2 min-w-24" />
+      <PhotoCredit swatch={tile.swatch} className="sr-only" />
+    </>
   );
 }
 

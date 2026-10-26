@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import type { LineSummary } from "@/lib/api/marketplace";
 import { lead, money } from "@/lib/money";
 import { ImpactMarks } from "../../_marketplace/impact-marks";
-import { MaterialSwatch } from "../../_marketplace/material-swatch";
+import { MaterialTile, PhotoCredit } from "../../_marketplace/material-tile";
 import { strings } from "../../strings";
 import { LineActions } from "./controls";
 
@@ -39,7 +39,7 @@ export function LineCard({ line }: { line: LineSummary }) {
             />
           </span>
         ) : (
-          <MaterialSwatch
+          <MaterialTile
             swatch={line.swatch}
             category={line.category}
             label={line.category}
@@ -48,6 +48,9 @@ export function LineCard({ line }: { line: LineSummary }) {
           />
         )}
       </Link>
+      {line.image ? null : (
+        <PhotoCredit swatch={line.swatch} className="truncate text-[0.65rem] text-ink-muted" />
+      )}
       <div className="flex flex-col gap-1">
         <span className="flex items-center justify-between gap-2 text-xs text-ink-muted">
           <span className="truncate">{line.supplier_name}</span>

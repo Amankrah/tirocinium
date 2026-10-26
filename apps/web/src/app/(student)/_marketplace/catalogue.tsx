@@ -22,7 +22,7 @@ import { Icon } from "@/components/ui/icon";
 import type { LineList, LineQuery, LineSummary, Result } from "@/lib/api/marketplace";
 import { lead, money } from "@/lib/money";
 import { ImpactMarks } from "./impact-marks";
-import { MaterialSwatch } from "./material-swatch";
+import { MaterialTile, PhotoCredit } from "./material-tile";
 import { strings } from "../strings";
 
 const PAGE = 24;
@@ -251,13 +251,14 @@ export function LineCard({
   const p = strings.project;
   return (
     <li className="flex flex-col gap-3 rounded-lg border border-rule-line bg-surface p-4 shadow-raised transition-[border-color,box-shadow] duration-(--motion-duration) ease-(--motion-ease) hover:border-ink hover:shadow-floating">
-      <MaterialSwatch
+      <MaterialTile
         swatch={line.swatch}
         category={line.category}
         label={line.category}
         size="tile"
         className="-mx-4 -mt-4 w-auto rounded-t-lg rounded-b-none border-0 border-b border-rule-line"
       />
+      <PhotoCredit swatch={line.swatch} className="truncate text-[0.65rem] text-ink-muted" />
       <div className="flex flex-col gap-1">
         <span className="flex items-center justify-between gap-2 text-xs text-ink-muted">
           <span className="truncate">{line.supplier_name}</span>

@@ -406,6 +406,7 @@ export const strings = {
     shopKept: "The page did not answer on the last check, so this figure was kept.",
     shopPage: "Open the shop page",
     shopPhoto: (store: string) => `Photograph: ${store}`,
+    photoCredit: (author: string) => `Photograph: ${author}`,
     ships: (days: string) => `ships in ${days}`,
     cutFee: (fee: string) => `cut-to-length fee ${fee} per cut`,
     breaks: "Volume price breaks",
