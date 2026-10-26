@@ -413,7 +413,7 @@ export const strings = {
       "Lower is better on the carbon-weighted indices, and a negative value is better than zero.",
     impactHeading: "Environmental impact",
     impactLede:
-      "Cradle-to-gate, per kilogram. The band is the lecture scale, computed with the figure so every line is read the same way.",
+      "Cradle-to-gate, per kilogram. The word under each figure means the same thing on every line.",
     impactProcessLede:
       "This is a process, so the footprint is per unit of process rather than per kilogram. A process has no water figure.",
     impactEnergy: "Embodied energy",

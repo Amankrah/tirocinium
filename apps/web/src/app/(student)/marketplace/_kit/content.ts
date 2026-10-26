@@ -85,7 +85,7 @@ export const IMPACT = {
     ],
   ] as [string, string][],
   bands:
-    "Each per-kilogram figure carries a band from the lecture scale: very low, low, moderate, high, or very high. Carbon below zero is carbon negative. The band is computed with the figure, so the line, the comparison and this page cannot disagree.",
+    "The word under a per-kilogram figure is very low, low, moderate, high, or very high, with the same cutoffs on every line. Carbon below zero is called carbon negative. Recovery runs from very poor to excellent.",
   quote:
     "A quotation multiplies the per-unit figure by the quantity. A metre of tube is not a kilogram, and an hour of machining has no mass, so a process states energy and carbon per unit of process and leaves water blank rather than as zero.",
   freight:
