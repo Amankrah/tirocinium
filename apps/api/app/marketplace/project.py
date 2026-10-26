@@ -246,7 +246,7 @@ async def get_project_line(
     if stored is None:
         log.warning("market checks file is unreadable; the line is shown without one")
         return detail
-    shown = public_check(stored.get(sku, {}))
+    shown = public_check(stored.get(sku, {}), [tax.rate for tax in catalogue.taxes])
     if shown is None:
         return detail
     return detail.model_copy(update={"market_check": shown})

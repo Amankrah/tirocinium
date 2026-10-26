@@ -2646,6 +2646,10 @@ export interface components {
         /**
          * MarketCheck
          * @description What the line page may show. No error text: a failed read is `stale`.
+         *
+         *     `cents` is the shop's published price, before tax. `with_tax_cents` is that
+         *     price plus the catalogue's own taxes, rounded the way a quotation rounds
+         *     them. The taxed figure is not a price a quotation uses.
          */
         MarketCheck: {
             /** Cents */
@@ -2664,6 +2668,8 @@ export interface components {
             store: string;
             /** What */
             what: string;
+            /** With Tax Cents */
+            with_tax_cents: number;
         };
         /**
          * MarketplaceOut

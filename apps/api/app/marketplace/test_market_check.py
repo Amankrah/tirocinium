@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from app.marketplace.catalogue import load_catalogue
 from app.marketplace.market_check import (
     apply_reading,
+    cents_with_taxes,
     checks_path,
     load_sources,
     observed_on,
@@ -79,6 +80,11 @@ def test_an_unreadable_file_is_not_an_empty_one(tmp_path: Path) -> None:
     assert read_checks(tmp_path / "absent.json") == {}
 
 
+def test_quebec_tax_is_added_to_the_published_price_and_not_stacked() -> None:
+    # GST 5% and QST 9.975%, each on the pre-tax cents. 1547 is the A36 panel.
+    assert cents_with_taxes(1547, (0.05, 0.09975)) == 1778
+
+
 def test_the_day_is_named_in_montreal() -> None:
     # 16:00 UTC is noon in Toronto in October, the same calendar day.
     moment = int(datetime(2026, 10, 26, 16, 0, tzinfo=UTC).timestamp())
@@ -131,6 +137,10 @@ def test_the_line_keeps_its_list_price_beside_the_shop_reading(
     body = detail.json()
     assert body["price_cents"] == listed.list_price_cents
     assert body["market_check"]["cents"] == 1547
+    assert body["market_check"]["with_tax_cents"] == cents_with_taxes(
+        1547, [tax.rate for tax in catalogue.taxes]
+    )
+    assert body["market_check"]["currency"] == "CAD"
     assert body["market_check"]["observed_on"] == "26 Oct 2026"
     assert body["market_check"]["stale"] is False
     assert "last_error" not in body["market_check"]

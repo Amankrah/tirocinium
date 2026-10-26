@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import os
+from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -39,13 +40,19 @@ class MarketSources(BaseModel):
 
 
 class MarketCheck(BaseModel):
-    """What the line page may show. No error text: a failed read is `stale`."""
+    """What the line page may show. No error text: a failed read is `stale`.
+
+    `cents` is the shop's published price, before tax. `with_tax_cents` is that
+    price plus the catalogue's own taxes, rounded the way a quotation rounds
+    them. The taxed figure is not a price a quotation uses.
+    """
 
     store: str
     place: str
     page: str
     what: str
     cents: int
+    with_tax_cents: int
     currency: str
     observed_on: str
     stale: bool
@@ -158,12 +165,21 @@ def apply_reading(
     }
 
 
+def cents_with_taxes(cents: int, rates: Sequence[float]) -> int:
+    """Published cents plus each catalogue tax, each on the pre-tax amount.
+
+    GST and QST are not stacked on one another. `round` is the same function
+    a quotation uses, so the two cannot disagree about a cent.
+    """
+    return cents + sum(round(cents * rate) for rate in rates)
+
+
 def observed_on(timestamp: int) -> str:
     day = datetime.fromtimestamp(timestamp, _ZONE)
     return f"{day.day} {day.strftime('%b %Y')}"
 
 
-def public_check(record: dict[str, object]) -> MarketCheck | None:
+def public_check(record: dict[str, object], rates: Sequence[float] = ()) -> MarketCheck | None:
     """The reading a line page may show, or None when no price was ever kept."""
     cents = record.get("cents")
     observed = record.get("observed_at")
@@ -178,6 +194,7 @@ def public_check(record: dict[str, object]) -> MarketCheck | None:
             page=str(record["page"]),
             what=str(record["what"]),
             cents=cents,
+            with_tax_cents=cents_with_taxes(cents, rates),
             currency=str(record["currency"]),
             observed_on=observed_on(observed),
             stale=record.get("last_error") not in (None, ""),

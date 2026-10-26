@@ -390,12 +390,12 @@ export const strings = {
     perKgDetail: (perKg: string, kgPerUnit: string, unit: string) =>
       `≈ ${perKg} per kg · ${kgPerUnit} kg per ${unit}`,
     perLitre: (price: string) => `≈ ${price} per litre of material`,
-    shopReading: (store: string, place: string, when: string, price: string) =>
-      `${store}, ${place}, on ${when}: ${price}.`,
-    shopReadingStale: (store: string, place: string, when: string, price: string) =>
-      `${store}, ${place}, last answered on ${when}: ${price}.`,
+    shopReading: (store: string, place: string, when: string, beforeTax: string, withTax: string) =>
+      `${store}, ${place}, on ${when}: ${beforeTax} CAD before tax, ${withTax} CAD with GST and QST.`,
+    shopReadingStale: (store: string, place: string, when: string, beforeTax: string, withTax: string) =>
+      `${store}, ${place}, last answered on ${when}: ${beforeTax} CAD before tax, ${withTax} CAD with GST and QST.`,
     shopKept: "The page did not answer on the last check, so this figure was kept.",
-    shopQuotation: "The catalogue price above is the one a quotation uses.",
+    shopQuotation: "The catalogue price above is before tax, and it is the one a quotation uses.",
     shopPage: "Open the shop page",
     ships: (days: string) => `ships in ${days}`,
     cutFee: (fee: string) => `cut-to-length fee ${fee} per cut`,

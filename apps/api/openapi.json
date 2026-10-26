@@ -2955,7 +2955,7 @@
         "type": "object"
       },
       "MarketCheck": {
-        "description": "What the line page may show. No error text: a failed read is `stale`.",
+        "description": "What the line page may show. No error text: a failed read is `stale`.\n\n`cents` is the shop's published price, before tax. `with_tax_cents` is that\nprice plus the catalogue's own taxes, rounded the way a quotation rounds\nthem. The taxed figure is not a price a quotation uses.",
         "properties": {
           "cents": {
             "title": "Cents",
@@ -2988,6 +2988,10 @@
           "what": {
             "title": "What",
             "type": "string"
+          },
+          "with_tax_cents": {
+            "title": "With Tax Cents",
+            "type": "integer"
           }
         },
         "required": [
@@ -2996,6 +3000,7 @@
           "page",
           "what",
           "cents",
+          "with_tax_cents",
           "currency",
           "observed_on",
           "stale"
