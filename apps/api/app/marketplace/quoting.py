@@ -16,9 +16,17 @@ quantity, because a student may genuinely want 12.5 metres of pipe.
 
 from dataclasses import dataclass
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from app.marketplace.catalogue import UNIT_LABELS, Catalogue, CatalogueLine
+from app.marketplace.cutting import (
+    MAX_PIECES,
+    CannotCut,
+    ComputedPiece,
+    CutOrder,
+    PieceIn,
+    resolve_pieces,
+)
 from app.marketplace.impact import (
     carbon_per_unit,
     embodied_energy_per_unit,
@@ -31,12 +39,21 @@ MAX_CUTS = 50
 
 
 class QuoteLineIn(BaseModel):
-    """One basket line as the student asked for it."""
+    """One basket line as the student asked for it: a quantity in the unit
+    of sale, or, on a form sold cut to size, the pieces by their dimensions
+    (decision 0114), from which the quantity is derived."""
 
     sku: str = Field(min_length=1, max_length=64)
-    quantity: float = Field(gt=0, le=1_000_000)
+    quantity: float = Field(default=0, ge=0, le=1_000_000)
     cut_to_length: bool = False
     cut_count: int = Field(default=1, ge=1, le=MAX_CUTS)
+    pieces: list[PieceIn] = Field(default_factory=list, max_length=MAX_PIECES)
+
+    @model_validator(mode="after")
+    def _quantity_or_pieces(self) -> "QuoteLineIn":
+        if not self.pieces and self.quantity <= 0:
+            raise ValueError("a line needs a quantity or a list of pieces")
+        return self
 
 
 class ComputedLine(BaseModel):
@@ -62,6 +79,13 @@ class ComputedLine(BaseModel):
     cut_fee_cents: int
     mass_grams: int
     lead_days: int
+    # A cut-to-size line (decision 0114): the pieces as ordered, how many stock
+    # lengths or sheets they consume, what is left of the last, and the
+    # tolerance the shop holds. Empty and null on a line bought by the unit.
+    pieces: list[ComputedPiece] = Field(default_factory=list)
+    stock_lengths: int | None = None
+    remnant_mm: float | None = None
+    tolerance_mm: float | None = None
     # This line's contribution to the basket footprint, quantity times the
     # per-unit figure. Null when the line does not publish one.
     embodied_energy_mj: float | None = None
@@ -151,27 +175,45 @@ def compute_quote(
         supplier = catalogue.supplier(line.supplier)
         unit_label = UNIT_LABELS.get(line.unit, line.unit)
 
-        quantity = request.quantity
-        if quantity < line.moq:
-            quantity = line.moq
-            notices.append(
-                f"{line.sku}: quantity raised to the {_number(line.moq)} "
-                f"{unit_label} minimum order.",
-            )
+        # Pieces, when given, decide the quantity and the cuts; the minimum
+        # order on the uncut stock is waived, because a cut piece has a
+        # minimum cut instead (decision 0114). A piece the shop would not cut
+        # is a notice and the line is left off, as an unknown SKU is.
+        order: CutOrder | None = None
+        if request.pieces:
+            try:
+                order = resolve_pieces(line, request.pieces)
+            except CannotCut as reason:
+                notices.append(f"{line.sku}: {reason}")
+                continue
+            notices.extend(order.notices)
+            quantity = order.quantity
+            cut_to_length = True
+            cut_count = order.cut_count
+        else:
+            quantity = request.quantity
+            cut_to_length = request.cut_to_length and line.cut_fee_cents > 0
+            cut_count = request.cut_count
+            if quantity < line.moq:
+                quantity = line.moq
+                notices.append(
+                    f"{line.sku}: quantity raised to the {_number(line.moq)} "
+                    f"{unit_label} minimum order.",
+                )
 
         price = prices[line.sku]
         percent = break_percent(catalogue, line, quantity)
         unit_price = round(price * (100 - percent) / 100)
         extended = round(unit_price * quantity)
-        line_cut_fee = (
-            line.cut_fee_cents * request.cut_count
-            if request.cut_to_length and line.cut_fee_cents > 0
-            else 0
-        )
-        if request.cut_to_length and line.cut_fee_cents == 0:
-            notices.append(
-                f"{line.sku} is not sold cut to length, so no cutting charge applies.",
-            )
+        if order is not None:
+            assert line.geometry is not None and line.geometry.cut is not None
+            line_cut_fee = line.geometry.cut.fee_cents * cut_count
+        else:
+            line_cut_fee = line.cut_fee_cents * cut_count if cut_to_length else 0
+            if request.cut_to_length and line.cut_fee_cents == 0:
+                notices.append(
+                    f"{line.sku} is not sold cut to length, so no cutting charge applies.",
+                )
         line_mass = round(line.kg_per_unit * quantity * 1000)
         energy, carbon, water = line_footprint(line, quantity)
 
@@ -191,20 +233,24 @@ def compute_quote(
                 spec=line.spec,
                 unit=line.unit,
                 unit_label=unit_label,
-                requested_quantity=request.quantity,
+                requested_quantity=quantity if order is not None else request.quantity,
                 quantity=quantity,
                 list_price_cents=price,
                 unit_price_cents=unit_price,
                 break_percent=percent,
                 extended_cents=extended,
-                cut_to_length=request.cut_to_length and line.cut_fee_cents > 0,
-                cut_count=request.cut_count,
+                cut_to_length=cut_to_length,
+                cut_count=cut_count,
                 cut_fee_cents=line_cut_fee,
                 mass_grams=line_mass,
                 lead_days=line.lead_days,
                 embodied_energy_mj=energy,
                 carbon_kg=carbon,
                 water_l=water,
+                pieces=order.pieces if order is not None else [],
+                stock_lengths=order.stock_lengths if order is not None else None,
+                remnant_mm=order.remnant_mm if order is not None else None,
+                tolerance_mm=order.tolerance_mm if order is not None else None,
             ),
         )
 

@@ -363,6 +363,23 @@ def _priced_block(priced: ComputedQuote) -> list[str]:
             )
             + f"; goods {money(item.extended_cents)}."
         )
+        if item.pieces:
+            out.append(
+                "Cut to size: "
+                + "; ".join(
+                    f"{piece.count} \u00d7 {piece.length_mm:g}"
+                    + (f" \u00d7 {piece.width_mm:g}" if piece.width_mm else "")
+                    + f" mm ({piece.each_mass_grams / 1000:g} kg each)"
+                    for piece in item.pieces
+                )
+                + (
+                    f"; from {item.stock_lengths} stock length(s), "
+                    f"{item.remnant_mm / 1000:g} m left on the last"
+                    if item.stock_lengths is not None and item.remnant_mm is not None
+                    else ""
+                )
+                + f"; tolerance \u00b1{item.tolerance_mm:g} mm."
+            )
         if item.cut_fee_cents:
             out.append(f"Cutting {money(item.cut_fee_cents)} for {item.cut_count} cuts.")
         out.append(f"Mass {item.mass_grams / 1000:g} kg; lead {item.lead_days} working days.")

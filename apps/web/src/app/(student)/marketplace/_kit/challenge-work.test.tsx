@@ -216,7 +216,7 @@ describe("working a challenge", () => {
       expect(commit).toHaveBeenCalledWith("brief:bree-216:brief-01", {
         candidates: ["LMS-A36-PL06", "BSA-316L-2B"],
         weights: { cost: 3 },
-        lines: [{ sku: "LMS-A36-PL06", quantity: 40, cut_to_length: false, cut_count: 1 }],
+        lines: [{ sku: "LMS-A36-PL06", quantity: 40, cut_to_length: false, cut_count: 1, pieces: [] }],
       }),
     );
     expect(JSON.stringify(commit.mock.calls[0]![1])).not.toMatch(/price|cents/);

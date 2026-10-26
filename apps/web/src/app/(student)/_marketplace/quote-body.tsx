@@ -55,7 +55,9 @@ export function QuoteBody({
   return (
     <>
       <ul className="flex flex-col divide-y divide-rule-line">
-        {lines.map((line) => (
+        {lines.map((line) => {
+          const pieces = line.pieces ?? [];
+          return (
           <li key={line.sku} className="flex flex-col gap-2 py-4 first:pt-0">
             <div className="flex items-baseline justify-between gap-3">
               <span className="font-medium">{line.name}</span>
@@ -67,7 +69,35 @@ export function QuoteBody({
               {line.spec} · <span className="font-mono">{line.sku}</span>
             </span>
 
-            {!editable ? (
+            {pieces.length > 0 ? (
+              // Ordered by the piece (decision 0114): the pieces are the
+              // order, and the quantity is what the server said they come to.
+              <span className="font-mono text-xs tabular-nums text-ink-muted">
+                {pieces
+                  .map((piece) => `${s.pieceLine(piece.count, piece.length_mm, piece.width_mm ?? null)} (${s.pieceEach(mass(piece.each_mass_grams))})`)
+                  .join(" · ")}
+                {` · ${line.quantity} ${line.unit_label} · ${money(line.unit_price_cents)}`}
+                {line.break_percent > 0 ? ` · −${line.break_percent} %` : ""}
+                {` · ${s.cutsFixed(line.cut_count)}`}
+                {line.stock_lengths != null
+                  ? ` · ${s.stockUsed(line.stock_lengths, pieces[0]?.width_mm != null ? "sheet" : "length", line.remnant_mm ?? null)}`
+                  : ""}
+                {line.tolerance_mm != null ? ` · ${s.tolerance(line.tolerance_mm)}` : ""}
+              </span>
+            ) : null}
+            {pieces.length > 0 && editable ? (
+              <div className="flex pt-1">
+                <Button
+                  variant="quiet"
+                  size="sm"
+                  className="ml-auto text-ink-muted"
+                  onClick={() => onRemove?.(line.sku)}
+                >
+                  <Icon name="x" size={14} />
+                  {s.remove(line.name)}
+                </Button>
+              </div>
+            ) : pieces.length > 0 ? null : !editable ? (
               <span className="font-mono text-xs tabular-nums text-ink-muted">
                 {line.quantity} {line.unit_label} · {money(line.unit_price_cents)}
                 {line.break_percent > 0 ? ` · −${line.break_percent} %` : ""}
@@ -158,7 +188,8 @@ export function QuoteBody({
               </div>
             )}
           </li>
-        ))}
+          );
+        })}
       </ul>
 
       {notices.length > 0 ? (

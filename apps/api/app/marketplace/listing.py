@@ -16,6 +16,7 @@ from app.marketplace.catalogue import (
     Catalogue,
     CatalogueLine,
     MaterialProperties,
+    StockGeometry,
     Supplier,
 )
 from app.marketplace.impact import (
@@ -117,6 +118,9 @@ class LineIndices(BaseModel):
 
 class LineDetail(LineSummary):
     kg_per_unit: float
+    # The rack geometry and the cutting rule (decision 0114), so a page can
+    # offer pieces by their dimensions. Null on a catalogue version before v8.
+    geometry: StockGeometry | None = None
     indices: LineIndices
     description: str
     fabrication: str
@@ -232,6 +236,7 @@ def line_detail(
     return LineDetail(
         **line_summary(catalogue, prices, line, shortlist).model_dump(),
         kg_per_unit=line.kg_per_unit,
+        geometry=line.geometry,
         indices=LineIndices(
             specific_strength=specific_strength(line),
             specific_stiffness=specific_stiffness(line),

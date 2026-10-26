@@ -179,7 +179,16 @@ async def _catalogue(shards: ShardManager, identity: Identity) -> Catalogue:
 def _reference(catalogue: Catalogue, lines: list[ComputedLine], prepared_at: int) -> str:
     day = datetime.fromtimestamp(prepared_at, tz=UTC).strftime("%Y%m%d")
     basket = json.dumps(
-        [[line.sku, line.quantity, line.cut_to_length, line.cut_count] for line in lines],
+        [
+            [
+                line.sku,
+                line.quantity,
+                line.cut_to_length,
+                line.cut_count,
+                [[p.length_mm, p.width_mm, p.count] for p in line.pieces],
+            ]
+            for line in lines
+        ],
         separators=(",", ":"),
     )
     digest = hashlib.sha256(f"{catalogue.id}:{catalogue.version}:{day}:{basket}".encode())

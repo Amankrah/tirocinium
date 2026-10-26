@@ -13,6 +13,7 @@ import { requireSeat } from "@/lib/seat-session";
 import { EnvironmentalPanel, hasEnvironmentalLayer } from "../../../_marketplace/environmental-panel";
 import { LinePicture } from "../../../_marketplace/line-picture";
 import { strings } from "../../../strings";
+import { CutToSizePanel } from "../../_kit/cut-to-size-panel";
 import { LineActions } from "../../_kit/controls";
 import { LineGrid } from "../../_kit/line-card";
 import { dataSheet } from "../../_kit/properties";
@@ -145,6 +146,9 @@ export default async function LinePage({ params }: { params: Promise<{ sku: stri
             </Table>
           ) : null}
           <LineActions line={{ sku: line.sku, moq: line.moq, name: line.name }} size="full" />
+          {line.geometry?.cut ? (
+            <CutToSizePanel line={line} />
+          ) : null}
           <ButtonLink
             href={`/marketplace/request?sku=${encodeURIComponent(line.sku)}`}
             variant="quiet"

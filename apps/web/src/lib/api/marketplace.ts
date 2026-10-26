@@ -12,6 +12,8 @@ export type LineList = Schemas["LineListOut"];
 export type Comparison = Schemas["CompareOut"];
 export type Quote = Schemas["QuoteOut"];
 export type QuoteLine = Schemas["QuoteLineIn"];
+export type Piece = Schemas["PieceIn"];
+export type StockGeometry = Schemas["StockGeometry"];
 export type Rfq = Schemas["RfqOut"];
 export type RfqRequest = Schemas["RfqIn"];
 

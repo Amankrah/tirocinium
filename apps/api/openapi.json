@@ -1042,6 +1042,13 @@
             "title": "Name",
             "type": "string"
           },
+          "pieces": {
+            "items": {
+              "$ref": "#/components/schemas/ComputedPiece"
+            },
+            "title": "Pieces",
+            "type": "array"
+          },
           "position": {
             "title": "Position",
             "type": "integer"
@@ -1049,6 +1056,17 @@
           "quantity": {
             "title": "Quantity",
             "type": "number"
+          },
+          "remnant_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remnant Mm"
           },
           "requested_quantity": {
             "title": "Requested Quantity",
@@ -1062,6 +1080,17 @@
             "title": "Spec",
             "type": "string"
           },
+          "stock_lengths": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stock Lengths"
+          },
           "supplier_id": {
             "title": "Supplier Id",
             "type": "string"
@@ -1069,6 +1098,17 @@
           "supplier_name": {
             "title": "Supplier Name",
             "type": "string"
+          },
+          "tolerance_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tolerance Mm"
           },
           "unit": {
             "title": "Unit",
@@ -1116,6 +1156,41 @@
           "lead_days"
         ],
         "title": "ComputedLine",
+        "type": "object"
+      },
+      "ComputedPiece": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "each_mass_grams": {
+            "title": "Each Mass Grams",
+            "type": "integer"
+          },
+          "length_mm": {
+            "title": "Length Mm",
+            "type": "number"
+          },
+          "width_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width Mm"
+          }
+        },
+        "required": [
+          "length_mm",
+          "width_mm",
+          "count",
+          "each_mass_grams"
+        ],
+        "title": "ComputedPiece",
         "type": "object"
       },
       "ComputedQuote": {
@@ -1714,6 +1789,45 @@
           "better"
         ],
         "title": "CriterionOut",
+        "type": "object"
+      },
+      "CutRule": {
+        "description": "How a stocked form is cut to size (decision 0114): the smallest and\nlargest piece the shop will cut, the step it measures in, the kerf each cut\nconsumes, the tolerance it holds, and what it charges per cut piece.",
+        "properties": {
+          "fee_cents": {
+            "title": "Fee Cents",
+            "type": "integer"
+          },
+          "increment_mm": {
+            "title": "Increment Mm",
+            "type": "number"
+          },
+          "kerf_mm": {
+            "title": "Kerf Mm",
+            "type": "number"
+          },
+          "max_mm": {
+            "title": "Max Mm",
+            "type": "number"
+          },
+          "min_mm": {
+            "title": "Min Mm",
+            "type": "number"
+          },
+          "tolerance_mm": {
+            "title": "Tolerance Mm",
+            "type": "number"
+          }
+        },
+        "required": [
+          "min_mm",
+          "max_mm",
+          "increment_mm",
+          "kerf_mm",
+          "tolerance_mm",
+          "fee_cents"
+        ],
+        "title": "CutRule",
         "type": "object"
       },
       "DistributionOut": {
@@ -2777,6 +2891,16 @@
           "fabrication": {
             "title": "Fabrication",
             "type": "string"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StockGeometry"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "impact": {
             "$ref": "#/components/schemas/ImpactReading"
@@ -4339,6 +4463,42 @@
         "title": "ParameterAnnotation",
         "type": "object"
       },
+      "PieceIn": {
+        "description": "One size of piece and how many of it. Width applies to plate, sheet\nand roll; on a bar or tube it is ignored.",
+        "properties": {
+          "count": {
+            "maximum": 500.0,
+            "minimum": 1.0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "length_mm": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 100000.0,
+            "title": "Length Mm",
+            "type": "number"
+          },
+          "width_mm": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 10000.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width Mm"
+          }
+        },
+        "required": [
+          "length_mm",
+          "count"
+        ],
+        "title": "PieceIn",
+        "type": "object"
+      },
       "PinIn": {
         "properties": {
           "catalogue_id": {
@@ -4742,7 +4902,7 @@
         "type": "object"
       },
       "QuoteLineIn": {
-        "description": "One basket line as the student asked for it.",
+        "description": "One basket line as the student asked for it: a quantity in the unit\nof sale, or, on a form sold cut to size, the pieces by their dimensions\n(decision 0114), from which the quantity is derived.",
         "properties": {
           "cut_count": {
             "default": 1,
@@ -4756,9 +4916,18 @@
             "title": "Cut To Length",
             "type": "boolean"
           },
+          "pieces": {
+            "items": {
+              "$ref": "#/components/schemas/PieceIn"
+            },
+            "maxItems": 20,
+            "title": "Pieces",
+            "type": "array"
+          },
           "quantity": {
-            "exclusiveMinimum": 0.0,
+            "default": 0,
             "maximum": 1000000.0,
+            "minimum": 0.0,
             "title": "Quantity",
             "type": "number"
           },
@@ -4770,8 +4939,7 @@
           }
         },
         "required": [
-          "sku",
-          "quantity"
+          "sku"
         ],
         "title": "QuoteLineIn",
         "type": "object"
@@ -6287,6 +6455,145 @@
           "cost"
         ],
         "title": "SpeechUsageRow",
+        "type": "object"
+      },
+      "StockGeometry": {
+        "description": "The geometry of what the supplier has on the rack, as numbers, so a\nstudent can order pieces of it (decision 0114). Which dimensions are set\ndepends on the form: a plate has thickness, width and length; a round bar\na diameter and a length; a square tube a side, a wall and a length; a roll\na width. `cut` is present only on a form sold cut to size.",
+        "properties": {
+          "cut": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CutRule"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "diameter_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Diameter Mm"
+          },
+          "form": {
+            "enum": [
+              "plate",
+              "sheet",
+              "bar_round",
+              "bar_flat",
+              "tube_square",
+              "tube_round",
+              "pipe",
+              "angle",
+              "profile",
+              "roll",
+              "strip",
+              "each",
+              "bulk",
+              "service"
+            ],
+            "title": "Form",
+            "type": "string"
+          },
+          "leg_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Leg Mm"
+          },
+          "length_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Length Mm"
+          },
+          "nominal_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nominal Mm"
+          },
+          "roll_width_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Roll Width Mm"
+          },
+          "side_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Side Mm"
+          },
+          "thickness_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thickness Mm"
+          },
+          "wall_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wall Mm"
+          },
+          "width_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width Mm"
+          }
+        },
+        "required": [
+          "form"
+        ],
+        "title": "StockGeometry",
         "type": "object"
       },
       "SubmissionCreated": {

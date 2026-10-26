@@ -143,7 +143,7 @@ it gates the product budget directly:
     cargo bench --workspace
     python ../../infra/check-bench-thresholds.py
 
-Python suite, 708 collected and 704 passing with 4 skipped (24 supplier desk
+Python suite, 736 collected and 732 passing with 4 skipped (24 supplier desk
 in `app/marketplace/test_supplier.py`, decision 0108: the quantity reader, the
 fact sheet carrying the figures and fencing the request, the guard refusing an
 invented figure or an unstocked SKU whole, the house style, the desk answering
@@ -232,7 +232,7 @@ venv:
     cd apps/api
     VIRTUAL_ENV="$PWD/.venv" .venv/Scripts/maturin develop --release --manifest-path ../../crates/platform_core/python/Cargo.toml
 
-Web suite (688 Vitest tests across 79 files, the supplier desk's 4 in
+Web suite (691 Vitest tests across 80 files, the supplier desk's 4 in
 `_marketplace/rfq-panel.test.tsx` (the form sends the needed-by and ship-to
 fields and asks for no person; a desk reply renders as a letter around the
 server's priced table and says a model wrote the words; a rules reply says
@@ -1421,6 +1421,19 @@ the Québec grid ratio or its note names what else it burns or consumes
 loosen the ratio), biogenic storage is credited to every plant-fibre line,
 the notes' comparative claims hold against the figures, and v7 reproduces
 from its script byte for byte.
+Catalogue v8 (`scripts/revise_catalogue_v8.py`, decision 0114) adds the
+geometry blocks; `app/marketplace/test_cutting.py` (19) pins the cut
+arithmetic against hand-worked figures (a plate piece by finished cut mass, a
+tube order nested into stock with the kerf, a bar by the mass of its pieces, a
+sheet by whole sheets, a roll by area, seven refusals), the basket (pieces set
+quantity, cuts and fee and waive the minimum; a refused piece leaves the line
+off with the reason; a line needs a quantity or pieces), an issued quotation
+reading its pieces back (the test pins its course to v8 explicitly), the
+project quotation pricing pieces at list, every cuttable line carrying a rule
+with its section-derived mass per metre within 15 % of the catalogue's, and a
+pre-v8 catalogue selling by the unit only. Web: `_marketplace/cut-to-size.test.tsx`
+(3: the rule and the server's figures, the shop's refusal withholding the
+add, the pieces handed to the basket).
 `app/marketplace/test_challenges.py` (19, decision 0112) covers the matrix
 (best reads 100, a weighted sum is a percentage, a missing figure is named,
 four refusals, the endpoint at list prices), the challenge (a brief withholds

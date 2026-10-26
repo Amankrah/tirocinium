@@ -35,6 +35,7 @@ from app.marketplace.catalogue import (
     Tax,
     load_catalogue,
 )
+from app.marketplace.cutting import ComputedPiece, PieceIn
 from app.marketplace.indices import MAX_COMPARE, CompareOut, compare
 from app.marketplace.listing import (
     DEFAULT_LIMIT,
@@ -399,6 +400,33 @@ def _read_quote(conn: sqlite3.Connection, quote_id: int, seat_id: int) -> tuple[
     return tuple(row)
 
 
+def _pieces_in(raw: object) -> list[PieceIn]:
+    """Pieces as stored: [length_mm, width_mm, count] triples (decision 0114)."""
+    return [
+        PieceIn(length_mm=float(entry[0]), width_mm=entry[1], count=int(entry[2]))
+        for entry in json.loads(str(raw or "[]"))
+    ]
+
+
+def _frozen_pieces(raw: object, mass_grams: int, quantity: float) -> list[ComputedPiece]:
+    """The pieces of an issued line, read back from the snapshot. The
+    snapshot keeps the pieces and the line's mass, not each piece's, so each
+    piece's mass is its share of the line's by count, which is exact when
+    all pieces are the same size and a fair reading otherwise."""
+    pieces = _pieces_in(raw)
+    count = sum(piece.count for piece in pieces)
+    each = round(mass_grams / count) if count else 0
+    return [
+        ComputedPiece(
+            length_mm=piece.length_mm,
+            width_mm=piece.width_mm,
+            count=piece.count,
+            each_mass_grams=each,
+        )
+        for piece in pieces
+    ]
+
+
 def _stored_lines(conn: sqlite3.Connection, quote_id: int) -> list[QuoteLineIn]:
     return [
         QuoteLineIn(
@@ -406,9 +434,10 @@ def _stored_lines(conn: sqlite3.Connection, quote_id: int) -> list[QuoteLineIn]:
             quantity=float(row[1]),
             cut_to_length=bool(row[2]),
             cut_count=int(row[3]),
+            pieces=_pieces_in(row[4]),
         )
         for row in conn.execute(
-            "SELECT sku, quantity, cut_to_length, cut_count FROM quote_lines"
+            "SELECT sku, quantity, cut_to_length, cut_count, pieces_json FROM quote_lines"
             " WHERE quote_id = ? ORDER BY position",
             (quote_id,),
         ).fetchall()
@@ -421,7 +450,7 @@ def _write_lines(conn: sqlite3.Connection, quote_id: int, computed: ComputedQuot
         "INSERT INTO quote_lines (quote_id, position, sku, supplier_id, name, spec,"
         " unit, quantity, cut_to_length, cut_count, list_price_cents,"
         " unit_price_cents, break_percent, extended_cents, line_cut_fee_cents,"
-        " mass_grams) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        " mass_grams, pieces_json) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         [
             (
                 quote_id,
@@ -440,6 +469,7 @@ def _write_lines(conn: sqlite3.Connection, quote_id: int, computed: ComputedQuot
                 line.extended_cents,
                 line.cut_fee_cents,
                 line.mass_grams,
+                json.dumps([[p.length_mm, p.width_mm, p.count] for p in line.pieces]),
             )
             for line in computed.lines
         ],
@@ -585,7 +615,7 @@ async def get_quote(
         stored = conn.execute(
             "SELECT position, sku, supplier_id, name, spec, unit, quantity,"
             " cut_to_length, cut_count, list_price_cents, unit_price_cents,"
-            " break_percent, extended_cents, line_cut_fee_cents, mass_grams"
+            " break_percent, extended_cents, line_cut_fee_cents, mass_grams, pieces_json"
             " FROM quote_lines WHERE quote_id = ? ORDER BY position",
             (quote_id,),
         ).fetchall()
@@ -644,6 +674,9 @@ def _frozen(row: tuple[Any, ...], stored: list[tuple[Any, ...]]) -> ComputedQuot
                 cut_fee_cents=int(item[13]),
                 mass_grams=int(item[14]),
                 lead_days=catalog_line.lead_days if catalog_line else 0,
+                # The frozen pieces, with each piece's mass left at the mass
+                # the snapshot can support: the line's own, pro rata.
+                pieces=_frozen_pieces(item[15], int(item[14]), float(item[6])),
                 embodied_energy_mj=energy,
                 carbon_kg=carbon,
                 water_l=water,

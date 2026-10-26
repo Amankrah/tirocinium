@@ -24,7 +24,7 @@ import {
   type ReactNode,
 } from "react";
 
-import type { ProjectQuotation, QuoteLine, Result } from "@/lib/api/marketplace";
+import type { Piece, ProjectQuotation, QuoteLine, Result } from "@/lib/api/marketplace";
 import { strings } from "../../strings";
 import { TRAY_LIMIT } from "./limits";
 
@@ -40,6 +40,9 @@ type Market = {
   inBasket: (sku: string) => boolean;
   add: (line: Addable) => void;
   addMany: (lines: Addable[]) => void;
+  // A line ordered by the piece (decision 0114) replaces any unit line of
+  // the same SKU: a basket holds one line per line.
+  addPieces: (line: Addable, pieces: Piece[]) => void;
   setQuantity: (sku: string, quantity: number) => void;
   setCut: (sku: string, cut: boolean) => void;
   setCuts: (sku: string, cuts: number) => void;
@@ -101,6 +104,11 @@ export function MarketProvider({
               quantity: line.quantity,
               cut_to_length: line.cut_to_length,
               cut_count: line.cut_count,
+              pieces: (line.pieces ?? []).map((piece) => ({
+                length_mm: piece.length_mm,
+                width_mm: piece.width_mm,
+                count: piece.count,
+              })),
             })),
           );
           setFailure(null);
@@ -141,6 +149,24 @@ export function MarketProvider({
     [basket, commit, announce, s],
   );
 
+  const addPieces = useCallback(
+    (line: Addable, pieces: Piece[]) => {
+      if (pieces.length === 0) return;
+      commit([
+        ...basket.filter((item) => item.sku !== line.sku),
+        { sku: line.sku, quantity: 0, cut_to_length: true, cut_count: 1, pieces },
+      ]);
+      announce(
+        strings.project.cut.added(
+          pieces.reduce((sum, piece) => sum + piece.count, 0),
+          line.name,
+        ),
+        true,
+      );
+    },
+    [basket, commit, announce],
+  );
+
   const update = useCallback(
     (sku: string, change: Partial<QuoteLine>) =>
       commit(basket.map((line) => (line.sku === sku ? { ...line, ...change } : line))),
@@ -171,6 +197,7 @@ export function MarketProvider({
       inBasket,
       add,
       addMany,
+      addPieces,
       setQuantity: (sku, quantity) => update(sku, { quantity }),
       setCut: (sku, cut) => update(sku, { cut_to_length: cut }),
       setCuts: (sku, cuts) => update(sku, { cut_count: Math.max(1, Math.round(cuts)) }),
@@ -182,7 +209,7 @@ export function MarketProvider({
       setTray: (skus) => setTrayState(skus.slice(0, TRAY_LIMIT)),
       clearTray: () => setTrayState([]),
     }),
-    [basket, quotation, pending, failure, inBasket, add, addMany, update, commit, tray, toggleTray],
+    [basket, quotation, pending, failure, inBasket, add, addMany, addPieces, update, commit, tray, toggleTray],
   );
 
   return (

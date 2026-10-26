@@ -180,6 +180,25 @@ The upload offers the seat's committed selections for citation. The seventeen
 requirement statements are the engineer's drafts for the course author to
 review.
 
+A piece is ordered by its dimensions (decision 0114). Catalogue v8 gives every
+line a `geometry` block (`StockGeometry`: form, the rack dimensions, and on
+cut-to-size forms a `CutRule` with min, max, increment, kerf, tolerance and
+the fee per cut piece); `CatalogueLine.stock` is still the in/lo/oo state, so
+the geometry field is `geometry`, never `stock`. A `QuoteLineIn` carries
+either a `quantity` or `pieces` (`PieceIn`: length, width where the form has
+one, count), and `app/marketplace/cutting.py` derives the quantity in the unit
+of sale: plate by mass from the dimensions and density, bar and tube by cut
+length nested into stock lengths with the kerf, a sheet sold each by whole
+sheets, a roll by area. Pieces waive the uncut-stock minimum and charge the
+rule's fee per cut piece; a piece the shop would not cut is a notice and the
+line is left off, like an unknown SKU. Price breaks, freight and footprint run
+on the derived quantity unchanged: a cut order is not a second pricing path.
+Issued quotations freeze `pieces_json` (course migration 0026) and read it
+back. Web: `_marketplace/cut-to-size.tsx` previews through the basket's own
+pricing action and never multiplies; `market.addPieces` replaces a unit line
+of the same SKU; the basket re-sync carries pieces through. Metric only on the
+student side.
+
 A shop's published price may sit beside a list price and may not become it (decision 0111, `app/marketplace/market_check.py`). `catalogue/bree-216/market-sources.json` maps a few stocked grades to one public product page and one named cut on it. The weekly timer runs `scripts/refresh_market_checks.py`, which writes `$TIRO_DATA_DIR/market-checks.json` and, when the page does not answer or no longer has that cut, keeps the previous cents and the previous photograph. The project line shows that reading, and the shop's own product photograph when the same document published one on `cdn.shopify.com`. `compute_quote` does not see it, the supplier fact sheet does not carry it, and the case-study line does not show it. Do not write it into `list_price_cents`.
 
 Deployment is one host, and the data layer decides that rather than taste

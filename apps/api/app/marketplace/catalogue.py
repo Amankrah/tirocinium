@@ -76,6 +76,75 @@ class MaterialProperties(BaseModel):
     end_of_life_recovery_percent: float | None = Field(default=None, validation_alias="recovery")
 
 
+Form = Literal[
+    "plate",
+    "sheet",
+    "bar_round",
+    "bar_flat",
+    "tube_square",
+    "tube_round",
+    "pipe",
+    "angle",
+    "profile",
+    "roll",
+    "strip",
+    "each",
+    "bulk",
+    "service",
+]
+
+# The forms a student may order as cut pieces. Everything else is bought by
+# the unit it is sold in.
+CUTTABLE_FORMS: frozenset[str] = frozenset(
+    {
+        "plate",
+        "sheet",
+        "bar_round",
+        "bar_flat",
+        "tube_square",
+        "tube_round",
+        "pipe",
+        "angle",
+        "profile",
+        "roll",
+        "strip",
+    }
+)
+
+
+class CutRule(BaseModel):
+    """How a stocked form is cut to size (decision 0114): the smallest and
+    largest piece the shop will cut, the step it measures in, the kerf each cut
+    consumes, the tolerance it holds, and what it charges per cut piece."""
+
+    min_mm: float
+    max_mm: float
+    increment_mm: float
+    kerf_mm: float
+    tolerance_mm: float
+    fee_cents: int
+
+
+class StockGeometry(BaseModel):
+    """The geometry of what the supplier has on the rack, as numbers, so a
+    student can order pieces of it (decision 0114). Which dimensions are set
+    depends on the form: a plate has thickness, width and length; a round bar
+    a diameter and a length; a square tube a side, a wall and a length; a roll
+    a width. `cut` is present only on a form sold cut to size."""
+
+    form: Form
+    thickness_mm: float | None = None
+    width_mm: float | None = None
+    length_mm: float | None = None
+    diameter_mm: float | None = None
+    side_mm: float | None = None
+    wall_mm: float | None = None
+    leg_mm: float | None = None
+    roll_width_mm: float | None = None
+    nominal_mm: float | None = None
+    cut: CutRule | None = None
+
+
 class Supplier(BaseModel):
     """One fictional supplier and the terms it trades on."""
 
@@ -121,6 +190,8 @@ class CatalogueLine(BaseModel):
     description: str
     fabrication: str
     properties: MaterialProperties
+    # From catalogue v8. Absent on earlier versions, which sell by the unit only.
+    geometry: StockGeometry | None = None
     # Set by a catalogue that carries the environmental layer. A process has
     # no mass, so its energy and carbon are per unit of process; the note says
     # what that unit is. Empty and null on a version that does not publish them.

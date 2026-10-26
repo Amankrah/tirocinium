@@ -271,5 +271,10 @@ function fromQuote(quote: Quote | null): QuoteLine[] {
     quantity: line.quantity,
     cut_to_length: line.cut_to_length,
     cut_count: line.cut_count,
+    pieces: (line.pieces ?? []).map((piece) => ({
+      length_mm: piece.length_mm,
+      width_mm: piece.width_mm,
+      count: piece.count,
+    })),
   }));
 }

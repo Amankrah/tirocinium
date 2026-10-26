@@ -207,3 +207,30 @@ times stainless, flax a fifth of glass).
 
 What moves to v7: an unpinned project seat, because v7 is the newest shipped
 version. A course pinned to an earlier version stays there until re-pinned.
+
+## v8
+
+Every line gains a `geometry` block (decision 0114): the stock on the rack as
+numbers (a plate's thickness, width and length; a bar's diameter and length; a
+tube's side or diameter, wall and length; a pipe's nominal size and length; a
+roll's width; a profile's depth and flange) and, on the forms a service centre
+sells cut to size, the cutting rule it quotes by: the shortest and longest
+piece, the increment, the kerf, the tolerance and the charge per cut piece.
+Derived from v7 by `scripts/revise_catalogue_v8.py`, which reads each line's
+own spec string and names the few lines the string does not describe. Same
+146 lines, same SKUs, same prices, same properties, same notes, same briefs.
+
+The cutting rules are authored, not lifted from the teaching page, which
+carried none: a saw cut on bar and tube (25 mm minimum, 3 mm kerf, held to
+1.5 mm, at the per-cut charge the line already carried), a plasma or laser cut
+on plate 3 mm and up (50 mm minimum, 2 mm kerf, held to 2 mm), a shear on thin
+sheet, a saw on polymer and composite sheet, a blade on a roll. Plate and
+sheet, which carried no cut charge, gain one per cut piece, because the
+supplier's own policy says a saw-cut charge applies to every cut piece and a
+plate cut to a drawing is one. A piece longer than the stock is not a line the
+catalogue sells; the surface says to ask the supplier for a quotation, as a
+shop does.
+
+What moves to v8: an unpinned project seat, because v8 is the newest shipped
+version. A course pinned to an earlier version stays there and sells by the
+unit only. The course pack still pins v1.

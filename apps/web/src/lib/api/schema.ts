@@ -2173,20 +2173,28 @@ export interface components {
             mass_grams: number;
             /** Name */
             name: string;
+            /** Pieces */
+            pieces?: components["schemas"]["ComputedPiece"][];
             /** Position */
             position: number;
             /** Quantity */
             quantity: number;
+            /** Remnant Mm */
+            remnant_mm?: number | null;
             /** Requested Quantity */
             requested_quantity: number;
             /** Sku */
             sku: string;
             /** Spec */
             spec: string;
+            /** Stock Lengths */
+            stock_lengths?: number | null;
             /** Supplier Id */
             supplier_id: string;
             /** Supplier Name */
             supplier_name: string;
+            /** Tolerance Mm */
+            tolerance_mm?: number | null;
             /** Unit */
             unit: string;
             /** Unit Label */
@@ -2195,6 +2203,17 @@ export interface components {
             unit_price_cents: number;
             /** Water L */
             water_l?: number | null;
+        };
+        /** ComputedPiece */
+        ComputedPiece: {
+            /** Count */
+            count: number;
+            /** Each Mass Grams */
+            each_mass_grams: number;
+            /** Length Mm */
+            length_mm: number;
+            /** Width Mm */
+            width_mm: number | null;
         };
         /** ComputedQuote */
         ComputedQuote: {
@@ -2418,6 +2437,26 @@ export interface components {
             key: string;
             /** Label */
             label: string;
+        };
+        /**
+         * CutRule
+         * @description How a stocked form is cut to size (decision 0114): the smallest and
+         *     largest piece the shop will cut, the step it measures in, the kerf each cut
+         *     consumes, the tolerance it holds, and what it charges per cut piece.
+         */
+        CutRule: {
+            /** Fee Cents */
+            fee_cents: number;
+            /** Increment Mm */
+            increment_mm: number;
+            /** Kerf Mm */
+            kerf_mm: number;
+            /** Max Mm */
+            max_mm: number;
+            /** Min Mm */
+            min_mm: number;
+            /** Tolerance Mm */
+            tolerance_mm: number;
         };
         /** DistributionOut */
         DistributionOut: {
@@ -2776,6 +2815,7 @@ export interface components {
             end_of_life_recovery_percent?: number | null;
             /** Fabrication */
             fabrication: string;
+            geometry?: components["schemas"]["StockGeometry"] | null;
             impact: components["schemas"]["ImpactReading"];
             indices: components["schemas"]["LineIndices"];
             /** Kg Per Unit */
@@ -3272,6 +3312,19 @@ export interface components {
             /** Rationale */
             rationale: string;
         };
+        /**
+         * PieceIn
+         * @description One size of piece and how many of it. Width applies to plate, sheet
+         *     and roll; on a bar or tube it is ignored.
+         */
+        PieceIn: {
+            /** Count */
+            count: number;
+            /** Length Mm */
+            length_mm: number;
+            /** Width Mm */
+            width_mm?: number | null;
+        };
         /** PinIn */
         PinIn: {
             /** Catalogue Id */
@@ -3427,7 +3480,9 @@ export interface components {
         };
         /**
          * QuoteLineIn
-         * @description One basket line as the student asked for it.
+         * @description One basket line as the student asked for it: a quantity in the unit
+         *     of sale, or, on a form sold cut to size, the pieces by their dimensions
+         *     (decision 0114), from which the quantity is derived.
          */
         QuoteLineIn: {
             /**
@@ -3440,7 +3495,12 @@ export interface components {
              * @default false
              */
             cut_to_length: boolean;
-            /** Quantity */
+            /** Pieces */
+            pieces?: components["schemas"]["PieceIn"][];
+            /**
+             * Quantity
+             * @default 0
+             */
             quantity: number;
             /** Sku */
             sku: string;
@@ -4006,6 +4066,40 @@ export interface components {
             provider: string;
             /** Unit */
             unit: string;
+        };
+        /**
+         * StockGeometry
+         * @description The geometry of what the supplier has on the rack, as numbers, so a
+         *     student can order pieces of it (decision 0114). Which dimensions are set
+         *     depends on the form: a plate has thickness, width and length; a round bar
+         *     a diameter and a length; a square tube a side, a wall and a length; a roll
+         *     a width. `cut` is present only on a form sold cut to size.
+         */
+        StockGeometry: {
+            cut?: components["schemas"]["CutRule"] | null;
+            /** Diameter Mm */
+            diameter_mm?: number | null;
+            /**
+             * Form
+             * @enum {string}
+             */
+            form: "plate" | "sheet" | "bar_round" | "bar_flat" | "tube_square" | "tube_round" | "pipe" | "angle" | "profile" | "roll" | "strip" | "each" | "bulk" | "service";
+            /** Leg Mm */
+            leg_mm?: number | null;
+            /** Length Mm */
+            length_mm?: number | null;
+            /** Nominal Mm */
+            nominal_mm?: number | null;
+            /** Roll Width Mm */
+            roll_width_mm?: number | null;
+            /** Side Mm */
+            side_mm?: number | null;
+            /** Thickness Mm */
+            thickness_mm?: number | null;
+            /** Wall Mm */
+            wall_mm?: number | null;
+            /** Width Mm */
+            width_mm?: number | null;
         };
         /** SubmissionCreated */
         SubmissionCreated: {

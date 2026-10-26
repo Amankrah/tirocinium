@@ -229,6 +229,15 @@ export const strings = {
       less: (name: string) => `Less ${name}`,
       more: (name: string) => `More ${name}`,
       cutsFixed: (count: number) => (count === 1 ? "cut to length, 1 cut" : `cut to length, ${count} cuts`),
+      // A line ordered by the piece (decision 0114).
+      pieceLine: (count: number, length: number, width: number | null) =>
+        `${count} × ${length}${width ? ` × ${width}` : ""} mm`,
+      pieceEach: (each: string) => `${each} each`,
+      stockUsed: (lengths: number, form: string, remnant: number | null) =>
+        form === "plate" || form === "sheet"
+          ? `${lengths} ${lengths === 1 ? "sheet" : "sheets"}`
+          : `${lengths} stock ${lengths === 1 ? "length" : "lengths"}${remnant != null ? `, ${(remnant / 1000).toFixed(2)} m left` : ""}`,
+      tolerance: (mm: number) => `±${mm} mm`,
       goods: "Materials, after volume discount",
       discount: "Volume discount, already taken off",
       cutting: "Cutting",
@@ -403,6 +412,33 @@ export const strings = {
     orderAtLeast: "Order at least",
     unitPrice: "Unit price",
     askAboutLine: "Ask the supplier about this line",
+    // Cut to size (decision 0114): the shop's rule, the pieces, and what the
+    // server says they come to. No arithmetic is done on this side.
+    cut: {
+      heading: "Cut to size",
+      rule: (min: number, max: number, step: number, tolerance: number, fee: string) =>
+        `Cuts from ${min} to ${max} mm in ${step} mm steps, held to ±${tolerance} mm, ${fee} per cut piece.`,
+      length: "Length, mm",
+      width: "Width, mm",
+      count: "Pieces",
+      anotherSize: "Another size",
+      fewerSizes: "Remove last size",
+      piece: (count: number, length: number, width: number | null) =>
+        `${count} × ${length}${width ? ` × ${width}` : ""} mm`,
+      each: (each: string) => `${each} each`,
+      comesTo: "Comes to",
+      cutting: "Cutting",
+      cuts: (n: number) => (n === 1 ? "1 cut" : `${n} cuts`),
+      stock: "From stock",
+      stockUsed: (lengths: number, form: string, remnant: number | null) =>
+        form === "plate" || form === "sheet"
+          ? `${lengths} ${lengths === 1 ? "sheet" : "sheets"}`
+          : `${lengths} ${lengths === 1 ? "length" : "lengths"}${remnant != null ? `, ${(remnant / 1000).toFixed(2)} m left` : ""}`,
+      lineTotal: "Line total before freight and tax",
+      add: (count: number) => (count === 0 ? "Add pieces to quote" : count === 1 ? "Add 1 piece to quote" : `Add ${count} pieces to quote`),
+      longer: (max: number) => `Longer than ${max} mm? Ask the supplier to quote it`,
+      added: (count: number, name: string) => `${count} cut pieces of ${name} added to your quote.`,
+    },
     fabrication: "Fabrication route.",
     dataSheet: "Material data sheet",
     indices: "Derived indices",
