@@ -34,6 +34,10 @@ dependencies = [
     "opentelemetry-api>=1.27,<2.0",
     "opentelemetry-sdk>=1.27,<2.0",
     "opentelemetry-exporter-otlp-proto-http>=1.27,<2.0",
+    # The IANA zone database for zoneinfo (the market check's Toronto week).
+    # Linux ships one; Windows and slim containers do not, and without it the
+    # marketplace fails at import.
+    "tzdata>=2024.1",
 ]
 
 [dependency-groups]
