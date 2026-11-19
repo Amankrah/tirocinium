@@ -234,3 +234,31 @@ shop does.
 What moves to v8: an unpinned project seat, because v8 is the newest shipped
 version. A course pinned to an earlier version stays there and sells by the
 unit only. The course pack still pins v1.
+
+## v9
+
+Three lines added that BREE 216 project groups asked for and the catalogue
+did not stock (decision 0116), derived from v8 by
+`scripts/revise_catalogue_v9.py`, which writes each new line out whole as data
+and is the whole of the difference. The 146 lines of v8 are unchanged, in the
+same order, and the briefs are untouched, so 149 lines now.
+
+Terrafibre gains S-2 glass fibre 8-harness satin at 300 g/m² (`TFC-SG-300`)
+and a carbon-reinforced glass fibre hybrid twill at 200 g/m², half carbon and
+half E-glass by mass (`TFC-CGH-200`), both placed after the carbon twill they
+are compared with and sold off the 1.27 m roll like the other fabrics.
+Cascades gains a 5 mm borosilicate 3.3 float glass sheet, 1000 × 1200 mm
+(`CPP-BORO-5`), among the glazing, sold by the sheet and cut by score and snap:
+no kerf, held to 1 mm, $9.00 per cut piece.
+
+The figures are the engineer's, from handbook values for the two glasses and,
+for the hybrid, the mass-weighted means of the carbon and E-glass lines this
+catalogue already stocks, which its note says. S-glass states the fibre's own
+figures, like carbon and basalt, while the E-glass lines state a laminate's;
+its description says so rather than this revision changing the E-glass lines.
+They are for the course author to review, and that review lands as a later
+revision.
+
+What moves to v9: an unpinned project seat, because v9 is the newest shipped
+version. A course pinned to an earlier version stays there until re-pinned,
+and an issued quotation is not rewritten.

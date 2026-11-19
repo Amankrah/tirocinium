@@ -1434,6 +1434,7 @@ with its section-derived mass per metre within 15 % of the catalogue's, and a
 pre-v8 catalogue selling by the unit only. Web: `_marketplace/cut-to-size.test.tsx`
 (3: the rule and the server's figures, the shop's refusal withholding the
 add, the pieces handed to the basket).
+Catalogue v9 (`scripts/revise_catalogue_v9.py`, decision 0116) adds three lines and is pinned by `app/marketplace/test_catalogue_v9.py` (7): the v8 lines and briefs unchanged, each new line carrying the environmental layer and a geometry block, the borosilicate sheet's mass following from its dimensions and cut from whole sheets, the hybrid's footprint the mass-weighted mean of its two fibres, the notes' claims holding against the figures, and v9 reproducing from its script byte for byte. On this Windows host the marketplace package needs `tzdata` in the venv (`uv pip install --python .venv/Scripts/python.exe tzdata`), because Windows has no system zone database for `market_check.py`'s `ZoneInfo`; Linux CI does.
 `app/marketplace/test_challenges.py` (19, decision 0112) covers the matrix
 (best reads 100, a weighted sum is a percentage, a missing figure is named,
 four refusals, the endpoint at list prices), the challenge (a brief withholds

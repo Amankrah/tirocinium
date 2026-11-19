@@ -38,6 +38,7 @@ export const SWATCHES: Record<string, string> = {
   pc: "linear-gradient(135deg,rgba(154,196,206,.85) 0%,rgba(214,238,243,.9) 25%,rgba(133,178,190,.85) 55%,rgba(196,226,233,.9) 100%),repeating-linear-gradient(90deg,#7fa6b0 0 1px,transparent 1px 13px)",
   pcsolid: "linear-gradient(135deg,rgba(180,214,222,.75) 0%,rgba(226,243,247,.85) 30%,rgba(163,199,208,.75) 65%,rgba(212,235,240,.85) 100%)",
   acryl: "linear-gradient(135deg,rgba(226,236,240,.9) 0%,rgba(248,252,253,.95) 30%,rgba(210,224,229,.9) 65%,rgba(240,247,249,.95) 100%)",
+  boro: "linear-gradient(135deg,rgba(214,232,226,.9) 0%,rgba(244,251,249,.95) 30%,rgba(198,221,214,.9) 65%,rgba(232,245,241,.95) 100%)",
   film: "linear-gradient(135deg,rgba(232,240,236,.8) 0%,rgba(250,253,251,.9) 30%,rgba(219,229,224,.8) 70%,rgba(243,248,245,.9) 100%)",
   epdm: "linear-gradient(135deg,#1f2225 0%,#303438 32%,#17191c 62%,#2a2d31 100%)",
   ptfe: "linear-gradient(135deg,#f0f2f0 0%,#ffffff 25%,#e3e6e3 55%,#f7f9f7 100%)",
@@ -48,6 +49,7 @@ export const SWATCHES: Record<string, string> = {
   hemp: "repeating-linear-gradient(30deg,#b3a071 0 4px,#9d8a5d 4px 8px)",
   jute: "repeating-linear-gradient(0deg,#b99a63 0 3px,#a68851 3px 6px),repeating-linear-gradient(90deg,rgba(255,246,222,.4) 0 3px,transparent 3px 6px)",
   carbonf: "repeating-linear-gradient(45deg,#1d2023 0 5px,#2e3236 5px 10px),repeating-linear-gradient(-45deg,rgba(255,255,255,.06) 0 5px,transparent 5px 10px)",
+  hybridcg: "repeating-linear-gradient(45deg,#24272b 0 5px,#e4e7e1 5px 10px),repeating-linear-gradient(-45deg,rgba(255,255,255,.08) 0 5px,transparent 5px 10px)",
   basalt: "repeating-linear-gradient(45deg,#4e4a52 0 4px,#3d3a41 4px 8px)",
   resin: "linear-gradient(135deg,#c9a96b 0%,#e6cb92 25%,#b59657 55%,#dcc086 100%)",
   bioresin: "linear-gradient(135deg,#8d9a5b 0%,#adba77 28%,#7a8750 58%,#a2af6e 100%)",
@@ -85,7 +87,7 @@ export function swatchBackground(key: string): string {
 // moment.
 const LIGHT = new Set([
   "galv", "stain", "stainbr", "duplex", "nickel", "alum", "alumext", "pvcw", "cpvc", "pp", "uhmw",
-  "pc", "pcsolid", "acryl", "film", "ptfe", "nylon", "glassf", "csm", "flax", "hemp", "jute",
+  "pc", "pcsolid", "acryl", "boro", "film", "ptfe", "nylon", "glassf", "csm", "flax", "hemp", "jute",
   "resin", "foam", "balsa", "strawb", "hempcr", "stellite", "alumina", "zirc", "chrome", "cdsteel",
   "tita", "si3n4",
 ]);
